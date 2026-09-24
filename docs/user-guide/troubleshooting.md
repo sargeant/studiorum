@@ -73,15 +73,11 @@ studiorum convert items "Bag of Holding" --images
 
 ### MCP Connection Problems
 
-**Error**: `MCP server connection failed` in Claude Desktop
+**Error**: Claude Desktop reports that the studiorum server failed or disconnected.
 
-**Quick Fix**:
-```bash
-# Test MCP server manually
-uv run studiorum mcp run --debug
-```
+**Quick Fix**: run the command from your Claude Desktop configuration in a terminal, for example `uv run --directory /path/to/studiorum studiorum mcp run`. It should wait silently for input; if it exits, its error names the problem.
 
-**See**: [MCP Server Issues](#mcp-server-issues) for detailed troubleshooting.
+**See**: [MCP Server Issues](#mcp-server-issues).
 
 ---
 
@@ -405,71 +401,12 @@ See [Images](images.md) for how images are found, converted and placed.
 ## MCP Server Issues
 
 !!! warning "Experimental Feature"
-    MCP features are experimental and may not work as expected. Report issues on GitHub.
+    The MCP server is new. Report problems on GitHub.
 
-### Connection Problems
-
-**Problem**: Claude Desktop can't connect to MCP server
-
-**Solution**:
-
-1. **Check configuration**:
-
-   ```json
-   {
-     "mcpServers": {
-       "studiorum": {
-         "command": "uv",
-         "args": ["run", "studiorum", "mcp", "run"],
-         "cwd": "/correct/path/to/project"
-       }
-     }
-   }
-   ```
-
-2. **Test server manually**:
-
-   ```bash
-   cd /correct/path/to/project
-   uv run studiorum mcp run --debug
-   ```
-
-3. **Check logs**:
-
-   ```bash
-   # Claude Desktop logs
-   tail -f ~/.claude/logs/claude_desktop.log
-
-   # Studiorum MCP logs
-   tail -f ~/.studiorum/logs/mcp-server.log
-   ```
-
-### Tool Execution Errors
-
-**Problem**: MCP tools fail with errors
-
-**Solution**:
-
-1. **Test tools directly**:
-
-   ```bash
-   studiorum mcp test lookup_creature "Ancient Red Dragon"
-   ```
-
-2. **Check permissions**:
-
-   ```bash
-   # Ensure studiorum can write temporary files
-   touch ~/.studiorum/temp/test.txt
-   rm ~/.studiorum/temp/test.txt
-   ```
-
-3. **Validate input**:
-
-   ```bash
-   # Check exact content names
-   studiorum list content --type creature | grep -i "red dragon"
-   ```
+- **The client can't start the server.** Check the command in your client configuration against [MCP Integration](mcp-setup.md), then run it in a terminal. A missing configuration file or data directory stops it at start-up with an error.
+- **A tool finds nothing.** The content tools default to `srd_only=true`, which leaves out entries 5etools doesn't mark as SRD. Pass `srd_only=false`, or check the data directories with `studiorum data show`.
+- **`get_content` says a name wasn't found.** The error lists the closest names. The search tools match any part of a name, so use them to find the exact one.
+- **Logs.** The server logs to stderr. Claude Desktop keeps each server's stderr in its log directory (on macOS, `~/Library/Logs/Claude/`).
 
 ## Configuration Issues
 

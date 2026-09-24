@@ -8,7 +8,7 @@ from studiorum.core.logging import get_logger
 from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType
 from ..models.creature_filters import CreatureCollectionResult, CreatureFilterCriteria
-from ..models.creatures import Creature
+from ..models.creatures import Creature, CreatureType
 from ..models.legendarygroup import LegendaryGroup
 
 logger = get_logger(__name__)
@@ -355,7 +355,15 @@ class CreatureCollector:
         creature_type_data = creature.type
 
         # Parse creature type structure from 5e.tools data
-        if isinstance(creature_type_data, dict):
+        if isinstance(creature_type_data, CreatureType):
+            kind = creature_type_data.type
+            main_type = kind.lower() if isinstance(kind, str) else ""
+            creature_tags = [
+                tag.lower()
+                for tag in creature_type_data.tags or []
+                if isinstance(tag, str)
+            ]
+        elif isinstance(creature_type_data, dict):
             main_type = creature_type_data.get("type", "").lower()
             tags_data = creature_type_data.get("tags", [])
             creature_tags = [

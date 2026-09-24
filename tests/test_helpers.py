@@ -37,10 +37,8 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
 
         # 1. Forget Services built outside a CLI invocation
         from studiorum.cli.context import reset_services
-        from studiorum.mcp.context import reset_mcp_services
 
         reset_services()
-        reset_mcp_services()
 
         # 2.1. Reset the entry type registry global instance
         from studiorum.core.entry_registry import reset_global_registry

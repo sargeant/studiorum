@@ -1,12 +1,4 @@
-"""Comprehensive tests for encounter building MCP tools.
-
-This module provides complete test coverage for the encounter building system,
-including budget calculation, creature search, encounter generation, and
-rebalancing functionality.
-
-Tests maintain the required reset_test_environment() pattern for parallel execution
-and include both unit tests and integration scenarios.
-"""
+"""Tests for encounter budgets, constraints and the theme profiles."""
 
 from unittest.mock import Mock
 
@@ -18,14 +10,6 @@ from studiorum.core.encounter.encounter_types import (
     XP,
     EncounterConstraints,
     PartyComposition,
-)
-from studiorum.core.error_types import MCPException
-from studiorum.mcp.tools.encounter.tools import (
-    build_balanced_encounter_mcp,
-    calculate_encounter_budget_mcp,
-    get_encounter_tool_definitions,
-    rebalance_encounter_mcp,
-    search_creatures_for_encounter_mcp,
 )
 
 
@@ -125,38 +109,6 @@ class TestEncounterBudgetCalculation:
         # Invalid difficulty
         with pytest.raises(ValueError, match="Invalid difficulty"):
             calculate_encounter_budget(4, 5, "impossible")
-
-    @pytest.mark.asyncio
-    async def test_mcp_budget_calculation(self) -> None:
-        """Test MCP interface for budget calculation."""
-        result = await calculate_encounter_budget_mcp(
-            party_size=4, party_level=7, difficulty="hard"
-        )
-
-        assert "base_xp_budget" in result
-        assert "adjusted_xp_budget" in result
-        assert "mcp_metadata" in result
-        assert "encounter_advice" in result
-        assert result["mcp_metadata"]["tool"] == "calculate_encounter_budget"
-        assert result["mcp_metadata"]["dmg_compliance"] is True
-
-    @pytest.mark.asyncio
-    async def test_mcp_validation_errors(self) -> None:
-        """Test MCP validation error handling."""
-        with pytest.raises(MCPException):
-            await calculate_encounter_budget_mcp(
-                party_size=0, party_level=5, difficulty="medium"
-            )
-
-        with pytest.raises(MCPException):
-            await calculate_encounter_budget_mcp(
-                party_size=4, party_level=25, difficulty="medium"
-            )
-
-        with pytest.raises(MCPException):
-            await calculate_encounter_budget_mcp(
-                party_size=4, party_level=5, difficulty="legendary"
-            )
 
 
 class TestEncounterConstraints:
@@ -300,101 +252,6 @@ class TestThematicProfiles:
 
         with pytest.raises(ValueError, match="Invalid theme"):
             create_thematic_profile("rainbow_unicorns")
-
-
-class TestMCPToolIntegration:
-    """Test MCP tool interface integration."""
-
-    @pytest.mark.asyncio
-    async def test_creature_search_placeholder(self) -> None:
-        """Test creature search MCP tool (placeholder implementation)."""
-        result = await search_creatures_for_encounter_mcp(
-            constraints={"min_cr": 2, "max_cr": 5},
-            environment="forest",
-            theme="beast_wilderness",
-        )
-
-        # Should return placeholder response with metadata
-        assert result["status"] == "search_not_implemented"
-        assert "mcp_metadata" in result
-        assert result["mcp_metadata"]["tool"] == "search_creatures_for_encounter"
-        assert result["constraints"]["min_cr"] == 2
-        assert result["environment"] == "forest"
-        assert result["theme"] == "beast_wilderness"
-
-    @pytest.mark.asyncio
-    async def test_encounter_building_placeholder(self) -> None:
-        """Test encounter building MCP tool (placeholder implementation)."""
-        result = await build_balanced_encounter_mcp(
-            party_size=4,
-            party_level=6,
-            difficulty="hard",
-            environment="dungeon",
-            theme="undead_horror",
-        )
-
-        # Should return structured placeholder with budget
-        assert "encounter_id" in result
-        assert "party_composition" in result
-        assert "encounter_budget" in result
-        assert "mcp_metadata" in result
-        assert result["target_difficulty"] == "hard"
-        assert result["environmental_profile"]["type"] == "dungeon"
-        assert result["thematic_profile"]["theme"] == "undead_horror"
-
-    @pytest.mark.asyncio
-    async def test_encounter_rebalancing_placeholder(self) -> None:
-        """Test encounter rebalancing MCP tool."""
-        encounter_data = {"creatures": [], "difficulty": "medium"}
-
-        result = await rebalance_encounter_mcp(
-            encounter_data=encounter_data,
-            target_difficulty="hard",
-            party_size=4,
-            party_level=8,
-            strategy="conservative",
-            max_iterations=3,
-        )
-
-        # Should return rebalancing analysis
-        assert result["status"] == "rebalancing_not_implemented"
-        assert result["target_difficulty"] == "hard"
-        assert result["strategy"] == "conservative"
-        assert "mcp_metadata" in result
-        assert result["mcp_metadata"]["strategy_used"] == "conservative"
-
-    @pytest.mark.asyncio
-    async def test_invalid_rebalancing_strategy(self) -> None:
-        """Test validation of rebalancing strategy."""
-        with pytest.raises(MCPException, match="Invalid rebalancing strategy"):
-            await rebalance_encounter_mcp(
-                encounter_data={},
-                target_difficulty="hard",
-                party_size=4,
-                party_level=8,
-                strategy="godmode",
-            )
-
-    def test_tool_definitions(self) -> None:
-        """Test MCP tool definition generation."""
-        definitions = get_encounter_tool_definitions()
-
-        assert len(definitions) == 4
-        tool_names = [tool["name"] for tool in definitions]
-
-        assert "calculate_encounter_budget" in tool_names
-        assert "search_creatures_for_encounter" in tool_names
-        assert "build_balanced_encounter" in tool_names
-        assert "rebalance_encounter" in tool_names
-
-        # Check that each tool has required structure
-        for tool in definitions:
-            assert "name" in tool
-            assert "description" in tool
-            assert "inputSchema" in tool
-            assert tool["inputSchema"]["type"] == "object"
-            assert "properties" in tool["inputSchema"]
-            assert "required" in tool["inputSchema"]
 
 
 class TestPartyComposition:

@@ -151,3 +151,8 @@ class BaseContent(BaseModel):
         return (
             f"{self.__class__.__name__.lower()}:{self.name}:{self.source.abbreviation}"
         )
+
+    @property
+    def is_srd(self) -> bool:
+        """Whether 5etools marks this as in the 2014 SRD or the 5.2 SRD."""
+        return bool(getattr(self, "srd", None) or getattr(self, "srd52", None))

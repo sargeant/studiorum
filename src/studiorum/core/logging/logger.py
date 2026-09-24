@@ -9,12 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from .mcp_debug import MCPDebugLogger
+from typing import Any
 
 import logfire
 from logfire import LogfireLoggingHandler
@@ -25,7 +20,6 @@ class StudiorumLogger:
 
     _initialized = False
     _debug_mode = False
-    _mcp_debug_logger: MCPDebugLogger | None = None
 
     @classmethod
     def initialize(
@@ -34,8 +28,6 @@ class StudiorumLogger:
         environment: str = "local",
         console_min_level: str = "info",
         enable_telemetry: bool = False,
-        mcp_debug: bool = False,
-        mcp_debug_file: Path | None = None,
     ) -> None:
         """Initialize Logfire with Studiorum-specific configuration."""
         if cls._initialized:
@@ -61,9 +53,12 @@ class StudiorumLogger:
 
         # Debug the send_to_logfire logic
         if debug:
-            print(f"🐛 DEBUG: enable_telemetry={enable_telemetry}")
-            print(f"🐛 DEBUG: logfire_token present={logfire_token is not None}")
-            print(f"🐛 DEBUG: send_to_logfire={send_to_logfire}")
+            print(f"🐛 DEBUG: enable_telemetry={enable_telemetry}", file=sys.stderr)
+            print(
+                f"🐛 DEBUG: logfire_token present={logfire_token is not None}",
+                file=sys.stderr,
+            )
+            print(f"🐛 DEBUG: send_to_logfire={send_to_logfire}", file=sys.stderr)
 
         # Configure Logfire
         logfire.configure(
@@ -73,6 +68,8 @@ class StudiorumLogger:
                 min_log_level=console_min_level,  # type: ignore[arg-type]
                 include_timestamps=True,
                 colors="auto" if sys.stderr.isatty() else "never",
+                # stdout carries command output, and MCP's stdio protocol
+                output=sys.stderr,
             ),
             send_to_logfire=send_to_logfire,
         )
@@ -86,61 +83,38 @@ class StudiorumLogger:
             format="%(message)s",  # Logfire handles formatting
         )
 
-        # Initialize MCP debug logging if requested
-        if mcp_debug:
-            from .mcp_debug import MCPDebugLogger
-
-            cls._mcp_debug_logger = MCPDebugLogger(
-                log_file=mcp_debug_file or cls._default_mcp_debug_file(),
-                enable_logfire=True,
-            )
-
         # Instrument key libraries (optional)
         if enable_telemetry:
             try:
                 logfire.instrument_httpx()
             except Exception as e:
                 if debug:
-                    print(f"🐛 DEBUG: httpx instrumentation skipped: {e}")
+                    print(
+                        f"🐛 DEBUG: httpx instrumentation skipped: {e}", file=sys.stderr
+                    )
 
             try:
                 logfire.instrument_requests()
             except Exception as e:
                 if debug:
-                    print(f"🐛 DEBUG: requests instrumentation skipped: {e}")
+                    print(
+                        f"🐛 DEBUG: requests instrumentation skipped: {e}",
+                        file=sys.stderr,
+                    )
 
             try:
                 logfire.instrument_system_metrics()
             except Exception as e:
                 if debug:
-                    print(f"🐛 DEBUG: system metrics instrumentation skipped: {e}")
+                    print(
+                        f"🐛 DEBUG: system metrics instrumentation skipped: {e}",
+                        file=sys.stderr,
+                    )
 
         cls._initialized = True
         logfire.debug(
             "Studiorum logging initialized", debug=debug, environment=environment
         )
-
-    @classmethod
-    def get_mcp_debug_logger(cls) -> MCPDebugLogger | None:
-        """Get the MCP debug logger if available."""
-        return cls._mcp_debug_logger
-
-    @staticmethod
-    def _default_mcp_debug_file() -> Path:
-        """Get default MCP debug log file location."""
-        import tempfile
-
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-
-        # Try ~/.studiorum/logs/ first
-        home_logs = Path.home() / ".studiorum" / "logs"
-        try:
-            home_logs.mkdir(parents=True, exist_ok=True)
-            return home_logs / f"mcp-debug-{timestamp}.log"
-        except (OSError, PermissionError):
-            # Secure fallback using system temp directory
-            temp_dir = Path(tempfile.gettempdir())
-            return temp_dir / f"studiorum-mcp-debug-{timestamp}.log"
 
 
 def get_logger(name: str) -> Any:
