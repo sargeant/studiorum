@@ -129,16 +129,12 @@ def _condition(parts: list[str], r: Render) -> str:
     return r.text(parts[0])
 
 
-def _adventure(parts: list[str], r: Render) -> str:
-    page = _part(parts, 2)
-    r.track("adventure", parts[0], _part(parts, 1), page)
-    return r.text(parts[0]) + (f" (p. {page})" if page and page != "1" else "")
+def _publication(tag: str) -> TagFn:
+    def fn(parts: list[str], r: Render) -> str:
+        r.track(tag, parts[0], _part(parts, 1))
+        return r.text(parts[0])
 
-
-def _book(parts: list[str], r: Render) -> str:
-    page = _part(parts, 2)
-    r.track("book", parts[0], _part(parts, 1), page)
-    return r.text(parts[0]) + (f", p. {page}" if page else "")
+    return fn
 
 
 _DND = re.compile(r"^(Dungeons\s*\\?&\s*Dragons|D\\?&D)$", re.IGNORECASE)
@@ -281,8 +277,8 @@ def _or(fallback: str) -> TagFn:
 TAGS: dict[str, TagFn] = {
     **{tag: _reference(tag, style) for tag, style in _REFERENCES.items()},
     "condition": _condition,
-    "adventure": _adventure,
-    "book": _book,
+    "adventure": _publication("adventure"),
+    "book": _publication("book"),
     "b": _format(_bold, bold=True),
     "bold": _format(_bold, bold=True),
     "i": _format(_italic),
