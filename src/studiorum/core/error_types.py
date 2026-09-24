@@ -4,8 +4,7 @@ Error types for use with Result pattern.
 This module defines structured error types that work well with the Result[T, E]
 pattern while integrating with the existing exception hierarchy.
 
-All error types use Pydantic models for consistency with the codebase and
-to provide MCP-compatible JSON-RPC error formatting.
+All error types are frozen Pydantic models.
 """
 
 from __future__ import annotations
@@ -19,10 +18,8 @@ __all__ = [
     # Enums
     "ErrorSeverity",
     "ErrorCategory",
-    "MCPErrorCode",
     # Base error types
     "BaseError",
-    "MCPError",
     "ErrorContext",
     # Validation errors
     "ValidationError",
@@ -30,13 +27,6 @@ __all__ = [
     "ProcessingError",
     "UnknownTypeError",
     "MalformedDataError",
-    # MCP-specific errors
-    "ContentNotFoundError",
-    "ContentNotFoundExceptionError",
-    "ConfigurationError",
-    "ServiceError",
-    "PerformanceError",
-    "MCPException",
     # Architecture errors (converted from exceptions)
     "ContentSourceError",
     "ContentValidationError",
@@ -76,24 +66,6 @@ class ErrorCategory(str, Enum):
     USER_ERROR = "user_error"  # User input errors
 
 
-class MCPErrorCode(Enum):
-    """MCP JSON-RPC error codes for structured error responses."""
-
-    # MCP JSON-RPC standard codes
-    PARSE_ERROR = -32700
-    INVALID_REQUEST = -32600
-    METHOD_NOT_FOUND = -32601
-    INVALID_PARAMS = -32602
-    INTERNAL_ERROR = -32603
-
-    # Application-specific error codes (positive range)
-    CONTENT_NOT_FOUND = 1001
-    VALIDATION_FAILED = 1002
-    PROCESSING_ERROR = 1003
-    CONFIGURATION_ERROR = 1004
-    SERVICE_UNAVAILABLE = 1005
-
-
 class BaseError(BaseModel):
     """
     Base error type for Result pattern.
@@ -121,34 +93,6 @@ class BaseError(BaseModel):
             source=self.source,
             suggestions=suggestions,
         )
-
-
-class MCPError(BaseModel):
-    """MCP-compatible error with structured JSON-RPC response."""
-
-    model_config = ConfigDict(frozen=True)
-
-    message: str
-    error_code: MCPErrorCode
-    category: ErrorCategory
-    severity: ErrorSeverity = ErrorSeverity.ERROR
-    source: str | None = None
-    suggestions: list[str] | None = Field(default_factory=list)
-    data: dict[str, Any] | None = Field(default_factory=dict)
-
-    def to_json_rpc_error(self) -> dict[str, Any]:
-        """Convert to JSON-RPC error format."""
-        return {
-            "code": self.error_code.value,
-            "message": self.message,
-            "data": {
-                "category": self.category.value,
-                "severity": self.severity.value,
-                "source": self.source,
-                "suggestions": self.suggestions,
-                **(self.data or {}),
-            },
-        }
 
 
 class ValidationError(BaseError):
@@ -193,54 +137,6 @@ class MalformedDataError(ProcessingError):
 
     expected_type: str | None = None
     actual_type: str | None = None
-
-
-# New MCP-specific error types
-
-
-class ContentNotFoundError(MCPError):
-    """Content could not be located or resolved."""
-
-    model_config = ConfigDict(frozen=True)
-
-    error_code: MCPErrorCode = MCPErrorCode.CONTENT_NOT_FOUND
-    category: ErrorCategory = ErrorCategory.USER_ERROR
-
-
-class ContentNotFoundExceptionError(Exception):
-    """Exception wrapper for ContentNotFoundError model."""
-
-    def __init__(self, content_error: ContentNotFoundError):
-        """Initialize with a ContentNotFoundError model."""
-        self.content_error = content_error
-        super().__init__(content_error.message)
-
-
-class ConfigurationError(MCPError):
-    """Configuration validation or loading failed."""
-
-    model_config = ConfigDict(frozen=True)
-
-    error_code: MCPErrorCode = MCPErrorCode.CONFIGURATION_ERROR
-    category: ErrorCategory = ErrorCategory.SYSTEM_ERROR
-
-
-class ServiceError(MCPError):
-    """Service initialization or operation failed."""
-
-    model_config = ConfigDict(frozen=True)
-
-    error_code: MCPErrorCode = MCPErrorCode.SERVICE_UNAVAILABLE
-    category: ErrorCategory = ErrorCategory.SYSTEM_ERROR
-
-
-class PerformanceError(MCPError):
-    """Operation exceeded performance constraints."""
-
-    model_config = ConfigDict(frozen=True)
-
-    error_code: MCPErrorCode = MCPErrorCode.PROCESSING_ERROR
-    category: ErrorCategory = ErrorCategory.SYSTEM_ERROR
 
 
 class ErrorContext(BaseModel):
@@ -359,23 +255,6 @@ def create_processing_error(
         parent_name=parent_name,
         context=context,
     )
-
-
-class MCPException(Exception):
-    """Exception wrapper for MCPError models.
-
-    This allows MCPError models to be raised as exceptions while
-    maintaining their structured data format.
-    """
-
-    def __init__(self, mcp_error: MCPError):
-        """Initialize with an MCPError model."""
-        self.mcp_error = mcp_error
-        super().__init__(mcp_error.message)
-
-    def to_json_rpc_error(self) -> dict[str, Any]:
-        """Convert to JSON-RPC error format."""
-        return self.mcp_error.to_json_rpc_error()
 
 
 def create_unknown_type_error(
