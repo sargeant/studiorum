@@ -69,6 +69,7 @@ def resolver() -> TagResolver:
             r"\textbf{bold \textit{fireball} \& more}",
         ),
         ("{@filter 1st|spells|level=1} level", "1st level"),
+        ("{@area 5|123} and {@area 6|124|u}", "area 5 and Area 6"),
     ],
 )
 def test_tag(resolver: TagResolver, text: str, latex: str) -> None:

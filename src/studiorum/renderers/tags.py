@@ -270,6 +270,13 @@ def _link(parts: list[str], r: Render) -> str:
     return f"\\href{{{url}}}{{{escape_latex_text(title)}}}"
 
 
+def _area(parts: list[str], r: Render) -> str:
+    flags = _part(parts, 2)
+    if "x" in flags:
+        return r.text(parts[0])
+    return f"{'A' if 'u' in flags else 'a'}rea {r.text(parts[0])}"
+
+
 def _or(fallback: str) -> TagFn:
     return lambda parts, r: escape_latex_text(parts[0]) if parts[0] else fallback
 
@@ -315,7 +322,7 @@ TAGS: dict[str, TagFn] = {
     "quickref": lambda parts, r: _italic(
         escape_latex_text(parts[0] or "unknown reference")
     ),
-    "area": _or("[Area]"),
+    "area": _area,
     "style": lambda parts, r: escape_latex_text(parts[0]),
     "filter": lambda parts, r: r.text(parts[0]),
     "scaledamage": _or("[Scaled Damage]"),
