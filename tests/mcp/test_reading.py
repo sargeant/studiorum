@@ -29,11 +29,17 @@ def ids(result: dict[str, Any]) -> list[tuple[str, str, int]]:
 async def test_table_of_contents() -> None:
     top = await call("get_table_of_contents", publication="ta")
     assert (top["id"], top["kind"]) == ("TA", "adventure")
-    assert ids(top) == [("000", "Welcome", 1), ("002", "The Cave", 1)]
+    # A section nested in a chapter is listed beside it
+    assert ids(top) == [
+        ("000", "Welcome", 1),
+        ("004", "Background", 1),
+        ("002", "The Cave", 1),
+    ]
     deep = await call("get_table_of_contents", publication="Test Adventure", depth=2)
     assert ids(deep) == [
         ("000", "Welcome", 1),
         ("001", "Hooks", 2),
+        ("004", "Background", 1),
         ("002", "The Cave", 1),
         ("003", "Big Room", 2),
     ]
@@ -50,9 +56,10 @@ async def test_read_section_as_markdown() -> None:
     welcome = await call("read_section", publication="TA", section_id="000")
     assert welcome["text"] == (
         "# Welcome\n\nHello goblins.\n\n## Hooks\n\nA hook.\n\n- one\n- two"
+        "\n\n## Background\n\nLong ago."
     )
     assert (welcome["page"], welcome["pages"], welcome["path"]) == (1, 1, [])
-    assert [s["id"] for s in welcome["sections"]] == ["001"]
+    assert [s["id"] for s in welcome["sections"]] == ["001", "004"]
 
     rules = await call("read_section", publication="TB", section_id="100")
     assert rules["text"] == "# Rules\n\nRoll a d20."

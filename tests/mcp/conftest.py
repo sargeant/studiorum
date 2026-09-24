@@ -31,6 +31,12 @@ ADVENTURE_TEXT = [
                 "id": "001",
                 "entries": ["A hook.", {"type": "list", "items": ["one", "two"]}],
             },
+            {
+                "type": "section",
+                "name": "Background",
+                "id": "004",
+                "entries": ["Long ago."],
+            },
         ],
     },
     {
