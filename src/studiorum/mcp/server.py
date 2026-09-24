@@ -18,7 +18,11 @@ from studiorum.mcp.tools.encounter import (
     suggest_creatures,
 )
 from studiorum.mcp.tools.lookup import get_content, list_publications
-from studiorum.mcp.tools.reading import get_table_of_contents, read_section
+from studiorum.mcp.tools.reading import (
+    get_table_of_contents,
+    read_section,
+    search_publication,
+)
 from studiorum.mcp.tools.rules import search_rules
 from studiorum.mcp.tools.search import search_creatures, search_items, search_spells
 from studiorum.services import build_services
@@ -69,5 +73,6 @@ for tool in (
     suggest_creatures,
     get_table_of_contents,
     read_section,
+    search_publication,
 ):
     mcp.tool(tool)

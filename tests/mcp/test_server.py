@@ -45,6 +45,7 @@ async def test_the_server_lists_its_tools() -> None:
         "suggest_creatures",
         "get_table_of_contents",
         "read_section",
+        "search_publication",
     }
     # Depends parameters stay out of the schema
     assert "services" not in tools["search_spells"].inputSchema["properties"]
@@ -224,3 +225,21 @@ async def test_search_rules_matches_names_then_text() -> None:
     )
     speed = await call("search_rules", query="speed", rule_type="condition")
     assert speed["results"][0]["snippet"] == "Your Speed is 0."
+
+
+@pytest.mark.asyncio
+async def test_searches_say_what_the_srd_filter_hid() -> None:
+    result = await call("search_spells", query="orb")
+    assert (result["total"], result["hidden_by_srd"]) == (0, 1)
+    assert (await call("search_spells", query="orb", srd_only=False))[
+        "hidden_by_srd"
+    ] == 0
+
+
+@pytest.mark.asyncio
+async def test_get_content_lists_references() -> None:
+    goblin = await call("get_content", content_type="creature", name="Goblin")
+    assert {(r["type"], r["name"]) for r in goblin["references"]} >= {
+        ("item", "leather armor"),
+        ("item", "shield"),
+    }

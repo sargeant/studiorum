@@ -31,19 +31,37 @@ class ItemSummary(BaseModel):
     rarity: str | None
 
 
-class SpellResults(BaseModel):
+class Filtered(BaseModel):
+    hidden_by_srd: int = Field(
+        0,
+        description="Matches left out because they aren't SRD; srd_only=false shows them",
+    )
+
+
+class SpellResults(Filtered):
     total: int = Field(description="Matches before the limit")
     results: list[SpellSummary]
 
 
-class CreatureResults(BaseModel):
+class CreatureResults(Filtered):
     total: int = Field(description="Matches before the limit")
     results: list[CreatureSummary]
 
 
-class ItemResults(BaseModel):
+class ItemResults(Filtered):
     total: int = Field(description="Matches before the limit")
     results: list[ItemSummary]
+
+
+class Reference(BaseModel):
+    """Something the text links to: content for get_content, or a section for read_section."""
+
+    type: str = Field(description="A get_content type, or 'section'")
+    name: str = Field(description="The name, or a uid for class and subclass features")
+    source: str | None = None
+    section_id: str | None = Field(
+        None, description="For a section in this publication"
+    )
 
 
 class ContentEntry(BaseModel):
@@ -54,6 +72,9 @@ class ContentEntry(BaseModel):
     text: str | None = Field(None, description="The entry as Markdown")
     data: dict[str, Any] | None = Field(
         None, description="The entry as 5etools models it"
+    )
+    references: list[Reference] = Field(
+        default_factory=list, description="What the entry's text links to"
     )
 
 
@@ -110,7 +131,7 @@ class SuggestedCreature(BaseModel):
     environment: list[str]
 
 
-class CreatureSuggestions(BaseModel):
+class CreatureSuggestions(Filtered):
     rules: Literal["2024", "2014"]
     difficulty: str
     count: int
@@ -126,6 +147,9 @@ class SectionRef(BaseModel):
     name: str
     depth: int = Field(description="1 for the top level listed")
     chars: int = Field(description="Size in Markdown characters")
+    statblocks: list[str] | None = Field(
+        None, description="Set when the section holds only these statblocks"
+    )
 
 
 class Contents(BaseModel):
@@ -146,6 +170,9 @@ class SectionText(BaseModel):
     pages: int
     text: str = Field(description="Markdown")
     sections: list[SectionRef] = Field(description="Subsections, to read on their own")
+    references: list[Reference] = Field(
+        default_factory=list, description="What this page links to"
+    )
 
 
 class RuleSummary(BaseModel):
@@ -156,6 +183,22 @@ class RuleSummary(BaseModel):
     snippet: str = Field(description="Text around the first match")
 
 
-class RuleResults(BaseModel):
+class RuleResults(Filtered):
     total: int = Field(description="Matches before the limit")
     results: list[RuleSummary]
+
+
+class SectionMatch(BaseModel):
+    id: str
+    name: str
+    path: list[str] = Field(
+        description="The sections this one sits in, outermost first"
+    )
+    chars: int = Field(description="Size in Markdown characters")
+    snippet: str = Field(description="Text around the first match")
+
+
+class SectionMatches(BaseModel):
+    publication: str
+    total: int = Field(description="Matches before the limit")
+    results: list[SectionMatch]

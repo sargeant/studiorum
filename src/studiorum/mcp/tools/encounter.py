@@ -22,7 +22,7 @@ from studiorum.mcp.models import (
     SuggestedCreature,
 )
 from studiorum.mcp.tools.lookup import find_one
-from studiorum.mcp.tools.search import LatestOnly, drop_reprinted, type_name
+from studiorum.mcp.tools.search import LatestOnly, split_srd, type_name
 from studiorum.services import Services
 
 PartyLevels = Annotated[
@@ -141,7 +141,7 @@ async def suggest_creatures(
     each = (math.ceil(low / per), math.floor(high / per))
     fits: list[tuple[int, Creature]] = []
     for c in services.omnidexer.get_all_by_type(ContentType.CREATURE):
-        if not isinstance(c, Creature) or (srd_only and not c.is_srd):
+        if not isinstance(c, Creature):
             continue
         xp = encounter.creature_xp(c.cr)
         if xp is None or not each[0] <= xp <= each[1]:
@@ -154,11 +154,11 @@ async def suggest_creatures(
         ):
             continue
         fits.append((xp, c))
-    if latest_only:
-        kept = set(map(id, drop_reprinted([c for _, c in fits])))
-        fits = [f for f in fits if id(f[1]) in kept]
+    kept, hidden = split_srd([c for _, c in fits], srd_only, latest_only)
+    fits = [f for f in fits if id(f[1]) in set(map(id, kept))]
     fits.sort(key=lambda f: (-f[0], f[1].name.lower(), f[1].source.abbreviation))
     return CreatureSuggestions(
+        hidden_by_srd=hidden,
         rules=rules,
         difficulty=difficulty,
         count=count,

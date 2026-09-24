@@ -197,8 +197,11 @@ def render(entry: Any, depth: int = 1) -> str:
         case "gallery":
             return _join(render(i, depth) for i in entry.get("images", []))
         case "statblock":
+            source = entry.get("source", "")
+            if str(entry.get("prop", "")).endswith("Fluff"):
+                return f"*[Lore: {name} ({source})]*"
             what = entry.get("tag", "creature")
-            return f"*[{what.title()} statblock: {name} ({entry.get('source', '')})]*"
+            return f"*[{what.title()} statblock: {name} ({source})]*"
         case "hr":
             return "---"
         case "wrapper":
@@ -291,3 +294,98 @@ def _quote(text: str) -> str:
 
 def _join(parts: Any) -> str:
     return "\n\n".join(p for p in parts if p)
+
+
+# Tags that name content get_content can read, with 5etools' default source
+_CONTENT_TAGS = {
+    "action": ("action", "PHB"),
+    "background": ("background", "PHB"),
+    "class": ("class", "PHB"),
+    "condition": ("condition", "PHB"),
+    "creature": ("creature", "MM"),
+    "disease": ("disease", "DMG"),
+    "feat": ("feat", "PHB"),
+    "hazard": ("hazard", "DMG"),
+    "item": ("item", "DMG"),
+    "optfeature": ("optionalfeature", "PHB"),
+    "race": ("race", "PHB"),
+    "sense": ("sense", "PHB"),
+    "spell": ("spell", "PHB"),
+    "status": ("status", "PHB"),
+    "trap": ("trap", "DMG"),
+    "variantrule": ("variantrule", "DMG"),
+    "vehicle": ("vehicle", "GoS"),
+}
+_FEATURE_TAGS = {"classFeature": 5, "subclassFeature": 7}
+
+
+def references(value: Any) -> list[dict[str, str]]:
+    """What tags and statblocks in some 5etools data point to, first mention first.
+
+    Content comes as ``{"type", "name", "source"}``, for get_content; an
+    ``{@area}`` link as ``{"type": "section", "name", "section_id"}``.
+    """
+    found: dict[tuple[str, ...], dict[str, str]] = {}
+
+    def add(ref: dict[str, str]) -> None:
+        key = tuple(v.lower() for v in ref.values())
+        found.setdefault(key, ref)
+
+    def text(s: str) -> None:
+        for part in split_by_tags(s):
+            if not (part.startswith("{@") and part.endswith("}")):
+                continue
+            tag, _, args = part[2:-1].partition(" ")
+            parts = split_by_pipe(args) or [""]
+            if tag in _CONTENT_TAGS and parts[0]:
+                kind, default = _CONTENT_TAGS[tag]
+                source = parts[1] if len(parts) > 1 and parts[1] else default
+                add({"type": kind, "name": strip_tags(parts[0]), "source": source})
+            elif tag in _FEATURE_TAGS and parts[0]:
+                uid = "|".join(parts[: _FEATURE_TAGS[tag]])
+                add({"type": tag, "name": uid})
+            elif tag == "area" and len(parts) > 1 and parts[1]:
+                add(
+                    {
+                        "type": "section",
+                        "name": strip_tags(parts[0]),
+                        "section_id": parts[1],
+                    }
+                )
+            # Nested tags, such as a creature inside a display text
+            for inner in parts:
+                if "{@" in inner:
+                    text(inner)
+
+    def walk(v: Any) -> None:
+        if isinstance(v, str):
+            text(v)
+        elif isinstance(v, list):
+            for item in v:
+                walk(item)
+        elif isinstance(v, dict):
+            if v.get("type") == "statblock" and v.get("name"):
+                kind = {"creature": "creature", "item": "item", "spell": "spell"}.get(
+                    str(v.get("tag", "creature")), str(v.get("tag", "creature"))
+                )
+                add(
+                    {
+                        "type": kind,
+                        "name": str(v["name"]),
+                        "source": str(v.get("source", "")),
+                    }
+                )
+            for item in v.values():
+                walk(item)
+
+    walk(value)
+    return list(found.values())
+
+
+def snippet(text: str, words: list[str], size: int = 240) -> str:
+    """The text around the first of the words, flattened to one line."""
+    flat = " ".join(w for w in text.split() if w.strip("#"))
+    at = min((i for w in words if (i := flat.lower().find(w)) >= 0), default=0)
+    start = max(0, at - size // 3)
+    piece = flat[start : start + size]
+    return ("…" if start else "") + piece + ("…" if start + size < len(flat) else "")

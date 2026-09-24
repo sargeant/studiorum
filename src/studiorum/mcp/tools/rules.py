@@ -9,13 +9,12 @@ from pydantic import Field
 
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
-from studiorum.mcp.markdown import render
+from studiorum.mcp.markdown import render, snippet
 from studiorum.mcp.models import RuleResults, RuleSummary
-from studiorum.mcp.tools.search import LatestOnly, Limit, drop_reprinted
+from studiorum.mcp.tools.search import LatestOnly, Limit, split_srd
 from studiorum.services import Services
 
 RuleType = Literal["action", "condition", "status", "variantrule", "sense"]
-SNIPPET = 240
 
 
 async def search_rules(
@@ -40,8 +39,6 @@ async def search_rules(
     found: list[tuple[int, str, str, BaseContent]] = []
     for kind in (rule_type,) if rule_type else get_args(RuleType):
         for rule in services.omnidexer.get_all_by_type(ContentType(kind)):
-            if srd_only and not rule.is_srd:
-                continue
             name = rule.name.lower()
             raw = rule.model_dump(mode="json", by_alias=True, exclude_none=True)
             text = render(raw.get("entries") or [])
@@ -55,11 +52,11 @@ async def search_rules(
                 else 2
             )
             found.append((rank, kind, text, rule))
-    if latest_only:
-        kept = set(map(id, drop_reprinted([r for *_, r in found])))
-        found = [f for f in found if id(f[3]) in kept]
+    kept, hidden = split_srd([r for *_, r in found], srd_only, latest_only)
+    found = [f for f in found if id(f[3]) in set(map(id, kept))]
     found.sort(key=lambda f: (f[0], f[3].name.lower(), f[3].source.abbreviation))
     return RuleResults(
+        hidden_by_srd=hidden,
         total=len(found),
         results=[
             RuleSummary(
@@ -67,16 +64,8 @@ async def search_rules(
                 type=kind,
                 source=rule.source.abbreviation,
                 srd=rule.is_srd,
-                snippet=_snippet(text, words),
+                snippet=snippet(text, words),
             )
             for _, kind, text, rule in found[:limit]
         ],
     )
-
-
-def _snippet(text: str, words: list[str]) -> str:
-    flat = " ".join(w for w in text.split() if w.strip("#"))
-    at = min((i for w in words if (i := flat.lower().find(w)) >= 0), default=0)
-    start = max(0, at - SNIPPET // 3)
-    piece = flat[start : start + SNIPPET]
-    return ("…" if start else "") + piece + ("…" if start + SNIPPET < len(flat) else "")

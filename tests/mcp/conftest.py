@@ -53,6 +53,20 @@ ADVENTURE_TEXT = [
             },
             {"type": "statblock", "tag": "creature", "name": "Goblin", "source": "MM"},
             {"type": "insetReadaloud", "entries": ["You smell smoke."]},
+            {
+                "type": "entries",
+                "name": "Guards",
+                "id": "005",
+                "entries": [
+                    {
+                        "type": "statblock",
+                        "tag": "creature",
+                        "name": "Goblin",
+                        "source": "MM",
+                    }
+                ],
+            },
+            "Past the guards, {@area the big room|003|x} holds a {@item Potion of Healing|DMG}.",
         ],
     },
 ]

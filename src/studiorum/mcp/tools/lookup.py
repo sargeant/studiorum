@@ -11,10 +11,11 @@ from pydantic import Field
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.books import Book
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import not_found
 from studiorum.mcp.layouts import to_markdown
-from studiorum.mcp.models import ContentEntry, Publication, Publications
+from studiorum.mcp.models import ContentEntry, Publication, Publications, Reference
 from studiorum.mcp.tools.search import drop_reprinted
 from studiorum.services import Services
 
@@ -79,6 +80,12 @@ async def get_content(
         srd=entry.is_srd,
         text=to_markdown(content_type, data) if format == "markdown" else None,
         data=data if format == "json" else None,
+        references=[
+            Reference(**r)
+            for r in markdown.references(data)
+            if (r["name"].lower(), r.get("source", "").lower())
+            != (entry.name.lower(), entry.source.abbreviation.lower())
+        ],
     )
 
 

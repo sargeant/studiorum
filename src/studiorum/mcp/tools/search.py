@@ -78,12 +78,23 @@ def _all[T: BaseContent](
 
 def _narrow[T: BaseContent](
     found: Sequence[T], query: str | None, srd_only: bool, latest_only: bool
-) -> list[T]:
+) -> tuple[list[T], int]:
+    """The matches in name order, and how many srd_only left out."""
     needle = (query or "").lower()
-    kept = [c for c in found if needle in c.name.lower() and (c.is_srd or not srd_only)]
+    named = [c for c in found if needle in c.name.lower()]
+    kept, hidden = split_srd(named, srd_only, latest_only)
+    return sorted(kept, key=lambda c: (c.name.lower(), c.source.abbreviation)), hidden
+
+
+def split_srd[T: BaseContent](
+    found: Sequence[T], srd_only: bool, latest_only: bool
+) -> tuple[list[T], int]:
+    """What srd_only and latest_only keep, and how many non-SRD entries were left out."""
+    kept = [c for c in found if c.is_srd or not srd_only]
+    left_out = [c for c in found if srd_only and not c.is_srd]
     if latest_only:
-        kept = drop_reprinted(kept)
-    return sorted(kept, key=lambda c: (c.name.lower(), c.source.abbreviation))
+        kept, left_out = drop_reprinted(kept), drop_reprinted(left_out)
+    return kept, len(left_out)
 
 
 def drop_reprinted[T: BaseContent](found: Sequence[T]) -> list[T]:
@@ -142,8 +153,9 @@ async def search_spells(
         if filters
         else _all(services, ContentType.SPELL, Spell)
     )
-    spells = _narrow(found, query, srd_only, latest_only)
+    spells, hidden = _narrow(found, query, srd_only, latest_only)
     return SpellResults(
+        hidden_by_srd=hidden,
         total=len(spells),
         results=[
             SpellSummary(
@@ -187,8 +199,9 @@ async def search_creatures(
         if filters
         else _all(services, ContentType.CREATURE, Creature)
     )
-    creatures = _narrow(found, query, srd_only, latest_only)
+    creatures, hidden = _narrow(found, query, srd_only, latest_only)
     return CreatureResults(
+        hidden_by_srd=hidden,
         total=len(creatures),
         results=[
             CreatureSummary(
@@ -230,8 +243,9 @@ async def search_items(
         if filters
         else _all(services, ContentType.ITEM, Item)
     )
-    items = _narrow(found, query, srd_only, latest_only)
+    items, hidden = _narrow(found, query, srd_only, latest_only)
     return ItemResults(
+        hidden_by_srd=hidden,
         total=len(items),
         results=[
             ItemSummary(

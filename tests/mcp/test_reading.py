@@ -42,10 +42,13 @@ async def test_table_of_contents() -> None:
         ("004", "Background", 1),
         ("002", "The Cave", 1),
         ("003", "Big Room", 2),
+        ("005", "Guards", 2),
     ]
     inside = await call("get_table_of_contents", publication="TA", section_id="002")
-    assert ids(inside) == [("003", "Big Room", 1)]
+    assert ids(inside) == [("003", "Big Room", 1), ("005", "Guards", 1)]
     assert inside["sections"][0]["chars"] > 30000
+    # A section that only holds statblocks says which
+    assert [s["statblocks"] for s in inside["sections"]] == [None, ["Goblin"]]
 
     book = await call("get_table_of_contents", publication="TB")
     assert (book["kind"], ids(book)) == ("book", [("100", "Rules", 1)])
@@ -124,3 +127,32 @@ async def test_reading_errors() -> None:
 )
 def test_strip_tags(text: str, plain: str) -> None:
     assert strip_tags(text) == plain
+
+
+@pytest.mark.asyncio
+async def test_read_section_lists_references() -> None:
+    cave = await call("read_section", publication="TA", section_id="002")
+    refs = [
+        (r["type"], r["name"], r["source"], r["section_id"]) for r in cave["references"]
+    ]
+    assert refs == [
+        ("section", "Big Room", None, "003"),
+        ("item", "Potion of Healing", "DMG", None),
+        ("creature", "Goblin", "MM", None),
+        ("section", "the big room", None, "003"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_search_publication() -> None:
+    result = await call("search_publication", publication="TA", query="guards")
+    assert [(r["id"], r["name"], r["path"]) for r in result["results"]] == [
+        ("005", "Guards", ["The Cave"]),
+        ("002", "The Cave", []),
+    ]
+    assert result["results"][1]["snippet"].endswith(
+        "Past the guards, the big room holds a Potion of Healing."
+    )
+    # A section's own text, not its subsections'
+    hooks = await call("search_publication", publication="TA", query="hook")
+    assert [r["id"] for r in hooks["results"]] == ["001"]
