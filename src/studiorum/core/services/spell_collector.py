@@ -288,13 +288,10 @@ class SpellCollector:
             if spell.is_concentration() != criteria.concentration:
                 return False
 
-        # Ritual filtering
-        # Note: Need to check if spell has ritual capability
-        # This would require adding ritual detection to the Spell model
         if criteria.ritual is not None:
-            # For now, skip ritual filtering as it's not implemented in Spell model
-            # TODO: Add ritual detection to Spell model
-            pass
+            is_ritual = bool(spell.meta and spell.meta.ritual)
+            if is_ritual != criteria.ritual:
+                return False
 
         return True
 
