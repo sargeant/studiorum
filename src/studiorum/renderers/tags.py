@@ -321,7 +321,7 @@ TAGS: dict[str, TagFn] = {
     ),
     "area": _or("[Area]"),
     "style": lambda parts, r: escape_latex_text(parts[0]),
-    "filter": _fixed(""),
+    "filter": lambda parts, r: r.text(parts[0]),
     "scaledamage": _or("[Scaled Damage]"),
     "scaledice": _or("[Scaled Dice]"),
     "card": _or("[Card]"),
