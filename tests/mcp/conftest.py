@@ -66,6 +66,15 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     )
 
     _write(
+        tmp_path / "items-base.json",
+        {
+            "itemType": [
+                {"name": "Food and Drink", "abbreviation": "FD", "source": "PHB"}
+            ]
+        },
+    )
+
+    _write(
         tmp_path / "books.json",
         {
             "book": [

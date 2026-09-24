@@ -8,6 +8,7 @@ from typing import Annotated, Any, Literal
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
+from studiorum.core.loaders import item_types
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.models.creatures import Creature
@@ -204,7 +205,7 @@ async def search_items(
                 name=i.name,
                 source=i.source.abbreviation,
                 srd=i.is_srd,
-                type=str(i.type) if i.type is not None else None,
+                type=item_types.name(str(i.type)) if i.type is not None else None,
                 rarity=str(i.rarity) if i.rarity is not None else None,
             )
             for i in items[:limit]

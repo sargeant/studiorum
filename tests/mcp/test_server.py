@@ -101,6 +101,12 @@ async def test_search_items_filters() -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_items_names_the_type() -> None:
+    ale = (await call("search_items", query="ale"))["results"][0]
+    assert ale["type"] == "Food and Drink"
+
+
+@pytest.mark.asyncio
 async def test_get_content_returns_the_entry() -> None:
     result = await call("get_content", content_type="spell", name="fireball")
     assert result["name"] == "Fireball"
