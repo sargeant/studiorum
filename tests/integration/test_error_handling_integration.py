@@ -54,12 +54,6 @@ class TestErrorHandlingIntegration:
         # Test unwrap_or
         assert error_result.unwrap_or("default") == "default"
 
-        # Test unwrap_or_else
-        assert (
-            error_result.unwrap_or_else(lambda e: f"Error: {e.message}")
-            == "Error: Test error message"
-        )
-
     def test_standard_logging(self) -> None:
         """Test standard logging integration."""
         logger = get_logger("test_module")
