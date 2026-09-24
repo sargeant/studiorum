@@ -9,7 +9,7 @@ from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from studiorum.latex_engine.services.template_service import active_template_service
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 class BaseEntryRenderer(ABC):
@@ -76,7 +76,7 @@ class SpellEntryRenderer(BaseEntryRenderer):
         try:
             spell_metadata = dict(context.metadata or {})
             spell_metadata["content_type"] = "spell"
-            from studiorum.renderers.core.interfaces import RenderingContext as RC
+            from studiorum.renderers.context import RenderingContext as RC
 
             rendering_context = RC(
                 output_format=context.output_format,
@@ -185,7 +185,7 @@ class ItemEntryRenderer(BaseEntryRenderer):
         try:
             item_metadata = dict(context.metadata or {})
             item_metadata["content_type"] = "item"
-            from studiorum.renderers.core.interfaces import RenderingContext as RC
+            from studiorum.renderers.context import RenderingContext as RC
 
             rendering_context = RC(
                 output_format=context.output_format,

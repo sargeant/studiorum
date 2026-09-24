@@ -12,7 +12,7 @@ from studiorum.latex_engine.config.compilation import (  # type: ignore
     LaTeXEngine,
 )
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
-from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from studiorum.renderers.context import RenderingContext  # type: ignore
 
 # Apply async mark to the entire module
 pytestmark = pytest.mark.asyncio

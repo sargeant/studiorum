@@ -16,7 +16,7 @@ from studiorum.latex_engine.core.entry_renderers import (
     ItemEntryRenderer,
     SpellEntryRenderer,
 )
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 def _has_unresolved_tags(s: str) -> bool:

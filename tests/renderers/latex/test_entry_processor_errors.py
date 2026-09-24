@@ -8,7 +8,7 @@ import pytest
 from studiorum.core.entry_registry import ValidationMode
 from studiorum.core.exceptions import EntryProcessingWarning
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 @pytest.mark.rendering

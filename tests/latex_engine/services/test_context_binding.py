@@ -9,7 +9,7 @@ from studiorum.latex_engine.services.context_bound_template_service import (
     ContextBoundTemplateService,
 )
 from studiorum.latex_engine.services.protocols import ContextBoundTemplateProtocol
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 class TestContextBinding:

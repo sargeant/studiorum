@@ -7,7 +7,7 @@ from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
 from studiorum.core.logging import get_logger
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 if TYPE_CHECKING:
     from studiorum.core.loaders.omnidexer import Omnidexer

@@ -249,9 +249,7 @@ class TestCreatureMarkupProcessing:
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
-            patch(
-                "studiorum.renderers.core.interfaces.RenderingContext"
-            ) as mock_context_class,
+            patch("studiorum.renderers.context.RenderingContext") as mock_context_class,
         ):
             # Mock the CLI services to return our mock services
             mock_get_tag_resolver.return_value = mock_tag_resolver
@@ -360,7 +358,7 @@ class TestCreatureMarkupProcessing:
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
-            from studiorum.renderers.core.interfaces import RenderingContext
+            from studiorum.renderers.context import RenderingContext
 
             entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             content_tracker = ContentTracker()
@@ -412,7 +410,7 @@ class TestCreatureMarkupProcessing:
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
-            from studiorum.renderers.core.interfaces import RenderingContext
+            from studiorum.renderers.context import RenderingContext
 
             entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             content_tracker = ContentTracker()
@@ -621,7 +619,7 @@ class TestCreatureMarkupEdgeCases:
                 "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
-                "studiorum.renderers.core.interfaces.RenderingContext",
+                "studiorum.renderers.context.RenderingContext",
                 side_effect=Exception("Context creation failed"),
             ),
         ):

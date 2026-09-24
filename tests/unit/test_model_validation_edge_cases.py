@@ -361,7 +361,7 @@ class TestModelValidationEdgeCases:
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
-            from studiorum.renderers.core.interfaces import RenderingContext
+            from studiorum.renderers.context import RenderingContext
 
             entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             content_tracker = ContentTracker()
@@ -453,7 +453,7 @@ class TestModelValidationEdgeCases:
                 from studiorum.latex_engine.core.entry_processor import (
                     RecursiveEntryProcessor,
                 )
-                from studiorum.renderers.core.interfaces import RenderingContext
+                from studiorum.renderers.context import RenderingContext
 
                 entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
                 content_tracker = ContentTracker()

@@ -15,7 +15,7 @@ import pytest
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 @pytest.mark.performance

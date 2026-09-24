@@ -17,7 +17,7 @@ from studiorum.core.logging import get_logger
 if TYPE_CHECKING:
     from jinja2 import Template
 
-    from studiorum.renderers.core.interfaces import RenderingContext
+    from studiorum.renderers.context import RenderingContext
 
     from .resolve import ImageResolver
 

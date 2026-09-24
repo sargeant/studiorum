@@ -13,7 +13,7 @@ from typing import Any
 
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature, Spellcasting
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 def process_markup(

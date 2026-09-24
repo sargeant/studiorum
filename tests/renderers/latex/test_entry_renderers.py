@@ -14,7 +14,7 @@ from studiorum.latex_engine.core.entry_renderers import (
     ItemEntryRenderer,
     SpellEntryRenderer,
 )
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 @pytest.fixture

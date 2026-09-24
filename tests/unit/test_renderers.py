@@ -12,7 +12,7 @@ from studiorum.latex_engine.core import (  # type: ignore
     LaTeXTemplateEngine,
 )
 from studiorum.renderers.base import RenderingError  # type: ignore
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 class TestRenderingContext:

@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 # Import these directly to avoid forward reference issues
 from studiorum.core.models.content import ContentType
+from studiorum.renderers.context import RenderingContext
 
 
 class FormatStyle(str, Enum):
@@ -54,30 +55,6 @@ class ContentReferenceInfo(BaseModel):
     )
     format_style: FormatStyle = Field(
         default=FormatStyle.PLAIN, description="Visual formatting style"
-    )
-
-
-class RenderingContext(BaseModel):
-    """Context information provided to tag handlers during rendering."""
-
-    model_config = {"arbitrary_types_allowed": True}
-
-    # Core rendering context
-    output_format: str = Field(description="Target output format (latex, html, etc)")
-    debug_mode: bool = Field(default=False, description="Whether debug mode is enabled")
-
-    # Service dependencies (injected)
-    omnidexer: Any = Field(default=None, description="Content indexer for validation")
-    content_tracker: Any = Field(
-        default=None, description="Tracks content for appendices"
-    )
-    tag_resolver: Any = Field(
-        default=None, description="Tag resolver for processing text content"
-    )
-
-    # Additional context data
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional context metadata"
     )
 
 

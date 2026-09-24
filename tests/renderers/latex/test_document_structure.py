@@ -17,7 +17,7 @@ from studiorum.core.models.document_metadata import (  # type: ignore
 from studiorum.latex_engine.core.document_structure import (
     DocumentStructureBuilder,  # type: ignore
 )
-from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from studiorum.renderers.context import RenderingContext  # type: ignore
 
 
 class MockContent(BaseContent):

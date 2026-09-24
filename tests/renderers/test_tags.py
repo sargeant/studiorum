@@ -9,7 +9,7 @@ import pytest
 
 from studiorum.core.config.unified_config import load_config
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 from studiorum.renderers.tags import TagResolver, render
 from studiorum.services import build_services
 

@@ -11,7 +11,7 @@ from studiorum.core.models.document_metadata import (
     DocumentType,
     SectionLevel,
 )
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 class DocumentStructureBuilder:
