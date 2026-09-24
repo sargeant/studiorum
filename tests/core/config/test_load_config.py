@@ -86,7 +86,6 @@ def test_config_file_sets_convert_defaults(
     )
     config_file = write_config(
         tmp_path / "other.yaml",
-        "data_sources:\n  primary_override:\n    enabled: false\n"
         f"rendering:\n  compilation:\n    auto_compile_pdf: {str(auto_compile).lower()}\n",
     )
     result = CliRunner().invoke(

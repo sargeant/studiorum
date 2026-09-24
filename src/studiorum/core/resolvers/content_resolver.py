@@ -15,7 +15,6 @@ from studiorum.core.error_types import (
     ContentNotFoundError,
     MCPError,
 )
-from studiorum.core.loaders.content_merger import ContentMerger
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.result import Error, Result, Success
@@ -140,22 +139,6 @@ class ContentResolver:
         self.omnidexer = omnidexer
         self.tag_resolver = tag_resolver
         self.context = context
-
-        # Initialize content merger using shared singleton instance from omnidexer
-        # This leverages the omnidexer's singleton ContentMerger which preserves
-        # LRU cache state across operations for improved performance
-        self.content_merger: ContentMerger | None = None
-
-        if hasattr(omnidexer, "get_content_merger"):
-            self.content_merger = omnidexer.get_content_merger()
-
-        # ContentMerger singleton should always be available from properly initialized omnidexer
-        if self.content_merger is None:
-            raise RuntimeError(
-                "ContentMerger singleton not available from omnidexer. "
-                "This indicates an omnidexer initialization issue. "
-                "Ensure omnidexer is properly initialized with source manager support."
-            )
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to an adventure.
@@ -751,93 +734,10 @@ class ContentResolver:
     def _enrich_content_if_needed(
         self, content: BaseContent, content_type: ContentType
     ) -> BaseContent:
-        """Enrich content with on-demand loading for dual-file types.
-
-        For adventures and books, this method loads the content file and merges it
-        with metadata to provide complete content. For other content types, returns
-        the content unchanged.
-
-        For multi-type homebrew files, content is already complete and doesn't need
-        enrichment.
-
-        Args:
-            content: The content object (likely metadata-only for adventures/books)
-            content_type: The type of content being resolved
-
-        Returns:
-            Enriched content object with merged metadata+content data
-        """
-        # Only enrich adventures and books (dual-file types)
-        adventure_type = ContentType("adventure")
-        book_type = ContentType("book")
-        if content_type not in [adventure_type, book_type]:
+        """Adventures and books with their text merged in; other content unchanged."""
+        if content_type not in (ContentType.ADVENTURE, ContentType.BOOK):
             return content
-
-        # Check if content is already complete (multi-type homebrew or already enriched)
-        if hasattr(content, "contents") and content.contents:
-            logger.debug(
-                f"{content_type.value} '{content.name}' already has {len(content.contents)} content sections, skipping enrichment"
-            )
-            return content
-
-        # Extract content ID from the content object
-        content_id = getattr(content, "id", None)
-        if not content_id:
-            logger.warning(
-                f"No ID found for {content_type.value}, cannot load content file"
-            )
-            return content
-
-        logger.debug(
-            f"Enriching {content_type.value} '{content.name}' (ID: {content_id}) with content data"
-        )
-
-        try:
-            # Load the content file
-            if self.content_merger is None:
-                logger.warning("Content merger not available, cannot enrich content")
-                return content
-            content_data = self.content_merger.load_content_file(
-                content_type, content_id
-            )
-
-            # Convert content object to dict for merging
-            if hasattr(content, "model_dump"):
-                # Pydantic model
-                metadata_dict = content.model_dump()
-            elif hasattr(content, "__dict__"):
-                # Regular object
-                metadata_dict = content.__dict__.copy()
-            else:
-                # Fallback - convert to dict
-                metadata_dict = dict(content)
-
-            # Merge metadata and content data
-            if self.content_merger is None:
-                logger.warning("Content merger not available, cannot merge content")
-                return content
-            merged_data = self.content_merger.merge_metadata_content(
-                metadata_dict, content_data
-            )
-
-            # Create new content object from merged data
-            content_class = type(content)
-            if hasattr(content_class, "model_validate"):
-                # Pydantic model
-                enriched_content = content_class.model_validate(merged_data)
-            else:
-                # Regular class - try to create instance
-                enriched_content = content_class(**merged_data)
-
-            logger.debug(
-                f"Successfully enriched {content_type.value} with {len(merged_data.get('contents', []))} sections"
-            )
-            return enriched_content
-
-        except Exception as e:
-            logger.error(f"Failed to enrich {content_type.value} '{content.name}': {e}")
-            # Return original content if enrichment fails
-            return content
+        return self.omnidexer.hydrate(content)
 
     def resolve_spells_by_names(self, names: list[str]) -> SpellResolutionResult:
         """Resolve multiple spells by name with fuzzy matching.

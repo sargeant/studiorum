@@ -614,13 +614,9 @@ class Item(BaseContent):
 
     def _get_type_metadata(self, type_str: str) -> dict[str, Any] | None:
         """Get type metadata for item type resolution."""
-        try:
-            from ..loaders.json_loader import JsonDataLoader
+        from ..loaders import item_types
 
-            return JsonDataLoader.get_shared_type_metadata(type_str)
-        except Exception:
-            # Silently fall back if metadata not available
-            return None
+        return item_types.get(type_str)
 
     def get_type_entries(self) -> list[str]:
         """Get entries from the item type definition for standard descriptions."""

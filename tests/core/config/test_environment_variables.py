@@ -105,7 +105,6 @@ class TestEnvironmentVariables:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             env_vars = {
-                "STUDIORUM_PATHS__DATA_PATH": str(temp_path / "data"),
                 "STUDIORUM_PATHS__ASSETS_PATH": str(temp_path / "assets"),
                 "STUDIORUM_PATHS__OUTPUT_PATH": str(temp_path / "output"),
                 "STUDIORUM_PATHS__BUILD_PATH": str(temp_path / "build"),
@@ -115,7 +114,6 @@ class TestEnvironmentVariables:
 
             config = ApplicationConfig()
 
-            assert config.paths.data_path == temp_path / "data"
             assert config.paths.assets_path == temp_path / "assets"
             assert config.paths.output_path == temp_path / "output"
             assert config.paths.build_path == temp_path / "build"
@@ -402,16 +400,16 @@ class TestEnvironmentVariables:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             env_vars = {
-                "STUDIORUM_PATHS__DATA_PATH": str(temp_path / "test_data"),
+                "STUDIORUM_PATHS__ASSETS_PATH": str(temp_path / "test_assets"),
                 "STUDIORUM_PATHS__OUTPUT_PATH": str(temp_path / "test_output"),
             }
             self._set_env_vars(env_vars)
 
             config = ApplicationConfig()
 
-            assert config.paths.data_path == temp_path / "test_data"
+            assert config.paths.assets_path == temp_path / "test_assets"
             assert config.paths.output_path == temp_path / "test_output"
-            assert isinstance(config.paths.data_path, Path)
+            assert isinstance(config.paths.assets_path, Path)
             assert isinstance(config.paths.output_path, Path)
 
     def test_type_conversion_list(self) -> None:
@@ -516,12 +514,12 @@ class TestEnvironmentVariables:
     def test_empty_environment_variables(self) -> None:
         """Test behavior with empty environment variable values."""
         # Most empty values should use defaults or fail validation
-        env_vars = {"STUDIORUM_PATHS__DATA_PATH": ""}
+        env_vars = {"STUDIORUM_PATHS__FONT_DIR": ""}
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
         # Empty string for path should result in None (the default)
-        assert config.paths.data_path is None or config.paths.data_path == Path()
+        assert config.paths.font_dir is None or config.paths.font_dir == Path()
 
     def test_case_insensitive_environment_variables(self) -> None:
         """Test that environment variables are case insensitive according to Pydantic settings."""
@@ -593,7 +591,7 @@ class TestEnvironmentVariables:
             "STUDIORUM_MCP__ENABLED": "true",
             "STUDIORUM_MCP__PORT": "8443",
             # Paths (use relative paths to avoid permission issues)
-            "STUDIORUM_PATHS__DATA_PATH": "test_data",
+            "STUDIORUM_DATA__DIRS": '["test_data"]',
             "STUDIORUM_PATHS__OUTPUT_PATH": "test_output",
             # Processing
             "STUDIORUM_PROCESSING__MAX_WORKERS": "8",
@@ -613,7 +611,7 @@ class TestEnvironmentVariables:
         assert config.logging.level == "DEBUG"
         assert config.mcp.enabled is True
         assert config.mcp.port == 8443
-        assert config.paths.data_path == Path("test_data")
+        assert config.data.dirs == [Path("test_data")]
         assert config.paths.output_path == Path("test_output")
         assert config.processing.max_workers == 8
         assert config.validation.strictness == "strict"

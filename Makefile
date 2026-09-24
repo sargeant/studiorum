@@ -68,7 +68,7 @@ help:
 	@echo ""
 	@echo "More tests:"
 	@echo "  test-serial  - Tests marked xdist_incompatible, run without xdist"
-	@echo "  test-full-data - Tests that need the full 5etools data set (reads .env.dev)"
+	@echo "  test-full-data - Tests that need a 5etools checkout (STUDIORUM_5ETOOLS_DIR, default ~/Code/5etools-src)"
 	@echo "  test-latex-integration - Real LaTeX compilation (needs TeX Live and the DnD template)"
 	@echo ""
 	@echo "Docs:"

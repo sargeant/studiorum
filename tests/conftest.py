@@ -15,12 +15,7 @@ os.environ["STUDIORUM_CONFIG_FILE"] = str(Path(__file__).parent / "test-config.y
 
 import pytest
 
-from studiorum.core.config.data_sources import (  # type: ignore
-    ContentConfiguration,
-    ContentSource,
-    SourceType,
-)
-from studiorum.core.loaders.data_source_manager import DataSourceManager
+from studiorum.core.loaders.data_dir import DataDir, DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
 from studiorum.core.models.creatures import Creature  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
@@ -240,34 +235,7 @@ def loaded_omnidexer(
     creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
 
-    # Create source manager with proper config pointing to temp directory
-    from studiorum.core.config.unified_config import ApplicationConfig, PathsConfig
-    from studiorum.core.sources import ContentSourceManager
-
-    # Create a test content source pointing to temp directory
-    test_source = ContentSource(
-        name="test",
-        type=SourceType.DIRECTORY,
-        path=temp_data_dir,
-        enabled=True,
-        priority=0,
-    )
-
-    content_config = ContentConfiguration(
-        content_sources=[test_source], cache_dir=temp_data_dir.parent / "cache"
-    )
-
-    test_config = ApplicationConfig(paths=PathsConfig(data_path=temp_data_dir))
-    source_manager = DataSourceManager(test_config)
-
-    # Override content manager with our test config
-    source_manager.content_manager = ContentSourceManager(content_config)
-
-    # Build content index before loading data
-    source_manager.content_manager.build_content_index_sync()
-
-    # Create and load omnidexer
-    omnidexer = Omnidexer(source_manager)
+    omnidexer = Omnidexer(DataSet((DataDir(temp_data_dir),)))
     omnidexer.load_all_data()
 
     return omnidexer
@@ -299,12 +267,7 @@ def make_omnidexer():
             creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
             creature_file.write_text(json.dumps({"monster": creature_data}))
 
-        # Create source manager pointing to temp directory
-        source_manager = DataSourceManager(temp_data_dir.parent)
-        source_manager.path_config.data_path = temp_data_dir
-
-        # Create and load omnidexer
-        omnidexer = Omnidexer(source_manager)
+        omnidexer = Omnidexer(DataSet((DataDir(temp_data_dir),)))
         omnidexer.load_all_data()
 
         return omnidexer

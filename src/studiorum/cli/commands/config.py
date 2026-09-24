@@ -20,7 +20,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 
-from studiorum.core.config.data_sources import DataSourcesConfig
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.logging import get_logger
 
@@ -40,7 +39,7 @@ Configuration management for Studiorum's settings and three-tier data source arc
   studiorum config show
 
   [dim]# Show specific section[/dim]
-  studiorum config show --section data_sources
+  studiorum config show --section data
 
   [dim]# Reset to defaults[/dim]
   studiorum config reset
@@ -191,7 +190,7 @@ def reset_config(
       studiorum config reset
 
       [dim]# Reset specific section[/dim]
-      studiorum config reset --section data_sources
+      studiorum config reset --section data
 
       [dim]# Reset without confirmation[/dim]
       studiorum config reset --yes
@@ -208,15 +207,14 @@ def reset_config(
                     return
 
         if section:
-            if section == "data_sources":
+            if section == "data":
                 console.print(
                     f"[yellow]🔄 Resetting '{section}' section to defaults...[/yellow]"
                 )
 
-                # Load existing config and reset just the data_sources section
+                # Without the section, the defaults apply
                 raw_config = _load_raw_config()
-                default_data_config = DataSourcesConfig()
-                raw_config["data_sources"] = default_data_config.model_dump()
+                raw_config.pop("data", None)
                 _save_config(raw_config)
 
                 console.print(
@@ -224,17 +222,15 @@ def reset_config(
                 )
             else:
                 console.print(f"[red]Unknown section: {section}[/red]")
-                console.print("Available sections: data_sources")
+                console.print("Available sections: data")
                 raise typer.Exit(1)
         else:
             console.print(
                 "[yellow]🔄 Resetting entire configuration to defaults...[/yellow]"
             )
 
-            # Create new default configuration
-            default_data_config = DataSourcesConfig()
-            config_dict = {"data_sources": default_data_config.model_dump()}
-            _save_config(config_dict)
+            # An empty file means every setting takes its default
+            _save_config({})
 
             console.print("[green]✅ Configuration reset to defaults.[/green]")
 

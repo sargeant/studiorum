@@ -1,5 +1,7 @@
 """Integration tests for book content loading and resolution."""
 
+from unittest.mock import patch
+
 import pytest
 
 from studiorum.cli.context import get_services
@@ -14,16 +16,13 @@ class TestBookResolution:
     """Test book resolution with dual-file architecture using real data."""
 
     def test_omnidexer_loads_book_with_enriched_content(self):
-        """Test that omnidexer loads books with enriched content from dual-file architecture."""
+        """find() merges a book's text from its content file into its metadata."""
         omnidexer = get_services().omnidexer
         book_type = ContentType("book")
         books = omnidexer.get_all_by_type(book_type)
-
-        # Should have books with enriched content
         assert len(books) > 0
 
-        # Books should have enriched content from dual-file architecture
-        test_book = next((b for b in books if b.source.abbreviation == "TEST"), None)
+        test_book = omnidexer.find(book_type, "Test Sourcebook", "TEST")
         if test_book:  # Test book should be available
             assert test_book.name == "Test Sourcebook"
             assert len(test_book.contents) > 0  # Has metadata structure
@@ -119,24 +118,13 @@ class TestBookResolution:
         omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
 
-        # Clear cache stats
-        content_merger = resolver.content_merger
-        if content_merger is None:
-            pytest.skip(
-                "ContentMerger not available - omnidexer may not have source_manager"
-            )
-        content_merger.clear_cache()
-
-        # First load reads the content file (or finds it already enriched)
+        # The first load reads the content file; the second must not
         result1 = resolver.resolve_book("TEST")
-        stats_after_first = content_merger.get_cache_stats()
         assert result1.content is not None
-
-        # Second load must not read the file again
-        result2 = resolver.resolve_book("TEST")
-        stats_after_second = content_merger.get_cache_stats()
-        assert result2.content is not None
-        assert stats_after_second["misses"] == stats_after_first["misses"]
+        with patch("studiorum.core.loaders.omnidexer.read_json") as read_json:
+            result2 = resolver.resolve_book("TEST")
+        read_json.assert_not_called()
+        assert result2.content is result1.content
 
     def test_missing_content_file_handling(self):
         """Test graceful handling when content file is missing."""

@@ -83,10 +83,11 @@ def _get_current_config_dict(config: ApplicationConfig) -> dict[str, Any]:
     """Get a serializable representation of the current configuration."""
     return {
         "logging": config.logging.model_dump(),
+        "data": {
+            "dirs": [str(p) for p in config.data.dirs],
+            "homebrew": [str(p) for p in config.data.homebrew],
+        },
         "paths": {
-            "data_path": str(config.paths.data_path)
-            if config.paths.data_path
-            else None,
             "assets_path": str(config.paths.assets_path),
             "output_path": str(config.paths.output_path),
             "build_path": str(config.paths.build_path),
@@ -462,9 +463,7 @@ async def add_content_source(
     Use these tools instead:
 
     For data repositories (where to load data from):
-    - manage_data_sources("add_primary", source="/path/to/5etools-data")
-    - manage_data_sources("add_homebrew", source="/path/to/homebrew")
-    - manage_data_sources("add_url", source="https://example.com/content.json")
+    - data.dirs and data.homebrew in the configuration file
 
     For content attribution (which books content comes from):
     - manage_source_attribution("set_priority", abbreviation="PHB", priority=10)
@@ -527,9 +526,7 @@ async def add_content_source(
                         "description": "For managing where data is loaded from",
                         "tool": "manage_data_sources",
                         "examples": [
-                            'manage_data_sources("add_primary", source="/path/to/5etools-data")',
-                            'manage_data_sources("add_homebrew", source="/path/to/homebrew")',
-                            'manage_data_sources("add_url", source="https://example.com/spells.json")',
+                            "Set data.dirs and data.homebrew in the configuration file",
                         ],
                     },
                     "content_attribution": {

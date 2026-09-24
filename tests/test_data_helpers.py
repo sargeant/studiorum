@@ -26,7 +26,6 @@ def get_available_sources() -> set[str]:
     """
     try:
         omnidexer = _get_omnidexer()
-        omnidexer.source_manager.ensure_sources_ready_sync()
         omnidexer.load_all_data()
 
         # Get all creatures to check what sources are available
@@ -58,55 +57,21 @@ def _is_full_data_opted_in() -> bool:
 
 
 def _has_full_dataset_available(min_file_threshold: int = 50) -> bool:
-    """Heuristic check that a full dataset (beyond SRD/test-data) is available.
+    """Whether a full 5etools data directory is on this machine.
 
-    Uses file counts via DataSourceManager to avoid expensive data loads.
-    Considers the dataset "full" when overall JSON file counts are well above
-    the handful of example files in test-data/ and SRD-only setups.
+    Looks at $STUDIORUM_5ETOOLS_DIR (default ~/Code/5etools-src) and counts its
+    data files without loading them.
     """
-    try:
-        import os
-        from pathlib import Path
+    import os
+    from pathlib import Path
 
-        # Fast-path: explicit env variables that point to a dataset location
-        for var in (
-            "STUDIORUM_PATHS__DATA_PATH",  # preferred (ApplicationConfig)
-            "STUDIORUM_FULL_DATA_PATH",  # test-only direct reads
-            "DND5E_PATHS__DATA_PATH",  # legacy compatibility
-        ):
-            p = os.getenv(var)
-            if not p:
-                continue
-            data_dir = Path(p).expanduser()
-            if data_dir.exists() and data_dir.is_dir():
-                json_count = sum(1 for _ in data_dir.rglob("*.json"))
-                if json_count >= min_file_threshold:
-                    return True
+    from studiorum.core.loaders.data_dir import DataDir
 
-        # Fallback: probe via DataSourceManager (reads STUDIORUM_* config)
-        from studiorum.core.loaders.data_source_manager import DataSourceManager
-
-        source_manager = DataSourceManager()
-        data_paths = source_manager.get_data_paths()
-
-        # Count across common types
-        total_files = sum(len(paths) for paths in data_paths.values())
-        if total_files >= min_file_threshold:
-            return True
-
-        # Secondary signal: presence across multiple types
-        spell_count = len(data_paths.get(_get_content_type("spell"), []))
-        creature_count = len(data_paths.get(_get_content_type("creature"), []))
-        book_count = len(data_paths.get(_get_content_type("book"), []))
-        adventure_count = len(data_paths.get(_get_content_type("adventure"), []))
-
-        multi_type_signal = sum(
-            x >= 5 for x in (spell_count, creature_count, book_count, adventure_count)
-        )
-        return multi_type_signal >= 3
-    except Exception:
-        # Be conservative: if we can't determine, report unavailable
-        return False
+    root = Path(
+        os.environ.get("STUDIORUM_5ETOOLS_DIR", Path.home() / "Code/5etools-src")
+    )
+    data_dir = DataDir(root / "data")
+    return data_dir.root.is_dir() and len(data_dir.entity_files()) >= min_file_threshold
 
 
 def requires_full_dataset(
@@ -116,7 +81,7 @@ def requires_full_dataset(
     """Mark test as requiring the full 5e dataset (beyond SRD/test-data).
 
     - Intent: requires STUDIORUM_TEST_FULL_DATA to be set (used by make test-full-data)
-    - Availability: quick heuristic on dataset file counts via DataSourceManager
+    - Availability: a 5etools checkout at $STUDIORUM_5ETOOLS_DIR or ~/Code/5etools-src
 
     Args:
         required_sources: Deprecated/ignored (kept for compatibility)
@@ -128,9 +93,8 @@ def requires_full_dataset(
     return pytest.mark.skipif(
         not (opted_in and available),
         reason=(
-            "Requires full 5e dataset. Run 'make test-full-data' (sets "
-            "STUDIORUM_TEST_FULL_DATA=1) and set STUDIORUM_PATHS__DATA_PATH "
-            "(or STUDIORUM_FULL_DATA_PATH) in .env.dev to your dataset path."
+            "Requires the full 5e dataset. Run 'make test-full-data' with a 5etools "
+            "checkout at $STUDIORUM_5ETOOLS_DIR (default ~/Code/5etools-src)."
         ),
     )
 
@@ -150,7 +114,6 @@ def _has_enough_creatures(min_count: int) -> bool:
     """Check if enough creatures are available (called during test execution)."""
     try:
         omnidexer = _get_omnidexer()
-        omnidexer.source_manager.ensure_sources_ready_sync()
         omnidexer.load_all_data()
 
         creature_type = _get_content_type("creature")

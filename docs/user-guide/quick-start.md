@@ -102,18 +102,17 @@ studiorum list books
 
 ### Add More Content
 
-Add homebrew content or additional data sources:
+List a full 5etools data directory and any homebrew in the configuration file:
 
-```bash
-# Add homebrew directory
-studiorum data add-homebrew /path/to/homebrew --name "my-homebrew"
-
-# Add single homebrew file
-studiorum data add-homebrew homebrew.json --name "custom-content"
-
-# List configured repositories
-studiorum data list
+```yaml
+data:
+  dirs:
+    - ~/Code/5etools-src/data
+  homebrew:
+    - /path/to/homebrew
 ```
+
+Then check it with `studiorum data show`.
 
 ## Configuration
 

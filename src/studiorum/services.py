@@ -16,8 +16,8 @@ from studiorum.core.config.unified_config import ApplicationConfig
 from studiorum.core.loaders.content_attribution_manager import (
     ContentAttributionManager,
 )
+from studiorum.core.loaders.data_dir import DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.logging import get_logger
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.services.content_list_writer import ContentListWriter
@@ -40,17 +40,17 @@ class Services:
     )
 
     @cached_property
-    def source_manager(self) -> UnifiedSourceManager:
-        return UnifiedSourceManager(self.config)
+    def data(self) -> DataSet:
+        return DataSet.from_config(self.config.data)
 
     @cached_property
     def _omnidexer(self) -> Omnidexer:
-        return Omnidexer(source_manager=self.source_manager)
+        return Omnidexer(self.data)
 
     def load_omnidexer(
         self, progress_callback: ProgressCallback | None = None
     ) -> Omnidexer:
-        """The omnidexer with all data loaded and ``_copy`` references resolved.
+        """The omnidexer with all data loaded.
 
         The first call loads, reporting to ``progress_callback`` if one is
         given; later calls return the same instance.
@@ -111,10 +111,3 @@ def _load(omnidexer: Omnidexer, progress_callback: ProgressCallback | None) -> N
         progress_callback.complete_operation(
             operation_id, result="Content data loaded successfully"
         )
-
-    from studiorum.core.resolvers.copy_resolver import CopyResolver
-
-    try:
-        CopyResolver(omnidexer).resolve_copies_in_omnidexer()
-    except Exception as e:
-        logger.warning(f"Failed to resolve copy references: {e}")

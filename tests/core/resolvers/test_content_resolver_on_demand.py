@@ -1,6 +1,6 @@
 """Tests for ContentResolver on-demand loading functionality."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -19,11 +19,7 @@ class TestContentResolverOnDemand:
     def mock_omnidexer(self):
         """Create mock omnidexer."""
         mock_omnidexer = Mock()
-        mock_omnidexer.source_manager = Mock()
-        # Configure get_content_merger to return a mock ContentMerger
-        mock_content_merger = Mock()
-        mock_content_merger.source_manager = mock_omnidexer.source_manager
-        mock_omnidexer.get_content_merger = Mock(return_value=mock_content_merger)
+        mock_omnidexer.hydrate.side_effect = lambda content: content
         return mock_omnidexer
 
     @pytest.fixture
@@ -73,14 +69,6 @@ class TestContentResolverOnDemand:
         """Create ContentResolver instance."""
         return ContentResolver(mock_omnidexer)
 
-    def test_resolver_initializes_content_merger(self, mock_omnidexer):
-        """Test that ContentResolver uses shared ContentMerger from omnidexer."""
-        resolver = ContentResolver(mock_omnidexer)
-        assert resolver.content_merger is not None
-        # Should call get_content_merger on the omnidexer first
-        mock_omnidexer.get_content_merger.assert_called_once()
-        assert resolver.content_merger.source_manager is mock_omnidexer.source_manager
-
     def test_enrich_content_non_dual_file_type(self, content_resolver):
         """Test that non-dual-file content types are returned unchanged."""
         spell = Mock()
@@ -89,78 +77,18 @@ class TestContentResolverOnDemand:
         result = content_resolver._enrich_content_if_needed(spell, ContentType("spell"))
         assert result is spell  # Should return the same object
 
-    def test_enrich_content_adventure_no_id(self, content_resolver):
-        """Test enrichment when adventure has no ID."""
-        adventure = Mock()
-        adventure.name = "Test Adventure"
-        adventure.id = None
-        adventure.contents = []
+    def test_enrich_content_hydrates_adventures(self, content_resolver):
+        """Adventures and books get their text through Omnidexer.hydrate."""
+        adventure = Adventure(name="A", source=Source(abbreviation="A"), id="A")
+        hydrated = Adventure(name="A", source=Source(abbreviation="A"), id="A")
+        content_resolver.omnidexer.hydrate = Mock(return_value=hydrated)
 
         result = content_resolver._enrich_content_if_needed(
-            adventure, ContentType("adventure")
-        )
-        assert result is adventure  # Should return original if no ID
-
-    @patch("studiorum.core.resolvers.content_resolver.logger")
-    def test_enrich_content_adventure_success(
-        self, mock_logger, content_resolver, mock_adventure_metadata, mock_content_data
-    ):
-        """Test successful adventure enrichment."""
-        # Mock the content merger
-        content_resolver.content_merger.load_content_file = Mock(
-            return_value=mock_content_data
-        )
-        content_resolver.content_merger.merge_metadata_content = Mock(
-            return_value={
-                "name": "Test Adventure",
-                "id": "TestAdv",
-                "source": "TA",
-                "contents": [
-                    {"name": "Chapter 1", "entries": ["Chapter 1 content"]},
-                    {"name": "Chapter 2", "entries": ["Chapter 2 content"]},
-                ],
-            }
+            adventure, ContentType.ADVENTURE
         )
 
-        # Mock the adventure class to have model_validate
-        mock_adventure_metadata.model_validate = Mock(
-            return_value=Mock(name="Enriched Adventure")
-        )
-        adventure_class = type(mock_adventure_metadata)
-        adventure_class.model_validate = Mock(
-            return_value=Mock(name="Enriched Adventure")
-        )
-
-        content_resolver._enrich_content_if_needed(
-            mock_adventure_metadata, ContentType("adventure")
-        )
-
-        # Verify content merger was called
-        content_resolver.content_merger.load_content_file.assert_called_once_with(
-            ContentType("adventure"), "TestAdv"
-        )
-        content_resolver.content_merger.merge_metadata_content.assert_called_once()
-
-        # Verify model_validate was called to create enriched content
-        adventure_class.model_validate.assert_called_once()
-
-    @patch("studiorum.core.resolvers.content_resolver.logger")
-    def test_enrich_content_merger_failure(
-        self, mock_logger, content_resolver, mock_adventure_metadata
-    ):
-        """Test enrichment when content merger fails."""
-        # Mock content merger to raise exception
-        content_resolver.content_merger.load_content_file = Mock(
-            side_effect=Exception("Content load failed")
-        )
-
-        result = content_resolver._enrich_content_if_needed(
-            mock_adventure_metadata, ContentType("adventure")
-        )
-
-        # Should return original content on failure
-        assert result is mock_adventure_metadata
-        mock_logger.error.assert_called_once()
+        assert result is hydrated
+        content_resolver.omnidexer.hydrate.assert_called_once_with(adventure)
 
     def test_resolve_adventure_with_enrichment(
         self, content_resolver, mock_adventure_metadata, mock_content_data

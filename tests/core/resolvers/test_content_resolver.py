@@ -99,6 +99,7 @@ class TestContentResolver:
         omnidexer = Mock()
         omnidexer.get_all_by_type.return_value = []
         omnidexer.search.return_value = []
+        omnidexer.hydrate.side_effect = lambda content: content
         return omnidexer
 
     @pytest.fixture

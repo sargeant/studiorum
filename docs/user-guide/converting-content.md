@@ -120,20 +120,22 @@ studiorum convert spells --sources MY-HOMEBREW,THEIR-HOMEBREW
 
 ### Adding Custom Content
 
-Add homebrew content repositories:
+List homebrew files or directories under `data.homebrew` in the configuration
+file (see [Configuration](configuration.md)):
+
+```yaml
+data:
+  homebrew:
+    - /path/to/homebrew
+    - homebrew.json
+```
 
 ```bash
-# Add homebrew directory
-studiorum data add-homebrew /path/to/homebrew --name "my-homebrew"
+# Check what is configured
+studiorum data show
 
-# Add single homebrew JSON file
-studiorum data add-homebrew homebrew.json --name "custom-monsters"
-
-# List available repositories
-studiorum data list
-
-# Convert using custom content
-studiorum convert creatures --sources my-homebrew
+# Convert using custom content, by the source abbreviation the homebrew uses
+studiorum convert creatures --sources MY-HOMEBREW
 ```
 
 ## Configuration

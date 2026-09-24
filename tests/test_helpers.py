@@ -17,26 +17,23 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
 
     This should be called in setup_method() for any test class that:
     - Uses Omnidexer instances
-    - Uses UnifiedSourceManager
     - Tests that load actual data files
     """
     try:
-        # 0. Force TEST data configuration by disabling primary override
-        # This ensures tests use test-data/ instead of user's personal 5etools-src
+        # 0. Use the test configuration, never a developer's own
         import os
 
         from studiorum.core.config.unified_config import reset_app_config
 
-        # Set environment variable to force disable primary override
-        os.environ["STUDIORUM_DISABLE_PRIMARY_OVERRIDE"] = "true"
-
-        # Ensure test config is used
         if "STUDIORUM_CONFIG_FILE" not in os.environ:
             os.environ["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"
 
         # Reset app config to pick up environment changes
         reset_app_config()
-        logger.debug("App configuration reset with primary override disabled for tests")
+
+        from studiorum.core.loaders import item_types
+
+        item_types.reset()
 
         # 1. Forget Services built outside a CLI invocation
         from studiorum.cli.context import reset_services

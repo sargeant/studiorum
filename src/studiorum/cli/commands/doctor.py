@@ -9,10 +9,7 @@ from rich.table import Table
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.cache import CacheManager
-from studiorum.core.config.unified_config import (
-    get_app_config,
-    get_default_config_path,
-)
+from studiorum.core.config.unified_config import get_default_config_path
 
 OK, WARN, FAIL = "✅", "⚠️", "❌"
 Check = tuple[str, str, str]
@@ -21,7 +18,8 @@ Check = tuple[str, str, str]
 def doctor(ctx: typer.Context) -> None:
     """Check the configuration, data sources and cache, and exit 1 on a failure.
 
-    Indexing the data sources can fetch any that are not local yet.
+    The data check lists the configured data directories and homebrew
+    without loading them.
     """
     console = display_manager.console
     checks = [*_config_checks(ctx), *_data_checks(), *_cache_checks()]
@@ -48,31 +46,23 @@ def doctor(ctx: typer.Context) -> None:
 def _config_checks(ctx: typer.Context) -> list[Check]:
     config_file = ctx.find_root().params.get("config_file") or get_default_config_path()
     source = str(config_file) if Path(config_file).exists() else "defaults (no file)"
-    checks = [("Configuration", OK, f"Loaded from {source}")]
-    data_sources = get_app_config().data_sources
-    if data_sources is None:
-        return [*checks, ("Data source config", WARN, "No data_sources section")]
-    for issue in data_sources.validate_configuration():
-        status = WARN if "(warning)" in issue else FAIL
-        checks.append(("Data source config", status, issue))
-    return checks
+    return [("Configuration", OK, f"Loaded from {source}")]
 
 
 def _data_checks() -> list[Check]:
-    manager = get_services().source_manager
-    try:
-        with display_manager.console.status("Indexing data sources..."):
-            manager.ensure_sources_ready_sync()
-    except Exception as e:
-        return [("Data sources", FAIL, f"Could not index the data sources: {e}")]
-
-    stats = manager.get_source_statistics()
-    files = stats.get("total_files", 0)
-    types = stats.get("content_types", 0)
-    enabled = stats.get("enabled_sources", 0)
-    if not files:
-        return [("Data sources", FAIL, f"{enabled} sources enabled but no files found")]
-    return [("Data sources", OK, f"{files} files, {types} content types")]
+    data = get_services().data
+    problems = data.problems()
+    if problems:
+        return [("Data", FAIL, problem) for problem in problems]
+    files = len(data.files())
+    return [
+        (
+            "Data",
+            OK,
+            f"{files} files from {len(data.dirs)} data directories "
+            f"and {len(data.homebrew)} homebrew",
+        )
+    ]
 
 
 def _cache_checks() -> list[Check]:
