@@ -37,8 +37,16 @@ async def test_the_server_lists_its_tools() -> None:
         "search_spells",
         "search_creatures",
         "search_items",
+        "search_rules",
+        "search_content",
         "get_content",
         "list_publications",
+        "calculate_encounter_budget",
+        "rate_encounter",
+        "suggest_creatures",
+        "get_table_of_contents",
+        "read_section",
+        "search_publication",
     }
     # Depends parameters stay out of the schema
     assert "services" not in tools["search_spells"].inputSchema["properties"]
@@ -70,6 +78,7 @@ async def test_search_creatures_filters() -> None:
     assert names(await call("search_creatures", query="goblin")) == ["Goblin"]
     assert names(await call("search_creatures", query="goblin", srd_only=False)) == [
         "Goblin",
+        "Goblin Minion",
         "Goblin Sneak",
     ]
     quarter = await call("search_creatures", cr_min=0.25, cr_max=0.25)
@@ -101,8 +110,17 @@ async def test_search_items_filters() -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_items_names_the_type() -> None:
+    ale = (await call("search_items", query="ale"))["results"][0]
+    assert ale["type"] == "Food and Drink"
+
+
+@pytest.mark.asyncio
 async def test_get_content_returns_the_entry() -> None:
-    result = await call("get_content", content_type="spell", name="fireball")
+    result = await call(
+        "get_content", content_type="spell", name="fireball", format="json"
+    )
+    assert result["text"] is None
     assert result["name"] == "Fireball"
     assert result["srd"] is True
     assert result["data"]["level"] == 3
@@ -130,9 +148,11 @@ async def test_get_content_suggests_names() -> None:
 @pytest.mark.asyncio
 async def test_list_publications() -> None:
     result = await call("list_publications")
+    assert result["publications"][2]["source"] == "TB"
     assert [(p["id"], p["kind"]) for p in result["publications"]] == [
         ("TA", "adventure"),
         ("TB", "book"),
+        ("TB-ST", "adventure"),
     ]
     books = await call("list_publications", kind="book")
     assert [p["name"] for p in books["publications"]] == ["Test Book"]
@@ -141,3 +161,148 @@ async def test_list_publications() -> None:
 def test_entry_types_are_content_types() -> None:
     for name in get_args(EntryType):
         ContentType(name)
+
+
+@pytest.mark.asyncio
+async def test_all_content_changes_the_srd_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from studiorum.mcp.server import options
+
+    monkeypatch.setattr(options, "all_content", True)
+    assert names(await call("search_spells")) == ["Alarm", "Fireball", "Hellfire Orb"]
+    assert names(await call("search_spells", srd_only=True)) == ["Alarm", "Fireball"]
+    result = await call("get_content", content_type="spell", name="Hellfire Orb")
+    assert result["srd"] is False
+
+
+@pytest.mark.asyncio
+async def test_searches_leave_out_reprinted_entries() -> None:
+    latest = await call("search_spells", query="alarm")
+    assert [(r["name"], r["source"]) for r in latest["results"]] == [("Alarm", "XPHB")]
+    both = await call("search_spells", query="alarm", latest_only=False)
+    assert [r["source"] for r in both["results"]] == ["SRD", "XPHB"]
+
+
+@pytest.mark.asyncio
+async def test_get_content_as_markdown() -> None:
+    goblin = (await call("get_content", content_type="creature", name="Goblin"))["text"]
+    assert goblin.startswith("# Goblin\n\n*Small humanoid (goblinoid), neutral evil*")
+    assert "**Armor Class** 15 (leather armor, shield)" in goblin
+    assert "| 8 (-1) | 14 (+2) | 10 (+0) | 10 (+0) | 8 (-1) | 8 (-1) |" in goblin
+    assert "**Challenge** 1/4 (50 XP)" in goblin
+    assert "***Scimitar.*** *Melee Weapon Attack:* +4 to hit" in goblin
+
+    fireball = (await call("get_content", content_type="spell", name="Fireball"))[
+        "text"
+    ]
+    assert "*Level 3 Evocation*" in fireball
+    assert "**Range** 150 feet" in fireball
+    assert "{@" not in fireball
+
+
+@pytest.mark.asyncio
+async def test_get_content_reads_classes_and_features() -> None:
+    wizard = (await call("get_content", content_type="class", name="Wizard"))["text"]
+    assert "**Hit Die** d6" in wizard
+    assert "- Level 1: Arcane Recovery (`Arcane Recovery|Wizard||1`)" in wizard
+    assert "- School of Evocation (SRD)" in wizard
+
+    by_uid = await call(
+        "get_content",
+        content_type="classFeature",
+        name="Arcane Recovery|Wizard||1",  # as the class lists it
+    )
+    assert by_uid["text"].startswith("# Arcane Recovery\n\n*Level 1 Wizard feature*")
+
+
+@pytest.mark.asyncio
+async def test_search_rules_matches_names_then_text() -> None:
+    result = await call("search_rules", query="grapple")
+    assert [(r["name"], r["type"]) for r in result["results"]] == [
+        ("Grappled", "condition"),
+        ("Unarmed Strike", "variantrule"),
+    ]
+    assert (
+        result["results"][1]["snippet"]
+        == "A blow to damage, grapple, or shove a target."
+    )
+    speed = await call("search_rules", query="speed", rule_type="condition")
+    assert speed["results"][0]["snippet"] == "Your Speed is 0."
+
+
+@pytest.mark.asyncio
+async def test_searches_say_what_the_srd_filter_hid() -> None:
+    result = await call("search_spells", query="orb")
+    assert (result["total"], result["hidden_by_srd"]) == (0, 1)
+    assert (await call("search_spells", query="orb", srd_only=False))[
+        "hidden_by_srd"
+    ] == 0
+
+
+@pytest.mark.asyncio
+async def test_get_content_lists_references() -> None:
+    goblin = await call("get_content", content_type="creature", name="Goblin")
+    assert {(r["type"], r["name"]) for r in goblin["references"]} >= {
+        ("item", "leather armor"),
+        ("item", "shield"),
+    }
+
+
+@pytest.mark.asyncio
+async def test_feats_keep_their_prerequisites() -> None:
+    grappler = await call("get_content", content_type="feat", name="Grappler")
+    assert "**Prerequisite** Strength 13" in grappler["text"]
+    raw = await call("get_content", content_type="feat", name="Grappler", format="json")
+    assert raw["data"]["prerequisite"] == [{"ability": [{"str": 13}]}]
+
+
+@pytest.mark.asyncio
+async def test_bad_filters_say_what_is_wrong() -> None:
+    with pytest.raises(ToolError, match=r"cr_min \(5\) is more than cr_max \(1\)"):
+        await call("search_creatures", cr_min=5, cr_max=1)
+    with pytest.raises(ToolError, match="No creature type 'robot'. Types: aberration"):
+        await call("search_creatures", creature_type="robot")
+    with pytest.raises(ToolError, match="No class named 'pilot'. Classes: Wizard"):
+        await call("search_spells", spell_class="pilot")
+
+
+@pytest.mark.asyncio
+async def test_searches_page_and_report_the_srd_mode() -> None:
+    first = await call("search_creatures", srd_only=False, limit=2)
+    second = await call("search_creatures", srd_only=False, limit=2, offset=2)
+    assert first["total"] == second["total"] == 5
+    assert names(first) + names(second) == [
+        "Acolyte",
+        "Goblin",
+        "Goblin Minion",
+        "Goblin Sneak",
+    ]
+    assert (first["srd_only"], (await call("search_spells"))["srd_only"]) == (
+        False,
+        True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_search_content_finds_any_type_by_name() -> None:
+    feats = await call("search_content", content_type="feat", query="grap")
+    assert names(feats) == ["Grappler"]
+    features = await call("search_content", content_type="classFeature", query="arcane")
+    assert "Arcane Recovery" in names(features)
+    nothing = await call("search_content", content_type="deity", query="annam")
+    assert (nothing["total"], nothing["hidden_by_srd"]) == (0, 0)
+
+
+@pytest.mark.asyncio
+async def test_search_content_gives_uids_where_names_repeat() -> None:
+    result = await call(
+        "search_content", content_type="classFeature", query="arcane recovery"
+    )
+    first = result["results"][0]
+    assert (first["detail"], first["uid"]) == (
+        "Level 1 Wizard",
+        "Arcane Recovery|Wizard|PHB|1|SRD",
+    )
+    feature = await call("get_content", content_type="classFeature", name=first["uid"])
+    assert feature["name"] == "Arcane Recovery"

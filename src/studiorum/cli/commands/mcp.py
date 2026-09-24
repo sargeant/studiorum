@@ -23,9 +23,18 @@ def run(
     ] = "stdio",
     host: Annotated[str, typer.Option(help="HTTP host")] = "127.0.0.1",
     port: Annotated[int, typer.Option(help="HTTP port")] = 8000,
+    all_content: Annotated[
+        bool,
+        typer.Option(
+            "--all-content",
+            help="Content tools return everything unless a call asks for SRD only",
+        ),
+    ] = False,
 ) -> None:
     """Run the MCP server. It loads the data before answering the first call."""
-    from studiorum.mcp.server import mcp
+    from studiorum.mcp.server import mcp, options
+
+    options.all_content = all_content
 
     if transport == "stdio":
         mcp.run(transport="stdio", show_banner=False)

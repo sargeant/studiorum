@@ -2,13 +2,15 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .content import BaseContent
 
 
 class Prerequisite(BaseModel):
-    """A prerequisite for a feat."""
+    """A prerequisite for a feat: any of 5etools' keys (level, ability, race, feat, ...)."""
+
+    model_config = ConfigDict(extra="allow")
 
     other: str | None = None
 

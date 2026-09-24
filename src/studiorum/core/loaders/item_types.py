@@ -33,6 +33,12 @@ def get(type_id: str) -> dict[str, Any] | None:
     return (_item_types or {}).get(type_id)
 
 
+def name(type_id: str) -> str:
+    """The name of a type such as ``"M|XPHB"``, or of a bare ``"HA"`` from the PHB; else the code."""
+    found = get(type_id if "|" in type_id else f"{type_id}|PHB")
+    return str(found["name"]) if found and found.get("name") else type_id
+
+
 def reset() -> None:
     global _item_types
     _item_types = None
