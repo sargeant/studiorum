@@ -3214,9 +3214,6 @@ dev = [
     { name = "types-psutil" },
     { name = "types-pyyaml" },
 ]
-images = [
-    { name = "pillow" },
-]
 llm = [
     { name = "mcp-proxy" },
 ]
@@ -3278,7 +3275,6 @@ dev = [
     { name = "types-psutil", specifier = ">=7.0.0.20250601" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250516" },
 ]
-images = [{ name = "pillow", specifier = ">=9.0.0" }]
 llm = [{ name = "mcp-proxy", specifier = ">=0.2.0" }]
 xml = [{ name = "lxml", specifier = ">=4.9.0" }]
 

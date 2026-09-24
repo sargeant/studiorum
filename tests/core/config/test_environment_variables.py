@@ -152,7 +152,6 @@ class TestEnvironmentVariables:
     def test_rendering_content_config_environment_variables(self) -> None:
         """Test STUDIORUM_RENDERING__CONTENT__* environment variables."""
         env_vars = {
-            "STUDIORUM_RENDERING__CONTENT__INCLUDE_IMAGES": "true",
             "STUDIORUM_RENDERING__CONTENT__APPENDIX_SPELLS": "true",
             "STUDIORUM_RENDERING__CONTENT__APPENDIX_ITEMS": "true",
             "STUDIORUM_RENDERING__CONTENT__APPENDIX_CREATURES": "true",
@@ -162,7 +161,6 @@ class TestEnvironmentVariables:
 
         config = ApplicationConfig()
 
-        assert config.rendering.content.include_images is True
         assert config.rendering.content.appendix_spells is True
         assert config.rendering.content.appendix_items is True
         assert config.rendering.content.appendix_creatures is True
@@ -251,102 +249,20 @@ class TestEnvironmentVariables:
         )
         assert config.rendering.latex.rendering.appendix_organization == "source"
 
-    def test_image_config_basic_environment_variables(self) -> None:
-        """Test basic STUDIORUM_IMAGE__* environment variables."""
+    def test_image_config_environment_variables(self) -> None:
+        """Test the three STUDIORUM_IMAGE__* environment variables."""
         env_vars = {
-            "STUDIORUM_IMAGE__ENABLED": "false",
+            "STUDIORUM_IMAGE__INCLUDE_IMAGES": "true",
+            "STUDIORUM_IMAGE__IMAGE_DIRECTORY": "/custom/img",
             "STUDIORUM_IMAGE__CACHE_DIR": "/custom/cache",
-            "STUDIORUM_IMAGE__DEFAULT_CACHE_TTL_HOURS": "48",
-            "STUDIORUM_IMAGE__MAX_CACHE_SIZE_MB": "2048",
-            "STUDIORUM_IMAGE__CLEANUP_INTERVAL_HOURS": "12",
         }
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
 
-        assert config.image.enabled is False
+        assert config.image.include_images is True
+        assert config.image.image_directory == Path("/custom/img")
         assert config.image.cache_dir == Path("/custom/cache")
-        assert config.image.default_cache_ttl_hours == 48
-        assert config.image.max_cache_size_mb == 2048
-        assert config.image.cleanup_interval_hours == 12
-
-    def test_image_config_processing_environment_variables(self) -> None:
-        """Test STUDIORUM_IMAGE__* processing environment variables."""
-        env_vars = {
-            "STUDIORUM_IMAGE__IMAGE_QUALITY": "high",
-            "STUDIORUM_IMAGE__PLACEMENT_STRATEGY": "float",
-            "STUDIORUM_IMAGE__GALLERY_LAYOUT": "showcase",
-            "STUDIORUM_IMAGE__ENABLE_INTELLIGENT_PLACEMENT": "false",
-            "STUDIORUM_IMAGE__ENABLE_CONTENT_ANALYSIS": "false",
-            "STUDIORUM_IMAGE__ENABLE_LAYOUT_OPTIMIZATION": "false",
-            "STUDIORUM_IMAGE__ENABLE_OUTPUT_OPTIMIZATION": "false",
-        }
-        self._set_env_vars(env_vars)
-
-        config = ApplicationConfig()
-
-        assert config.image.image_quality == "high"
-        assert config.image.placement_strategy == "float"
-        assert config.image.gallery_layout == "showcase"
-        assert config.image.enable_intelligent_placement is False
-        assert config.image.enable_content_analysis is False
-        assert config.image.enable_layout_optimization is False
-        assert config.image.enable_output_optimization is False
-
-    def test_image_config_content_types_environment_variables(self) -> None:
-        """Test STUDIORUM_IMAGE__* content type environment variables."""
-        env_vars = {
-            "STUDIORUM_IMAGE__BESTIARY_IMAGES": "false",
-            "STUDIORUM_IMAGE__ITEM_IMAGES": "false",
-            "STUDIORUM_IMAGE__ADVENTURE_IMAGES": "false",
-            "STUDIORUM_IMAGE__CHAPTER_ART": "false",
-        }
-        self._set_env_vars(env_vars)
-
-        config = ApplicationConfig()
-
-        assert config.image.bestiary_images is False
-        assert config.image.item_images is False
-        assert config.image.adventure_images is False
-        assert config.image.chapter_art is False
-
-    def test_image_config_performance_environment_variables(self) -> None:
-        """Test STUDIORUM_IMAGE__* performance environment variables."""
-        env_vars = {
-            "STUDIORUM_IMAGE__PRELOAD_IMAGES": "false",
-            "STUDIORUM_IMAGE__USE_CACHE": "false",
-            "STUDIORUM_IMAGE__SYNC_SOURCES_ON_STARTUP": "true",
-            "STUDIORUM_IMAGE__PARALLEL_PROCESSING": "false",
-            "STUDIORUM_IMAGE__MAX_CONCURRENT_DOWNLOADS": "10",
-        }
-        self._set_env_vars(env_vars)
-
-        config = ApplicationConfig()
-
-        assert config.image.preload_images is False
-        assert config.image.use_cache is False
-        assert config.image.sync_sources_on_startup is True
-        assert config.image.parallel_processing is False
-        assert config.image.max_concurrent_downloads == 10
-
-    def test_image_config_advanced_environment_variables(self) -> None:
-        """Test STUDIORUM_IMAGE__* advanced environment variables."""
-        env_vars = {
-            "STUDIORUM_IMAGE__ENABLED_SOURCES": '["source1", "source2"]',
-            "STUDIORUM_IMAGE__FALLBACK_TO_PLACEHOLDERS": "false",
-            "STUDIORUM_IMAGE__GENERATE_MISSING_ALT_TEXT": "false",
-            "STUDIORUM_IMAGE__INCLUDE_IMAGES_DEFAULT": "true",
-            "STUDIORUM_IMAGE__ENABLE_DEFAULT_5ETOOLS_SOURCE": "false",
-        }
-        self._set_env_vars(env_vars)
-
-        config = ApplicationConfig()
-
-        assert config.image.enabled_sources == ["source1", "source2"]
-        assert config.image.fallback_to_placeholders is False
-        assert config.image.generate_missing_alt_text is False
-        assert config.image.include_images_default is True
-        assert config.image.enable_default_5etools_source is False
 
     def test_type_conversion_boolean(self) -> None:
         """Test boolean type conversion from environment variables."""
@@ -601,7 +517,7 @@ class TestEnvironmentVariables:
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__PAPER_SIZE": "a4",
             "STUDIORUM_RENDERING__LATEX__ENGINE__PRIMARY_ENGINE": "xelatex",
             # Image
-            "STUDIORUM_IMAGE__ENABLED": "false",
+            "STUDIORUM_IMAGE__INCLUDE_IMAGES": "true",
         }
         self._set_env_vars(env_vars)
 
@@ -617,7 +533,7 @@ class TestEnvironmentVariables:
         assert config.validation.strictness == "strict"
         assert config.rendering.latex.document.paper_size == "a4"
         assert config.rendering.latex.engine.primary_engine == "xelatex"
-        assert config.image.enabled is False
+        assert config.image.include_images is True
 
 
 class TestEnvironmentVariableIntegration:

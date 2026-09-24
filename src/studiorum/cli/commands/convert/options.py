@@ -183,7 +183,7 @@ class ConvertOptions(BaseModel):
             title=params.get("title"),
             compile_pdf=pick("pdf", config.rendering.compilation.auto_compile_pdf),
             open_pdf=pick("open_pdf", False),
-            images=pick("images", config.rendering.content.include_images),
+            images=pick("images", config.image.include_images),
             latex=config.rendering.latex.model_copy(update={"document": document}),
         )
 

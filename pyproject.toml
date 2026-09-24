@@ -96,7 +96,6 @@ dev = [
     "syrupy>=6.1.1",
 ]
 
-images = ["Pillow>=9.0.0"]
 xml = ["lxml>=4.9.0"]
 llm = [
     # MCP stdio proxy to bridge HTTP MCP servers into stdio for Codex/CLI
@@ -179,7 +178,6 @@ ignore = [
 "src/studiorum/cli/commands/stats.py" = ["B904"]
 "src/studiorum/cli/main.py" = ["B904", "PTH123"]
 "src/studiorum/mcp/api.py" = ["RET504", "SIM102"]
-"src/studiorum/core/assets/image_sources.py" = ["PIE810", "PTH123", "SIM103", "SIM110", "SIM117", "UP042"]
 "src/studiorum/core/config/data_sources.py" = ["SIM102", "UP042"]
 "src/studiorum/core/error_types.py" = ["UP042"]
 "src/studiorum/core/latex_utils.py" = ["B007", "RET504", "SIM110"]
@@ -452,7 +450,6 @@ type = "acyclic_siblings"
 ancestors = ["studiorum.core"]
 ignore_imports = [
     "studiorum.core.base_context -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.config.unified_config -> studiorum.core.assets.image_sources",
     "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.models.content",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",

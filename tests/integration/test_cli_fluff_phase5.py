@@ -67,7 +67,6 @@ class TestCLIFluffPhase5Integration:
         assert fluff_config.enabled is False  # Default
         assert fluff_config.placement == "before"
         assert fluff_config.deduplication is True
-        assert fluff_config.include_images is True
         assert fluff_config.sections == []
         assert fluff_config.allowed_sources == []
 
@@ -86,8 +85,6 @@ class TestCLIFluffPhase5Integration:
             placement="after",
             sections=["lair", "tactics"],
             allowed_sources=["MM", "VGM"],
-            max_images_per_entry=3,
-            image_placement="gallery",
         )
 
         content_config = ContentConfig(fluff=custom_fluff_config)
@@ -99,8 +96,6 @@ class TestCLIFluffPhase5Integration:
         assert fluff_config.placement == "after"
         assert fluff_config.sections == ["lair", "tactics"]
         assert fluff_config.allowed_sources == ["MM", "VGM"]
-        assert fluff_config.max_images_per_entry == 3
-        assert fluff_config.image_placement == "gallery"
 
     @pytest.mark.parametrize("command", ["creatures", "spells", "items"])
     def test_fluff_options_are_listed_in_help(self, command: str) -> None:
