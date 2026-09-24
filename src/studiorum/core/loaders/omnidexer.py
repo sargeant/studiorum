@@ -29,7 +29,7 @@ from ..models.content_models import (
 )
 from ..models.fluff import BaseFluff
 from ..validation.error_tracker import ErrorContext, ValidationErrorTracker
-from . import item_types
+from . import item_types, magic_variants
 from .data_dir import DataSet, read_json
 from .dual_file import merge_metadata_content
 from .merge_copy import resolve_copies
@@ -115,6 +115,7 @@ class Omnidexer:
                 f"({failure.source}): {failure.message}"
             )
         item_types.register(raw.get("baseitem", []) + raw.get("itemType", []))
+        self._add_specific_variants(raw)
 
         by_type: dict[ContentType, list[Raw]] = defaultdict(list)
         for prop, entities in raw.items():
@@ -334,8 +335,26 @@ class Omnidexer:
     def _add_alias(
         self, alias: BaseContent, content_type: ContentType, fields: UidFields
     ) -> None:
-        if self._match_uid(content_type, fields) is None:
-            self._add_to_index(alias, content_type)
+        if self._match_uid(content_type, fields) is not None:
+            return
+        # An item reprinted as a generic variant ("... (*)|XDMG") is that variant
+        if content_type == ContentType.ITEM and (
+            self._match_uid(ContentType.MAGICVARIANT, fields) is not None
+        ):
+            return
+        self._add_to_index(alias, content_type)
+
+    @staticmethod
+    def _add_specific_variants(raw: dict[str, list[Raw]]) -> None:
+        """Add the items 5etools makes from generic variants, unless an item already has the name."""
+        have = {
+            (str(i.get("name", "")).lower(), str(i.get("source", "")).lower())
+            for i in raw.get("item", [])
+        }
+        generics = [g for g in raw.get("magicvariant", []) if "_copy" not in g]
+        for item in magic_variants.expand(raw.get("baseitem", []), generics):
+            if (item["name"].lower(), item["source"].lower()) not in have:
+                raw["item"].append(item)
 
     def _index_nested(self, content: DeepIndexable, content_type: ContentType) -> None:
         try:
