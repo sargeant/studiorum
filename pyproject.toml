@@ -453,7 +453,6 @@ ancestors = ["studiorum.core"]
 ignore_imports = [
     "studiorum.core.base_context -> studiorum.core.loaders.omnidexer",
     "studiorum.core.config.unified_config -> studiorum.core.assets.image_sources",
-    "studiorum.core.entry_registry -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.models.content",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",

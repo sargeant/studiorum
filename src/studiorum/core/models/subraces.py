@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
 
 
@@ -38,7 +38,9 @@ class Subrace(BaseContent):
         description="Language proficiencies granted",
     )
     darkvision: int | None = Field(None, description="Darkvision range in feet")
-    speed: dict[str, Any] | None = Field(None, description="Movement speeds")
+    speed: int | dict[str, Any] | None = Field(
+        None, description="Walking speed, or speeds by mode"
+    )
     resist: list[str] | None = Field(None, description="Damage resistances")
     immune: list[str] | None = Field(None, description="Damage immunities")
     condition_immune: list[str] | None = Field(
@@ -58,10 +60,12 @@ class Subrace(BaseContent):
     has_fluff_images: bool | None = Field(
         None, alias="hasFluffImages", description="Whether fluff images exist"
     )
-    reprinted_as: list[dict[str, str]] | None = Field(
+    reprinted_as: list[str | Reprint] | None = Field(
         None, alias="reprintedAs", description="Later reprints of this subrace"
     )
-    entries: list[Entry] = Field(..., description="Subrace traits and abilities")
+    entries: list[Entry] = Field(
+        default_factory=list, description="Subrace traits and abilities"
+    )
 
     @field_validator("race_name")
     @classmethod

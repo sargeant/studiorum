@@ -104,6 +104,20 @@ class Source(BaseModel):
         return self.abbreviation
 
 
+class Reprint(BaseModel):
+    """A ``reprintedAs`` entry that names the type it was reprinted as.
+
+    5etools writes most reprints as a plain uid ("Fireball|XPHB"); this form
+    adds a tag when the reprint is another kind of content, such as a
+    fighting style reprinted as a feat.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    uid: str = Field(..., description="The reprint's uid, e.g. 'Archery|XPHB'")
+    tag: str | None = Field(None, description="Its 5etools tag, e.g. 'feat'")
+
+
 class BaseContent(BaseModel):
     """Base class for all 5e content."""
 

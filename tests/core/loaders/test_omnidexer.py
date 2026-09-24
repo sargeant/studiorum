@@ -198,3 +198,157 @@ def test_magic_variants_take_their_source_from_inherits(tmp_path: Path) -> None:
     omnidexer = _load(tmp_path)
 
     assert omnidexer.find(ContentType.MAGICVARIANT, "+1 Test", "DMG") is not None
+
+
+def test_an_item_property_is_named_after_its_first_entry(tmp_path: Path) -> None:
+    prop = {
+        "abbreviation": "2H",
+        "source": "XPHB",
+        "entries": [{"type": "entries", "name": "Two-Handed", "entries": ["..."]}],
+    }
+    _write(tmp_path / "items-base.json", {"itemProperty": [prop]})
+
+    omnidexer = _load(tmp_path)
+
+    assert omnidexer.find(ContentType.ITEM_PROPERTY, "Two-Handed", "XPHB") is not None
+
+
+def test_a_nameless_subrace_is_left_to_its_race(tmp_path: Path) -> None:
+    default = {"source": "PHB", "raceName": "Human", "raceSource": "PHB"}
+    named = {**default, "name": "Variant", "entries": ["..."]}
+    _write(tmp_path / "races.json", {"subrace": [default, named]})
+
+    omnidexer = _load(tmp_path)
+
+    assert [s.name for s in omnidexer.get_all_by_type(ContentType.SUBRACE)] == [
+        "Variant"
+    ]
+
+
+def _feature(class_name: str, level: int, source: str = "PHB") -> dict[str, Any]:
+    return {
+        "name": "Ability Score Improvement",
+        "source": source,
+        "className": class_name,
+        "classSource": source,
+        "level": level,
+        "entries": [f"{class_name} {level}"],
+    }
+
+
+def test_same_named_features_of_different_classes_are_all_indexed(
+    tmp_path: Path,
+) -> None:
+    features = [_feature("Fighter", 4), _feature("Fighter", 6), _feature("Rogue", 4)]
+    _write(tmp_path / "class/class-test.json", {"classFeature": features})
+    _write(tmp_path / "class/index.json", {"test": "class-test.json"})
+
+    omnidexer = _load(tmp_path)
+    found = omnidexer.find_all(ContentType.CLASS_FEATURE, "Ability Score Improvement")
+
+    assert [f.entries for f in found] == [["Fighter 4"], ["Fighter 6"], ["Rogue 4"]]  # type: ignore[attr-defined]
+    # find() still gives the first loaded
+    first = omnidexer.find(
+        ContentType.CLASS_FEATURE, "Ability Score Improvement", "PHB"
+    )
+    assert first is found[0]
+
+
+@pytest.mark.parametrize(
+    ("uid", "expected"),
+    [
+        ("Ability Score Improvement|Fighter||6", ["Fighter 6"]),
+        ("ability score improvement|rogue|phb|4|phb", ["Rogue 4"]),
+        ("Ability Score Improvement|Rogue|XPHB|4", None),
+        ("Ability Score Improvement|Wizard||4", None),
+    ],
+)
+def test_find_uid_reads_5etools_uids(
+    tmp_path: Path, uid: str, expected: list[str] | None
+) -> None:
+    features = [_feature("Fighter", 4), _feature("Fighter", 6), _feature("Rogue", 4)]
+    _write(tmp_path / "class/class-test.json", {"classFeature": features})
+    _write(tmp_path / "class/index.json", {"test": "class-test.json"})
+
+    found = _load(tmp_path).find_uid(ContentType.CLASS_FEATURE, uid)
+
+    assert (found.entries if found else None) == expected  # type: ignore[attr-defined]
+
+
+def test_a_subclass_reprint_is_aliased_only_when_the_reprint_is_missing(
+    tmp_path: Path,
+) -> None:
+    def subclass(name: str, short: str, source: str, **extra: object) -> dict[str, Any]:
+        return {
+            "name": name,
+            "shortName": short,
+            "source": source,
+            "className": "Barbarian",
+            "classSource": source,
+            "subclassFeatures": [f"{name}|Barbarian||{short}||3"],
+            **extra,
+        }
+
+    totem = subclass(
+        "Path of the Totem Warrior",
+        "Totem Warrior",
+        "PHB",
+        reprintedAs=["Wild Heart|Barbarian|XPHB|XPHB"],
+    )
+    berserker = subclass(
+        "Path of the Berserker",
+        "Berserker",
+        "PHB",
+        reprintedAs=["Berserker|Barbarian|XPHB|XPHB"],
+    )
+    wild_heart = subclass("Path of the Wild Heart", "Wild Heart", "XPHB")
+    _write(
+        tmp_path / "class/class-test.json", {"subclass": [totem, berserker, wild_heart]}
+    )
+    _write(tmp_path / "class/index.json", {"test": "class-test.json"})
+
+    omnidexer = _load(tmp_path)
+    xphb = [
+        s.name
+        for s in omnidexer.get_all_by_type(ContentType.SUBCLASS)
+        if s.source.abbreviation == "XPHB"
+    ]
+
+    assert sorted(xphb) == ["Path of the Berserker", "Path of the Wild Heart"]
+    alias = omnidexer.find_uid(ContentType.SUBCLASS, "Berserker|Barbarian|XPHB|XPHB")
+    assert alias is not None
+    assert alias.class_source == "XPHB"  # type: ignore[attr-defined]
+
+
+def test_a_reprint_tagged_as_another_type_is_not_aliased(tmp_path: Path) -> None:
+    style = {
+        "name": "Archery",
+        "source": "PHB",
+        "featureType": ["FS:F"],
+        "entries": ["..."],
+        "reprintedAs": [{"uid": "Archery|XPHB", "tag": "feat"}],
+    }
+    _write(tmp_path / "optionalfeatures.json", {"optionalfeature": [style]})
+
+    omnidexer = _load(tmp_path)
+
+    assert omnidexer.find(ContentType.OPTIONALFEATURE, "Archery", "XPHB") is None
+
+
+def test_an_item_property_reprint_is_read_by_abbreviation(tmp_path: Path) -> None:
+    def prop(source: str, **extra: object) -> dict[str, Any]:
+        entry = {"type": "entries", "name": "Two-Handed", "entries": [source]}
+        return {"abbreviation": "2H", "source": source, "entries": [entry], **extra}
+
+    old = prop("PHB", reprintedAs=["2H|XPHB"])
+    _write(tmp_path / "items-base.json", {"itemProperty": [old, prop("XPHB")]})
+
+    omnidexer = _load(tmp_path)
+
+    assert [
+        (p.name, p.source.abbreviation)
+        for p in omnidexer.get_all_by_type(ContentType.ITEM_PROPERTY)
+    ] == [("Two-Handed", "PHB"), ("Two-Handed", "XPHB")]
+    found = omnidexer.find_uid(ContentType.ITEM_PROPERTY, "2H|XPHB")
+    assert found is not None
+    assert found.entries[0].entries == ["XPHB"]  # type: ignore[attr-defined]

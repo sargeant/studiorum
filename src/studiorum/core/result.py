@@ -41,7 +41,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypeGuard, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     pass
@@ -85,11 +85,6 @@ class Result[T, E](ABC):
         ...
 
     @abstractmethod
-    def unwrap_or_else(self, default_fn: Callable[[E], T]) -> T:
-        """Return the success value or the result of calling default_fn with the error."""
-        ...
-
-    @abstractmethod
     def map(self, fn: Callable[[T], U]) -> Result[U, E]:
         """Transform the success value using the given function."""
         ...
@@ -130,10 +125,6 @@ class Success[T, E](Result[T, E]):
 
     def unwrap_or(self, default: T) -> T:
         """Return the success value (ignoring the default)."""
-        return self.value
-
-    def unwrap_or_else(self, default_fn: Callable[[E], T]) -> T:
-        """Return the success value (ignoring the default function)."""
         return self.value
 
     def map(self, fn: Callable[[T], U]) -> Result[U, E]:
@@ -183,10 +174,6 @@ class Error[T, E](Result[T, E]):
         """Return the default value since this is an Error result."""
         return default
 
-    def unwrap_or_else(self, default_fn: Callable[[E], T]) -> T:
-        """Return the result of calling default_fn with the error."""
-        return default_fn(self.error)
-
     def map(self, fn: Callable[[T], U]) -> Result[U, E]:
         """Return self since there's no success value to transform."""
         # Error[T, E] needs to become Error[U, E] to match the return type
@@ -227,56 +214,6 @@ class Error[T, E](Result[T, E]):
 
 # Type alias for convenience
 ResultType = Success[T, E] | Error[T, E]
-
-
-def is_success_result[T, E](result: Result[T, E]) -> TypeGuard[Success[T, E]]:
-    """TypeGuard function to check if a Result is a Success."""
-    return result.is_success()
-
-
-def is_error_result[T, E](result: Result[T, E]) -> TypeGuard[Error[T, E]]:
-    """TypeGuard function to check if a Result is an Error."""
-    return result.is_error()
-
-
-def collect_results[T, E](results: list[Result[T, E]]) -> Result[list[T], list[E]]:
-    """
-    Collect multiple Results into a single Result.
-
-    If all Results are successful, returns Success with a list of all values.
-    If any Results are errors, returns Error with a list of all errors.
-
-    Args:
-        results: List of Result objects to collect.
-
-    Returns:
-        Success with list of values if all succeeded, Error with list of errors otherwise.
-
-    Examples:
-        >>> results = [Success(1), Success(2), Success(3)]
-        >>> collected = collect_results(results)
-        >>> # Returns Success([1, 2, 3])
-        >>>
-        >>> results = [Success(1), Error("fail"), Success(3)]
-        >>> collected = collect_results(results)
-        >>> # Returns Error(["fail"])
-    """
-    successes: list[T] = []
-    errors: list[E] = []
-
-    for result in results:
-        if is_success_result(result):
-            successes.append(result.unwrap())
-        elif is_error_result(result):
-            # TypeGuard ensures mypy knows this is an Error with .error attribute
-            errors.append(result.error)
-        else:
-            # This should never happen in practice, but mypy requires exhaustive handling
-            raise TypeError(f"Invalid Result type: {type(result)}")
-
-    if errors:
-        return Error(errors)
-    return Success(successes)
 
 
 def try_result[T](fn: Callable[[], T]) -> Result[T, Exception]:

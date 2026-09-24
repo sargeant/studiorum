@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, Field, field_validator
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
 
 
@@ -189,7 +189,7 @@ class Spell(BaseContent):
     )
 
     # Optional parity fields (5etools compatibility)
-    scaling_level_dice: ScalingLevelDice | None = Field(
+    scaling_level_dice: ScalingLevelDice | list[ScalingLevelDice] | None = Field(
         None,
         alias="scalingLevelDice",
         description="Structured level-based dice scaling",
@@ -223,7 +223,9 @@ class Spell(BaseContent):
     other_sources: list[SourceReference] | None = Field(
         None, alias="otherSources", description="Additional source references"
     )
-    srd: bool | None = Field(None, description="Is SRD content")
+    srd: bool | str | None = Field(
+        None, description="Is SRD content (a string is its SRD name)"
+    )
     srd52: bool | None = Field(None, description="Is 5.2 SRD content")
     basic_rules: bool | None = Field(
         None, alias="basicRules", description="Is basic rules content"
@@ -231,7 +233,7 @@ class Spell(BaseContent):
     basic_rules_2024: bool | None = Field(
         None, alias="basicRules2024", description="Is 2024 basic rules content"
     )
-    reprinted_as: list[str] | None = Field(
+    reprinted_as: list[str | Reprint] | None = Field(
         None, alias="reprintedAs", description="Reprint references"
     )
     subschools: list[str] | None = Field(
@@ -321,7 +323,9 @@ class Spell(BaseContent):
 
     @field_validator("scaling_level_dice", mode="before")
     @classmethod
-    def parse_scaling_level_dice(cls, v: Any) -> ScalingLevelDice | Any:
+    def parse_scaling_level_dice(
+        cls, v: Any
+    ) -> ScalingLevelDice | list[ScalingLevelDice] | Any:
         """Parse scalingLevelDice from dict if present."""
         if v is None or isinstance(v, ScalingLevelDice):
             return v
@@ -487,12 +491,13 @@ class Spell(BaseContent):
         return base
 
     def get_scaling_table(self) -> dict[int, str] | None:
-        """Get scaling table from scalingLevelDice."""
-        if not self.scaling_level_dice:
+        """Get scaling table from scalingLevelDice (the first, if it has several)."""
+        scaling = self.scaling_level_dice
+        if isinstance(scaling, list):
+            scaling = scaling[0] if scaling else None
+        if not scaling:
             return None
-        return {
-            int(level): dice for level, dice in self.scaling_level_dice.scaling.items()
-        }
+        return {int(level): dice for level, dice in scaling.scaling.items()}
 
     def get_affected_creatures_text(self) -> str:
         """Get formatted list of affected creature types."""

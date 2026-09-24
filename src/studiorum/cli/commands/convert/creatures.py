@@ -211,7 +211,7 @@ ColumnsGargantuan = Annotated[
 TOKEN_SIZES = ("tiny", "small", "medium", "large", "huge", "gargantuan")
 
 
-def creatures(
+def creatures(  # nosec B107: "letter" is token_paper_size, not a password
     ctx: typer.Context,
     creature_names: Names = None,
     tokens: Tokens = False,

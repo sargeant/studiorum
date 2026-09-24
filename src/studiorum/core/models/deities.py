@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
 
 
@@ -41,7 +41,7 @@ class Deity(BaseContent):
     alt_names: list[str] | None = Field(
         None, alias="altNames", description="Alternative names"
     )
-    reprinted_as: list[dict[str, str]] | None = Field(
+    reprinted_as: list[str | Reprint] | None = Field(
         None, alias="reprintedAs", description="Later reprints of this deity"
     )
     entries: list[Entry] = Field(
