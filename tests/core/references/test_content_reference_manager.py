@@ -2,13 +2,10 @@
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 from studiorum.core.references.content_reference_manager import (
     ContentReference,
     ContentReferenceManager,
     ReferenceSource,
-    ReferenceTrackingTagResolver,
 )
 from studiorum.core.references.content_tracker import TrackedContent
 
@@ -375,100 +372,6 @@ class TestContentReferenceManager:
         assert len(manager._reference_keys) == 0
 
 
-class TestReferenceTrackingTagResolver:
-    """Test ReferenceTrackingTagResolver wrapper."""
-
-    def test_init(self):
-        """Test ReferenceTrackingTagResolver initialization."""
-        mock_tag_resolver = Mock()
-        mock_ref_manager = Mock()
-
-        wrapper = ReferenceTrackingTagResolver(mock_tag_resolver, mock_ref_manager)
-
-        assert wrapper.tag_resolver == mock_tag_resolver
-        assert wrapper.reference_manager == mock_ref_manager
-
-    def test_resolve_tag_simple(self):
-        """Test tag resolution without reference tracking."""
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve_tag.return_value = "Resolved content"
-        mock_ref_manager = Mock()
-
-        wrapper = ReferenceTrackingTagResolver(mock_tag_resolver, mock_ref_manager)
-
-        result = wrapper.resolve_tag("simple tag", "test.tex")
-
-        assert result == "Resolved content"
-        mock_tag_resolver.resolve_tag.assert_called_once_with("simple tag")
-        mock_ref_manager.track_tag_reference.assert_not_called()
-
-    def test_resolve_tag_with_tracking(self):
-        """Test tag resolution with reference tracking."""
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve_tag.return_value = "Resolved content"
-        mock_ref_manager = Mock()
-
-        wrapper = ReferenceTrackingTagResolver(mock_tag_resolver, mock_ref_manager)
-
-        result = wrapper.resolve_tag("{@spell Fireball|PHB}", "spells.tex")
-
-        assert result == "Resolved content"
-        mock_tag_resolver.resolve_tag.assert_called_once_with("{@spell Fireball|PHB}")
-        mock_ref_manager.track_tag_reference.assert_called_once_with(
-            tag_type="spell",
-            name="Fireball",
-            source="PHB",
-            template_location="spells.tex",
-        )
-
-    def test_resolve_tag_malformed(self):
-        """Test tag resolution with malformed tag."""
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve_tag.return_value = "Resolved content"
-        mock_ref_manager = Mock()
-
-        wrapper = ReferenceTrackingTagResolver(mock_tag_resolver, mock_ref_manager)
-
-        # Malformed tag should not break resolution
-        result = wrapper.resolve_tag("{@malformed", "test.tex")
-
-        assert result == "Resolved content"
-        mock_tag_resolver.resolve_tag.assert_called_once()
-        mock_ref_manager.track_tag_reference.assert_not_called()
-
-    def test_resolve_tag_parsing_error(self):
-        """Test tag resolution with parsing error."""
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve_tag.return_value = "Resolved content"
-        mock_ref_manager = Mock()
-        mock_ref_manager.track_tag_reference.side_effect = Exception("Tracking failed")
-
-        wrapper = ReferenceTrackingTagResolver(mock_tag_resolver, mock_ref_manager)
-
-        # Should not raise exception even if tracking fails
-        result = wrapper.resolve_tag("{@spell Fireball|PHB}", "test.tex")
-
-        assert result == "Resolved content"
-
-    def test_getattr_delegation(self):
-        """Test attribute delegation to wrapped resolver."""
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.some_attribute = "test_value"
-        mock_tag_resolver.some_method.return_value = "method_result"
-        mock_ref_manager = Mock()
-
-        wrapper = ReferenceTrackingTagResolver(mock_tag_resolver, mock_ref_manager)
-
-        # Test attribute access
-        assert wrapper.some_attribute == "test_value"
-
-        # Test method call
-        result = wrapper.some_method("arg1", kwarg="value")
-        assert result == "method_result"
-        mock_tag_resolver.some_method.assert_called_once_with("arg1", kwarg="value")
-
-
-@pytest.mark.integration
 class TestContentReferenceManagerIntegration:
     """Integration tests for ContentReferenceManager."""
 
