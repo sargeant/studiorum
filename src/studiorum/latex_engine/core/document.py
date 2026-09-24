@@ -256,7 +256,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         if latex_config and hasattr(latex_config, "document"):
             # Use LaTeX config for document class and options
             document_class = latex_config.document.document_class
-            class_options = latex_config.document.get_class_options_list()
+            class_options = latex_config.document.class_options()
         else:
             # Fallback to hardcoded defaults
             document_class = "dndbook"

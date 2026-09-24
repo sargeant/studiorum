@@ -7,7 +7,11 @@ from typing import Any
 import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
 
-from studiorum.core.config.latex_config import LaTeXConfig, get_default_latex_config
+from studiorum.core.config.unified_config import (
+    LaTeXConfig,
+    LaTeXDocumentConfig,
+    get_app_config,
+)
 from studiorum.core.latex_utils import (
     contains_dangerous_latex,
     escape_latex_text,
@@ -39,6 +43,28 @@ def _active_omnidexer_and_tag_resolver() -> tuple[Any, Any]:
     if service is None:
         return None, None
     return service.omnidexer, service.tag_resolver
+
+
+def _class_for_content_type(
+    doc: LaTeXDocumentConfig, content_type: str
+) -> tuple[str, list[str]]:
+    """The document class and options for a kind of document.
+
+    Adventures, sourcebooks, supplements and references always use dndbook, and
+    supplements and references drop the fancy option. Articles use dndarticle in
+    one column.
+    """
+    document_class: str = doc.document_class
+    options = doc.class_options()
+    if content_type in ("adventure", "sourcebook"):
+        document_class = "dndbook"
+    elif content_type in ("supplement", "reference"):
+        document_class = "dndbook"
+        options = [opt for opt in options if opt != "fancy"]
+    elif content_type == "article":
+        document_class = "dndarticle"
+        options = ["onecolumn" if opt == "twocolumn" else opt for opt in options]
+    return document_class, options
 
 
 class LaTeXTemplateEngine:
@@ -77,8 +103,8 @@ class LaTeXTemplateEngine:
             self.templates_dir = Path(__file__).parent.parent / "templates"
         self.debug = self.config.get("debug", False)
 
-        # Initialize LaTeX configuration
-        self.latex_config = get_default_latex_config()
+        # Start from the loaded configuration; convert commands pass their own
+        self.latex_config = get_app_config().rendering.latex
 
         # Initialize the environment
         self.update_latex_config(None)
@@ -608,8 +634,10 @@ class LaTeXTemplateEngine:
         Returns:
             Template context with DND-specific configuration
         """
-        # Get content-specific configuration
-        content_config = self.latex_config.get_content_type_config(content_type)
+        doc_config = self.latex_config.document
+        document_class, class_options = _class_for_content_type(
+            doc_config, content_type
+        )
 
         # Create base context
         context = self.create_template_context(**kwargs)
@@ -617,8 +645,8 @@ class LaTeXTemplateEngine:
         # Add DND-specific configuration
         context.update(
             {
-                "document_class": content_config["document_class"],
-                "class_options": content_config["class_options"],
+                "document_class": document_class,
+                "class_options": class_options,
                 "content_type": content_type,
                 "use_dnd_template": True,
                 "dnd_template_available": self.check_dnd_template_availability(),
@@ -626,7 +654,6 @@ class LaTeXTemplateEngine:
         )
 
         # Add LaTeX document configuration
-        doc_config = self.latex_config.document
         context.update(
             {
                 "font_scheme": doc_config.font_scheme,
@@ -638,9 +665,9 @@ class LaTeXTemplateEngine:
                 "justified_text": doc_config.justified_text,
                 "fancy_headers": doc_config.fancy_headers,
                 "two_column": doc_config.two_column,
-                "show_toc": doc_config.include_toc,
-                "show_index": doc_config.include_index,
-                "enable_index": doc_config.include_index,
+                "show_toc": doc_config.show_toc,
+                "show_index": doc_config.show_index,
+                "enable_index": doc_config.show_index,
                 "numbered_sections": True,  # Enable LaTeX native chapter/section numbering
             }
         )

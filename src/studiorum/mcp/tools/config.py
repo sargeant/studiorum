@@ -298,7 +298,7 @@ async def configure_paper_layout(
             # Smaller paper needs single column and smaller font
             updates["rendering.latex.document.two_column"] = False
             updates["rendering.latex.document.font_size"] = "10pt"
-            updates["rendering.latex.document.class_options"] = ["justified"]
+            updates["rendering.latex.document.justified_text"] = True
         elif paper_size == "letter":
             # Letter size optimizations
             updates["rendering.latex.document.font_size"] = "11pt"
@@ -430,15 +430,8 @@ async def configure_encounter_printing(
                 False  # Not needed for print
             )
 
-        if single_column:
-            updates["rendering.latex.document.two_column"] = False
-            updates["rendering.latex.document.class_options"] = ["justified"]
-        else:
-            updates["rendering.latex.document.two_column"] = True
-            updates["rendering.latex.document.class_options"] = [
-                "justified",
-                "twocolumn",
-            ]
+        updates["rendering.latex.document.two_column"] = not single_column
+        updates["rendering.latex.document.justified_text"] = True
 
         result = await update_configuration(updates, context)
 

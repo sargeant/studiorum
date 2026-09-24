@@ -21,8 +21,10 @@ from studiorum.cli.config_factory import (
 )
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.latex_config import LaTeXConfig
-from studiorum.core.config.unified_config import get_app_config  # noqa: F401
+from studiorum.core.config.unified_config import (
+    LaTeXConfig,
+    get_app_config,  # noqa: F401
+)
 from studiorum.core.logging import get_logger
 from studiorum.core.models.spells import Spell
 from studiorum.renderers.core.interfaces import RenderingContext
@@ -717,22 +719,24 @@ def spells(
                 statblock=statblock,
             )
 
-            from studiorum.core.config.latex_config import (
+            from studiorum.core.config.unified_config import (
                 LaTeXConfig,
                 LaTeXDocumentConfig,
             )
 
-            latex_doc_config = LaTeXDocumentConfig(
-                document_class=document_class,
-                paper_size=config["paper_size"],
-                font_size=config["font_size"],
-                background=config["background"],
-                high_contrast=config["high_contrast"],
-                two_column=config["two_column"],
-                justified_text=config["justified"],
-                fonts=config["fonts"],
-                no_outline=config["no_outline"],
-                statblock=config["statblock"],
+            latex_doc_config = LaTeXDocumentConfig.model_validate(
+                {
+                    "document_class": document_class,
+                    "paper_size": config["paper_size"],
+                    "font_size": config["font_size"],
+                    "background": config["background"],
+                    "high_contrast": config["high_contrast"],
+                    "two_column": config["two_column"],
+                    "justified_text": config["justified"],
+                    "fonts": config["fonts"],
+                    "no_outline": config["no_outline"],
+                    "statblock": config["statblock"],
+                }
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 

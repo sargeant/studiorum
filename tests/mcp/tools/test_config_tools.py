@@ -355,9 +355,7 @@ class TestConfigurePaperLayout:
             config["rendering"]["latex"]["document"]["two_column"] is False
         )  # Overridden
         assert config["rendering"]["latex"]["document"]["font_size"] == "10pt"
-        assert config["rendering"]["latex"]["document"]["class_options"] == [
-            "justified"
-        ]
+        assert config["rendering"]["latex"]["document"]["justified_text"] is True
 
     @pytest.mark.asyncio
     async def test_configure_paper_layout_print_optimizations(self) -> None:
@@ -544,9 +542,7 @@ class TestConfigureEncounterPrinting:
 
         config = response.current_config
         assert config["rendering"]["latex"]["document"]["two_column"] is False
-        assert config["rendering"]["latex"]["document"]["class_options"] == [
-            "justified"
-        ]
+        assert config["rendering"]["latex"]["document"]["justified_text"] is True
 
     @pytest.mark.asyncio
     async def test_configure_encounter_printing_two_column(self) -> None:
@@ -560,10 +556,7 @@ class TestConfigureEncounterPrinting:
 
         config = response.current_config
         assert config["rendering"]["latex"]["document"]["two_column"] is True
-        assert config["rendering"]["latex"]["document"]["class_options"] == [
-            "justified",
-            "twocolumn",
-        ]
+        assert config["rendering"]["latex"]["document"]["justified_text"] is True
 
     @pytest.mark.asyncio
     async def test_configure_encounter_printing_no_optimization(self) -> None:

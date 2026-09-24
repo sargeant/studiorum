@@ -60,7 +60,7 @@ class TestCliConfigInheritance:
 
         # Verify that conflicting defaults have been resolved
         assert config.rendering.latex.document.justified_text is False
-        assert config.rendering.latex.document.show_index is True
+        assert config.rendering.latex.document.show_index is False
 
         # Verify new config sections exist
         assert hasattr(config.rendering, "content")
