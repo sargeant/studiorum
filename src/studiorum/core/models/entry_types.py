@@ -12,9 +12,19 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class BaseEntry(BaseModel):
-    """Base class for all entry types."""
+    """Base class for all entry types, with the props 5etools allows on any entry."""
 
     model_config = ConfigDict(extra="forbid")
+
+    id: str | None = Field(None, description="Stable id for links into the entry")
+    page: int | str | None = Field(None, description="Page number reference")
+    data: dict[str, Any] | None = Field(
+        None, description="Tool hints, e.g. a subrace's {'overwrite': 'Age'}"
+    )
+    srd: bool | str | None = Field(None, description="In the 2014 SRD (or its name)")
+    srd52: bool | str | None = Field(None, description="In the 5.2 SRD (or its name)")
+    basicRules: bool | None = Field(None, description="In the 2014 basic rules")
+    basicRules2024: bool | None = Field(None, description="In the 2024 basic rules")
 
 
 class TextEntry(BaseEntry):
@@ -41,10 +51,19 @@ class TableEntry(BaseEntry):
     caption: str | None = Field(None, description="Table caption")
     colLabels: list[str] | None = Field(None, description="Column headers")
     colStyles: list[str] | None = Field(None, description="Column styles")
-    rows: list[list[str | dict[str, Any] | int]] = Field(
-        default_factory=list, description="Table rows"
+    rows: list[list[str | dict[str, Any] | int] | dict[str, Any]] = Field(
+        default_factory=list, description="Table rows, or {'type': 'row'} objects"
     )
-    footnotes: list[str] | None = Field(None, description="Table footnotes")
+    footnotes: list[str | dict[str, Any]] | None = Field(
+        None, description="Table footnotes"
+    )
+    colLabelRows: list[list[str | dict[str, Any]]] | None = Field(
+        None, description="Several rows of column headers"
+    )
+    isStriped: bool | None = Field(None, description="Whether rows alternate shading")
+    isNameGenerator: bool | None = Field(
+        None, description="Whether the table rolls a name"
+    )
 
 
 class ListEntry(BaseEntry):
@@ -59,6 +78,7 @@ class ListEntry(BaseEntry):
         default_factory=list, description="List items"
     )
     columns: int | None = Field(None, description="Number of columns for list display")
+    start: int | None = Field(None, description="First number of a numbered list")
 
 
 class InsetEntry(BaseEntry):
@@ -67,10 +87,23 @@ class InsetEntry(BaseEntry):
     type: Literal["inset"] = "inset"
     name: str | None = Field(None, description="Inset title")
     source: str | None = Field(None, description="Source book reference")
-    page: int | None = Field(None, description="Page number reference")
     entries: list[str | dict[str, Any]] = Field(
         default_factory=list, description="Inset content"
     )
+    style: str | None = Field(None, description="Display style")
+    header: int | None = Field(None, description="Heading level")
+    token: dict[str, Any] | None = Field(None, description="Token image reference")
+    otherSources: list[dict[str, Any]] | None = Field(
+        None, description="Other sources with the same text"
+    )
+    version: dict[str, Any] | None = Field(
+        None, alias="_version", description="5etools version marker"
+    )
+    className: str | None = Field(None, description="Class the inset belongs to")
+    classSource: str | None = Field(None, description="Source of that class")
+    subclassShortName: str | None = Field(None, description="Subclass it belongs to")
+    subclassSource: str | None = Field(None, description="Source of that subclass")
+    level: int | None = Field(None, description="Level of the feature it describes")
 
 
 class EntriesEntry(BaseEntry):
@@ -79,10 +112,12 @@ class EntriesEntry(BaseEntry):
     type: Literal["entries"] = "entries"
     name: str | None = Field(None, description="Section name")
     source: str | None = Field(None, description="Source reference")
-    page: int | None = Field(None, description="Page number reference")
     entries: list[str | dict[str, Any]] = Field(
         default_factory=list, description="Nested entries"
     )
+    style: str | None = Field(None, description="Display style")
+    alias: list[str] | None = Field(None, description="Other names for the section")
+    ruleType: str | None = Field(None, description="Rule category (C, O, V, VO)")
 
 
 class OptionsEntry(BaseEntry):
@@ -93,6 +128,7 @@ class OptionsEntry(BaseEntry):
     entries: list[str | dict[str, Any]] = Field(
         default_factory=list, description="Available options"
     )
+    style: str | None = Field(None, description="Display style")
 
 
 class VariantEntry(BaseEntry):
@@ -104,14 +140,23 @@ class VariantEntry(BaseEntry):
         default_factory=list, description="Variant description"
     )
     source: str | None = Field(None, description="Variant source")
+    version: dict[str, Any] | None = Field(
+        None, alias="_version", description="5etools version marker"
+    )
 
 
 class QuoteEntry(BaseEntry):
     """Quote or flavor text entry."""
 
     type: Literal["quote"] = "quote"
-    entries: list[str] = Field(default_factory=list, description="Quote text")
+    entries: list[str | dict[str, Any]] = Field(
+        default_factory=list, description="Quote text"
+    )
     by: str | None = Field(None, description="Quote attribution")
+    from_: str | None = Field(None, alias="from", description="Where the quote is from")
+    style: str | None = Field(None, description="Display style")
+    skipMarks: bool | None = Field(None, description="Omit the quotation marks")
+    skipItalics: bool | None = Field(None, description="Don't italicise the quote")
 
 
 class ImageEntry(BaseEntry):
@@ -122,6 +167,24 @@ class ImageEntry(BaseEntry):
     title: str | None = Field(None, description="Image title")
     altText: str | None = Field(None, description="Image alt text")
     credit: str | None = Field(None, description="Image credit/attribution")
+    style: str | None = Field(None, description="Display style")
+    width: int | None = Field(None, description="Width in pixels")
+    height: int | None = Field(None, description="Height in pixels")
+    maxWidth: int | None = Field(None, description="Maximum display width")
+    maxHeight: int | None = Field(None, description="Maximum display height")
+    imageType: str | None = Field(None, description="map, mapPlayer and so on")
+    hrefThumbnail: dict[str, str] | None = Field(
+        None, description="Thumbnail reference"
+    )
+    expectsLightBackground: bool | None = Field(
+        None, description="Whether the image needs a light background"
+    )
+    grid: dict[str, Any] | None = Field(None, description="Map grid")
+    mapParent: dict[str, Any] | None = Field(None, description="The map this one shows")
+    mapRegions: list[dict[str, Any]] | None = Field(
+        None, description="Named areas of the map"
+    )
+    mapName: str | None = Field(None, description="Name of the map")
 
 
 class GalleryEntry(BaseEntry):
@@ -145,11 +208,24 @@ class GalleryEntry(BaseEntry):
 
 
 class ItemEntry(BaseEntry):
-    """Item reference entry."""
+    """A list item with a name, e.g. "**Dexterity.** You gain..."."""
 
     type: Literal["item"] = "item"
-    name: str = Field(..., description="Item name")
+    name: str | None = Field(None, description="Item name")
     source: str | None = Field(None, description="Item source")
+    entry: str | None = Field(None, description="The item's text")
+    entries: list[str | dict[str, Any]] | None = Field(
+        None, description="The item's text as entries"
+    )
+    nameDot: bool | None = Field(
+        None, description="Whether a full stop follows the name"
+    )
+    style: str | None = Field(None, description="Display style")
+    className: str | None = Field(None, description="Class the item belongs to")
+    classSource: str | None = Field(None, description="Source of that class")
+    subclassShortName: str | None = Field(None, description="Subclass it belongs to")
+    subclassSource: str | None = Field(None, description="Source of that subclass")
+    level: int | None = Field(None, description="Level of the feature it describes")
 
 
 class SpellEntry(BaseEntry):
