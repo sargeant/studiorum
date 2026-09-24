@@ -10,7 +10,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
@@ -51,7 +50,6 @@ class RequestMetrics(BaseModel):
     memory_usage_peak_mb: float | None = None
 
 
-@dataclass
 class AsyncRequestContext:
     """One MCP request: its Services, sources filter, errors and metrics.
 
@@ -59,15 +57,21 @@ class AsyncRequestContext:
     every other request shares the process-wide Services.
     """
 
-    user_config: ApplicationConfig | None = None
-    sources: list[str] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
-    request_id: UUID = field(default_factory=uuid4)
-    started_at: datetime = field(default_factory=datetime.now)
-    finished_at: datetime | None = None
-    metrics: RequestMetrics = field(default_factory=RequestMetrics)
-    _errors: list[MCPError] = field(default_factory=list, repr=False)
-    _services: Services | None = field(default=None, repr=False)
+    def __init__(
+        self,
+        user_config: ApplicationConfig | None = None,
+        sources: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self.user_config = user_config
+        self.sources: list[str] = sources if sources is not None else []
+        self.metadata: dict[str, Any] = metadata if metadata is not None else {}
+        self.request_id: UUID = uuid4()
+        self.started_at = datetime.now()
+        self.finished_at: datetime | None = None
+        self.metrics = RequestMetrics()
+        self._errors: list[MCPError] = []
+        self._services: Services | None = None
 
     @property
     def services(self) -> Services:
