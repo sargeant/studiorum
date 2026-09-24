@@ -24,7 +24,7 @@ uv sync
 make test
 
 # Run type checking
-make typecheck
+make check
 ```
 
 ### Development Workflow
