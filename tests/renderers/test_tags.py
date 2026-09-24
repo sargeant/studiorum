@@ -72,6 +72,9 @@ def resolver() -> TagResolver:
         ("{@area 5|123} and {@area 6|124|u}", "area 5 and Area 6"),
         ("{@scaledamage 8d6|3-9|1d6}", "1d6"),
         ("{@dice d6;d8} {@damage (level)d4|1d4} {@d20 4}", "d6/d8 1d4 +4"),
+        ("{@deity Tyr|Faerûnian|SCAG}", "Tyr"),
+        ("{@quickref Vision and Light||2||dim light}", r"\textit{dim light}"),
+        ("{@condition frightened||scared}", "scared"),
     ],
 )
 def test_tag(resolver: TagResolver, text: str, latex: str) -> None:

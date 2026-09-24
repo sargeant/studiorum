@@ -119,14 +119,14 @@ _REFERENCES: dict[str, Callable[[str], str]] = {
 def _reference(tag: str, style: Callable[[str], str]) -> TagFn:
     def fn(parts: list[str], r: Render) -> str:
         r.track(tag, parts[0], _part(parts, 1), _part(parts, 3))
-        return style(r.text(_part(parts, 2) or parts[0]))
+        return style(r.text(display_part(tag, parts)))
 
     return fn
 
 
 def _condition(parts: list[str], r: Render) -> str:
     r.track("condition", parts[0])
-    return r.text(parts[0])
+    return r.text(display_part("condition", parts))
 
 
 def _publication(tag: str) -> TagFn:
@@ -332,15 +332,13 @@ TAGS: dict[str, TagFn] = {
     ),
     "note": _note,
     "link": _link,
-    "quickref": lambda parts, r: _italic(
-        escape_latex_text(parts[0] or "unknown reference")
-    ),
+    "quickref": lambda parts, r: _italic(r.text(display_part("quickref", parts))),
     "area": _area,
     "style": lambda parts, r: escape_latex_text(parts[0]),
     "filter": lambda parts, r: r.text(parts[0]),
     "scaledamage": _scaling,
     "scaledice": _scaling,
-    "card": _or("[Card]"),
+    "card": lambda parts, r: r.text(display_part("card", parts)),
     "homebrew": lambda parts, r: _italic(escape_latex_text(parts[0])),
 }
 
