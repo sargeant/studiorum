@@ -160,8 +160,14 @@ def _signed(value: str) -> str:
     return value if value.startswith(("+", "-")) else f"+{value}"
 
 
-def _hit(parts: list[str], r: Render) -> str:
-    return escape_latex_text(_signed(parts[0].strip())) if parts[0] else "+0"
+def _roll(parts: list[str], r: Render) -> str:
+    return escape_latex_text(_part(parts, 1) or parts[0].replace(";", "/"))
+
+
+def _bonus(parts: list[str], r: Render) -> str:
+    number = _int(parts[0])
+    shown = _part(parts, 1) or (f"{number:+d}" if number is not None else parts[0])
+    return escape_latex_text(shown)
 
 
 def _ability(parts: list[str], r: Render) -> str:
@@ -296,10 +302,13 @@ TAGS: dict[str, TagFn] = {
     "italic": _format(_italic),
     "code": _fixed(""),
     "tt": _fixed(""),
-    "dice": lambda parts, r: escape_latex_text(parts[0]),
-    "damage": _or("[Damage]"),
+    "dice": _roll,
+    "damage": _roll,
+    "autodice": _roll,
     "dc": lambda parts, r: f"DC {parts[0]}" if parts[0] else "",
-    "hit": _hit,
+    "hit": _bonus,
+    "d20": _bonus,
+    "initiative": _bonus,
     "ability": _ability,
     "savingThrow": _modifier,
     "skillCheck": _modifier,
@@ -340,7 +349,7 @@ _PLAIN = {
     "s", "strike", "s2", "strikeDouble", "u", "underline", "u2",
     "underlineDouble", "sup", "sub", "kbd", "font", "comic", "comicH1",
     "comicH2", "comicH3", "comicH4", "comicNote", "tip", "unit", "m",
-    "dcYourSpellSave", "d20", "autodice", "initiative", "coinflip", "5etools",
+    "dcYourSpellSave", "coinflip", "5etools",
     "5etoolsImg", "5etoolsAudio", "footnote", "loader", "color", "highlight",
     "help", "boon", "charoption", "creatureFluff", "cult", "facility",
     "itemProperty", "itemMastery", "language", "legroup", "object",
