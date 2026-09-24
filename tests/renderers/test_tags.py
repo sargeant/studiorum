@@ -39,7 +39,7 @@ def resolver() -> TagResolver:
         ("{@dc 15}", "DC 15"),
         ("{@hit 5}", "+5"),
         ("{@hit -1}", "-1"),
-        ("{@ability con 14}", "+2"),
+        ("{@ability con 14}", "14~(+2)"),
         ("{@savingThrow con 3}", "+3"),
         ("{@skillCheck athletics 4}", "+4"),
         ("{@chance 25}", "25 percent"),
@@ -77,6 +77,11 @@ def resolver() -> TagResolver:
         ("{@condition frightened||scared}", "scared"),
         ("{@atkr m}", "Melee Attack Roll:"),
         ("{@m}{@dcYourSpellSave}", "Miss: your spell save DC"),
+        (
+            "{@skillCheck animal_handling 5|+5 (Animal Handling)}",
+            r"+5 (Animal Handling)",
+        ),
+        ("{@code a_b}", r"\texttt{a\_b}"),
     ],
 )
 def test_tag(resolver: TagResolver, text: str, latex: str) -> None:

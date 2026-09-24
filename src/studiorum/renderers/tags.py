@@ -142,7 +142,7 @@ _DND = re.compile(r"^(Dungeons\s*\\?&\s*Dragons|D\\?&D)$", re.IGNORECASE)
 
 def _format(style: Callable[[str], str], bold: bool = False) -> TagFn:
     def fn(parts: list[str], r: Render) -> str:
-        content = (_part(parts, 2) or parts[0]).strip()
+        content = parts[0]
         if not content:
             return ""
         if bold and _DND.match(content):
@@ -151,13 +151,6 @@ def _format(style: Callable[[str], str], bold: bool = False) -> TagFn:
         return style(r.text(content))
 
     return fn
-
-
-def _signed(value: str) -> str:
-    number = _int(value)
-    if number is not None:
-        return f"{number:+d}"
-    return value if value.startswith(("+", "-")) else f"+{value}"
 
 
 def _roll(parts: list[str], r: Render) -> str:
@@ -171,16 +164,16 @@ def _bonus(parts: list[str], r: Render) -> str:
 
 
 def _ability(parts: list[str], r: Render) -> str:
-    shown = _part(parts, 1)
-    if shown:
-        keep = shown.startswith(("+", "-")) or _int(shown) is None
-        return escape_latex_text(shown if keep else _signed(shown))
+    if _part(parts, 1):
+        return r.text(parts[1])
     words = parts[0].split()
-    score = _int(words[-1]) if len(words) >= 2 else None
-    return _signed(str((score - 10) // 2)) if score is not None else "+0"
+    score = (_int(words[-1]) if len(words) >= 2 else None) or 0
+    return f"{score}~({(score - 10) // 2:+d})"
 
 
 def _modifier(parts: list[str], r: Render) -> str:
+    if _part(parts, 1):
+        return r.text(parts[1])
     words = parts[0].split()
     number = _int(words[-1]) if len(words) >= 2 else None
     return f"{number:+d}" if number is not None else "+0"
@@ -313,8 +306,7 @@ TAGS: dict[str, TagFn] = {
     "bold": _format(_bold, bold=True),
     "i": _format(_italic),
     "italic": _format(_italic),
-    "code": _fixed(""),
-    "tt": _fixed(""),
+    "code": lambda parts, r: f"\\texttt{{{r.text(parts[0])}}}" if parts[0] else "",
     "dice": _roll,
     "damage": _roll,
     "autodice": _roll,
