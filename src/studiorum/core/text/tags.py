@@ -87,3 +87,17 @@ def display_part(tag: str, parts: list[str]) -> str:
         return first
     index = _DISPLAY_PART.get(tag, 2)
     return parts[index] if len(parts) > index and parts[index] else first
+
+
+def plain_text(text: str) -> str:
+    """Markup with each tag replaced by its generic display text, recursively."""
+    if "{@" not in text:
+        return text
+    out = []
+    for part in split_by_tags(text):
+        if is_tag(part):
+            tag, args = split_tag(part)
+            out.append(plain_text(display_part(tag, split_by_pipe(args))))
+        else:
+            out.append(part)
+    return "".join(out)

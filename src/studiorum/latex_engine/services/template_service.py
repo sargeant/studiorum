@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from studiorum.core.text.protocols import TextExtractionProtocol
     from studiorum.latex_engine.formatters.protocols import LaTeXFormattingProtocol
     from studiorum.latex_engine.services.protocols import ContextBoundTemplateProtocol
-    from studiorum.renderers.core.tag_resolver import TagResolver
+    from studiorum.renderers.tags import TagResolver
 
 logger = get_logger(__name__)
 
