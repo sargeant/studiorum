@@ -277,6 +277,10 @@ def _area(parts: list[str], r: Render) -> str:
     return f"{'A' if 'u' in flags else 'a'}rea {r.text(parts[0])}"
 
 
+def _scaling(parts: list[str], r: Render) -> str:
+    return escape_latex_text(_part(parts, 4) or _part(parts, 2))
+
+
 def _or(fallback: str) -> TagFn:
     return lambda parts, r: escape_latex_text(parts[0]) if parts[0] else fallback
 
@@ -325,8 +329,8 @@ TAGS: dict[str, TagFn] = {
     "area": _area,
     "style": lambda parts, r: escape_latex_text(parts[0]),
     "filter": lambda parts, r: r.text(parts[0]),
-    "scaledamage": _or("[Scaled Damage]"),
-    "scaledice": _or("[Scaled Dice]"),
+    "scaledamage": _scaling,
+    "scaledice": _scaling,
     "card": _or("[Card]"),
     "homebrew": lambda parts, r: _italic(escape_latex_text(parts[0])),
 }
