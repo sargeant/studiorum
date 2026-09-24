@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import ValidationError
 
 from studiorum.core.config.unified_config import ApplicationConfig
-from studiorum.core.loaders.json_loader import JsonDataLoader
-from studiorum.core.models.content import ContentType
 
 
 class TestValidationErrorDeduplication:
@@ -178,157 +175,6 @@ class TestValidationStrictnessConfiguration:
         """Test that validation summary can be enabled from environment."""
         config = ApplicationConfig()
         assert config.validation.enable_summary is True
-
-
-class TestJsonLoaderValidationIntegration:
-    """Test integration of validation error handling with JsonDataLoader."""
-
-    @pytest.fixture
-    def mock_validation_tracker(self) -> MagicMock:
-        """Mock ValidationErrorTracker for testing."""
-        tracker = MagicMock()
-        tracker.should_log_error.return_value = True
-        tracker.get_summary.return_value = {}
-        return tracker
-
-    def test_json_loader_uses_error_tracker(
-        self, mock_validation_tracker: MagicMock
-    ) -> None:
-        """Test that JsonDataLoader uses ValidationErrorTracker for error handling."""
-        # Patch both the tracker and settings to ensure proper test environment
-        with (
-            patch(
-                "studiorum.core.loaders.json_loader.ValidationErrorTracker"
-            ) as mock_tracker_class,
-            patch(
-                "studiorum.core.loaders.json_loader.get_app_config"
-            ) as mock_get_app_config,
-        ):
-            # Setup tracker mock
-            mock_tracker_class.return_value = mock_validation_tracker
-            mock_validation_tracker.should_log_error.return_value = True
-            mock_validation_tracker.format_error_message.return_value = (
-                "Test validation error message"
-            )
-
-            # Setup settings mock to ensure normal (not strict) mode
-            mock_settings = MagicMock()
-            mock_validation = MagicMock()
-            mock_validation.strictness = "normal"
-            mock_validation.enable_summary = False
-            mock_settings.validation = mock_validation
-            mock_get_app_config.return_value = mock_settings
-
-            loader = JsonDataLoader(ContentType("spell"))
-
-            # Simulate validation error during content creation
-            with patch.object(loader._content_factory, "create_content") as mock_create:
-                validation_error = ValidationError.from_exception_data(
-                    "TestModel",
-                    [
-                        {
-                            "type": "missing",
-                            "loc": ("field",),
-                            "msg": "Field required",
-                            "input": {},
-                        }
-                    ],
-                )
-                mock_create.side_effect = validation_error
-
-                # Call load_from_data which should trigger error handling
-                data = {"spell": [{"name": "Test Spell", "level": 1, "school": "A"}]}
-                path = Path("/test/path.json")
-
-                loader.load_from_data(data, path)
-
-                # Verify tracker was used
-                mock_tracker_class.assert_called_once()
-                mock_validation_tracker.should_log_error.assert_called()
-                mock_validation_tracker.record_error.assert_called()
-
-    @patch("studiorum.core.loaders.json_loader.get_app_config")
-    @patch("studiorum.core.loaders.json_loader.ValidationErrorTracker")
-    def test_json_loader_respects_strictness_setting(
-        self, mock_tracker_class: MagicMock, mock_get_app_config: MagicMock
-    ) -> None:
-        """Test that JsonDataLoader respects validation strictness settings."""
-        mock_validation_tracker = MagicMock()
-        mock_tracker_class.return_value = mock_validation_tracker
-
-        # Test strict mode - should raise on validation error
-        mock_settings = MagicMock()
-        mock_validation = MagicMock()
-        mock_validation.strictness = "strict"
-        mock_validation.enable_summary = False
-        mock_settings.validation = mock_validation
-        mock_get_app_config.return_value = mock_settings
-
-        loader = JsonDataLoader(ContentType("spell"))
-
-        with patch.object(loader._content_factory, "create_content") as mock_create:
-            validation_error = ValidationError.from_exception_data(
-                "TestModel",
-                [
-                    {
-                        "type": "missing",
-                        "loc": ("field",),
-                        "msg": "Field required",
-                        "input": {},
-                    }
-                ],
-            )
-            mock_create.side_effect = validation_error
-
-            data = {"spell": [{"name": "Test Spell", "level": 1, "school": "A"}]}
-            path = Path("/test/path.json")
-
-            # In strict mode, should raise the validation error
-            with pytest.raises(ValidationError):
-                loader.load_from_data(data, path)
-
-    @patch("studiorum.core.loaders.json_loader.ValidationErrorTracker")
-    def test_json_loader_logs_summary_when_enabled(
-        self, mock_tracker_class: MagicMock, mock_validation_tracker: MagicMock, capfire
-    ) -> None:
-        """Test that JsonDataLoader logs validation summary when enabled."""
-        mock_tracker_class.return_value = mock_validation_tracker
-        mock_validation_tracker.get_summary.return_value = {
-            "error_signature_1": {
-                "count": 5,
-                "files": ["file1.json", "file2.json"],
-                "error_type": "missing_field",
-                "message": "Field required",
-                "field_path": "test_field",
-            }
-        }
-
-        with patch(
-            "studiorum.core.config.unified_config.get_app_config"
-        ) as mock_get_app_config:
-            mock_settings = MagicMock()
-            mock_validation = MagicMock()
-            mock_validation.enable_summary = True
-            mock_settings.validation = mock_validation
-            mock_get_app_config.return_value = mock_settings
-
-            loader = JsonDataLoader(ContentType("spell"))
-
-            # Call summary logging method
-            loader._log_validation_summary()
-
-            # Verify summary was logged by checking spans
-            messages = []
-            for span in capfire.exporter.exported_spans:
-                if hasattr(span, "attributes") and span.attributes:
-                    msg = span.attributes.get("logfire.msg", "")
-                    if msg:
-                        messages.append(msg)
-
-            log_output = "\n".join(messages)
-
-            # Check that summary information was logged
-            assert "Validation Summary" in log_output
 
 
 class TestValidationErrorMessages:
@@ -521,51 +367,3 @@ class TestPerformanceImpact:
         # Summary should show two different errors
         summary = tracker.get_summary()
         assert len(summary) == 2
-
-
-class TestBackwardCompatibility:
-    """Test that changes maintain backward compatibility."""
-
-    def test_existing_json_loader_behavior_preserved(self) -> None:
-        """Test that existing JsonDataLoader behavior is preserved."""
-        loader = JsonDataLoader(ContentType("spell"))
-
-        # Test that basic functionality still works
-        spell_data = {
-            "spell": [
-                {
-                    "name": "Test Spell",
-                    "level": 1,
-                    "school": "A",
-                    "time": [{"number": 1, "unit": "action"}],
-                    "range": {"type": "point", "distance": {"type": "self"}},
-                    "components": {"v": True},
-                    "duration": [{"type": "instant"}],
-                    "entries": ["A test spell."],
-                    "source": "TST",
-                }
-            ]
-        }
-
-        path = Path("/test/spells.json")
-        result = loader.load_from_data(spell_data, path)
-
-        # Should still return valid spell objects
-        assert len(result) == 1
-        assert hasattr(result[0], "name")
-        assert result[0].name == "Test Spell"
-
-    def test_existing_tests_still_pass(self) -> None:
-        """Test that existing test patterns still work after Pydantic migration."""
-        # This test verifies that our changes don't break existing functionality
-        # Original test used deprecated method, now we test that the Pydantic validation works instead
-
-        # Test that loading works with minimal spell data
-        # Pydantic should handle validation and provide defaults where appropriate
-        incomplete_spell = {"name": "Test", "source": "TST"}
-
-        # Instead of testing deprecated method, test that the loader can handle this data
-        # This is a better test as it tests the actual user-facing behavior
-        assert isinstance(incomplete_spell, dict)
-        assert "name" in incomplete_spell
-        assert "source" in incomplete_spell

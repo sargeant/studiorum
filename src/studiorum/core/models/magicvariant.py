@@ -6,17 +6,10 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
 
-@content_type(
-    enum_value="magicvariant",
-    file_patterns=["magicvariant", "magicvariants"],
-    loader_type="json",
-    statblock_tags=["magicvariant"],
-)
 class MagicVariant(BaseContent):
     """Magic variant model for magic item variations and generic templates.
 

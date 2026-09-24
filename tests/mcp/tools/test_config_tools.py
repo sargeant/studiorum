@@ -1283,12 +1283,11 @@ class TestErrorHandlingAndValidation:
         """Test configuration serialization with edge cases."""
         # Create config with None values and custom paths
         config = ApplicationConfig()
-        config.paths.data_path = None
         config.paths.font_dir = None
 
         config_dict = _get_current_config_dict(config)
 
         # Should handle None values gracefully
-        assert config_dict["paths"]["data_path"] is None
+        assert isinstance(config_dict["data"]["dirs"], list)
         assert config_dict["paths"]["font_dir"] is None
         assert isinstance(config_dict, dict)

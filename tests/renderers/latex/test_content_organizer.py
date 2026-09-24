@@ -180,12 +180,12 @@ class TestContentOrganizer:
             MockCreature("Goblin", cr=0.25),
         ]
 
-        # Mock the ContentType.from_content method
+        # Mock content_type_of
         from unittest.mock import patch
 
         with patch(
-            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
-        ) as mock_from_content:
+            "studiorum.latex_engine.core.content_organizer.content_type_of"
+        ) as mock_content_type_of:
 
             def side_effect(content: Any) -> Any:
                 if isinstance(content, MockSpell):
@@ -208,7 +208,7 @@ class TestContentOrganizer:
                     return ContentType("item")
                 raise ValueError("Unknown type")
 
-            mock_from_content.side_effect = side_effect
+            mock_content_type_of.side_effect = side_effect
 
             organized = self.organizer.organize_content(content_items)
 
@@ -241,15 +241,15 @@ class TestContentOrganizer:
         ]
 
         with patch(
-            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
-        ) as mock_from_content:
+            "studiorum.latex_engine.core.content_organizer.content_type_of"
+        ) as mock_content_type_of:
 
             def side_effect(content: Any) -> Any:
                 from studiorum.core.models.content import ContentType  # type: ignore
 
                 return ContentType(content._content_type)
 
-            mock_from_content.side_effect = side_effect
+            mock_content_type_of.side_effect = side_effect
 
             organized = self.organizer.organize_by_source(content_items)  # type: ignore[arg-type]
 
@@ -482,8 +482,8 @@ class TestContentOrganizerIntegration:
         ]
 
         with patch(
-            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
-        ) as mock_from_content:
+            "studiorum.latex_engine.core.content_organizer.content_type_of"
+        ) as mock_content_type_of:
 
             def side_effect(content: Any) -> Any:
                 from studiorum.core.models.content import ContentType  # type: ignore
@@ -496,7 +496,7 @@ class TestContentOrganizerIntegration:
                     return ContentType("item")
                 return ContentType("feat")
 
-            mock_from_content.side_effect = side_effect
+            mock_content_type_of.side_effect = side_effect
 
             organized = organizer.organize_content(content_items)
             sections = organizer.create_hierarchical_sections(organized)
@@ -529,11 +529,11 @@ class TestContentOrganizerIntegration:
         )
 
         with patch(
-            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
-        ) as mock_from_content:
+            "studiorum.latex_engine.core.content_organizer.content_type_of"
+        ) as mock_content_type_of:
             from studiorum.core.models.content import ContentType  # type: ignore
 
-            mock_from_content.return_value = ContentType("spell")
+            mock_content_type_of.return_value = ContentType("spell")
 
             organized = organizer.organize_content(spells)
             sections = organizer.create_hierarchical_sections(organized)

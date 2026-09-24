@@ -28,11 +28,11 @@ app: typer.Typer = typer.Typer(
 Studiorum - 5e content processing toolkit
 
 [bold]Key Commands:[/bold]
-  [cyan]data[/cyan]      Manage data repositories (SRD, primary data, homebrew)
+  [cyan]data[/cyan]      Show the data directories and homebrew
   [cyan]config[/cyan]    Manage configuration settings
   [cyan]convert[/cyan]   Convert content to LaTeX/PDF
   [cyan]info[/cyan]      Get information about content
-  [cyan]doctor[/cyan]    Check configuration, data sources and cache
+  [cyan]doctor[/cyan]    Check configuration, data and cache
 
 Use 'studiorum COMMAND --help' for detailed help on any command.
 """,
@@ -126,7 +126,6 @@ try:
     from studiorum.cli.commands.info import app as info_app
     from studiorum.cli.commands.list_content import app as list_app
     from studiorum.cli.commands.mcp import mcp_app
-    from studiorum.cli.commands.setup import app as setup_app
     from studiorum.cli.commands.stats import app as stats_app
 
     # Mount sub-applications
@@ -137,7 +136,6 @@ try:
     app.add_typer(list_app, name="list")
     app.add_typer(mcp_app, name="mcp")
     app.add_typer(info_app, name="info")
-    app.add_typer(setup_app, name="setup")
     app.add_typer(stats_app, name="stats")
     app.command("doctor")(doctor)
 except ImportError as e:

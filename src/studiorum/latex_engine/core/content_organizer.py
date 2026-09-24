@@ -5,6 +5,7 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.document_metadata import (
     ContentSection,
     DocumentType,
@@ -25,14 +26,12 @@ class ContentOrganizer:
         self._sorters = self._build_dynamic_sorters()
 
     def _build_dynamic_sorters(self) -> dict[str, Callable]:
-        """Build sorter mappings from registry metadata.
+        """Build sorter mappings for every content type.
 
         Returns:
             Dictionary mapping content type strings to sorter functions
         """
-        from studiorum.core.registry.content_type_registry import (
-            get_content_type_registry,
-        )
+        from studiorum.core.models.content_models import CONTENT_MODELS
 
         # Default sorters for known content types
         default_sorters = {
@@ -45,29 +44,10 @@ class ContentOrganizer:
             "feat": self._sort_alphabetically,
         }
 
-        # Start with defaults, then add registry-based entries
+        # Every other content type sorts alphabetically
         sorters = default_sorters.copy()
-
-        try:
-            registry = get_content_type_registry()
-            for enum_value, metadata in registry.get_all().items():
-                try:
-                    # Use ContentType constructor for safe validation
-                    content_type = ContentType(enum_value)
-                    content_type_str = content_type.value
-
-                    # Add registry-based sorters (defaulting to alphabetical)
-                    if content_type_str not in sorters:
-                        sorters[content_type_str] = self._sort_alphabetically
-
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    continue
-
-        except ImportError:
-            # Registry not available, use defaults only
-            pass
-
+        for content_type in CONTENT_MODELS:
+            sorters.setdefault(content_type.value, self._sort_alphabetically)
         return sorters
 
     def organize_content(
@@ -128,7 +108,7 @@ class ContentOrganizer:
         for item in content_items:
             source_key = item.source.abbreviation
             try:
-                content_type = ContentType.from_content(item).value
+                content_type = content_type_of(item).value
             except ValueError:
                 content_type = "unknown"
 
@@ -200,7 +180,7 @@ class ContentOrganizer:
 
         for item in content_items:
             try:
-                content_type = ContentType.from_content(item).value
+                content_type = content_type_of(item).value
             except ValueError:
                 content_type = "unknown"
 
@@ -532,19 +512,17 @@ class ContentOrganizer:
         Returns:
             Formatted title
         """
-        # Use registry-based dynamic titles
+        # Titles for every content type
         title_mapping = self._get_content_type_titles()
         return title_mapping.get(content_type, content_type.replace("_", " ").title())
 
     def _get_content_type_titles(self) -> dict[str, str]:
-        """Get content type titles from registry metadata.
+        """Get content type titles for every content type.
 
         Returns:
             Dictionary mapping content type strings to human-readable titles
         """
-        from studiorum.core.registry.content_type_registry import (
-            get_content_type_registry,
-        )
+        from studiorum.core.models.content_models import CONTENT_MODELS
 
         # Default titles for known content types
         default_titles = {
@@ -561,32 +539,12 @@ class ContentOrganizer:
             "unknown": "Additional Content",
         }
 
-        # Start with defaults, then add registry-based entries
+        # Every other content type gets its value as a title
         titles = default_titles.copy()
-
-        try:
-            registry = get_content_type_registry()
-            for enum_value, metadata in registry.get_all().items():
-                try:
-                    # Use ContentType constructor for safe validation
-                    content_type = ContentType(enum_value)
-                    content_type_str = content_type.value
-
-                    # Add registry-based titles (using enum name as fallback)
-                    if content_type_str not in titles:
-                        # Convert enum value to human-readable title
-                        titles[content_type_str] = content_type_str.replace(
-                            "_", " "
-                        ).title()
-
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    continue
-
-        except ImportError:
-            # Registry not available, use defaults only
-            pass
-
+        for content_type in CONTENT_MODELS:
+            titles.setdefault(
+                content_type.value, content_type.value.replace("_", " ").title()
+            )
         return titles
 
     def _extract_toc_entries(

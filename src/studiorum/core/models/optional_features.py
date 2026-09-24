@@ -6,7 +6,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry, validate_entries
 
@@ -57,12 +56,6 @@ class AdditionalSpells(BaseModel):
     model_config = ConfigDict(extra="allow")  # Allow other spell granting mechanisms
 
 
-@content_type(
-    enum_value="optionalfeature",
-    file_patterns=["optionalfeature", "optionalfeatures"],
-    statblock_tags=["optionalfeature"],
-    loader_type="json",
-)
 class OptionalFeature(BaseContent):
     """Optional character features like fighting styles, invocations, and metamagic."""
 

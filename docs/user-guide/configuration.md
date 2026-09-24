@@ -4,104 +4,61 @@ This guide covers all configuration options available in Studiorum, from basic u
 
 ## Configuration Methods
 
-Studiorum can be configured in three ways, with the following priority order (highest to lowest):
+Studiorum reads its settings from, highest priority first:
 
-1. **Command-line arguments** - Override specific settings for individual commands
-2. **Configuration file** - Persistent settings in `studiorum.yaml`
-3. **Environment variables** - System-wide settings
+1. **Environment variables** (`STUDIORUM_*`)
+2. **The configuration file**
+3. **Defaults**
+
+Command-line options override all three for the command they are given to.
 
 ## Configuration File
 
-### Location and Setup
+### Location
 
-Create a `studiorum.yaml` file in your project directory or home directory:
-
-```bash
-# Project-specific configuration
-./studiorum.yaml
-
-# User-wide configuration
-~/.studiorum/studiorum.yaml
-```
+Studiorum reads `~/.studiorum/config.yaml`. Name another file with
+`studiorum -c path/to/config.yaml` or the `STUDIORUM_CONFIG_FILE` environment
+variable; a file named either way must exist.
 
 ### Basic Configuration
 
 ```yaml
-# Basic studiorum.yaml
-data_sources:
-  primary_override:
-    enabled: true
-    source: "~/Code/5etools-src/data"
+data:
+  dirs:
+    - ~/Code/5etools-src/data
 
-rendering:
-  include_images: true
-  output_format: "latex"
-
-images:
-  image_directory: "~/Code/5etools-img"
-  image_quality: "print"
+image:
+  image_directory: ~/Code/5etools-img
 ```
 
-## Data Sources Configuration
+## Data Configuration
 
-Configure where Studiorum finds 5e content data.
-
-### Three-Tier Data Architecture
+The `data` section says where the 5e content comes from.
 
 ```yaml
-data_sources:
-  # Tier 1: SRD (always available, bundled with Studiorum)
-  srd:
-    enabled: true
-
-  # Tier 2: Primary Override (optional, high-quality data)
-  primary_override:
-    enabled: true
-    source: "~/Code/5etools-src/data"
-    type: "five_tools_compatible"
-
-  # Tier 3: Extensions (homebrew, additional content)
-  extensions:
-    - name: "homebrew-spells"
-      type: "directory"
-      source: "~/homebrew/spells"
-    - name: "custom-content"
-      type: "url"
-      source: "https://example.com/homebrew.json"
-
-  # Source Attribution (which 5e books content belongs to)
-  source_attribution:
-    default_priorities:
-      SRD: 100
-      HOMEBREW: 1000
-    priority_resolution: "highest"
+data:
+  # 5etools-shaped data directories, highest priority first
+  dirs:
+    - ~/Code/5etools-src/data
+  # Homebrew JSON files, or directories of them, loaded after the dirs
+  homebrew:
+    - ~/homebrew/my-creatures.json
+    - ~/homebrew/campaign/
 ```
 
-### Data Source Types
+`dirs` are directories laid out like the `data/` folder of a 5etools checkout:
+top-level files such as `spells.json` and `items.json`, and `bestiary/`,
+`spells/` and `class/` folders whose `index.json` files list their contents.
+Adventure and book text in `adventure/` and `book/` is read when an adventure or
+book is converted. `homebrew` files are in the 5etools homebrew format.
 
-**five_tools_compatible**: Full 5etools data repository
-```yaml
-primary_override:
-  enabled: true
-  source: "~/Code/5etools-src/data"
-  type: "five_tools_compatible"
-```
+When two entities have the same type, name and source, the first one loaded
+wins: dirs in the order given, then homebrew.
 
-**directory**: Local directory with JSON files
-```yaml
-extensions:
-  - name: "homebrew"
-    type: "directory"
-    source: "~/my-homebrew/"
-```
+Without a `data` section, Studiorum uses the repository's `test-data/` and
+`srd-data/` if it is run from inside the repository.
 
-**url**: Remote JSON file or API endpoint
-```yaml
-extensions:
-  - name: "remote-content"
-    type: "url"
-    source: "https://api.example.com/spells.json"
-```
+Check what is configured with `studiorum data show`, or `studiorum doctor`.
 
 ## Rendering Configuration
 
@@ -351,25 +308,11 @@ Here's a comprehensive `studiorum.yaml` example:
 
 ```yaml
 # Complete studiorum.yaml configuration
-data_sources:
-  srd:
-    enabled: true
-
-  primary_override:
-    enabled: true
-    source: "~/Code/5etools-src/data"
-    type: "five_tools_compatible"
-
-  extensions:
-    - name: "homebrew-content"
-      type: "directory"
-      source: "~/homebrew/"
-
-  source_attribution:
-    default_priorities:
-      SRD: 100
-      HOMEBREW: 1000
-    priority_resolution: "highest"
+data:
+  dirs:
+    - ~/Code/5etools-src/data
+  homebrew:
+    - ~/homebrew/
 
 rendering:
   output_format: "latex"
@@ -435,21 +378,18 @@ studiorum config show
 
 # Show specific sections
 studiorum config show --section images
-studiorum config show --section data_sources
+studiorum data show
 
-# Check the configuration, data sources and cache
+# Check the configuration, data and cache
 studiorum doctor
 ```
 
 ### Common Configuration Issues
 
-**Data source not found:**
+**Data not found:**
 ```bash
-# Check if primary override path exists
-ls ~/Code/5etools-src/data/
-
-# Verify SRD fallback is enabled
-studiorum config show --section data_sources.srd
+# List the data directories and homebrew, with their file counts
+studiorum data show
 ```
 
 **Image processing fails:**
@@ -475,37 +415,14 @@ studiorum convert adventure cos --no-images
 
 ## Migration and Upgrades
 
-### Upgrading Configuration
+### From data_sources and content_sources
 
-When upgrading Studiorum, your configuration may need updates:
-
-```bash
-# Backup current config
-cp studiorum.yaml studiorum.yaml.backup
-
-# Check for breaking changes
-studiorum config migrate --check
-
-# Apply automatic migrations
-studiorum config migrate --apply
-```
-
-### Legacy Configuration
-
-Studiorum maintains backward compatibility with older config formats:
-
-```yaml
-# Legacy format (still supported)
-data_directory: "~/Code/5etools-src/data"
-image_directory: "~/Code/5etools-img"
-
-# New format (recommended)
-data_sources:
-  primary_override:
-    source: "~/Code/5etools-src/data"
-images:
-  image_directory: "~/Code/5etools-img"
-```
+The `data_sources` and `content_sources` sections were replaced by `data`.
+Studiorum stops with an error naming the replacement if it finds them. Move the
+directory from `data_sources.primary_override.source` (or the directory
+`content_sources`) into `data.dirs`, and each extension's `source` into
+`data.homebrew`. GitHub and URL sources are gone: clone or download them and
+list the local path.
 
 ---
 

@@ -2,6 +2,8 @@
 
 from abc import abstractmethod
 
+from studiorum.core.models.content_models import content_type_of
+
 from ...core.models.content import BaseContent, ContentType
 from ..core.interfaces import RenderingContext
 from .renderer import BaseRenderer
@@ -41,7 +43,7 @@ class ContentRenderer(BaseRenderer):
             True if content can be rendered
         """
         # Determine content type from the content object
-        content_type = ContentType.from_content(content)
+        content_type = content_type_of(content)
         return content_type in self.supported_content_types
 
     def render(
@@ -61,7 +63,7 @@ class ContentRenderer(BaseRenderer):
         if not self.can_render(content):
             from .renderer import RenderingError
 
-            content_type = ContentType.from_content(content)
+            content_type = content_type_of(content)
             raise RenderingError(
                 f"Renderer {self.__class__.__name__} cannot handle content type {content_type}"
             )

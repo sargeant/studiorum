@@ -1,1293 +1,534 @@
-"""Omnidexer system for comprehensive content indexing."""
+"""The index of every loaded 5e entity, by type, name and source.
 
-import hashlib
+``Omnidexer.load_all_data()`` reads each file of a ``DataSet`` once with
+orjson, gathers the entities by their 5etools property, resolves ``_copy``
+with ``merge_copy`` (as 5etools does), then validates each content type's
+entities with one ``TypeAdapter``. Adventures and books load their metadata;
+their text is merged in the first time one is asked for.
+"""
+
+from __future__ import annotations
+
 from collections import defaultdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    from ..protocols.progress import ProgressCallback
-    from .content_merger import ContentMerger
+from pydantic import TypeAdapter, ValidationError
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
+from ..config.unified_config import get_app_config
 from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
+from ..models.content_models import (
+    CONTENT_MODELS,
+    FLUFF_TYPES,
+    PROP_TYPES,
+    content_type_of,
+    create_content,
+)
 from ..models.fluff import BaseFluff
-from .base import DataLoader, SourceManager
-from .fluff_loader import FluffDataLoader
-from .json_loader import JsonDataLoader
-from .unified_source_manager import UnifiedSourceManager
+from ..validation.error_tracker import ErrorContext, ValidationErrorTracker
+from . import item_types
+from .data_dir import DataSet, read_json
+from .dual_file import merge_metadata_content
+from .merge_copy import resolve_copies
+
+if TYPE_CHECKING:
+    from ..protocols.progress import ProgressCallback
 
 logger = get_logger(__name__)
 
+_DUAL_FILE_TYPES = {ContentType.ADVENTURE, ContentType.BOOK}
+# Read so copies and item types resolve, but not indexed
+_SUPPORT_PROPS = ("itemType",)
+# Homebrew keeps adventure and book text inline under these props
+_HOMEBREW_TEXT = {"adventureData": ContentType.ADVENTURE, "bookData": ContentType.BOOK}
 
-T = TypeVar("T", bound=BaseContent)
-
-
-class IndexEntry[T: BaseContent](BaseModel):
-    """Represents an indexed content entry with validation."""
-
-    content: T = Field(description="The content being indexed")
-    content_type: ContentType | Any = Field(description="Type of the content")
-    hash_id: str = Field(
-        min_length=8, max_length=8, description="8-character unique hash identifier"
-    )
-    lookup_key: str = Field(
-        min_length=1, description="Lowercase lookup key for searches"
-    )
-
-    @field_validator("content_type", mode="before")
-    @classmethod
-    def validate_content_type(cls, v: Any) -> ContentType:
-        """Validate content type, handling dynamically extended enums."""
-        # Handle ContentType instances directly (including dynamically extended ones)
-        # The dynamic enum replacement means isinstance() might fail, so check attributes
-        if (
-            hasattr(v, "value")
-            and hasattr(v, "name")
-            and hasattr(v, "__class__")
-            and v.__class__.__name__ == "ContentType"
-        ):
-            # We've verified this has the ContentType interface via duck typing
-            # Cast to ContentType for type safety since we know it's the right type
-            return cast(ContentType, v)
-
-        # Handle string values by constructing ContentType enum
-        if isinstance(v, str):
-            try:
-                return ContentType(v)
-            except ValueError as e:
-                # For dynamically registered types, try attribute access
-                try:
-                    attr_name = v.upper()
-                    if hasattr(ContentType, attr_name):
-                        attr_value = getattr(ContentType, attr_name)
-                        # Verify the attribute is actually a ContentType enum member
-                        if (
-                            hasattr(attr_value, "value")
-                            and hasattr(attr_value, "name")
-                            and attr_value.__class__.__name__ == "ContentType"
-                        ):
-                            return cast(ContentType, attr_value)
-                # Validation fallback chain, raises ValueError after all attempts
-                except Exception:  # nosec B110
-                    pass
-                raise ValueError(f"Invalid ContentType: {v}") from e
-
-        # Standard isinstance check for original enum instances
-        if isinstance(v, ContentType):
-            return v
-
-        raise ValueError(f"ContentType must be ContentType enum, got {type(v)}: {v}")
-
-    @field_validator("hash_id")
-    @classmethod
-    def validate_hash_id(cls, v: str) -> str:
-        """Validate hash ID format."""
-        if not v.isalnum():
-            raise ValueError("Hash ID must contain only alphanumeric characters")
-        return v.lower()
-
-    @field_validator("lookup_key")
-    @classmethod
-    def validate_lookup_key(cls, v: str) -> str:
-        """Validate and normalize lookup key."""
-        normalized = v.strip().lower()
-        if "|" not in normalized:
-            raise ValueError(
-                "Lookup key must contain '|' separator between name and source"
-            )
-        return normalized
-
-    @classmethod
-    def create(cls, content: T, content_type: ContentType) -> "IndexEntry[T]":
-        """Create an index entry from content with automatic hash and key generation."""
-        # Handle different source formats
-        if hasattr(content.source, "abbreviation"):
-            source_abbrev = content.source.abbreviation
-        elif isinstance(content.source, dict):
-            source_abbrev = content.source.get("abbreviation", str(content.source))
-        else:
-            source_abbrev = str(content.source)
-
-        # Generate unique hash (using SHA256 for security)
-        identifier = f"{content_type.value}:{content.name}:{source_abbrev}"
-        hash_id = hashlib.sha256(identifier.encode()).hexdigest()[:8]
-
-        # Generate lookup key (lowercase for case-insensitive searches)
-        lookup_key = f"{content.name}|{source_abbrev}".lower()
-
-        return cls(
-            content=content,
-            content_type=content_type,
-            hash_id=hash_id,
-            lookup_key=lookup_key,
-        )
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+Raw = dict[str, Any]
 
 
 class Omnidexer:
-    """
-    Central indexing system for all 5e content with deep content discovery.
+    """Every entity of a data set, looked up by type, name and source.
 
-    The Omnidexer provides comprehensive content indexing and discovery capabilities,
-    including support for nested content through the DeepIndexable protocol. This
-    enables discovery of class features within classes, adventure sections within
-    adventures, spell references in creature abilities, and more.
-
-    Features:
-        - Multi-index architecture (hash, type, source, name-based lookups)
-        - Deep content discovery via DeepIndexable protocol
-        - Cycle prevention for safe recursive indexing
-        - Performance monitoring and optimization
-        - Type-safe content resolution
-        - Singleton ContentMerger for efficient dual-file operations with cache benefits
-
-    Performance Optimizations:
-        The Omnidexer uses a singleton ContentMerger instance that preserves its LRU cache
-        across multiple load operations. This significantly improves performance in test
-        environments and scenarios where the same data is accessed repeatedly, as the
-        cache remains warm between operations rather than being recreated each time.
-
-    Example:
-        >>> omnidexer = Omnidexer(enable_deep_indexing=True)
-        >>> omnidexer.load_all_data()  # doctest: +SKIP
-        >>> # Find primary content
-        >>> from ..registry.content_type_resolver import resolve_content_type
-        >>> class_type = resolve_content_type("class")
-        >>> fighter = omnidexer.find(class_type, "Fighter", "PHB")  # doctest: +SKIP
-        >>> # Find nested content (requires deep indexing)
-        >>> feature_type = resolve_content_type("classfeature")
-        >>> action_surge = omnidexer.find(feature_type, "Action Surge", "PHB")  # doctest: +SKIP
-        >>> section_type = resolve_content_type("adventuresection")
-        >>> sections = omnidexer.find_all(section_type)  # doctest: +SKIP
+    When two entities share a type, name and source, the first loaded wins.
+    Content that holds other content (``DeepIndexable``) has its nested
+    entities indexed too, and reprints are indexed under the source they were
+    reprinted in.
     """
 
     def __init__(
-        self,
-        source_manager: SourceManager | None = None,
-        enable_deep_indexing: bool = True,
-    ):
-        """
-        Initialize the Omnidexer.
-
-        Args:
-            source_manager: Custom source manager for content loading. If None,
-                          uses UnifiedSourceManager with default sources.
-            enable_deep_indexing: Whether to enable deep indexing of nested content.
-                                Defaults to True. Disable for performance-critical
-                                applications where nested content discovery is not needed.
-        """
-        # Ensure content types are initialized before creating source manager
-        # This prevents warnings about missing content types during initialization
-        from ..registry import initialize_content_types
-
-        initialize_content_types()
-
-        # Initialize source manager
-        if source_manager is not None:
-            self.source_manager = source_manager
-        else:
-            self.source_manager = UnifiedSourceManager()
-        self.enable_deep_indexing = enable_deep_indexing
-
-        # Note: Removing async lock since we're converting to sync
-        # Thread safety no longer needed for sync operations
-
-        # Index structures
-        self._index: dict[str, IndexEntry[BaseContent]] = {}  # hash_id -> entry
-        self._by_type: dict[ContentType, dict[str, IndexEntry[BaseContent]]] = (
-            defaultdict(dict)
-        )  # type -> lookup_key -> entry
-        self._by_source: dict[str, list[IndexEntry[BaseContent]]] = defaultdict(
-            list
-        )  # source -> entries
-        self._by_name: dict[str, list[IndexEntry[BaseContent]]] = defaultdict(
-            list
-        )  # name -> entries
-
-        # Deep indexing support
-        self._indexed_hashes: set[str] = (
-            set()
-        )  # Tracks already indexed content to prevent cycles
-
-        # Loaders
-        self._loaders: dict[ContentType, DataLoader] = {}
-        self._loaded_types: set[ContentType] = set()
-
-        # ContentMerger singleton for dual-file operations
-        # Initialized lazily and preserved across multiple operations to maintain
-        # cache benefits. This significantly improves performance in test environments
-        # and scenarios where repeated data access occurs.
-        self._content_merger: ContentMerger | None = None
-
-        # Register default loaders
-        self._register_default_loaders()
-
-    # Content types for each loader type - dynamically resolved from registry
-    # Removed hardcoded tuples in favor of cached dynamic resolution
-
-    def _register_default_loaders(self) -> None:
-        """Register default data loaders for common content types."""
-        # Content types are already initialized in __init__ before source manager creation
-
-        # Use dynamic resolution with caching for performance
-        self._register_loaders_for_type(JsonDataLoader, self._get_json_content_types())
-        self._register_loaders_for_type(
-            FluffDataLoader, self._get_fluff_content_types()
-        )
-
-    def _register_loaders_for_type(
-        self, loader_cls: type[DataLoader], content_types: tuple[ContentType, ...]
+        self, data: DataSet | None = None, enable_deep_indexing: bool = True
     ) -> None:
-        """Helper to register loaders for a given loader class and content types."""
-        for content_type in content_types:
-            if hasattr(loader_cls, "create_for_type"):
-                loader = loader_cls.create_for_type(content_type)
-            else:
-                # Fallback to regular instantiation if create_for_type doesn't exist
-                loader = loader_cls()
-            self.register_loader(content_type, loader)
+        """Index ``data``, by default the data set the configuration names."""
+        self.data = (
+            data if data is not None else DataSet.from_config(get_app_config().data)
+        )
+        self.enable_deep_indexing = enable_deep_indexing
+        self._by_type: dict[ContentType, dict[str, BaseContent]] = defaultdict(dict)
+        self._by_source: dict[str, list[BaseContent]] = defaultdict(list)
+        self._indexed: set[tuple[ContentType, str, str]] = set()
+        self._loaded_types: set[ContentType] = set()
+        self._homebrew_text: dict[tuple[ContentType, str], Raw] = {}
+        self._hydrated: set[tuple[ContentType, str]] = set()
+        # Reprint aliases wait until every real entity is indexed, so an alias
+        # never takes the place of the entity it was reprinted as
+        self._aliases: list[tuple[BaseContent, ContentType]] | None = None
+        self._errors = ValidationErrorTracker()
 
-    def register_loader(self, content_type: ContentType, loader: DataLoader) -> None:
-        """Register a data loader for a specific content type."""
-        self._loaders[content_type] = loader
-        logger.debug(f"Registered loader for {content_type.value}")
+    # region Loading
 
     def load_all_data(
-        self,
-        data_path: Path | None = None,
-        *,
-        progress_callback: "ProgressCallback | None" = None,
+        self, *, progress_callback: ProgressCallback | None = None
     ) -> dict[str, int]:
-        """Load all available data and build comprehensive index."""
-        logger.debug("Starting omnidexer data loading...")
+        """Load every file of the data set and index its entities.
 
-        # Start overall progress operation
-        main_operation_id = None
+        Returns the number of entities indexed per content type.
+        """
+        files = self.data.files()
+        operation = None
         if progress_callback:
-            main_operation_id = progress_callback.start_operation(
-                "Loading 5e content types", metadata={"component": "omnidexer"}
+            operation = progress_callback.start_operation(
+                "Loading 5e content types",
+                total=len(files),
+                metadata={"component": "omnidexer"},
             )
 
-        # Ensure sources are ready if using unified source manager
-        if isinstance(self.source_manager, UnifiedSourceManager):
-            self.source_manager.ensure_sources_ready_sync()
+        raw: dict[str, list[Raw]] = defaultdict(list)
+        origins: dict[int, Path] = {}
+        for i, path in enumerate(files):
+            if progress_callback and operation:
+                progress_callback.update_progress(
+                    operation, completed=i, description=f"Reading {path.name}"
+                )
+            self._read_file(path, raw, origins)
 
-        # Get data paths from source manager
-        data_paths = self.source_manager.get_data_paths()
-        # Debug output can be enabled for troubleshooting
-        # print(f"DEBUG Omnidexer: Got data paths for content types: {list(data_paths.keys())}")
-        # for content_type, paths in data_paths.items():
-        #     print(f"DEBUG Omnidexer: {content_type} has {len(paths)} files")
-
-        # Process all data sequentially
-        load_stats: dict[str, int] = defaultdict(int)
-        total_loaded = 0
-
-        # Track processed multi-type files to avoid duplicate processing
-        processed_multi_type_files: set[Path] = set()
-
-        # Check for multi-type homebrew files first
-        from .homebrew_loader import HomebrewMultiTypeLoader
-
-        homebrew_loader = HomebrewMultiTypeLoader()
-
-        # Get ALL discovered files, not just those assigned to content types
-        all_discovered_files: set[Path] = set()
-        if hasattr(self.source_manager, "_data_source_manager"):
-            # For UnifiedSourceManager
-            dsm = self.source_manager._data_source_manager
-            all_source_files = dsm.content_manager.get_all_content_files()
-            for source_files in all_source_files.values():
-                all_discovered_files.update(source_files)
-        else:
-            # Fallback to files in data_paths
-            for paths in data_paths.values():
-                all_discovered_files.update(paths)
-
-        logger.debug(
-            f"Checking {len(all_discovered_files)} discovered files for multi-type content"
-        )
-
-        # Scan ALL discovered files for multi-type content
-        for path in all_discovered_files:
-            if path in processed_multi_type_files:
-                continue
-
-            if homebrew_loader.is_multi_type_file(path):
-                logger.info(f"Detected multi-type homebrew file: {path}")
-                processed_multi_type_files.add(path)
-
-                # Load all content types from this file
-                multi_type_content = homebrew_loader.load(path)
-
-                for loaded_content_type, items in multi_type_content.items():
-                    # Index all items of this type
-                    for item in items:
-                        self._add_to_index(item, loaded_content_type)
-
-                    self._loaded_types.add(loaded_content_type)
-                    load_stats[loaded_content_type.value] += len(items)
-                    total_loaded += len(items)
-
-                    logger.debug(
-                        f"Loaded {len(items)} {loaded_content_type.value} items from multi-type file {path}"
-                    )
-
-        # Load metadata files (adventures.json, books.json, etc.)
-        for content_type, paths in data_paths.items():
-            if content_type in self._loaders:
-                # Report progress for this content type
-                type_operation_id = None
-                if progress_callback:
-                    type_operation_id = progress_callback.start_operation(
-                        f"Loading {content_type.value}",
-                        total=len(paths),
-                        metadata={"content_type": content_type.value},
-                    )
-
-                for i, path in enumerate(paths):
-                    # Skip if already processed as multi-type file
-                    if path in processed_multi_type_files:
-                        logger.debug(
-                            f"Skipping {path} - already processed as multi-type file"
-                        )
-                        continue
-
-                    if progress_callback and type_operation_id:
-                        progress_callback.update_progress(
-                            type_operation_id,
-                            completed=i,
-                            description=f"Loading {content_type.value} from {path.name}",
-                        )
-
-                    result = self._load_content_type(content_type, path)
-                    if isinstance(result, dict):
-                        for content_type_str, count in result.items():
-                            load_stats[content_type_str] += count
-                            total_loaded += count
-
-                if progress_callback and type_operation_id:
-                    progress_callback.complete_operation(
-                        type_operation_id,
-                        result=f"Loaded {len(paths)} {content_type.value} files",
-                    )
-            else:
-                logger.warning(f"No loader registered for {content_type.value}")
-
-        # Load and merge dual-file content (adventures and books)
-        dual_file_result = self._load_dual_file_content()
-        for content_type_str, count in dual_file_result.items():
-            load_stats[content_type_str] += count
-            total_loaded += count
-
-        if total_loaded == 0:
-            logger.warning("No data files found to load")
-
-        logger.debug(
-            f"Omnidexer loaded {total_loaded} total items across {len(load_stats)} content types"
-        )
-        self._log_index_stats()
-
-        # Complete main progress operation
-        if progress_callback and main_operation_id:
-            progress_callback.complete_operation(
-                main_operation_id,
-                result=f"Loaded {total_loaded} items across {len(load_stats)} content types",
+        for failure in resolve_copies(raw, self.data.templates()):
+            logger.warning(
+                f"Could not resolve _copy for {failure.prop} {failure.name} "
+                f"({failure.source}): {failure.message}"
             )
+        item_types.register(raw.get("baseitem", []) + raw.get("itemType", []))
 
-        return load_stats
+        by_type: dict[ContentType, list[Raw]] = defaultdict(list)
+        for prop, entities in raw.items():
+            content_type = PROP_TYPES.get(prop)
+            if content_type is not None:
+                by_type[content_type] += [e for e in entities if "_copy" not in e]
 
-    def _load_dual_file_content(self) -> dict[str, int]:
-        """Load and merge dual-file content types (adventures and books).
-
-        This method loads content files (adventure-*.json, book-*.json) and merges
-        them with metadata already loaded from metadata files (adventures.json, books.json).
-        This ensures that adventures and books have complete content, not just metadata.
-
-        Performance: Uses a singleton ContentMerger instance that maintains its LRU cache
-        across multiple operations. This provides significant performance benefits in test
-        environments and scenarios with repeated data access, as the cache remains warm
-        rather than being recreated for each operation.
-
-        Returns:
-            Dictionary mapping content type names to counts of enriched items
-        """
-        if not hasattr(self.source_manager, "get_content_files"):
-            logger.debug(
-                "Source manager does not support content files, skipping dual-file loading"
-            )
-            return {}
-
-        # Get content files from source manager
-        content_files = self.source_manager.get_content_files()
-
-        # Handle test environments where content_files might be a Mock
-        # In tests, Mocks can't be iterated with 'in' operator
-        if hasattr(content_files, "_mock_name"):
-            logger.debug("Mock source manager detected, skipping dual-file enrichment")
-            return {}
-
-        # Initialize ContentMerger singleton if not already done
-        # This preserves the LRU cache across multiple operations, providing
-        # significant performance benefits in test environments and repeated access scenarios
-        if self._content_merger is None:
-            from .content_merger import ContentMerger
-
-            self._content_merger = ContentMerger(self.source_manager)
-            logger.debug("Initialized singleton ContentMerger with cache preservation")
-
-        enrichment_stats = {}
-
-        # Process adventures and books (dual-file types)
-        adventure_type = ContentType("adventure")
-        book_type = ContentType("book")
-
-        for content_type in [adventure_type, book_type]:
-            if content_type not in content_files:
-                continue
-
-            type_files = content_files[content_type]
-            enriched_count = 0
-
-            logger.info(
-                f"Processing {len(type_files)} {content_type.value} content files for enrichment"
-            )
-
-            for content_file in type_files:
-                # Extract content ID from filename (e.g., "adventure-skt.json" -> "skt")
-                content_id = self._extract_content_id_from_filename(
-                    content_file, content_type
-                )
-                if not content_id:
-                    logger.warning(f"Could not extract content ID from {content_file}")
-                    continue
-
-                # Find the metadata item in our already-loaded index
-                metadata_item = self._find_metadata_item(content_type, content_id)
-                if not metadata_item:
-                    logger.debug(
-                        f"No metadata found for {content_type.value} '{content_id}', loading content-only"
-                    )
-                    # Load content-only file if no metadata exists
-                    self._load_content_only_file(content_type, content_file)
-                    enriched_count += 1
-                    continue
-
-                # Check if this adventure already has complete content from homebrew files
-                # If it does, skip dual-file enrichment to avoid overwriting
-                if (
-                    hasattr(metadata_item.content, "contents")
-                    and metadata_item.content.contents
-                    and len(metadata_item.content.contents) > 0
-                ):
-                    # Check if the content looks complete (has multiple entries or substantial content)
-                    first_section = metadata_item.content.contents[0]
-                    if (
-                        hasattr(first_section, "entries")
-                        and first_section.entries
-                        and len(first_section.entries) > 3
-                    ):  # More than just basic metadata
-                        logger.info(
-                            f"Skipping dual-file enrichment for {content_type.value} '{content_id}' "
-                            f"- already has complete content from homebrew file ({len(first_section.entries)} entries)"
-                        )
-                        continue
-
-                logger.debug(
-                    f"Proceeding with dual-file enrichment for {content_type.value} '{content_id}'"
-                )
-                if (
-                    hasattr(metadata_item.content, "contents")
-                    and metadata_item.content.contents
-                ):
-                    first_section = metadata_item.content.contents[0]
-                    entry_count = (
-                        len(first_section.entries)
-                        if hasattr(first_section, "entries") and first_section.entries
-                        else 0
-                    )
-                    logger.debug(
-                        f"Current content: {len(metadata_item.content.contents)} sections, first section has {entry_count} entries"
-                    )
-
-                # Load content file data
-                content_data = self._content_merger.load_content_file(
-                    content_type, content_id
-                )
-                if not content_data:
-                    logger.warning(
-                        f"Could not load content data for {content_type.value} '{content_id}'"
-                    )
-                    continue
-
-                # Convert metadata item to dict for merging
-                if hasattr(metadata_item.content, "model_dump"):
-                    metadata_dict = metadata_item.content.model_dump()
-                elif hasattr(metadata_item.content, "__dict__"):
-                    metadata_dict = metadata_item.content.__dict__.copy()
-                else:
-                    metadata_dict = dict(metadata_item.content)
-
-                # Merge metadata with content
-                merged_data = self._content_merger.merge_metadata_content(
-                    metadata_dict, content_data
-                )
-
-                # Create enriched content object directly using the content factory
-                try:
-                    if content_type in self._loaders:
-                        loader = self._loaders[content_type]
-                        # Use the loader's content factory to create validated content from merged data
-                        # The merged_data is already a single adventure/book object, not wrapped in JSON format
-                        from studiorum.core.loaders.json_loader import JsonDataLoader
-
-                        if isinstance(loader, JsonDataLoader):
-                            enriched_item = loader._content_factory.create_content(
-                                merged_data, content_type
-                            )
-                        else:
-                            # Fallback for other loader types
-                            enriched_item = None
-
-                        if enriched_item:
-                            # Replace the metadata-only item with the enriched item
-                            self._replace_index_entry(
-                                metadata_item, enriched_item, content_type
-                            )
-                            enriched_count += 1
-                            logger.debug(
-                                f"Enriched {content_type.value} '{content_id}' with {len(merged_data.get('contents', []))} sections"
-                            )
-                        else:
-                            logger.error(
-                                f"No content created from merged data for {content_type.value} '{content_id}'"
-                            )
-                    else:
-                        logger.warning(f"No loader available for {content_type.value}")
-
-                except Exception as e:
-                    logger.error(
-                        f"Failed to create enriched {content_type.value} '{content_id}': {e}"
-                    )
-                    logger.debug(f"Merged data keys: {list(merged_data.keys())}")
-                    logger.debug(f"Sample merged data: {str(merged_data)[:200]}...")
-                    continue
-
-            if enriched_count > 0:
-                enrichment_stats[f"{content_type.value}_enriched"] = enriched_count
-                logger.debug(
-                    f"Enriched {enriched_count} {content_type.value} items with content data"
-                )
-
-        return enrichment_stats
-
-    def _extract_content_id_from_filename(
-        self, file_path: Path, content_type: ContentType
-    ) -> str | None:
-        """Extract content ID from content file name.
-
-        Args:
-            file_path: Path to content file (e.g., "/path/adventure-skt.json")
-            content_type: Type of content
-
-        Returns:
-            Content ID (e.g., "skt") or None if extraction fails
-        """
-        filename = file_path.stem.lower()  # Get filename without extension
-
-        if content_type.value == "adventure":
-            if filename.startswith("adventure-"):
-                return filename[10:]  # Remove "adventure-" prefix
-        elif content_type.value == "book":
-            if filename.startswith("book-"):
-                return filename[5:]  # Remove "book-" prefix
-
-        return None
-
-    def _find_metadata_item(
-        self, content_type: ContentType, content_id: str
-    ) -> IndexEntry[BaseContent] | None:
-        """Find metadata item in the index by content type and ID.
-
-        Args:
-            content_type: Type of content to search
-            content_id: Content ID to find
-
-        Returns:
-            IndexEntry for the metadata item, or None if not found
-        """
-        if content_type not in self._by_type:
-            return None
-
-        type_index = self._by_type[content_type]
-
-        # Search by ID attribute (case-insensitive)
-        for entry in type_index.values():
-            if (
-                hasattr(entry.content, "id")
-                and entry.content.id.lower() == content_id.lower()
-            ):
-                return entry
-
-        return None
-
-    def _load_content_only_file(
-        self, content_type: ContentType, content_file: Path
-    ) -> None:
-        """Load content-only file when no metadata exists.
-
-        Args:
-            content_type: Type of content
-            content_file: Path to content file
-        """
-        try:
-            if content_type in self._loaders:
-                loader = self._loaders[content_type]
-                content_items = loader.load(content_file)
-
-                for item in content_items:
-                    self._add_to_index(item, content_type)
-
-                logger.debug(
-                    f"Loaded {len(content_items)} content-only {content_type.value} items from {content_file}"
-                )
-            else:
-                logger.warning(f"No loader registered for {content_type.value}")
-        except Exception as e:
-            logger.error(
-                f"Failed to load content-only {content_type.value} from {content_file}: {e}"
-            )
-
-    def _replace_index_entry(
-        self,
-        old_entry: IndexEntry[BaseContent],
-        new_content: BaseContent,
-        content_type: ContentType,
-    ) -> None:
-        """Replace an existing index entry with enriched content.
-
-        Args:
-            old_entry: The existing index entry to replace
-            new_content: The new enriched content
-            content_type: Type of content
-        """
-        # Remove old entry from all indexes
-        old_hash_id = old_entry.hash_id
-        old_lookup_key = old_entry.lookup_key
-
-        # Remove from hash index
-        if old_hash_id in self._index:
-            del self._index[old_hash_id]
-
-        # Remove from type index
-        if (
-            content_type in self._by_type
-            and old_lookup_key in self._by_type[content_type]
-        ):
-            del self._by_type[content_type][old_lookup_key]
-
-        # Remove from source index
-        if hasattr(old_entry.content.source, "abbreviation"):
-            source_abbrev = old_entry.content.source.abbreviation
-            if source_abbrev in self._by_source:
-                self._by_source[source_abbrev] = [
-                    entry
-                    for entry in self._by_source[source_abbrev]
-                    if entry.hash_id != old_hash_id
-                ]
-
-        # Remove from name index
-        name_key = old_entry.content.name.lower()
-        if name_key in self._by_name:
-            self._by_name[name_key] = [
-                entry
-                for entry in self._by_name[name_key]
-                if entry.hash_id != old_hash_id
-            ]
-
-        # Remove from indexed hashes
-        if old_hash_id in self._indexed_hashes:
-            self._indexed_hashes.remove(old_hash_id)
-
-        # Add new enriched content
-        self._add_to_index(new_content, content_type)
-
-    def _load_content_type(
-        self, content_type: ContentType, path: Path
-    ) -> dict[str, int]:
-        """Load a specific content type from path."""
-        if content_type not in self._loaders:
-            logger.warning(f"No loader registered for {content_type.value}")
-            return {}
-
-        try:
-            loader = self._loaders[content_type]
-            content_items = loader.load(path)
-
-            # Enhance spells with class information from lookup data
-            if content_type.value == "spell":
-                content_items = self._enhance_spells_with_class_data(content_items)
-
-            # Index all loaded items
-            for item in content_items:
+        stats: dict[str, int] = {}
+        self._aliases = []
+        for content_type in CONTENT_MODELS:
+            items = self._validate(content_type, by_type.get(content_type, []), origins)
+            if content_type == ContentType.SPELL:
+                items = self._with_spell_classes(items)
+            for item in items:
                 self._add_to_index(item, content_type)
+            if items:
+                self._loaded_types.add(content_type)
+                stats[content_type.value] = len(items)
+        aliases, self._aliases = self._aliases, None
+        for alias, content_type in aliases:
+            self._add_to_index(alias, content_type)
 
-            self._loaded_types.add(content_type)
-            logger.debug(
-                f"Loaded {len(content_items)} {content_type.value} items from {path}"
+        if progress_callback and operation:
+            progress_callback.complete_operation(
+                operation,
+                result=f"Loaded {sum(stats.values())} items across {len(stats)} content types",
             )
+        if not stats:
+            logger.warning("No data files found to load")
+        return stats
 
-            return {content_type.value: len(content_items)}
-
-        except Exception as e:
-            logger.error(f"Failed to load {content_type.value} from {path}: {e}")
-            return {}
-
-    def _enhance_spells_with_class_data(
-        self, content_items: list[BaseContent]
-    ) -> list[BaseContent]:
-        """Enhance spell objects with class information from lookup data."""
+    def _read_file(
+        self, path: Path, raw: dict[str, list[Raw]], origins: dict[int, Path]
+    ) -> None:
         try:
-            from ..models.spells import Spell
-            from ..services.spell_class_lookup import get_spell_class_lookup_service
+            data = read_json(path)
+        except (OSError, ValueError) as e:
+            logger.warning(f"Could not read {path}: {e}")
+            return
+        if not isinstance(data, dict):
+            return
+        for prop, entities in data.items():
+            if not isinstance(entities, list):
+                continue
+            if prop in _HOMEBREW_TEXT:
+                for text in entities:
+                    if isinstance(text, dict) and isinstance(text.get("id"), str):
+                        key = (_HOMEBREW_TEXT[prop], text["id"].lower())
+                        self._homebrew_text.setdefault(key, text)
+            elif prop in PROP_TYPES or prop in _SUPPORT_PROPS:
+                for entity in entities:
+                    if isinstance(entity, dict):
+                        raw[prop].append(entity)
+                        origins[id(entity)] = path
 
-            lookup_service = get_spell_class_lookup_service()
-
-            enhanced_items: list[BaseContent] = []
-            for item in content_items:
-                if isinstance(item, Spell):
-                    enhanced_item = lookup_service.enhance_spell(item)
-                    enhanced_items.append(enhanced_item)
+    def _validate(
+        self, content_type: ContentType, entities: list[Raw], origins: dict[int, Path]
+    ) -> list[BaseContent]:
+        """Validate all at once; on any error, one at a time so the rest still load."""
+        model = CONTENT_MODELS[content_type]
+        if content_type in FLUFF_TYPES:
+            entities = [e for e in entities if e.get("name")]
+        if content_type == ContentType.CREATURE:
+            entities = [e for e in entities if not _is_reference_stub(e)]
+        prepared = [_prepare(e, content_type) for e in entities]
+        try:
+            return list(TypeAdapter(list[model]).validate_python(prepared))  # type: ignore[valid-type]
+        except ValidationError:
+            pass
+        items: list[BaseContent] = []
+        for entity, original in zip(prepared, entities, strict=True):
+            try:
+                items.append(model.model_validate(entity))
+            except ValidationError as e:
+                if content_type in FLUFF_TYPES:
+                    items.append(_liberal_fluff(entity, model))
                 else:
-                    # Not a spell, just add as-is
-                    enhanced_items.append(item)
+                    self._record_error(
+                        e, entity, content_type, origins.get(id(original))
+                    )
+        return items
 
-            logger.debug(
-                f"Enhanced {len([item for item in content_items if isinstance(item, Spell)])} spells with class information"
-            )
-            return enhanced_items
+    def _record_error(
+        self,
+        error: ValidationError,
+        entity: Raw,
+        content_type: ContentType,
+        path: Path | None,
+    ) -> None:
+        strictness = get_app_config().validation.strictness
+        if strictness == "strict":
+            raise error
+        context: ErrorContext = {
+            "file": str(path),
+            "item_name": entity.get("name", "unknown"),
+            "content_type": content_type.value,
+        }
+        if strictness == "normal" and self._errors.should_log_error(error, context):
+            message = self._errors.format_error_message(error, context)
+            logger.warning(message.replace("{", "{{").replace("}", "}}"))
+        self._errors.record_error(error, context)
 
+    def _with_spell_classes(self, items: list[BaseContent]) -> list[BaseContent]:
+        from ..models.spells import Spell
+        from ..services.spell_class_lookup import get_spell_class_lookup_service
+
+        lookup = get_spell_class_lookup_service()
+        try:
+            return [
+                lookup.enhance_spell(i) if isinstance(i, Spell) else i for i in items
+            ]
         except Exception as e:
             logger.warning(f"Failed to enhance spells with class data: {e}")
-            return content_items
+            return items
 
-    def _is_already_indexed(
-        self, content: BaseContent, content_type: ContentType
-    ) -> bool:
-        """Check if content is already indexed to prevent cycles."""
-        # Generate the same hash that would be used for indexing
-        if hasattr(content.source, "abbreviation"):
-            source_abbrev = content.source.abbreviation
-        elif isinstance(content.source, dict):
-            source_abbrev = content.source.get("abbreviation", str(content.source))
-        else:
-            source_abbrev = str(content.source)
+    # endregion
 
-        identifier = f"{content_type.value}:{content.name}:{source_abbrev}"
-        hash_id = hashlib.sha256(identifier.encode()).hexdigest()[:8]
+    # region Adventure and book text
 
-        return hash_id in self._indexed_hashes
+    def hydrate(self, content: BaseContent) -> BaseContent:
+        """An adventure or book with its text merged in; other content unchanged.
+
+        The first call reads the content file (or the homebrew's inline text)
+        and replaces the metadata-only entry in the index.
+        """
+        content_type = content_type_of(content)
+        content_id = getattr(content, "id", None)
+        if content_type not in _DUAL_FILE_TYPES or not isinstance(content_id, str):
+            return content
+        key = (content_type, content_id.lower())
+        if key in self._hydrated or _has_full_text(content):
+            return content
+
+        path = self.data.content_file(content_type, content_id)
+        text = read_json(path) if path else self._homebrew_text.get(key)
+        self._hydrated.add(key)
+        if text is None:
+            logger.debug(f"No text found for {content_type.value} {content_id}")
+            return content
+        try:
+            merged = create_content(
+                merge_metadata_content(content.model_dump(), text), content_type
+            )
+        except ValidationError as e:
+            logger.error(f"Failed to merge {content_type.value} {content_id}: {e}")
+            return content
+        self._replace(content, merged, content_type)
+        return merged
+
+    def _replace(
+        self, old: BaseContent, new: BaseContent, content_type: ContentType
+    ) -> None:
+        key = _lookup_key(old)
+        self._by_type[content_type].pop(key, None)
+        source = _source(old)
+        self._by_source[source] = [c for c in self._by_source[source] if c is not old]
+        self._indexed.discard((content_type, old.name.lower(), source.lower()))
+        self._add_to_index(new, content_type)
+
+    # endregion
+
+    # region Indexing
 
     def _add_to_index(self, content: BaseContent, content_type: ContentType) -> None:
-        """Add content item to all indexes with optional deep indexing."""
-        # Check if already indexed to prevent cycles (outside lock for performance)
-        if self._is_already_indexed(content, content_type):
-            logger.debug(
-                f"Skipping already indexed {content_type.value}: {content.name}"
+        source = _source(content)
+        identity = (content_type, content.name.lower(), source.lower())
+        if identity in self._indexed:
+            return
+        self._indexed.add(identity)
+        self._by_type[content_type][_lookup_key(content)] = content
+        self._by_source[source].append(content)
+        self._index_reprints(content, content_type, source)
+        if self.enable_deep_indexing and isinstance(content, DeepIndexable):
+            self._index_nested(content, content_type)
+
+    def _index_reprints(
+        self, content: BaseContent, content_type: ContentType, source: str
+    ) -> None:
+        """Index a copy under each source it was reprinted in (5etools' reprintedAs)."""
+        reprints = getattr(content, "reprinted_as", None) or getattr(
+            content, "reprintedAs", None
+        )
+        if not isinstance(reprints, list):
+            return
+        for reprint in reprints:
+            uid = reprint if isinstance(reprint, str) else None
+            if isinstance(reprint, dict):
+                uid = reprint.get("uid") or reprint.get("UID")
+            if not uid or "|" not in uid:
+                continue
+            target_name, target_source = uid.split("|", 1)
+            alias = content.model_copy(deep=True)
+            for field in ("reprinted_as", "reprintedAs"):
+                if hasattr(alias, field):
+                    try:
+                        setattr(alias, field, [])
+                    except (AttributeError, ValueError):
+                        logger.debug(
+                            f"Could not clear {field} on {content.name}", exc_info=True
+                        )
+            try:
+                alias.name = (target_name or content.name).strip()
+                alias.source.abbreviation = (target_source or source).strip()
+                alias.source.name = alias.source.abbreviation
+            except (AttributeError, ValueError):
+                logger.debug(
+                    f"Could not rename reprint of {content.name}", exc_info=True
+                )
+            if self._aliases is not None:
+                self._aliases.append((alias, content_type))
+            else:
+                self._add_to_index(alias, content_type)
+
+    def _index_nested(self, content: DeepIndexable, content_type: ContentType) -> None:
+        try:
+            nested = content.get_deep_index_entries(self)  # type: ignore[arg-type]
+        except Exception as e:
+            logger.warning(
+                f"Failed to deep index nested content for {content_type.value} "
+                f"'{getattr(content, 'name', '?')}': {e}"
             )
             return
-
-        entry = IndexEntry.create(content, content_type)
-
-        # Check for duplicate hash_id (cycle prevention)
-        if entry.hash_id in self._indexed_hashes:
-            return
-
-        # Track this content as indexed
-        self._indexed_hashes.add(entry.hash_id)
-
-        # Primary hash-based index
-        self._index[entry.hash_id] = entry
-
-        # Type-based index (for content type + name/source lookups)
-        self._by_type[content_type][entry.lookup_key] = entry
-
-        # Source-based index (for finding all content from a source)
-        # Handle different source formats
-        if hasattr(content.source, "abbreviation"):
-            source_abbrev = content.source.abbreviation
-        elif isinstance(content.source, dict):
-            source_abbrev = content.source.get("abbreviation", str(content.source))
-        else:
-            source_abbrev = str(content.source)
-        self._by_source[source_abbrev].append(entry)
-
-        # Name-based index (for fuzzy name searches)
-        name_key = content.name.lower()
-        self._by_name[name_key].append(entry)
-
-        # Reprint alias indexing (5etools reprintedAs)
-        # Some content types include a list of reprint targets (e.g., DMG item reprinted in XDMG).
-        # To align with 5etools behavior, index aliases under the target source (and optional name)
-        # so source filters like --sources XDMG include the aliased content.
-        try:
-            # Accept both normalized field (reprinted_as) and raw extra (reprintedAs)
-            reprints: list[Any] = []
-            if hasattr(content, "reprinted_as") and isinstance(
-                content.reprinted_as, list
-            ):
-                reprints = content.reprinted_as
-            elif hasattr(content, "reprintedAs") and isinstance(
-                content.reprintedAs, list
-            ):
-                reprints = content.reprintedAs
-
-            if reprints:
-                for rp in reprints:
-                    # Normalize to UID string "Name|SRC"
-                    uid: str | None = None
-                    if isinstance(rp, str):
-                        uid = rp
-                    elif isinstance(rp, dict):
-                        uid = rp.get("uid") or rp.get("UID")
-                    if not uid or "|" not in uid:
-                        continue
-
-                    target_name, target_src = uid.split("|", 1)
-                    target_name = (target_name or content.name).strip()
-                    target_src = (target_src or source_abbrev).strip()
-
-                    # Create a shallow alias copy with updated name/source and without further reprints
-                    try:
-                        # Pydantic v2 BaseModel provides model_copy
-                        alias = content.model_copy(deep=True)
-                    except AttributeError:
-                        # Fallback for non-BaseModel content
-                        import copy
-
-                        alias = copy.deepcopy(content)
-
-                    # Prevent recursive aliasing
-                    if hasattr(alias, "reprinted_as"):
-                        try:
-                            alias.reprinted_as = []
-                        except Exception:
-                            logger.debug(
-                                "Failed to clear alias reprinted_as for %s",
-                                content.name,
-                                exc_info=True,
-                            )
-                    if hasattr(alias, "reprintedAs"):
-                        try:
-                            alias.reprintedAs = []
-                        except Exception:
-                            logger.debug(
-                                "Failed to clear alias reprintedAs for %s",
-                                content.name,
-                                exc_info=True,
-                            )
-
-                    # Update identity
-                    try:
-                        alias.name = target_name
-                        if hasattr(alias, "source"):
-                            alias.source.abbreviation = target_src
-                            alias.source.name = target_src
-                    except Exception:
-                        logger.debug(
-                            "Failed to update alias identity for %s",
-                            content.name,
-                            exc_info=True,
-                        )
-
-                    # Index the alias (cycle prevention covers duplicates)
-                    self._add_to_index(alias, content_type)
-        except Exception as e:
-            logger.debug(f"Reprint alias indexing failed for {content.name}: {e}")
-
-        # Deep indexing: if enabled and content supports it, index nested content
-        if self.enable_deep_indexing and isinstance(content, DeepIndexable):
+        for item in nested:
             try:
-                nested_content = content.get_deep_index_entries(self)
-                indexed_count = 0
-                for nested_item in nested_content:
-                    try:
-                        # Determine content type for nested item
-                        nested_type = ContentType.from_content(nested_item)
-                        # Recursively add nested content (cycle prevention handled above)
-                        self._add_to_index(nested_item, nested_type)
-                        indexed_count += 1
-                    except ValueError:
-                        # Skip nested items that don't have registered content types
-                        # This is expected for nested content like sections, tables, insets
-                        logger.debug(
-                            f"Skipping nested item {type(nested_item).__name__} without registered content type"
-                        )
-                        continue
+                nested_type = content_type_of(item)
+            except ValueError:
+                # Sections, tables and insets inside content have no content type
+                continue
+            self._add_to_index(item, nested_type)
 
-                logger.debug(
-                    f"Deep indexed {indexed_count} nested items from {content_type.value}: {content.name}"
-                )
+    # endregion
 
-            except Exception as e:
-                logger.warning(
-                    f"Failed to deep index nested content for {content_type.value} '{content.name}': {e}"
-                )
-                # Continue with normal indexing even if deep indexing fails
+    # region Lookup
 
     def find(
         self, content_type: ContentType, name: str, source: str | None = None
     ) -> BaseContent | None:
-        """Find content by type, name, and optionally source."""
-        if content_type not in self._by_type:
+        """Content by type, name and optionally source (else the first loaded)."""
+        type_index = self._by_type.get(content_type)
+        if not type_index:
             return None
-
-        type_index = self._by_type[content_type]
-
         if source:
-            # Exact lookup with source
-            lookup_key = f"{name}|{source}".lower()
-            entry = type_index.get(lookup_key)
-            return entry.content if entry else None
-        # Search all sources for this name
-        name_lower = name.lower()
-        for lookup_key, entry in type_index.items():
-            if lookup_key.startswith(f"{name_lower}|"):
-                return entry.content
-        return None
-
-    def find_by_hash(self, hash_id: str) -> BaseContent | None:
-        """Find content by unique hash identifier."""
-        entry = self._index.get(hash_id)
-        return entry.content if entry else None
+            found = type_index.get(f"{name}|{source}".lower())
+        else:
+            prefix = f"{name.lower()}|"
+            found = next(
+                (c for k, c in type_index.items() if k.startswith(prefix)), None
+            )
+        return self.hydrate(found) if found is not None else None
 
     def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
-        """Find all content matching type and name across all sources."""
-        if content_type not in self._by_type:
-            return []
-
-        type_index = self._by_type[content_type]
-        name_lower = name.lower()
-        matches = []
-
-        for lookup_key, entry in type_index.items():
-            if lookup_key.startswith(f"{name_lower}|"):
-                matches.append(entry.content)
-
-        return matches
+        """Content of a type with this name, from every source."""
+        prefix = f"{name.lower()}|"
+        type_index = self._by_type.get(content_type, {})
+        return [
+            self.hydrate(c) for k, c in list(type_index.items()) if k.startswith(prefix)
+        ]
 
     def get_all_by_type(self, content_type: ContentType | str) -> list[BaseContent]:
-        """Get all content of a specific type.
-
-        Args:
-            content_type: ContentType enum or string value
-
-        Returns:
-            List of content items of the specified type
-        """
-        # Convert string to ContentType enum for backward compatibility
+        """All content of a type. Adventures and books come without their text."""
         if isinstance(content_type, str):
             try:
                 content_type = ContentType(content_type)
             except ValueError:
-                # If the string doesn't match a valid ContentType, return empty list
                 return []
-
-        if content_type not in self._by_type:
-            return []
-        return [entry.content for entry in self._by_type[content_type].values()]
+        return list(self._by_type.get(content_type, {}).values())
 
     def get_all_by_source(self, source: str) -> list[BaseContent]:
-        """Get all content from a specific source."""
-        entries = self._by_source.get(source, [])
-        return [entry.content for entry in entries]
+        return list(self._by_source.get(source, []))
 
     def search(
         self, query: str, content_type: ContentType | None = None, limit: int = 50
     ) -> list[BaseContent]:
-        """Search for content by name (substring match)."""
+        """Content whose name contains ``query``."""
         query_lower = query.lower()
-        results = []
-
-        search_types = [content_type] if content_type else ContentType
-
-        for ctype in search_types:
-            if ctype not in self._by_type:
-                continue
-
-            for entry in self._by_type[ctype].values():
-                # Simple fuzzy matching - can be enhanced
-                if query_lower in entry.content.name.lower():
-                    results.append(entry.content)
-                    if len(results) >= limit:
-                        return results
-
-        return results
+        return self._match(lambda n: query_lower in n, content_type, limit)
 
     def search_by_name_prefix(
         self, prefix: str, content_type: ContentType | None = None, limit: int = 20
     ) -> list[BaseContent]:
-        """Search for content by name prefix."""
         prefix_lower = prefix.lower()
-        results = []
+        return self._match(lambda n: n.startswith(prefix_lower), content_type, limit)
 
-        search_types = [content_type] if content_type else ContentType
-
-        for ctype in search_types:
-            if ctype not in self._by_type:
-                continue
-
-            for lookup_key, entry in self._by_type[ctype].items():
-                content_name = entry.content.name.lower()
-                if content_name.startswith(prefix_lower):
-                    results.append(entry.content)
+    def _match(
+        self, test: Any, content_type: ContentType | None, limit: int
+    ) -> list[BaseContent]:
+        results: list[BaseContent] = []
+        for ctype in [content_type] if content_type else list(ContentType):
+            for content in self._by_type.get(ctype, {}).values():
+                if test(content.name.lower()):
+                    results.append(content)
                     if len(results) >= limit:
                         return results
-
         return results
 
     def get_statistics(self) -> dict[str, Any]:
-        """Get statistics about the loaded index."""
-        stats: dict[str, Any] = {
-            "total_items": len(self._index),
-            "by_type": {},
-            "by_source": {},
+        return {
+            "total_items": sum(len(v) for v in self._by_type.values()),
+            "by_type": {ct.value: len(v) for ct, v in self._by_type.items()},
+            "by_source": {s: len(v) for s, v in self._by_source.items()},
             "loaded_types": list(self._loaded_types),
         }
 
-        # Count by type
-        for content_type, items in self._by_type.items():
-            stats["by_type"][content_type.value] = len(items)
-
-        # Count by source
-        for source, entries in self._by_source.items():
-            stats["by_source"][source] = len(entries)
-
-        return stats
-
     def is_loaded(self, content_type: ContentType) -> bool:
-        """Check if a content type has been loaded."""
         return content_type in self._loaded_types
 
     def get_supported_types(self) -> list[ContentType]:
-        """Get list of supported content types.
-
-        Returns:
-            List of content types supported by registered loaders
-        """
-        return list(self._get_json_content_types()) + list(
-            self._get_fluff_content_types()
-        )
-
-    def _get_json_content_types(self) -> tuple[ContentType, ...]:
-        """Get JSON content types from registry - cached for performance."""
-        from ..registry.content_type_registry import get_content_type_registry
-
-        registry = get_content_type_registry()
-        json_types: list[ContentType] = []
-
-        for enum_value, metadata in registry.get_all().items():
-            if metadata.loader_type == "json":
-                try:
-                    json_types.append(ContentType(enum_value))
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    logger.debug(f"Skipping test-only content type: {enum_value}")
-                    continue
-
-        return tuple(json_types)
-
-    def _get_fluff_content_types(self) -> tuple[ContentType, ...]:
-        """Get fluff content types from registry - cached for performance."""
-        from ..registry.content_type_registry import get_content_type_registry
-
-        registry = get_content_type_registry()
-        fluff_types: list[ContentType] = []
-
-        for enum_value, metadata in registry.get_all().items():
-            if metadata.loader_type == "fluff":
-                try:
-                    fluff_types.append(ContentType(enum_value))
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    logger.debug(f"Skipping test-only content type: {enum_value}")
-                    continue
-
-        return tuple(fluff_types)
-
-    def get_content_merger(self) -> "ContentMerger | None":
-        """Get the shared ContentMerger instance, initializing if needed.
-
-        This method provides access to the singleton ContentMerger instance used
-        for dual-file operations. The singleton pattern preserves the LRU cache
-        across multiple operations, providing significant performance benefits:
-
-        - Cache remains warm between operations rather than being recreated
-        - Reduces file I/O when the same content is accessed repeatedly
-        - Particularly beneficial in test environments with repeated data loading
-        - Enables sharing of cache benefits across multiple components
-
-        Returns:
-            Shared ContentMerger instance or None if source manager doesn't support content files
-        """
-        # Check if source manager supports content files
-        if not hasattr(self.source_manager, "get_content_files"):
-            logger.debug(
-                "Source manager does not support content files, no ContentMerger available"
-            )
-            return None
-
-        # Initialize ContentMerger singleton if not already done
-        # This preserves cache state and provides performance benefits
-        if self._content_merger is None:
-            from .content_merger import ContentMerger
-
-            self._content_merger = ContentMerger(self.source_manager)
-            logger.debug(
-                "Initialized singleton ContentMerger with cache preservation benefits"
-            )
-
-        return self._content_merger
+        return list(CONTENT_MODELS)
 
     def get_fluff_for_content(
         self, content: BaseContent, content_type: ContentType
     ) -> BaseFluff | None:
-        """Get fluff entry for the given content, if available.
-
-        Args:
-            content: The content to find fluff for
-            content_type: The type of the content
-
-        Returns:
-            The matching fluff entry, or None if no match found
-
-        Example:
-            >>> creature = omnidexer.find(ContentType("creature"), "Ancient Red Dragon")
-            >>> if creature:
-            ...     fluff = omnidexer.get_fluff_for_content(creature, ContentType("creature"))
-            ...     if fluff:
-            ...         print(f"Found fluff for {creature.name}")
-        """
-        try:
-            # Handle None content gracefully
-            if content is None:
-                logger.debug("Cannot find fluff for None content")
-                return None
-
-            # Map content type to corresponding fluff content type
-            fluff_content_type = self._get_fluff_content_type(content_type)
-            if not fluff_content_type:
-                logger.debug(
-                    f"No fluff content type mapping found for {content_type.value}"
-                )
-                return None
-
-            # Get all fluff entries of the corresponding type
-            all_fluff = self.get_all_by_type(fluff_content_type)
-            if not all_fluff:
-                logger.debug(
-                    f"No {fluff_content_type.value} entries loaded in omnidexer"
-                )
-                return None
-
-            # Filter to BaseFluff instances
-            fluff_entries = [f for f in all_fluff if isinstance(f, BaseFluff)]
-            if not fluff_entries:
-                logger.debug(
-                    f"No valid fluff entries found for type {fluff_content_type.value}"
-                )
-                return None
-
-            # Create FluffMatcher and find matching fluff
-            from ..services.fluff_matcher import FluffMatcher
-
-            matcher = FluffMatcher(self)
-            matched_fluff = matcher.match_fluff_for_content(content, fluff_entries)
-
-            if matched_fluff:
-                logger.debug(
-                    f"Found fluff match for {content.name}: {matched_fluff.name} "
-                    f"from {matched_fluff.source.abbreviation}"
-                )
-            else:
-                logger.debug(f"No fluff match found for {content.name}")
-
-            return matched_fluff
-
-        except Exception as e:
-            # Never raise exceptions - gracefully handle all errors
-            content_name = getattr(content, "name", "unknown") if content else "None"
-            content_type_value = (
-                getattr(content_type, "value", str(content_type))
-                if content_type
-                else "unknown"
-            )
-            logger.debug(
-                f"Error finding fluff for {content_name} ({content_type_value}): {e}",
-                exc_info=True,
-            )
+        """The fluff entry for ``content``, if one matches."""
+        if content is None:
             return None
-
-    def _get_fluff_content_type(self, content_type: ContentType) -> ContentType | None:
-        """Map content type to corresponding fluff content type.
-
-        Args:
-            content_type: The base content type
-
-        Returns:
-            The corresponding fluff content type, or None if no mapping exists
-        """
-        # Standard fluff type mappings based on existing fluff models
-        fluff_mappings = {
-            "creature": "creatureFluff",
-            "spell": "spellFluff",
-            "item": "itemFluff",
-            "race": "raceFluff",
-            "feat": "featFluff",
-            "class": "classFluff",
-            "background": "backgroundFluff",
-            "optionalfeature": "optionalfeatureFluff",
-            "vehicle": "vehicleFluff",
-            "object": "objectFluff",
-            "language": "languageFluff",
-            "reward": "rewardFluff",
-            "conditionDisease": "conditionDiseaseFluff",
-            "trapHazard": "trapHazardFluff",
-            "bastion": "bastionFluff",
-            "recipe": "recipeFluff",
-            "charoption": "charoptionFluff",
-        }
-
-        fluff_type_name = fluff_mappings.get(content_type.value)
-        if not fluff_type_name:
+        fluff_type = _FLUFF_FOR.get(content_type)
+        if fluff_type is None:
             return None
+        fluff = [
+            f for f in self.get_all_by_type(fluff_type) if isinstance(f, BaseFluff)
+        ]
+        if not fluff:
+            return None
+        from ..services.fluff_matcher import FluffMatcher
 
         try:
-            return ContentType(fluff_type_name)
-        except ValueError:
-            # Fluff content type not registered - this is expected for some types
-            logger.debug(
-                f"Fluff content type {fluff_type_name} not registered in ContentType enum"
-            )
+            return FluffMatcher(self).match_fluff_for_content(content, fluff)
+        except Exception:
+            logger.debug(f"Error finding fluff for {content.name}", exc_info=True)
             return None
 
-    def _log_index_stats(self) -> None:
-        """Log statistics about the loaded index."""
-        stats = self.get_statistics()
+    # endregion
 
-        logger.debug("Omnidexer Index Statistics:")
-        logger.debug(f"  Total items: {stats['total_items']}")
 
-        for content_type, count in stats["by_type"].items():
-            logger.debug(f"  {content_type}: {count} items")
+_FLUFF_FOR = {
+    ContentType.CREATURE: ContentType.CREATURE_FLUFF,
+    ContentType.SPELL: ContentType.SPELL_FLUFF,
+    ContentType.ITEM: ContentType.ITEM_FLUFF,
+    ContentType.RACE: ContentType.RACE_FLUFF,
+    ContentType.FEAT: ContentType.FEAT_FLUFF,
+    ContentType.CLASS: ContentType.CLASS_FLUFF,
+    ContentType.BACKGROUND: ContentType.BACKGROUND_FLUFF,
+    ContentType.OPTIONALFEATURE: ContentType.OPTIONALFEATURE_FLUFF,
+    ContentType.VEHICLE: ContentType.VEHICLE_FLUFF,
+    ContentType.OBJECT: ContentType.OBJECT_FLUFF,
+    ContentType.REWARD: ContentType.REWARD_FLUFF,
+    ContentType.RECIPE: ContentType.RECIPE_FLUFF,
+    ContentType.CHAROPTION: ContentType.CHAROPTION_FLUFF,
+}
 
-        logger.debug(f"  Sources: {len(stats['by_source'])}")
-        for source, count in list(stats["by_source"].items())[
-            :10
-        ]:  # Show top 10 sources
-            logger.debug(f"    {source}: {count} items")
+
+def _source(content: BaseContent) -> str:
+    source = content.source
+    if hasattr(source, "abbreviation"):
+        return str(source.abbreviation)
+    if isinstance(source, dict):
+        return str(source.get("abbreviation", source))
+    return str(source)
+
+
+def _lookup_key(content: BaseContent) -> str:
+    return f"{content.name}|{_source(content)}".lower()
+
+
+def _prepare(entity: Raw, content_type: ContentType) -> Raw:
+    """The fixes 5etools applies when it reads an entity, on a shallow copy."""
+    entity = dict(entity)
+    if "source" not in entity and isinstance(entity.get("inherits"), dict):
+        entity["source"] = entity["inherits"].get("source")
+    if content_type == ContentType.ITEM:
+        _inherit_type_entries(entity)
+    return entity
+
+
+def _inherit_type_entries(item: Raw) -> None:
+    """An item with no entries of its own takes them from its type (e.g. "$G|DMG")."""
+    item_type = item.get("type")
+    if item.get("entries") or not isinstance(item_type, str) or "|" not in item_type:
+        return
+    base = item_types.get(item_type)
+    if base and base.get("entries"):
+        item["entries"] = base["entries"]
+
+
+def _is_reference_stub(creature: Raw) -> bool:
+    """An NPC entry with no stat block, only a name for other entries to point at."""
+    if "ac" in creature or "hp" in creature:
+        return False
+    logger.debug(f"Skipping creature with no stat block: {creature.get('name')}")
+    return True
+
+
+def _has_full_text(content: BaseContent) -> bool:
+    """Homebrew can hold an adventure's text inline; don't replace it."""
+    contents = getattr(content, "contents", None)
+    if not contents:
+        return False
+    entries = getattr(contents[0], "entries", None)
+    return bool(entries) and len(entries) > 3
+
+
+def _liberal_fluff(entity: Raw, model: type[BaseContent]) -> BaseContent:
+    """Keep what can be kept of a fluff entry that fails validation."""
+    parsed: Raw = {
+        "name": entity.get("name", "Unknown"),
+        "source": entity.get("source", "Unknown"),
+    }
+    for key in ("entries", "entry", "text", "description"):
+        if key in entity:
+            parsed["entries"] = entity[key]
+            break
+    if "images" in entity:
+        parsed["images"] = entity["images"]
+    extra = {
+        k: v
+        for k, v in entity.items()
+        if k not in ("name", "source", "entries", "images")
+    }
+    if extra:
+        parsed["extra_data"] = extra
+    try:
+        return model.model_validate(parsed)
+    except ValidationError:
+        return model(name=parsed["name"], source=parsed["source"])  # type: ignore[call-arg]

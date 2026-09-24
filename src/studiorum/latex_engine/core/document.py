@@ -6,7 +6,8 @@ from typing import Any
 
 from studiorum.core.latex_utils import escape_latex_text
 from studiorum.core.logging import get_logger
-from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.document_metadata import (
     ContentSection,
     DocumentMetadata,
@@ -350,7 +351,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             index_entries.append(
                 {
                     "name": item_name,
-                    "type": ContentType.from_content(item).value,
+                    "type": content_type_of(item).value,
                     "source": item_source,
                 }
             )
@@ -378,7 +379,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             f"Rendering content item: {type(content).__name__}, content: {content if isinstance(content, str) else getattr(content, 'name', 'unnamed')}"
         )
         try:
-            content_type = ContentType.from_content(content)
+            content_type = content_type_of(content)
         except ValueError:
             # If content type is unknown, use basic rendering as a fallback
             logger.debug("Using basic content rendering for unknown content type")
@@ -899,9 +900,7 @@ This content type is not yet fully supported by the rendering system.
             Content type string (creature, spell, item, etc.)
         """
         try:
-            from studiorum.core.models.content import ContentType
-
-            content_type = ContentType.from_content(content_item)
+            content_type = content_type_of(content_item)
             return content_type.value
         except ValueError:
             # Fallback for unknown content types

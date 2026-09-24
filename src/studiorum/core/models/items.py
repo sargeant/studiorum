@@ -8,7 +8,6 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
@@ -95,12 +94,6 @@ class ArmorData(BaseModel):
     armor_type: str | None = Field(None, alias="armorType", description="Armor type")
 
 
-@content_type(
-    enum_value="item",
-    file_patterns=["item", "items", "magicitem"],
-    statblock_tags=["item"],
-    loader_type="json",
-)
 class Item(BaseContent):
     """Represents a 5e item."""
 
@@ -621,13 +614,9 @@ class Item(BaseContent):
 
     def _get_type_metadata(self, type_str: str) -> dict[str, Any] | None:
         """Get type metadata for item type resolution."""
-        try:
-            from ..loaders.json_loader import JsonDataLoader
+        from ..loaders import item_types
 
-            return JsonDataLoader.get_shared_type_metadata(type_str)
-        except Exception:
-            # Silently fall back if metadata not available
-            return None
+        return item_types.get(type_str)
 
     def get_type_entries(self) -> list[str]:
         """Get entries from the item type definition for standard descriptions."""

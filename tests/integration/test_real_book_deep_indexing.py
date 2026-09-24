@@ -16,7 +16,6 @@ class TestRealBookDeepIndexing:
 
         # Load some book data
         try:
-            omnidexer.source_manager.ensure_sources_ready_sync()
             omnidexer.load_all_data()
         except Exception:
             pytest.skip("Book data not available or failed to load")
@@ -69,7 +68,6 @@ class TestRealBookDeepIndexing:
         omnidexer = Omnidexer(enable_deep_indexing=True)
 
         try:
-            omnidexer.source_manager.ensure_sources_ready_sync()
             omnidexer.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
@@ -98,7 +96,6 @@ class TestRealBookDeepIndexing:
         omnidexer = Omnidexer(enable_deep_indexing=True)
 
         try:
-            omnidexer.source_manager.ensure_sources_ready_sync()
             omnidexer.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
@@ -141,7 +138,6 @@ class TestRealBookDeepIndexing:
         omnidexer = Omnidexer(enable_deep_indexing=True)
 
         try:
-            omnidexer.source_manager.ensure_sources_ready_sync()
             omnidexer.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
@@ -173,7 +169,6 @@ class TestRealBookDeepIndexing:
         omnidexer_normal = Omnidexer(enable_deep_indexing=False)
         start_time = time.time()
         try:
-            omnidexer_normal.source_manager.ensure_sources_ready_sync()
             omnidexer_normal.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
@@ -182,7 +177,6 @@ class TestRealBookDeepIndexing:
         # Test with deep indexing
         omnidexer_deep = Omnidexer(enable_deep_indexing=True)
         start_time = time.time()
-        omnidexer_deep.source_manager.ensure_sources_ready_sync()
         omnidexer_deep.load_all_data()
         deep_time = time.time() - start_time
 
@@ -204,7 +198,6 @@ class TestRealBookDeepIndexing:
         omnidexer = Omnidexer(enable_deep_indexing=True)
 
         try:
-            omnidexer.source_manager.ensure_sources_ready_sync()
             omnidexer.load_all_data()
         except Exception:
             pytest.skip("Full data loading not available")
@@ -260,7 +253,6 @@ class TestRealBookDeepIndexing:
         omnidexer = Omnidexer(enable_deep_indexing=True)
 
         try:
-            omnidexer.source_manager.ensure_sources_ready_sync()
             omnidexer.load_all_data()
         except Exception:
             pytest.skip("Book data not available")

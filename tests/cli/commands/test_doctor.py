@@ -1,4 +1,4 @@
-"""studiorum doctor: configuration, data sources and cache in one check."""
+"""studiorum doctor: configuration, data and cache in one check."""
 
 from pathlib import Path
 from unittest.mock import patch
@@ -14,12 +14,11 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 
 @pytest.fixture
 def doctor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Run doctor against the repo's test data with extra data_sources config."""
+    """Run doctor against the repo's test data, with ``data`` config if given."""
     monkeypatch.chdir(REPO_ROOT)
 
-    def invoke(**data_sources: object):
-        config = {"data_sources": {"primary_override": {"enabled": False}}}
-        config["data_sources"].update(data_sources)
+    def invoke(**data: object):
+        config = {"data": data} if data else {}
         config_file = tmp_path / "config.yaml"
         config_file.write_text(yaml.safe_dump(config))
         return CliRunner().invoke(app, ["-c", str(config_file), "doctor"])
@@ -32,29 +31,24 @@ def test_healthy_setup_passes(doctor) -> None:
 
     assert result.exit_code == 0, result.output
     assert "Loaded from" in result.output
-    assert "content types" in result.output
+    assert "2 data directories" in result.output
     assert "All checks passed" in result.output
 
 
-def test_missing_extension_is_a_warning(doctor, tmp_path: Path) -> None:
-    missing = tmp_path / "nowhere.json"
+def test_missing_homebrew_fails(doctor, tmp_path: Path) -> None:
     result = doctor(
-        extensions=[{"name": "gone", "type": "file", "source": str(missing)}]
+        dirs=[str(REPO_ROOT / "srd-data")], homebrew=[str(tmp_path / "gone.json")]
     )
 
-    assert result.exit_code == 0, result.output
-    assert "warning" in result.output
+    assert result.exit_code == 1
+    assert "Homebrew not found" in result.output
 
 
-def test_no_data_files_fails(doctor) -> None:
-    with patch(
-        "studiorum.core.loaders.unified_source_manager.UnifiedSourceManager.get_source_statistics",
-        return_value={"enabled_sources": 1, "total_files": 0},
-    ):
-        result = doctor()
+def test_empty_data_directory_fails(doctor, tmp_path: Path) -> None:
+    result = doctor(dirs=[str(tmp_path)])
 
     assert result.exit_code == 1
-    assert "no files found" in result.output
+    assert "No JSON files" in result.output
 
 
 def test_unwritable_cache_fails(doctor, tmp_path: Path) -> None:

@@ -1,4 +1,4 @@
-"""Base content models for all D&D content types."""
+"""Base content models for all 5e content types."""
 
 from __future__ import annotations
 
@@ -82,29 +82,9 @@ class ContentType(str, Enum):
     # Generic fluff fallback
     FLUFF = "fluff"
 
-    @classmethod
-    def from_content(cls, content: BaseContent) -> ContentType:
-        """Determine content type from content object.
-
-        Args:
-            content: Content object to analyze
-
-        Returns:
-            ContentType corresponding to the content
-
-        Raises:
-            ValueError: If content type cannot be determined
-        """
-        # Use the registry directly to avoid circular imports
-        from ..interfaces import get_content_type_registry
-
-        registry = get_content_type_registry()
-        result: ContentType = registry.get_type(content)
-        return result
-
 
 class Source(BaseModel):
-    """Represents a D&D source book reference."""
+    """Represents a 5e source book reference."""
 
     abbreviation: str = Field(
         ..., description="Source book abbreviation (e.g., 'PHB', 'MM')"
@@ -125,7 +105,7 @@ class Source(BaseModel):
 
 
 class BaseContent(BaseModel):
-    """Base class for all D&D content."""
+    """Base class for all 5e content."""
 
     model_config = ConfigDict(
         extra="allow",  # Allow extra fields for flexibility with 5etools data

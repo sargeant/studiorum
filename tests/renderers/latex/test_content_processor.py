@@ -636,9 +636,9 @@ class TestContentProcessorRegistry:
 
         # Mock the content type detection
         with patch(
-            "studiorum.latex_engine.core.content_processor.ContentType.from_content"
-        ) as mock_from_content:
-            mock_from_content.return_value = ContentType("spell")
+            "studiorum.latex_engine.core.content_processor.content_type_of"
+        ) as mock_content_type_of:
+            mock_content_type_of.return_value = ContentType("spell")
 
             result = registry.process_content(spell, context)
 
@@ -653,10 +653,10 @@ class TestContentProcessorRegistry:
 
         # Mock the content type detection to return unknown type
         with patch(
-            "studiorum.latex_engine.core.content_processor.ContentType.from_content"
-        ) as mock_from_content:
+            "studiorum.latex_engine.core.content_processor.content_type_of"
+        ) as mock_content_type_of:
             fake_content_type: Any = Mock()
-            mock_from_content.return_value = fake_content_type
+            mock_content_type_of.return_value = fake_content_type
 
             result = registry.process_content(unknown_content, context)
 

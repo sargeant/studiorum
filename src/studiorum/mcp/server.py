@@ -58,43 +58,24 @@ _request_handler = ModernMCPRequestHandler(enable_performance_monitoring=True)
 # Data Management Tools (Package 3)
 @mcp.tool()
 async def manage_data_repositories(
-    action: Literal[
-        "list", "add_primary", "add_homebrew", "add_url", "remove", "status"
-    ],
-    source: str | None = None,
-    name: str | None = None,
-    description: str | None = None,
+    action: Literal["list", "status"] = "list",
 ) -> dict[str, Any]:
-    """Manage data repositories in Studiorum's three-tier data model.
+    """Report the configured data directories and homebrew.
 
-    This tool manages data repositories (SRD, primary override, extensions)
-    separately from content attribution. Performance target: <500ms.
-
-    Args:
-        action: Operation to perform (list, add_primary, add_homebrew, add_url, remove, status)
-        source: Path or URL for repository operations
-        name: Repository name for operations
-        description: Optional description for new repositories
+    They are set in the configuration file (data.dirs and data.homebrew);
+    this tool does not change them.
 
     Returns:
-        Dictionary with operation results
+        The data directories, homebrew, file count and any problems
     """
     try:
-        # Create async request context for service access
         async with async_request_context() as context:
-            result = await manage_data_sources(
-                action=action,
-                source=source,
-                name=name,
-                description=description,
-                context=context,
-            )
-            return result
+            return await manage_data_sources(action=action, context=context)
     except Exception as e:
-        logger.error(f"Data repository management failed: {e}")
+        logger.error(f"Data repository report failed: {e}")
         raise MCPException(
             MCPError(
-                message=f"Data repository management failed: {e}",
+                message=f"Data repository report failed: {e}",
                 error_code=MCPErrorCode.PROCESSING_ERROR,
                 category=ErrorCategory.PROCESSING,
             )

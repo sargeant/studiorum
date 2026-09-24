@@ -17,28 +17,23 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
 
     This should be called in setup_method() for any test class that:
     - Uses Omnidexer instances
-    - Uses UnifiedSourceManager
-    - Uses ContentFactory
-    - Uses any content type registry functionality
     - Tests that load actual data files
     """
     try:
-        # 0. Force TEST data configuration by disabling primary override
-        # This ensures tests use test-data/ instead of user's personal 5etools-src
+        # 0. Use the test configuration, never a developer's own
         import os
 
         from studiorum.core.config.unified_config import reset_app_config
 
-        # Set environment variable to force disable primary override
-        os.environ["STUDIORUM_DISABLE_PRIMARY_OVERRIDE"] = "true"
-
-        # Ensure test config is used
         if "STUDIORUM_CONFIG_FILE" not in os.environ:
             os.environ["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"
 
         # Reset app config to pick up environment changes
         reset_app_config()
-        logger.debug("App configuration reset with primary override disabled for tests")
+
+        from studiorum.core.loaders import item_types
+
+        item_types.reset()
 
         # 1. Forget Services built outside a CLI invocation
         from studiorum.cli.context import reset_services
@@ -46,14 +41,6 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
 
         reset_services()
         reset_mcp_services()
-
-        # 2. Reset the content type registry instance (preserves decorator registrations)
-        from studiorum.core.registry.content_type_registry import (
-            reset_content_type_registry,
-        )
-
-        reset_content_type_registry()
-        logger.debug("Content type registry reset (preserving decorator registrations)")
 
         # 2.1. Reset the entry type registry global instance
         from studiorum.core.entry_registry import reset_global_registry
@@ -66,13 +53,6 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
 
         CacheManager.reset()
 
-        # 7. Initialize the content type registry (critical for all systems)
-        # This MUST happen LAST to ensure the interface registry is populated after all resets
-        from studiorum.core.registry import initialize_content_types
-
-        initialize_content_types()
-        logger.debug("Content type registry initialized")
-
         # 8. Force garbage collection to clean up any lingering objects. The
         # per-test autouse fixture skips this: it costs ~30 ms a call.
         if collect_garbage:
@@ -84,22 +64,4 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         logger.warning(f"Could not import reset function: {e}")
     except Exception as e:
         logger.error(f"Error during test environment reset: {e}")
-        raise
-
-
-def setup_test_with_registry() -> None:
-    """Simplified setup for tests that need registry initialization.
-
-    Use this in tests that need the content type registry but don't
-    need the full environment reset (e.g., unit tests with mocks).
-    """
-    try:
-        from studiorum.core.registry import initialize_content_types
-
-        initialize_content_types()
-        logger.debug("Registry-only test setup completed")
-    except ImportError as e:
-        logger.warning(f"Could not import registry initialization: {e}")
-    except Exception as e:
-        logger.error(f"Error during registry setup: {e}")
         raise

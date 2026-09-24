@@ -6,17 +6,10 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry, validate_entries
 
 
-@content_type(
-    enum_value="subrace",
-    file_patterns=["race", "races"],  # Subraces are embedded in race files
-    statblock_tags=["subrace"],
-    loader_type="json",
-)
 class Subrace(BaseContent):
     """Racial variants like hill dwarfs, high elfs, and tiefling bloodlines."""
 

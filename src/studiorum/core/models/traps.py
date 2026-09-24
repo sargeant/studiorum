@@ -2,7 +2,6 @@
 
 from pydantic import BaseModel, Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
@@ -13,12 +12,6 @@ class TrapRating(BaseModel):
     threat: str = Field(..., description="Threat level (setback, dangerous, deadly)")
 
 
-@content_type(
-    enum_value="trap",
-    file_patterns=["trap", "traps", "trapshazards"],
-    loader_type="json",
-    statblock_tags=["trap"],
-)
 class Trap(BaseContent):
     """Trap mechanics and dangers for dungeons."""
 

@@ -18,6 +18,7 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field, ValidationError
 
 from ..models.content import BaseContent, ContentType
+from ..models.content_models import create_content
 
 
 class ValidationResult(BaseModel):
@@ -178,11 +179,8 @@ class FileContentSource(BaseContentSource):
         ):
             return self._cached_content
 
-        from .content_factory import ContentFactory
-
         data = self._load_json_data()
         content_items = []
-        factory = ContentFactory()
 
         # Handle different JSON structures
         if self.content_type:
@@ -208,9 +206,7 @@ class FileContentSource(BaseContentSource):
                     }
 
                 try:
-                    content_items.append(
-                        factory.create_content(book_data, self.content_type)
-                    )
+                    content_items.append(create_content(book_data, self.content_type))
                 except ValidationError as e:
                     # Log validation error but continue
                     from ..logging import get_logger
@@ -236,7 +232,7 @@ class FileContentSource(BaseContentSource):
 
                 try:
                     content_items.append(
-                        factory.create_content(adventure_data, self.content_type)
+                        create_content(adventure_data, self.content_type)
                     )
                 except ValidationError as e:
                     # Log validation error but continue
@@ -249,7 +245,7 @@ class FileContentSource(BaseContentSource):
                 for item_data in items:
                     try:
                         content_items.append(
-                            factory.create_content(item_data, self.content_type)
+                            create_content(item_data, self.content_type)
                         )
                     except ValidationError as e:
                         # Log validation error but continue
@@ -276,7 +272,7 @@ class FileContentSource(BaseContentSource):
                     for item_data in items:
                         try:
                             content_items.append(
-                                factory.create_content(item_data, content_type)
+                                create_content(item_data, content_type)
                             )
                         except ValidationError as e:
                             # Log validation error but continue
@@ -408,10 +404,8 @@ class InlineContentSource(BaseContentSource):
         """Extract inline content from adventure data."""
         # This is a simplified implementation
         # In reality, would need sophisticated parsing of adventure structure
-        from .content_factory import ContentFactory
 
         content_items = []
-        factory = ContentFactory()
 
         # Look for inline statblocks in adventure chapters
         try:
@@ -426,9 +420,7 @@ class InlineContentSource(BaseContentSource):
                             for item_data in inline_items:
                                 try:
                                     content_items.append(
-                                        factory.create_content(
-                                            item_data, self.content_type
-                                        )
+                                        create_content(item_data, self.content_type)
                                     )
                                 except ValidationError as e:
                                     # Log but continue
@@ -640,10 +632,6 @@ class StdinContentSource(BaseContentSource):
         import json
         import sys
 
-        from .content_factory import ContentFactory
-
-        factory = ContentFactory()
-
         if self._cached_data is None:
             self._cached_data = sys.stdin.read()
 
@@ -663,9 +651,7 @@ class StdinContentSource(BaseContentSource):
             items = data.get(self.content_type.value, [])
             for item_data in items:
                 try:
-                    content_items.append(
-                        factory.create_content(item_data, self.content_type)
-                    )
+                    content_items.append(create_content(item_data, self.content_type))
                 except ValidationError as e:
                     from ..logging import get_logger
 
@@ -692,7 +678,7 @@ class StdinContentSource(BaseContentSource):
                     for item_data in items:
                         try:
                             content_items.append(
-                                factory.create_content(item_data, content_type)
+                                create_content(item_data, content_type)
                             )
                         except ValidationError as e:
                             from ..logging import get_logger

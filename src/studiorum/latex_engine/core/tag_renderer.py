@@ -264,15 +264,13 @@ class ContentTypeStyleConfig:
         self.styles = self._build_dynamic_styles()
 
     def _build_dynamic_styles(self) -> dict[ContentType, str]:
-        """Build style mappings from registry metadata.
+        """Build style mappings for every content type.
 
         Returns:
             Dictionary mapping ContentType enum instances to style strings
         """
         from studiorum.core.models.content import ContentType
-        from studiorum.core.registry.content_type_registry import (
-            get_content_type_registry,
-        )
+        from studiorum.core.models.content_models import CONTENT_MODELS
 
         # Default styles for known content types
         default_styles = {
@@ -287,30 +285,11 @@ class ContentTypeStyleConfig:
             "book": "plain",
         }
 
-        # Build style mapping with ContentType keys
-        styles: dict[ContentType, str] = {}
-
-        try:
-            registry = get_content_type_registry()
-            for enum_value, metadata in registry.get_all().items():
-                try:
-                    # Use ContentType constructor for safe validation
-                    content_type = ContentType(enum_value)
-                    style = default_styles.get(enum_value, "plain")
-                    styles[content_type] = style
-
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    continue
-
-        except ImportError:
-            # Registry not available, use defaults with enum conversion
-            for content_type_str, style in default_styles.items():
-                try:
-                    content_type = ContentType(content_type_str)
-                    styles[content_type] = style
-                except ValueError:
-                    continue
+        # Every content type is plain unless listed above
+        styles: dict[ContentType, str] = {
+            content_type: default_styles.get(content_type.value, "plain")
+            for content_type in CONTENT_MODELS
+        }
 
         return styles
 

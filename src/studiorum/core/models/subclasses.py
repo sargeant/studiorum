@@ -6,7 +6,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry, validate_entries
 
@@ -42,12 +41,6 @@ class CopyMetadata(BaseModel):
     model_config = ConfigDict(extra="allow")  # Allow additional copy metadata
 
 
-@content_type(
-    enum_value="subclass",
-    file_patterns=["class", "classes"],  # Subclasses are embedded in class files
-    statblock_tags=["subclass"],
-    loader_type="json",
-)
 class Subclass(BaseContent):
     """Class specializations like wizard schools, cleric domains, and warlock patrons."""
 

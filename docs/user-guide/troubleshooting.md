@@ -162,10 +162,10 @@ uv add studiorum --extra all
 
 **Solution**:
 
-1. Check available repositories:
+1. Check the configured data:
 
    ```bash
-   studiorum data list
+   studiorum data show
    ```
 
 2. Update content index:
@@ -187,11 +187,11 @@ uv add studiorum --extra all
 **Solution**: Update to the latest content:
 
 ```bash
-# Check data repositories status
-studiorum data status
+# Update the 5etools checkout the configuration names
+git -C ~/Code/5etools-src pull
 
-# Rebuild index
-studiorum index rebuild
+# Check the configured data
+studiorum data show
 
 # Verify new content
 studiorum list adventures --recent
@@ -377,44 +377,6 @@ sudo chown -R $USER ~/.studiorum/
 
    ```bash
    studiorum convert adventure "Campaign" --incremental --checkpoint-every 50
-   ```
-
-## Network Issues
-
-### Content Download Failures
-
-**Problem**: `Connection timeout` when downloading content
-
-**Solution**:
-
-1. **Check network connection**:
-
-   ```bash
-   ping github.com
-   curl -I https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/bestiary-mm.json
-   ```
-
-2. **Configure proxy** (if needed):
-
-   ```bash
-   export HTTP_PROXY=http://proxy.company.com:8080
-   export HTTPS_PROXY=http://proxy.company.com:8080
-   ```
-
-3. **Use local content sources**:
-
-   ```yaml
-   # ~/.studiorum/config.yaml
-   sources:
-     local:
-       path: /path/to/local/5etools-data
-   ```
-
-4. **Retry with backoff**:
-
-   ```bash
-   # Add remote repository with retry logic
-   studiorum data add-url https://example.com/data.json --name "remote-source"
    ```
 
 ## Image Issues
@@ -677,8 +639,8 @@ Prevent common issues:
 # Clean old temporary files
 find ~/.studiorum/temp -type f -mtime +7 -delete
 
-# Check data repositories status
-studiorum data status
+# Check the configured data
+studiorum data show
 
 # Rebuild index if needed
 if [ -z "$(find ~/.studiorum/index -name '*.db' -mtime -30)" ]; then

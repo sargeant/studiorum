@@ -19,9 +19,6 @@ from .adventure import rendering_context
 from .options import ConvertOptions
 from .run import compile_pdf, conversion_errors, document_metadata
 
-# Abbreviations that --type mixed treats as books; everything else is an adventure
-BOOKS = {"phb", "mm", "dmg", "xgte", "tcoe", "vgtm", "mtof"}
-
 
 def bulk(
     ctx: typer.Context,
@@ -63,7 +60,8 @@ def bulk(
     with conversion_errors():
         with display_manager.progress("Initializing") as _:
             task = display_manager.add_task("[cyan]Loading content data...", total=None)
-            resolver = ContentResolver(get_services().omnidexer)
+            omnidexer = get_services().omnidexer
+            resolver = ContentResolver(omnidexer)
             display_manager.update_task(task, completed=100)
 
         if content_type == "adventure":
@@ -71,12 +69,18 @@ def bulk(
         elif content_type == "book":
             results = resolver.resolve_books_bulk(content_list)
         elif content_type == "mixed":
+            # A book's id, like PHB, marks it as a book; anything else is an adventure
+            books = {
+                str(book_id).lower()
+                for book in omnidexer.get_all_by_type(ContentType.BOOK)
+                if (book_id := getattr(book, "id", None))
+            }
             results = resolver.resolve_multiple(
                 [
                     (
                         a,
                         ContentType.BOOK
-                        if a.lower() in BOOKS
+                        if a.lower() in books
                         else ContentType.ADVENTURE,
                     )
                     for a in content_list

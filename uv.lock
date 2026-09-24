@@ -3166,6 +3166,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "lark" },
     { name = "logfire" },
+    { name = "orjson" },
     { name = "pillow" },
     { name = "platformdirs" },
     { name = "pydantic" },
@@ -3219,9 +3220,6 @@ images = [
 llm = [
     { name = "mcp-proxy" },
 ]
-scripts = [
-    { name = "orjson" },
-]
 xml = [
     { name = "lxml" },
 ]
@@ -3236,6 +3234,7 @@ requires-dist = [
     { name = "lark", specifier = ">=1.2.2,<2.0.0" },
     { name = "logfire", specifier = ">=0.54.0" },
     { name = "logfire", extras = ["system-metrics"], marker = "extra == 'observability'", specifier = ">=0.54.0" },
+    { name = "orjson", specifier = ">=3.11.6" },
     { name = "pillow", specifier = ">=11.3.0" },
     { name = "platformdirs", specifier = ">=4.0.0,<5.0.0" },
     { name = "pydantic", specifier = ">=2.11.7,<3.0.0" },
@@ -3281,7 +3280,6 @@ dev = [
 ]
 images = [{ name = "pillow", specifier = ">=9.0.0" }]
 llm = [{ name = "mcp-proxy", specifier = ">=0.2.0" }]
-scripts = [{ name = "orjson", specifier = ">=3.11.6" }]
 xml = [{ name = "lxml", specifier = ">=4.9.0" }]
 
 [[package]]

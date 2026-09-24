@@ -4,16 +4,9 @@ from typing import Any
 
 from pydantic import Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
-@content_type(
-    enum_value="cult",
-    file_patterns=["cult", "cults", "cultsboons"],
-    loader_type="json",
-    statblock_tags=["cult"],
-)
 class Cult(BaseContent):
     """Cult organizations for campaigns."""
 
@@ -45,12 +38,6 @@ class Cult(BaseContent):
         return self.type == "Elder Evil"
 
 
-@content_type(
-    enum_value="boon",
-    file_patterns=["boon", "boons", "cultsboons"],
-    loader_type="json",
-    statblock_tags=["boon"],
-)
 class Boon(BaseContent):
     """Supernatural boons and gifts."""
 

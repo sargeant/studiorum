@@ -10,6 +10,7 @@ from rich.table import Table
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.content import ContentType
+from studiorum.core.models.content_models import content_type_of
 
 app: typer.Typer = typer.Typer(help="List available 5e content")
 console = display_manager.console
@@ -138,7 +139,7 @@ def list_content(
             table.add_column("Details", style="dim")
 
             for item in content_items:
-                content_type_val = ContentType.from_content(item).value
+                content_type_val = content_type_of(item).value
                 details = _get_content_details(item)
                 table.add_row(
                     item.name, content_type_val.title(), str(item.source), details

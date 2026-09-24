@@ -6,7 +6,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
@@ -20,12 +19,6 @@ class CardImage(BaseModel):
     height: int | None = Field(None, description="Image height")
 
 
-@content_type(
-    enum_value="deck",
-    file_patterns=["deck", "decks"],
-    statblock_tags=["deck"],
-    loader_type="json",
-)
 class Deck(BaseContent):
     """Represents a deck of cards."""
 

@@ -1,355 +1,66 @@
-"""Tests for data command functionality.
+"""studiorum data show: the configured data directories and homebrew."""
 
-These tests verify the new 'data' command group that replaces the deprecated
-'sources' commands. Tests include both functionality and deprecation warnings.
-"""
-
-import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
+import pytest
+import yaml
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
 
-
-class TestDataCommands:
-    """Test the new data commands."""
-
-    def setup_method(self):
-        """Set up test environment."""
-
-        self.runner = CliRunner()
-        self.temp_dir = Path(tempfile.mkdtemp())
-
-    def teardown_method(self):
-        """Clean up test environment."""
-        import shutil
-
-        if hasattr(self, "temp_dir") and self.temp_dir.exists():
-            shutil.rmtree(self.temp_dir)
-
-    def test_data_list_command(self):
-        """Test data list command shows repository information."""
-        result = self.runner.invoke(app, ["data", "list"])
-        assert result.exit_code == 0
-        assert "Data Repository Configuration" in result.stdout
-        assert "Total Active Sources" in result.stdout
-
-    def test_data_status_command(self):
-        """Test data status command shows detailed status."""
-        result = self.runner.invoke(app, ["data", "status"])
-        assert result.exit_code == 0
-        assert "Data Source System Status" in result.stdout
-        assert "Service Name" in result.stdout
-
-    def test_data_scan_command(self):
-        """Test data scan command rebuilds index."""
-        result = self.runner.invoke(app, ["data", "scan"])
-        assert result.exit_code == 0
-        assert "Scanning data repositories" in result.stdout
-        assert "Scan complete" in result.stdout
-
-    @patch("pathlib.Path.exists", return_value=True)
-    @patch("pathlib.Path.is_dir", return_value=True)
-    @patch("studiorum.cli.commands.data._get_config_file_path")
-    def test_data_set_primary_valid_path(
-        self, mock_config_path, mock_is_dir, mock_exists
-    ):
-        """Test setting primary data source with valid path."""
-        # Use temporary config file to avoid corrupting global config
-        temp_config = self.temp_dir / "test_config.yaml"
-        mock_config_path.return_value = temp_config
-
-        result = self.runner.invoke(app, ["data", "set-primary", "/test/path"])
-        assert result.exit_code == 0
-        assert "Primary data source configured and activated" in result.stdout
-
-    @patch("studiorum.cli.commands.data._get_config_file_path")
-    def test_data_set_primary_invalid_path(self, mock_config_path):
-        """Test setting primary with invalid path shows error."""
-        # Use temporary config file to avoid corrupting global config
-        temp_config = self.temp_dir / "test_config.yaml"
-        mock_config_path.return_value = temp_config
-
-        result = self.runner.invoke(app, ["data", "set-primary", "/nonexistent/path"])
-        assert result.exit_code == 1
-        assert "Path does not exist" in result.stdout
-
-    @patch("pathlib.Path.exists", return_value=True)
-    @patch("pathlib.Path.is_dir", return_value=False)
-    @patch("studiorum.cli.commands.data._get_config_file_path")
-    def test_data_set_primary_not_directory(
-        self, mock_config_path, mock_is_dir, mock_exists
-    ):
-        """Test setting primary with file instead of directory shows error."""
-        # Use temporary config file to avoid corrupting global config
-        temp_config = self.temp_dir / "test_config.yaml"
-        mock_config_path.return_value = temp_config
-
-        result = self.runner.invoke(app, ["data", "set-primary", "/test/file.txt"])
-        assert result.exit_code == 1
-        # The error could be either path validation or configuration error
-        assert (
-            "Path is not a directory" in result.stdout
-            or "Configuration error" in result.stdout
-        )
-
-    @patch("pathlib.Path.exists", return_value=True)
-    @patch("studiorum.cli.commands.data._load_config")
-    @patch("studiorum.cli.commands.data._save_config")
-    def test_data_add_homebrew_valid_path(self, mock_save, mock_load, mock_exists):
-        """Test adding homebrew repository with valid path."""
-        mock_load.return_value = {
-            "data_sources": {
-                "srd": {"enabled": True},
-                "primary_override": {"enabled": False},
-                "extensions": [],
-            }
-        }
-        result = self.runner.invoke(app, ["data", "add-homebrew", "/test/homebrew"])
-        assert result.exit_code == 0
-        assert "Adding homebrew repository" in result.stdout
-        mock_save.assert_called_once()
-
-    def test_data_add_homebrew_invalid_path(self):
-        """Test adding homebrew with invalid path shows error."""
-        result = self.runner.invoke(app, ["data", "add-homebrew", "/nonexistent/path"])
-        assert result.exit_code == 1
-        assert "Path does not exist" in result.stdout
-
-    @patch("pathlib.Path.exists", return_value=True)
-    @patch("studiorum.cli.commands.data._load_config")
-    @patch("studiorum.cli.commands.data._save_config")
-    def test_data_add_homebrew_with_name_and_description(
-        self, mock_save, mock_load, mock_exists
-    ):
-        """Test adding homebrew with custom name and description."""
-        mock_load.return_value = {
-            "data_sources": {
-                "srd": {"enabled": True},
-                "primary_override": {"enabled": False},
-                "extensions": [],
-            }
-        }
-        result = self.runner.invoke(
-            app,
-            [
-                "data",
-                "add-homebrew",
-                "/test/path",
-                "--name",
-                "custom-name",
-                "--description",
-                "Custom description",
-            ],
-        )
-        assert result.exit_code == 0
-        assert "custom-name" in result.stdout
-        assert "Custom description" in result.stdout
-
-    @patch("studiorum.cli.commands.data._load_config")
-    @patch("studiorum.cli.commands.data._save_config")
-    def test_data_add_url_valid(self, mock_save, mock_load):
-        """Test adding valid URL repository."""
-        mock_load.return_value = {
-            "data_sources": {
-                "srd": {"enabled": True},
-                "primary_override": {"enabled": False},
-                "extensions": [],
-            }
-        }
-        result = self.runner.invoke(
-            app, ["data", "add-url", "https://example.com/data.json"]
-        )
-        assert result.exit_code == 0
-        assert "Adding URL repository" in result.stdout
-        mock_save.assert_called_once()
-
-    def test_data_add_url_invalid_scheme(self):
-        """Test adding URL with invalid scheme shows error."""
-        result = self.runner.invoke(
-            app, ["data", "add-url", "ftp://example.com/data.json"]
-        )
-        assert result.exit_code == 1
-        assert "Invalid URL scheme" in result.stdout
-
-    @patch("studiorum.cli.commands.data._load_config")
-    @patch("studiorum.cli.commands.data._save_config")
-    def test_data_add_url_with_custom_name(self, mock_save, mock_load):
-        """Test adding URL with custom name and description."""
-        mock_load.return_value = {
-            "data_sources": {
-                "srd": {"enabled": True},
-                "primary_override": {"enabled": False},
-                "extensions": [],
-            }
-        }
-        result = self.runner.invoke(
-            app,
-            [
-                "data",
-                "add-url",
-                "https://example.com/data.json",
-                "--name",
-                "remote-source",
-                "--description",
-                "Remote content source",
-            ],
-        )
-        assert result.exit_code == 0
-        assert "remote-source" in result.stdout
-        assert "Remote content source" in result.stdout
-        mock_save.assert_called_once()
-
-    def test_data_remove_prevents_srd_removal(self):
-        """Test that removing SRD repository is prevented."""
-        result = self.runner.invoke(app, ["data", "remove", "srd"])
-        assert result.exit_code == 1
-        assert "Cannot remove bundled SRD repository" in result.stdout
-
-    @patch("studiorum.cli.commands.data._load_config")
-    @patch("studiorum.cli.commands.data._save_config")
-    def test_data_remove_with_confirmation_cancel(self, mock_save, mock_load):
-        """Test removing repository with cancelled confirmation."""
-        mock_load.return_value = {
-            "data_sources": {
-                "srd": {"enabled": True},
-                "primary_override": {"enabled": False},
-                "extensions": [{"name": "test-repo", "enabled": True}],
-            }
-        }
-        with patch("typer.confirm", return_value=False):
-            result = self.runner.invoke(app, ["data", "remove", "test-repo"])
-            assert result.exit_code == 0
-            assert "Cancelled" in result.stdout
-
-    @patch("studiorum.cli.commands.data._load_config")
-    @patch("studiorum.cli.commands.data._save_config")
-    def test_data_remove_with_confirmation_proceed(self, mock_save, mock_load):
-        """Test removing repository with confirmed removal."""
-        mock_load.return_value = {
-            "data_sources": {
-                "srd": {"enabled": True},
-                "primary_override": {"enabled": False},
-                "extensions": [{"name": "test-repo", "enabled": True}],
-            }
-        }
-        with patch("typer.confirm", return_value=True):
-            result = self.runner.invoke(app, ["data", "remove", "test-repo"])
-            assert result.exit_code == 0
-            assert "Removing repository" in result.stdout
-            mock_save.assert_called_once()
-
-    def test_data_help_shows_usage_examples(self):
-        """Test that data command help shows usage examples."""
-        result = self.runner.invoke(app, ["data", "--help"])
-        assert result.exit_code == 0
-        assert "three-tier data model" in result.stdout
-        assert "SRD Data" in result.stdout
-        assert "Primary Data" in result.stdout
-        assert "Extensions" in result.stdout
-        assert "Common Usage" in result.stdout
-
-    def test_data_individual_command_help(self):
-        """Test that individual data commands show help with examples."""
-        result = self.runner.invoke(app, ["data", "set-primary", "--help"])
-        assert result.exit_code == 0
-        assert "Examples:" in result.stdout
-        assert "5etools" in result.stdout
-
-        result = self.runner.invoke(app, ["data", "add-homebrew", "--help"])
-        assert result.exit_code == 0
-        assert "Examples:" in result.stdout
-
-        result = self.runner.invoke(app, ["data", "add-url", "--help"])
-        assert result.exit_code == 0
-        assert "Examples:" in result.stdout
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
-class TestDeprecatedSourcesCommands:
-    """Test deprecation warnings for sources commands."""
+@pytest.fixture
+def data_show(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Run ``data show`` with the given ``data`` config (default: the repo's)."""
+    monkeypatch.chdir(REPO_ROOT)
 
-    def setup_method(self):
-        """Set up test environment."""
+    def invoke(**data: object):
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(yaml.safe_dump({"data": data} if data else {}))
+        return CliRunner().invoke(app, ["-c", str(config_file), "data", "show"])
 
-        self.runner = CliRunner()
-
-    def test_sources_command_removed(self):
-        """Test that deprecated sources command has been removed."""
-        result = self.runner.invoke(app, ["sources", "list"])
-        assert result.exit_code != 0
-        assert (
-            "No such command 'sources'" in result.stdout
-            or "No such command 'sources'" in result.stderr
-        )
-
-    def test_sources_add_command_removed(self):
-        """Test that deprecated sources add command has been removed."""
-        result = self.runner.invoke(
-            app,
-            [
-                "sources",
-                "add",
-                "test-source",
-                "--type",
-                "directory",
-                "--path",
-                "/test/path",
-            ],
-        )
-        assert result.exit_code != 0
-        assert (
-            "No such command 'sources'" in result.stdout
-            or "No such command 'sources'" in result.stderr
-        )
-
-    def test_sources_help_command_removed(self):
-        """Test that deprecated sources help command has been removed."""
-        result = self.runner.invoke(app, ["sources", "--help"])
-        assert result.exit_code != 0
-        assert (
-            "No such command 'sources'" in result.stdout
-            or "No such command 'sources'" in result.stderr
-        )
-
-    def test_main_help_shows_data_prominently(self):
-        """Test that main help shows data command prominently."""
-        result = self.runner.invoke(app, ["--help"])
-        assert result.exit_code == 0
-        assert "data" in result.stdout
-        assert "Manage data repositories" in result.stdout
-        # Sources command has been fully removed, no deprecation messages needed
+    return invoke
 
 
-class TestCLIIntegration:
-    """Test CLI integration with service container."""
+def test_default_shows_test_data_and_srd(data_show) -> None:
+    result = data_show()
 
-    def setup_method(self):
-        """Set up test environment."""
+    assert result.exit_code == 0, result.output
+    assert "test-data" in result.output
+    assert "srd-data" in result.output
 
-        self.runner = CliRunner()
 
-    def test_data_commands_use_service_container(self):
-        """Test that data commands properly use service container."""
-        # This test verifies that commands can access services without crashing
-        result = self.runner.invoke(app, ["data", "list"])
-        assert result.exit_code == 0
+def test_homebrew_is_listed_after_the_dirs(data_show, tmp_path: Path) -> None:
+    brew = tmp_path / "brew.json"
+    brew.write_text('{"monster": []}')
 
-        result = self.runner.invoke(app, ["data", "status"])
-        assert result.exit_code == 0
+    result = data_show(dirs=[str(REPO_ROOT / "srd-data")], homebrew=[str(brew)])
 
-        result = self.runner.invoke(app, ["data", "scan"])
-        assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
+    assert result.output.index("srd-data") < result.output.index("homebrew")
 
-    def test_error_handling_shows_user_friendly_messages(self):
-        """Test that errors show user-friendly messages."""
-        with patch("studiorum.cli.commands.data._load_config") as mock_load:
-            mock_load.side_effect = Exception("Service unavailable")
 
-            result = self.runner.invoke(app, ["data", "list"])
-            assert result.exit_code == 1
-            assert (
-                "Error listing repositories" in result.stdout
-                or "Configuration error" in result.stdout
-            )
+def test_missing_paths_are_marked(data_show, tmp_path: Path) -> None:
+    result = data_show(dirs=[str(tmp_path / "gone")])
+
+    assert result.exit_code == 0, result.output
+    assert "missing" in result.output
+
+
+def test_no_data_configured_exits_1(data_show) -> None:
+    result = data_show(dirs=[])
+
+    assert result.exit_code == 1
+    assert "data.dirs" in result.output
+
+
+def test_old_config_sections_name_their_replacement(tmp_path: Path) -> None:
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text("data_sources:\n  primary_override:\n    enabled: true\n")
+
+    result = CliRunner().invoke(app, ["-c", str(config_file), "data", "show"])
+
+    assert result.exit_code == 1
+    assert "data.dirs" in result.output

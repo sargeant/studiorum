@@ -30,7 +30,6 @@ def run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     def invoke(args: list[str], document: dict | None = None, **extra: object):
         config = {
-            "data_sources": {"primary_override": {"enabled": False}},
             "rendering": {"latex": {"document": document or {}}, **extra},
         }
         config_file = tmp_path / "config.yaml"

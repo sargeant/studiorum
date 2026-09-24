@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..config.unified_config import get_app_config
 from ..logging import get_logger
 
 logger = get_logger(__name__)
@@ -33,8 +32,6 @@ class ContentAttributionManager:
     """
 
     def __init__(self) -> None:
-        """Initialize with content configuration."""
-        self.config = get_app_config().content_configuration()
         self._source_info_cache: dict[str, dict[str, Any]] | None = None
 
     def get_service_name(self) -> str:
@@ -385,19 +382,6 @@ class ContentAttributionManager:
         for abbrev, info in official_sources.items():
             info["abbreviation"] = abbrev
             source_info[abbrev] = info
-
-        # Add any additional sources discovered from content configuration
-        enabled_sources = self.config.get_enabled_sources()
-        for source in enabled_sources:
-            # Mark configured sources
-            if source.name not in source_info:
-                source_info[source.name] = {
-                    "name": source.name.replace("-", " ").title(),
-                    "abbreviation": source.name,
-                    "official": False,
-                    "source_type": source.type.value,
-                    "type": "third-party",
-                }
 
         self._source_info_cache = source_info
 

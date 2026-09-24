@@ -1,4 +1,4 @@
-"""BaseItem content type models for D&D 5e.
+"""BaseItem content type models for 5e.
 
 Provides Pydantic models for base items that serve as foundations
 for magic variants and item generation systems.
@@ -8,16 +8,9 @@ from typing import Any
 
 from pydantic import Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
-@content_type(
-    enum_value="baseitem",
-    file_patterns=["baseitem", "baseitems", "items-base"],
-    loader_type="json",
-    statblock_tags=["baseitem"],
-)
 class BaseItem(BaseContent):
     """A base item that can serve as foundation for magic variants.
 
@@ -70,7 +63,7 @@ class BaseItem(BaseContent):
     stealth: bool | None = Field(None, description="Stealth disadvantage")
 
     # Edition tracking
-    edition: str | None = Field(None, description="D&D edition (classic, one)")
+    edition: str | None = Field(None, description="5e edition (classic, one)")
 
     def get_display_name(self) -> str:
         """Get display name for the base item."""

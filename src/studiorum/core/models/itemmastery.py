@@ -1,4 +1,4 @@
-"""ItemMastery content type models for D&D 5e.
+"""ItemMastery content type models for 5e.
 
 Provides Pydantic models for the 2024 weapon mastery system that defines
 special techniques and abilities for weapon users.
@@ -6,19 +6,12 @@ special techniques and abilities for weapon users.
 
 from pydantic import Field
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
 
-@content_type(
-    enum_value="itemMastery",
-    file_patterns=["itemMastery", "itemmastery", "items-base"],
-    loader_type="json",
-    statblock_tags=["itemMastery"],
-)
 class ItemMastery(BaseContent):
-    """A weapon mastery technique from the 2024 D&D rules.
+    """A weapon mastery technique from the 2024 5e rules.
 
     Item masteries represent special combat techniques that can be
     performed with specific weapons when a character has proficiency

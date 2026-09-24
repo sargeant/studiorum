@@ -1,4 +1,4 @@
-"""ItemProperty content type models for D&D 5e.
+"""ItemProperty content type models for 5e.
 
 Provides Pydantic models for weapon and armor properties that define
 special characteristics and behaviors of equipment.
@@ -8,17 +8,10 @@ from typing import Any
 
 from pydantic import Field
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
 
-@content_type(
-    enum_value="itemProperty",
-    file_patterns=["itemProperty", "itemproperties", "items-base"],
-    loader_type="json",
-    statblock_tags=["itemProperty"],
-)
 class ItemProperty(BaseContent):
     """An item property that defines special weapon or armor characteristics.
 

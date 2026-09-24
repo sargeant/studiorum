@@ -1,0 +1,130 @@
+# serializer version: 1
+# name: test_a_named_npc_keeps_its_own_cr_and_actions
+  dict({
+    '_isCopy': True,
+    'ac': list([
+      dict({
+        'ac': 14,
+        'condition': None,
+        'from_': list([
+          '{@item chain shirt|phb}',
+        ]),
+        'special': None,
+      }),
+    ]),
+    'action': list([
+      dict({
+        'entries': list([
+          'Fennor makes two attacks with her greatsword',
+        ]),
+        'name': 'Multiattack',
+      }),
+      dict({
+        'entries': list([
+          '{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}10 ({@damage 2d6 + 3}) slashing damage.',
+        ]),
+        'name': 'Greatsword',
+      }),
+    ]),
+    'actionTags': list([
+      'Multiattack',
+    ]),
+    'actions_header': None,
+    'alignment': list([
+      'C',
+      'G',
+      'NY',
+      'E',
+    ]),
+    'attachedItems': list([
+      'greatsword|phb',
+    ]),
+    'bonus': None,
+    'bonus_header': None,
+    'charisma': 9,
+    'conditionImmune': None,
+    'constitution': 17,
+    'cr': '3',
+    'damageTags': list([
+      'S',
+    ]),
+    'dexterity': 12,
+    'display_name': None,
+    'display_short_name': None,
+    'hasToken': True,
+    'hp': dict({
+      'average': 67,
+      'formula': '9d8 + 27',
+      'special': None,
+    }),
+    'immune': None,
+    'intelligence': 9,
+    'isNpc': True,
+    'is_named_creature': True,
+    'lair_actions': None,
+    'languageTags': list([
+      'C',
+      'X',
+    ]),
+    'languages': list([
+      'any one language (usually Common)',
+    ]),
+    'legendary': None,
+    'legendary_actions': None,
+    'legendary_actions_lair': None,
+    'legendary_header': None,
+    'miscTags': list([
+      'MLW',
+    ]),
+    'name': 'Fennor',
+    'page': 170,
+    'passive': 10,
+    'reaction': None,
+    'reactions_header': None,
+    'resist': None,
+    'save': None,
+    'senses': None,
+    'short_name': None,
+    'size': list([
+      'M',
+    ]),
+    'skill': None,
+    'source': dict({
+      'abbreviation': 'PotA',
+      'name': 'PotA',
+      'page': None,
+      'url': None,
+    }),
+    'speed': dict({
+      'burrow': None,
+      'climb': None,
+      'fly': None,
+      'swim': None,
+      'walk': 30,
+    }),
+    'spellcasting': None,
+    'strength': 16,
+    'tokenCustom': True,
+    'trait': list([
+      dict({
+        'entries': list([
+          'At the start of its turn, Fennor can gain advantage on all melee weapon attack rolls during that turn, but attack rolls against it have advantage until the start of its next turn.',
+        ]),
+        'name': 'Reckless',
+      }),
+    ]),
+    'traitTags': list([
+      'Reckless',
+    ]),
+    'traits_header': None,
+    'type': dict({
+      'subtype': None,
+      'tags': list([
+        'human',
+      ]),
+      'type': 'humanoid',
+    }),
+    'vulnerable': None,
+    'wisdom': 11,
+  })
+# ---

@@ -1,4 +1,4 @@
-"""Disease content type models for D&D 5e.
+"""Disease content type models for 5e.
 
 Provides Pydantic models for diseases and afflictions that can affect
 characters during gameplay.
@@ -8,16 +8,9 @@ from typing import Any
 
 from pydantic import Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
-@content_type(
-    enum_value="disease",
-    file_patterns=["disease", "diseases", "conditionsdiseases"],
-    loader_type="json",
-    statblock_tags=["disease"],
-)
 class Disease(BaseContent):
     """A disease that can afflict characters.
 

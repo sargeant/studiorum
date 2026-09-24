@@ -13,7 +13,7 @@ from contextvars import ContextVar
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -21,15 +21,10 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
-from studiorum.core.config.data_sources import (
-    ContentConfiguration,
-    ContentSource,
-    default_content_sources,
-)
+from studiorum.core.config.data_sources import DataConfig
 
 if TYPE_CHECKING:
     from studiorum.core.assets.image_sources import ImageSourceConfig
-    from studiorum.core.config.data_sources import DataSourcesConfig
 
 CONFIG_FILE_ENV = "STUDIORUM_CONFIG_FILE"
 
@@ -66,7 +61,6 @@ class LoggingConfig(BaseModel):
 class PathsConfig(BaseModel):
     """Configuration for file and directory paths."""
 
-    data_path: Path | None = Field(default=None, description="Path to 5e data files")
     assets_path: Path = Field(default=Path("assets"), description="Path to asset files")
     output_path: Path = Field(
         default=Path("output"), description="Path for generated output files"
@@ -682,13 +676,8 @@ class ApplicationConfig(BaseSettings):
     image: ImageConfig = Field(
         default_factory=ImageConfig, description="Image asset configuration"
     )
-    data_sources: DataSourcesConfig | None = Field(
-        default_factory=lambda: None,
-        description="Data sources configuration (three-tier model)",
-    )
-    content_sources: list[ContentSource] = Field(
-        default_factory=default_content_sources,
-        description="Directory and GitHub sources, used when no primary override is enabled",
+    data: DataConfig = Field(
+        default_factory=DataConfig, description="Data directories and homebrew"
     )
 
     model_config = SettingsConfigDict(
@@ -719,24 +708,25 @@ class ApplicationConfig(BaseSettings):
             sources += (YamlConfigSettingsSource(settings_cls, yaml_file=config_file),)
         return sources
 
-    def content_configuration(self) -> ContentConfiguration:
-        """The content sources as the source managers take them."""
-        return ContentConfiguration(content_sources=list(self.content_sources))
+    @model_validator(mode="before")
+    @classmethod
+    def _reject_old_data_sections(cls, values: Any) -> Any:
+        """Name the replacement when a config file still has the old sections."""
+        if isinstance(values, dict):
+            old = [k for k in ("data_sources", "content_sources") if k in values]
+            if old:
+                raise ValueError(
+                    f"{' and '.join(old)} were replaced by data.dirs (5etools-shaped "
+                    "data directories) and data.homebrew (homebrew files or "
+                    "directories); see docs/user-guide/configuration.md"
+                )
+        return values
 
     def model_post_init(self, __context: Any) -> None:
         """Post-process configuration after parsing."""
         # Ensure output directory exists
         self.paths.output_path.mkdir(parents=True, exist_ok=True)
         self.paths.build_path.mkdir(parents=True, exist_ok=True)
-
-        # Initialize data sources config if not provided
-        if self.data_sources is None:
-            try:
-                from studiorum.core.config.data_sources import DataSourcesConfig
-
-                self.data_sources = DataSourcesConfig()
-            except ImportError:
-                pass
 
 
 # Build models to resolve forward references
@@ -745,10 +735,8 @@ def _rebuild_models() -> None:
     try:
         # Import the module and make ImageSourceConfig available globally
         from studiorum.core.assets.image_sources import ImageSourceConfig
-        from studiorum.core.config.data_sources import DataSourcesConfig
 
         globals()["ImageSourceConfig"] = ImageSourceConfig
-        globals()["DataSourcesConfig"] = DataSourcesConfig
 
         ImageConfig.model_rebuild()
         ApplicationConfig.model_rebuild()

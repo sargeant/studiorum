@@ -7,13 +7,12 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
 
 class RuleType(str, Enum):
-    """Enumeration of rule types in D&D."""
+    """Enumeration of rule types in 5e."""
 
     CORE = "C"  # Core rules
     OPTIONAL = "O"  # Optional rules
@@ -23,12 +22,6 @@ class RuleType(str, Enum):
     UNKNOWN = "U"  # Unknown/other
 
 
-@content_type(
-    enum_value="variantrule",
-    file_patterns=["variantrule", "variantrules"],
-    loader_type="json",
-    statblock_tags=["variantrule"],
-)
 class VariantRule(BaseContent):
     """Variant rule model for game rule variations and alternatives.
 

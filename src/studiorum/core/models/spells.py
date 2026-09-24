@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry, validate_entries
 
@@ -159,12 +158,6 @@ class SpellRange(BaseModel):
         return self.type.title()
 
 
-@content_type(
-    enum_value="spell",
-    file_patterns=["spell", "spells"],
-    statblock_tags=["spell"],
-    loader_type="json",
-)
 class Spell(BaseContent):
     """Represents a 5e spell."""
 

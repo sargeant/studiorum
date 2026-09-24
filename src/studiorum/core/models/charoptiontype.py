@@ -8,7 +8,6 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
@@ -20,16 +19,10 @@ class CharOptionTypeCategory(str, Enum):
     OPTIONAL_FEATURE = "OF"
     DARK_GIFT = "DG"
     REPLACEMENT_FEATURE_BACKGROUND = "RF:B"
-    # Not a password, D&D 5e character option type abbreviation
+    # Not a password, 5e character option type abbreviation
     CHARACTER_SECRET = "CS"  # nosec B105
 
 
-@content_type(
-    enum_value="charoptiontype",
-    file_patterns=["charoptiontype", "charoptiontypes"],
-    loader_type="json",
-    statblock_tags=["charoptiontype"],
-)
 class CharacterOptionType(BaseContent):
     """Character option type model for categorizing character creation options.
 
