@@ -1,29 +1,25 @@
-# Makefile for studiorum project
-# Local targets use direct python commands (requires activate-5e)
-# CI targets use uv run for isolated environment
+# Makefile for studiorum. Every target runs through uv.
 
 # Configuration for fail-fast behavior and error checking
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
 # Configuration variables
-PYTHON_VERSION := 3.12
 UV := uv run
 SRC_DIR := src
 TEST_DIR := tests
 DOCS_DIR := docs
 SCRIPTS_DIR := scripts
+CLI_REFERENCE := $(DOCS_DIR)/user-guide/cli-reference.md
 
 # UV configuration for enhanced integration
 UV_SYNC_FLAGS := --no-progress
 UV_DEV_FLAGS := --group dev
-UV_DOCS_FLAGS := --group dev
 UV_LLM_FLAGS := --group llm
 UV_CI_FLAGS := --frozen
 
 # Environment detection
 CI_DETECTED := $(if $(CI),1,0)
-UV_AVAILABLE := $(shell command -v uv 2>/dev/null)
 
 # Quiet mode configuration
 QUIET ?= 0
@@ -50,57 +46,42 @@ else
 UV_SYNC_BASE := uv sync $(UV_SYNC_FLAGS)
 endif
 
-.PHONY: help uv uv-docs test mypy lint-imports pyright-errors pyright-warnings pyright-json typecheck-full pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full doctor upgrade env-info check-lockfile export-env cache-info clean-cache
+.PHONY: help all check security uv ruff mypy pyright-errors lint-imports pip-audit bandit test test-serial test-full-data test-latex-integration docs docs-serve cli-reference clean ci-install ci-check ci-test uv-llm mcp-ref-tools
 
-# Parallel execution control - only sync targets should be serial
-# This allows make to run independent targets in parallel while ensuring
-# dependency synchronization targets (uv sync commands) run sequentially
-.NOTPARALLEL: uv uv-docs ci-install
+# Only the sync targets need to run serially
+.NOTPARALLEL: uv ci-install uv-llm
 
-# Default target: show help
 help:
-	@echo "Available targets:"
-	@echo "  help         - Show this help message"
-	@echo "  all          - Run all checks, security, and tests"
-	@echo "  check        - Run code quality checks (ruff, mypy, pyright, import-linter)"
-	@echo "  typecheck-full - Run both mypy and pyright type checking"
-	@echo "  pyright-errors - Run pyright error checking only"
-	@echo "  security     - Run security scans (pip-audit, bandit)"
-	@echo "  test         - Run tests"
-	@echo "  test-xdist-incompatible - Run tests that fail with xdist (sequential execution)"
-	@echo "  test-latex-integration - Run LaTeX integration tests (requires LaTeX installation)"
-	@echo "  format       - Format code with ruff"
-	@echo "  docs         - Build and open documentation (MkDocs)"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  clean-all    - Deep clean including virtual environment"
+	@echo "Everyday:"
+	@echo "  check        - ruff, mypy, pyright errors and import-linter"
+	@echo "  test         - Run the test suite (parallel, skips xdist_incompatible)"
+	@echo "  security     - pip-audit and bandit"
+	@echo "  all          - check, security and test"
 	@echo ""
-	@echo "Development targets:"
-	@echo "  ruff         - Run ruff formatting and checks"
-	@echo "  mypy         - Run type checking"
-	@echo "  lint-imports - Check import layering and core cycles (import-linter)"
-	@echo "  pip-audit    - Security vulnerability scan"
+	@echo "Individual checks:"
+	@echo "  ruff         - Format, then lint"
+	@echo "  mypy         - Type check src/"
+	@echo "  pyright-errors - Pyright, errors only"
+	@echo "  lint-imports - Import layering and core cycles (import-linter)"
+	@echo "  pip-audit    - Dependency vulnerability scan"
 	@echo "  bandit       - Static security analysis"
 	@echo ""
-	@echo "Documentation:"
-	@echo "  docs-serve   - Start documentation auto-rebuild server"
-	@echo "  docs-check   - Check documentation for issues"
+	@echo "More tests:"
+	@echo "  test-serial  - Tests marked xdist_incompatible, run without xdist"
+	@echo "  test-full-data - Tests that need the full 5etools data set (reads .env.dev)"
+	@echo "  test-latex-integration - Real LaTeX compilation (needs TeX Live and the DnD template)"
 	@echo ""
-	@echo "CI/CD targets:"
-	@echo "  ci-check     - Run all quality and security checks"
-	@echo "  ci-test      - Run full test suite with coverage"
-	@echo "  ci-full      - Complete CI pipeline"
+	@echo "Docs:"
+	@echo "  docs         - Generate the CLI reference, build the site and open it"
+	@echo "  docs-serve   - Generate the CLI reference and serve with live reload"
+	@echo "  cli-reference - Generate $(CLI_REFERENCE) from the Typer app"
 	@echo ""
-	@echo "Diagnostics and maintenance:"
-	@echo "  doctor       - Diagnose environment and dependencies"
-	@echo "  env-info     - Show comprehensive environment information"
-	@echo "  check-lockfile - Validate uv.lock synchronization"
-	@echo "  export-env   - Export current environment to requirements file"
-	@echo "  cache-info   - Show UV cache information"
-	@echo "  clean-cache  - Clean UV cache"
-	@echo "  upgrade      - Upgrade project dependencies"
+	@echo "CI (called from .github/workflows):"
+	@echo "  ci-install, ci-check, ci-test"
 	@echo ""
-	@echo "MCP / LLM integration:"
-	@echo "  uv-llm      - Sync LLM tools (mcp-proxy)"
+	@echo "Other:"
+	@echo "  uv           - Sync the dev environment"
+	@echo "  clean        - Remove caches, coverage and build output"
 	@echo "  mcp-ref-tools - Run mcp-proxy for ref.tools over stdio"
 
 # Run all pre-push checks
@@ -113,52 +94,30 @@ check: ruff mypy pyright-errors lint-imports
 security: uv pip-audit bandit
 	$(ECHO_SUCCESS) "All security checks passed"
 
-# Sync environment (dev dependencies)
+# Sync environment (dev dependencies, which include the docs tools)
 uv:
 	@$(UV_SYNC_BASE) $(UV_DEV_FLAGS)
-
-# Sync environment (docs dependencies)
-uv-docs:
-	@$(UV_SYNC_BASE) $(UV_DOCS_FLAGS)
 
 # Sync environment (LLM / MCP dependencies)
 uv-llm:
 	@$(UV_SYNC_BASE) $(UV_LLM_FLAGS)
 
-# Checks and tools
-
-## Linting and formatting
+## Format, then lint
 ruff: uv
 	@$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
 	@$(UV) ruff check $(SRC_DIR) $(TEST_DIR) || (echo "ERROR: ruff: code style violations found"; exit 1)
-
-## Code formatting target
-format: uv
-	@$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
 
 ## Static type checking
 mypy: uv
 	@$(UV) mypy $(SRC_DIR)/ || (echo "ERROR: mypy: type checking failed"; exit 1)
 
-# Pyright type checking targets
 pyright-errors: uv
 	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error
-
-pyright-warnings: uv
-	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level warning
-
-pyright-json: uv
-	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error --outputjson
-
-# Combined type checking (mypy + pyright)
-typecheck-full: mypy pyright-errors
-	$(ECHO_SUCCESS) "All type checking passed"
 
 ## Check import layering and cycles (contracts in pyproject.toml)
 lint-imports: uv
 	@$(UV) lint-imports --no-logo || (echo "ERROR: lint-imports: import contract broken"; exit 1)
 
-# Security checks
 ## Security vulnerability scan
 # PYSEC-2026-2447 (CVE-2025-69872): diskcache pickles by default, so anyone who
 # can write to the local cache directory could run code. No fixed release; the
@@ -175,243 +134,49 @@ mcp-ref-tools: uv-llm
 	@chmod +x $(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
 	@$(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
 
-# Run parallel-safe tests (safe for automation)
+# Tests
+## Parallel-safe tests (pyproject addopts deselect xdist_incompatible)
 test: uv
 	@$(UV) pytest
 
-# Run parallel-safe tests only (alias for test)
-test-parallel: test
-
-# Run all tests including problematic ones (parallel + serial)
-test-all: test-parallel test-serial
-
-# Speed-based test targets for development workflow
-## Run fast tests only (<1s per test)
-test-fast: uv
-	@$(UV) pytest -m "fast"
-
-## Run unit tests (excludes integration and slow tests)
-test-unit: uv
-	@$(UV) pytest -m "not integration and not slow and not ci_broken"
-
-## Run xdist incompatible tests sequentially (no parallel execution)
+## Tests that hang under xdist, run sequentially
 test-serial: uv
 	@$(UV) pytest -m "xdist_incompatible" -n 0
 
-## Run tests with coverage and parallel execution (may hang - use for CI)
-test-with-coverage: uv
-	@$(UV) pytest --cov=studiorum --cov-report=term-missing --cov-report=html --cov-report=xml -n auto --dist loadscope --max-worker-restart 1
-
-## Run core functionality tests
-test-core: uv
-	@$(UV) pytest -m "core"
-
-## Run rendering system tests
-test-rendering: uv
-	@pytest -m "rendering and not ci_broken"
-
-## Run CLI interface tests
-test-cli: uv
-	@pytest -m "cli and not ci_broken"
-
-## Run integration tests only
-test-integration: uv
-	@pytest -m "integration and not ci_broken"
-
-## Run slow tests only (>10s per test)
-test-slow: uv
-	@pytest -m "slow"
-
-## Run tests requiring full 5etools dataset
+## Tests that need the full 5etools data set
 test-full-data: uv
-	@echo "Running tests requiring full 5etools dataset..."
-	@echo "Loading .env.dev environment for data access..."
 	STUDIORUM_TEST_FULL_DATA=1 uv run --env-file .env.dev pytest -m "requires_data"
 
-## Legacy alias for test-full-data (deprecated)
-test-data: test-full-data
-	@echo "WARNING: 'make test-data' is deprecated. Use 'make test-full-data' instead."
-
-## Run LaTeX integration tests (requires LaTeX installation)
+## Real LaTeX compilation (requires TeX Live and DND-5e-LaTeX-Template)
 test-latex-integration: uv
-	@echo "Running LaTeX integration tests (requires LaTeX installation)..."
-	@echo "This will perform actual LaTeX compilation and requires:"
-	@echo "  - LaTeX installation (texlive)"
-	@echo "  - DND-5e-LaTeX-Template"
-	pytest -m "latex_compilation" tests/integration/latex/ -v || (echo "LaTeX integration tests failed"; exit 1)
+	@$(UV) pytest -m "latex_compilation" tests/integration/latex/ -v || (echo "LaTeX integration tests failed"; exit 1)
 
 # Documentation
+## Generate the CLI reference from the Typer app (not tracked in git)
+cli-reference: uv
+	@$(UV) typer studiorum.cli.main utils docs --name studiorum --title "CLI Reference" --output $(CLI_REFERENCE)
+
 ## Build HTML docs and open in browser
-docs: uv-docs
-	@echo "Building documentation with MkDocs..."
+docs: cli-reference
 	@$(UV) mkdocs build || (echo "Documentation build failed"; exit 1)
 	@echo "Documentation built at ./site"
 	@open site/index.html 2>/dev/null || true
 
-## Start documentation auto-rebuild server
-docs-serve: uv-docs
-	@echo "Starting MkDocs dev server (http://127.0.0.1:8000)..."
-	@$(UV) mkdocs serve -a 127.0.0.1:8000 || (echo "Documentation server failed to start"; exit 1)
+## Serve docs with live reload
+docs-serve: cli-reference
+	@$(UV) mkdocs serve -a 127.0.0.1:8000
 
-## Clean documentation build artifacts
-docs-clean:
-	@echo "Cleaning documentation build artifacts..."
-	rm -rf site $(DOCS_DIR)/_build $(DOCS_DIR)/build
-	@echo "Documentation artifacts cleaned"
+## Remove caches, coverage and build output
+clean:
+	rm -rf site/ .pytest_cache/ .mypy_cache/ .ruff_cache/ .coverage htmlcov/ dist/ build/ *.egg-info/ coverage.xml test-results.xml $(CLI_REFERENCE)
+	find . -path ./.venv -prune -o -type d -name __pycache__ -exec rm -rf {} +
 
-## Build docs with clean rebuild
-docs-rebuild: docs-clean docs
-	@echo "Documentation rebuilt successfully"
-
-## Check documentation for issues (broken links, syntax)
-docs-check: uv-docs
-	@echo "Checking MkDocs documentation build..."
-	@$(UV) mkdocs build -q || (echo "MkDocs build check failed"; exit 1)
-	@echo "Documentation checks passed"
-
-## Validate documentation quality and structure
-docs-validate: uv-docs
-	@echo "Validating documentation quality..."
-	python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) || (echo "Documentation validation failed"; exit 1)
-	@echo "Documentation validation passed"
-
-## Full documentation validation (strict mode)
-docs-validate-strict: uv-docs
-	@echo "Running strict documentation validation..."
-	python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) --strict || (echo "Strict documentation validation failed"; exit 1)
-	@echo "Strict documentation validation passed"
-
-# Cleanup and maintenance
-## Clean build artifacts
-clean: docs-clean
-	@echo "Cleaning build artifacts..."
-	@echo "  - Removing Python cache files..."
-	rm -rf .pytest_cache/
-	rm -rf .mypy_cache/
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
-	@echo "  - Removing coverage files..."
-	rm -rf .coverage
-	rm -rf htmlcov/
-	@echo "  - Removing build artifacts..."
-	rm -rf dist/
-	rm -rf *.egg-info/
-	rm -rf build/
-	@echo "  - Removing temporary files..."
-	find . -name "*.tmp" -delete
-	find . -name "*.temp" -delete
-	find . -name ".DS_Store" -delete
-	@echo "Cleanup completed successfully"
-
-## Deep clean including virtual environment
-clean-all: clean
-	@echo "Performing deep cleanup..."
-	@echo "  - Removing virtual environment..."
-	rm -rf .venv/
-	@echo "  - Removing UV cache..."
-	uv cache clean || true
-	@echo "Deep cleanup completed"
-
-# CI/CD Integration
-# These targets are designed for continuous integration environments
-# and provide different levels of validation based on CI pipeline needs
-
-## Install CI dependencies
-# Ensures consistent environment setup across CI runs
+# CI targets, called from .github/workflows
 ci-install:
 	@$(UV_SYNC_BASE) $(UV_DEV_FLAGS)
 
-## Run CI test suite with coverage
-# Full test suite with coverage reporting and JUnit XML for CI integration
-# Outputs: coverage.xml, htmlcov/, test-results.xml
-# Skips tests marked as ci_broken to avoid CI-specific environment issues
+## Outputs coverage.xml, htmlcov/ and test-results.xml
 ci-test: ci-install
 	@$(UV) pytest --cov=studiorum --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken and not requires_latex and not xdist_incompatible" || (echo "ERROR: CI test suite failed"; exit 1)
 
-## Run CI checks (quality and security)
-# Comprehensive quality and security validation for CI pipelines
 ci-check: ci-install check security
-
-## Full CI pipeline
-# Complete validation: install → checks → tests
-# Use this for comprehensive CI validation
-ci-full: ci-install ci-check ci-test
-	@echo "Full CI pipeline completed successfully"
-
-## Lightweight CI for fast feedback
-# Quick validation for rapid feedback in development
-# Includes: formatting, type checking, fast tests only
-
-# UV Cache Management
-## Clean UV cache for disk space and debugging
-clean-cache:
-	@echo "Cleaning UV cache..."
-	@uv cache clean
-	@echo "UV cache cleaned"
-
-## Show UV cache information
-cache-info:
-	@echo "UV Cache Information:"
-	@echo "  Cache directory: $$(uv cache dir)"
-	@echo "  Cache size: $$(uv cache size 2>/dev/null || echo 'Unable to determine size')"
-	@echo ""
-
-# Lock File Management
-## Validate that uv.lock is in sync with pyproject.toml
-check-lockfile:
-	@echo "Validating lock file synchronization..."
-	@uv lock --check || (echo "ERROR: uv.lock is out of sync with pyproject.toml"; exit 1)
-	@echo "Lock file validation: PASSED"
-
-## Export current environment for debugging
-export-env:
-	@echo "Exporting current environment..."
-	@uv export --format=requirements-txt > requirements-export.txt
-	@echo "Environment exported to requirements-export.txt"
-
-# Environment Information
-## Show comprehensive environment information
-env-info:
-	@echo "Environment Information:"
-	@echo "  CI Detected: $(CI_DETECTED)"
-	@echo "  UV Version: $(UV_AVAILABLE)"
-	@echo "  Python Version: $$(python --version 2>/dev/null || echo 'Not available')"
-	@echo "  Working Directory: $$(pwd)"
-	@echo "  UV Cache Dir: $$(uv cache dir 2>/dev/null || echo 'Not available')"
-	@echo "  Current Branch: $$(git branch --show-current 2>/dev/null || echo 'Not in git repo')"
-	@echo ""
-
-# Diagnostics and maintenance
-# These targets help diagnose environment issues and maintain the project
-
-## Diagnose environment and dependencies
-# Comprehensive environment health check for troubleshooting
-# Checks: Python, UV, virtual environment, dependencies, git status, disk space
-doctor: env-info
-	@echo "Diagnosing development environment..."
-	@echo "Python version:"
-	@python --version || echo "Python not found"
-	@echo ""
-	@echo "UV version:"
-	@uv --version || echo "UV not found"
-	@echo ""
-	@echo "Virtual environment status:"
-	@if [ -d ".venv" ]; then echo "Virtual environment exists"; else echo "Virtual environment missing"; fi
-	@echo ""
-	@echo "Dependency sync status:"
-	@uv sync --dry-run --group dev 2>/dev/null && echo "Dependencies are up to date" || echo "Dependencies need synchronization"
-	@echo ""
-	@echo "Git repository status:"
-	@git status --porcelain | wc -l | sed 's/^/Modified files: /'
-	@echo ""
-	@echo "Disk space in project directory:"
-	@du -sh . 2>/dev/null || echo "Cannot check disk usage"
-	@echo "Environment diagnosis completed"
-
-## Upgrade project dependencies
-# Updates all dependencies to latest compatible versions
-# Includes clean to ensure fresh state after upgrade
-upgrade: clean
-	@echo "Upgrading project dependencies..."
-	uv sync --upgrade --group dev
-	@echo "Dependencies upgraded successfully"

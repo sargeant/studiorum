@@ -393,7 +393,6 @@ markers = [
     "slow: marks tests as slow (>10s execution, full system tests)",
 
     # Component-based marks (for focused testing)
-    "core: marks tests for core models, loaders, and registry",
     "rendering: marks tests for LaTeX rendering and template processing",
     "cli: marks tests for command-line interface",
     "integration: marks tests as integration tests (cross-component)",

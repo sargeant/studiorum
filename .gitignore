@@ -31,6 +31,7 @@
 build/
 
 # Documentation build artifacts
+docs/user-guide/cli-reference.md
 docs/_build/
 docs/_static/
 docs/.doctrees/
