@@ -50,6 +50,7 @@ dependencies = [
     "aiohttp>=3.12.15",
     "fastmcp>=3,<4",
     "logfire>=0.54.0",
+    "orjson>=3.11.6",
 ]
 
 [project.urls]
@@ -100,9 +101,6 @@ xml = ["lxml>=4.9.0"]
 llm = [
     # MCP stdio proxy to bridge HTTP MCP servers into stdio for Codex/CLI
     "mcp-proxy>=0.2.0",
-]
-scripts = [
-    "orjson>=3.11.6",
 ]
 
 [tool.hatch.build.targets.wheel]
