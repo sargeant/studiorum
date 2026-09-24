@@ -146,3 +146,16 @@ class SectionText(BaseModel):
     pages: int
     text: str = Field(description="Markdown")
     sections: list[SectionRef] = Field(description="Subsections, to read on their own")
+
+
+class RuleSummary(BaseModel):
+    name: str
+    type: str
+    source: str
+    srd: bool
+    snippet: str = Field(description="Text around the first match")
+
+
+class RuleResults(BaseModel):
+    total: int = Field(description="Matches before the limit")
+    results: list[RuleSummary]

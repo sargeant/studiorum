@@ -153,6 +153,33 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         },
     )
 
+    _write(
+        tmp_path / "variantrules.json",
+        {
+            "variantrule": [
+                {
+                    "name": "Unarmed Strike",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["A blow to damage, grapple, or shove a target."],
+                }
+            ]
+        },
+    )
+    _write(
+        tmp_path / "conditionsdiseases.json",
+        {
+            "condition": [
+                {
+                    "name": "Grappled",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["Your {@variantrule Speed|XPHB} is 0."],
+                }
+            ]
+        },
+    )
+
     wizard = json.loads((SRD_DATA / "class" / "class-wizard.json").read_text())
     _write(tmp_path / "class" / "class-wizard.json", wizard)
 

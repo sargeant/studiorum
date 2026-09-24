@@ -37,6 +37,7 @@ async def test_the_server_lists_its_tools() -> None:
         "search_spells",
         "search_creatures",
         "search_items",
+        "search_rules",
         "get_content",
         "list_publications",
         "calculate_encounter_budget",
@@ -208,3 +209,18 @@ async def test_get_content_reads_classes_and_features() -> None:
         name="Arcane Recovery|Wizard||1",  # as the class lists it
     )
     assert by_uid["text"].startswith("# Arcane Recovery\n\n*Level 1 Wizard feature*")
+
+
+@pytest.mark.asyncio
+async def test_search_rules_matches_names_then_text() -> None:
+    result = await call("search_rules", query="grapple")
+    assert [(r["name"], r["type"]) for r in result["results"]] == [
+        ("Grappled", "condition"),
+        ("Unarmed Strike", "variantrule"),
+    ]
+    assert (
+        result["results"][1]["snippet"]
+        == "A blow to damage, grapple, or shove a target."
+    )
+    speed = await call("search_rules", query="speed", rule_type="condition")
+    assert speed["results"][0]["snippet"] == "Your Speed is 0."
