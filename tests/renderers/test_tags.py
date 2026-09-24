@@ -48,12 +48,12 @@ def resolver() -> TagResolver:
         ("{@recharge}", "(Recharge 6)"),
         ("{@recharge 4|m}", "Recharge 4--6"),
         ("{@atk mw}", "Melee Weapon Attack:"),
-        ("{@atk rs,ms}", "Ranged Spell or Melee Spell Attack:"),
+        ("{@atk rs,ms}", "Ranged or Melee Spell Attack:"),
         ("{@h}", "Hit: "),
         ("{@hom}", r"\textit{Hit or Miss:}"),
         ("{@actSave dex}", r"\textit{Dexterity Saving Throw:}"),
         ("{@actSaveFail 2}", r"\textit{Second Failure:}"),
-        ("{@actSaveFailBy 5}", r"\textit{Failure by 5 or more:}"),
+        ("{@actSaveFailBy 5}", r"\textit{Failure by 5 or More:}"),
         ("{@actResponse d}", r"\textit{Response---}"),
         ("{@hitYourSpellAttack}", "your spell attack modifier"),
         ("{@note a {@spell light} note}", r"\textit{a \textit{light} note}"),
@@ -75,6 +75,8 @@ def resolver() -> TagResolver:
         ("{@deity Tyr|Faerûnian|SCAG}", "Tyr"),
         ("{@quickref Vision and Light||2||dim light}", r"\textit{dim light}"),
         ("{@condition frightened||scared}", "scared"),
+        ("{@atkr m}", "Melee Attack Roll:"),
+        ("{@m}{@dcYourSpellSave}", "Miss: your spell save DC"),
     ],
 )
 def test_tag(resolver: TagResolver, text: str, latex: str) -> None:

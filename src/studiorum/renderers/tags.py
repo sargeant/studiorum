@@ -203,16 +203,25 @@ _KINDS = {"m": "Melee", "r": "Ranged", "g": "Magical", "a": "Area"}
 _METHODS = {"w": "Weapon", "s": "Spell", "p": "Power"}
 
 
-def _attack(parts: list[str], r: Render) -> str:
-    names = []
-    for group in (g.strip() for g in parts[0].split(",")):
-        if not group:
-            continue
-        kind = next((_KINDS[c] for c in _KINDS if c in group.lower()), "")
-        method = next((_METHODS[c] for c in _METHODS if c in group.lower()), "")
-        names.append(" ".join(n for n in (kind, method) if n))
-    joined = " or ".join(names)
-    return f"{joined} Attack:" if joined else "Attack:"
+def _attack(roll: bool) -> TagFn:
+    def fn(parts: list[str], r: Render) -> str:
+        groups = [list(g.strip()) for g in parts[0].lower().split(",") if g.strip()]
+        # A letter shared with a later group is dropped: "mw,rw" is "Melee or Ranged Weapon"
+        seen: set[str] = set(groups[-1]) if groups else set()
+        for i in range(len(groups) - 2, -1, -1):
+            kept = [c for c in groups[i] if c not in seen]
+            seen.update(groups[i])
+            groups[i] = kept
+        names = []
+        for group in groups:
+            kind = next((_KINDS[c] for c in _KINDS if c in group), "")
+            method = next((_METHODS[c] for c in _METHODS if c in group), "")
+            names.append(" ".join(w for w in (kind, method) if w))
+        label = "Attack Roll:" if roll else "Attack:"
+        joined = " or ".join(names).strip()
+        return f"{joined} {label}" if joined else label
+
+    return fn
 
 
 _ABILITIES = {
@@ -257,7 +266,7 @@ def _act_save_fail(parts: list[str], r: Render) -> str:
 def _act_save_fail_by(parts: list[str], r: Render) -> str:
     if not parts[0]:
         return _italic("Failure:")
-    return _italic(escape_latex_text(f"Failure by {parts[0]} or more:"))
+    return _italic(escape_latex_text(f"Failure by {parts[0]} or More:"))
 
 
 def _fixed(latex: str) -> TagFn:
@@ -287,6 +296,10 @@ def _scaling(parts: list[str], r: Render) -> str:
     return escape_latex_text(_part(parts, 4) or _part(parts, 2))
 
 
+def _default(text: str) -> TagFn:
+    return lambda parts, r: r.text(parts[0]) if parts[0] else text
+
+
 def _or(fallback: str) -> TagFn:
     return lambda parts, r: escape_latex_text(parts[0]) if parts[0] else fallback
 
@@ -314,22 +327,23 @@ TAGS: dict[str, TagFn] = {
     "skillCheck": _modifier,
     "chance": _chance,
     "recharge": _recharge,
-    "atk": _attack,
-    "atkr": _fixed("Attack Roll:"),
+    "atk": _attack(roll=False),
+    "atkr": _attack(roll=True),
     "h": _fixed("Hit: "),
+    "m": _fixed("Miss: "),
     "hom": _fixed(_italic("Hit or Miss:")),
     "actSave": _act_save,
     "actSaveFail": _act_save_fail,
     "actSaveFailBy": _act_save_fail_by,
     "actSaveSuccess": _fixed(_italic("Success:")),
-    "actSaveSuccessOrFail": _fixed(_italic("Success or Failure:")),
+    "actSaveSuccessOrFail": _fixed(_italic("Failure or Success:")),
     "actTrigger": _fixed(_italic("Trigger:")),
     "actResponse": lambda parts, r: _italic(
         "Response---" if "d" in parts[0] else "Response:"
     ),
-    "hitYourSpellAttack": lambda parts, r: escape_latex_text(
-        _part(parts, 1) or "your spell attack modifier"
-    ),
+    "hitYourSpellAttack": _default("your spell attack modifier"),
+    "dcYourSpellSave": _default("your spell save DC"),
+    "coinflip": _default("flip a coin"),
     "note": _note,
     "link": _link,
     "quickref": lambda parts, r: _italic(r.text(display_part("quickref", parts))),
@@ -346,8 +360,7 @@ TAGS: dict[str, TagFn] = {
 _PLAIN = {
     "s", "strike", "s2", "strikeDouble", "u", "underline", "u2",
     "underlineDouble", "sup", "sub", "kbd", "font", "comic", "comicH1",
-    "comicH2", "comicH3", "comicH4", "comicNote", "tip", "unit", "m",
-    "dcYourSpellSave", "coinflip", "5etools",
+    "comicH2", "comicH3", "comicH4", "comicNote", "tip", "unit", "5etools",
     "5etoolsImg", "5etoolsAudio", "footnote", "loader", "color", "highlight",
     "help", "boon", "charoption", "creatureFluff", "cult", "facility",
     "itemProperty", "itemMastery", "language", "legroup", "object",
