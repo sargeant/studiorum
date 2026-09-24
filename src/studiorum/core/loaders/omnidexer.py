@@ -10,6 +10,7 @@ their text is merged in the first time one is asked for.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -18,7 +19,7 @@ from pydantic import TypeAdapter, ValidationError
 from ..config.unified_config import get_app_config
 from ..interfaces import DeepIndexable
 from ..logging import get_logger
-from ..models.content import BaseContent, ContentType
+from ..models.content import BaseContent, ContentType, Reprint
 from ..models.content_models import (
     CONTENT_MODELS,
     FLUFF_TYPES,
@@ -50,10 +51,12 @@ Raw = dict[str, Any]
 class Omnidexer:
     """Every entity of a data set, looked up by type, name and source.
 
-    When two entities share a type, name and source, the first loaded wins.
-    Content that holds other content (``DeepIndexable``) has its nested
-    entities indexed too, and reprints are indexed under the source they were
-    reprinted in.
+    Each type is keyed as 5etools keys it: by name and source, and for class
+    and subclass features, subclasses, subraces and deities by what else
+    tells them apart (``_IDENTITY``). When two entities share a key, the first
+    loaded wins. Content that holds other content (``DeepIndexable``) has its
+    nested entities indexed too, and reprints are indexed under the source
+    they were reprinted in.
     """
 
     def __init__(
@@ -64,15 +67,19 @@ class Omnidexer:
             data if data is not None else DataSet.from_config(get_app_config().data)
         )
         self.enable_deep_indexing = enable_deep_indexing
-        self._by_type: dict[ContentType, dict[str, BaseContent]] = defaultdict(dict)
+        self._by_type: dict[ContentType, dict[Identity, BaseContent]] = defaultdict(
+            dict
+        )
+        self._by_name: dict[ContentType, dict[str, list[BaseContent]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
         self._by_source: dict[str, list[BaseContent]] = defaultdict(list)
-        self._indexed: set[tuple[ContentType, str, str]] = set()
         self._loaded_types: set[ContentType] = set()
         self._homebrew_text: dict[tuple[ContentType, str], Raw] = {}
         self._hydrated: set[tuple[ContentType, str]] = set()
         # Reprint aliases wait until every real entity is indexed, so an alias
-        # never takes the place of the entity it was reprinted as
-        self._aliases: list[tuple[BaseContent, ContentType]] | None = None
+        # is only added for a reprint that isn't loaded
+        self._aliases: list[tuple[BaseContent, ContentType, UidFields]] | None = None
         self._errors = ValidationErrorTracker()
 
     # region Loading
@@ -127,8 +134,8 @@ class Omnidexer:
                 self._loaded_types.add(content_type)
                 stats[content_type.value] = len(items)
         aliases, self._aliases = self._aliases, None
-        for alias, content_type in aliases:
-            self._add_to_index(alias, content_type)
+        for alias, content_type, fields in aliases:
+            self._add_alias(alias, content_type, fields)
 
         if progress_callback and operation:
             progress_callback.complete_operation(
@@ -262,66 +269,73 @@ class Omnidexer:
     def _replace(
         self, old: BaseContent, new: BaseContent, content_type: ContentType
     ) -> None:
-        key = _lookup_key(old)
-        self._by_type[content_type].pop(key, None)
-        source = _source(old)
-        self._by_source[source] = [c for c in self._by_source[source] if c is not old]
-        self._indexed.discard((content_type, old.name.lower(), source.lower()))
-        self._add_to_index(new, content_type)
+        """Put ``new`` where ``old`` was, then index what ``new`` holds."""
+        self._by_type[content_type][_identity(old, content_type)] = new
+        for group in (
+            self._by_name[content_type][old.name.lower()],
+            self._by_source[_source(old)],
+        ):
+            group[:] = [new if c is old else c for c in group]
+        if self.enable_deep_indexing and isinstance(new, DeepIndexable):
+            self._index_nested(new, content_type)
 
     # endregion
 
     # region Indexing
 
     def _add_to_index(self, content: BaseContent, content_type: ContentType) -> None:
-        source = _source(content)
-        identity = (content_type, content.name.lower(), source.lower())
-        if identity in self._indexed:
+        identity = _identity(content, content_type)
+        type_index = self._by_type[content_type]
+        if identity in type_index:
             return
-        self._indexed.add(identity)
-        self._by_type[content_type][_lookup_key(content)] = content
+        type_index[identity] = content
+        self._by_name[content_type][content.name.lower()].append(content)
+        source = _source(content)
         self._by_source[source].append(content)
-        self._index_reprints(content, content_type, source)
+        self._index_reprints(content, content_type)
         if self.enable_deep_indexing and isinstance(content, DeepIndexable):
             self._index_nested(content, content_type)
 
-    def _index_reprints(
-        self, content: BaseContent, content_type: ContentType, source: str
-    ) -> None:
-        """Index a copy under each source it was reprinted in (5etools' reprintedAs)."""
+    def _index_reprints(self, content: BaseContent, content_type: ContentType) -> None:
+        """Index a copy under each uid it was reprinted as (5etools' reprintedAs).
+
+        A reprint tagged as another kind of content (a fighting style
+        reprinted as a feat) is left to that type. Subraces are reprinted as
+        races, so they have no aliases.
+        """
+        if content_type == ContentType.SUBRACE:
+            return
         reprints = getattr(content, "reprinted_as", None) or getattr(
             content, "reprintedAs", None
         )
         if not isinstance(reprints, list):
             return
         for reprint in reprints:
-            uid = reprint if isinstance(reprint, str) else None
-            if isinstance(reprint, dict):
-                uid = reprint.get("uid") or reprint.get("UID")
-            if not uid or "|" not in uid:
-                continue
-            target_name, target_source = uid.split("|", 1)
-            alias = content.model_copy(deep=True)
-            for field in ("reprinted_as", "reprintedAs"):
-                if hasattr(alias, field):
-                    try:
-                        setattr(alias, field, [])
-                    except (AttributeError, ValueError):
-                        logger.debug(
-                            f"Could not clear {field} on {content.name}", exc_info=True
-                        )
-            try:
-                alias.name = (target_name or content.name).strip()
-                alias.source.abbreviation = (target_source or source).strip()
-                alias.source.name = alias.source.abbreviation
-            except (AttributeError, ValueError):
-                logger.debug(
-                    f"Could not rename reprint of {content.name}", exc_info=True
-                )
-            if self._aliases is not None:
-                self._aliases.append((alias, content_type))
+            if isinstance(reprint, Reprint):
+                uid, tag = reprint.uid, reprint.tag
+            elif isinstance(reprint, dict):
+                # Models without a reprintedAs field keep the raw JSON
+                uid, tag = str(reprint.get("uid", "")), reprint.get("tag")
             else:
-                self._add_to_index(alias, content_type)
+                uid, tag = str(reprint), None
+            if tag and PROP_TYPES.get(tag) != content_type:
+                continue
+            fields = parse_uid(content_type, uid)
+            if not fields or not fields.get("source"):
+                continue
+            alias = _reprint_alias(content, fields)
+            if alias is None:
+                continue
+            if self._aliases is not None:
+                self._aliases.append((alias, content_type, fields))
+            else:
+                self._add_alias(alias, content_type, fields)
+
+    def _add_alias(
+        self, alias: BaseContent, content_type: ContentType, fields: UidFields
+    ) -> None:
+        if self._match_uid(content_type, fields) is None:
+            self._add_to_index(alias, content_type)
 
     def _index_nested(self, content: DeepIndexable, content_type: ContentType) -> None:
         try:
@@ -347,26 +361,59 @@ class Omnidexer:
     def find(
         self, content_type: ContentType, name: str, source: str | None = None
     ) -> BaseContent | None:
-        """Content by type, name and optionally source (else the first loaded)."""
-        type_index = self._by_type.get(content_type)
-        if not type_index:
-            return None
-        if source:
-            found = type_index.get(f"{name}|{source}".lower())
-        else:
-            prefix = f"{name.lower()}|"
-            found = next(
-                (c for k, c in type_index.items() if k.startswith(prefix)), None
-            )
+        """Content by type, name and optionally source (else the first loaded).
+
+        Class features and the like can share a name and source; this returns
+        the first loaded. Use ``find_uid`` or ``find_all`` to tell them apart.
+        """
+        found = next(iter(self._named(content_type, name, source)), None)
         return self.hydrate(found) if found is not None else None
 
     def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
         """Content of a type with this name, from every source."""
-        prefix = f"{name.lower()}|"
-        type_index = self._by_type.get(content_type, {})
-        return [
-            self.hydrate(c) for k, c in list(type_index.items()) if k.startswith(prefix)
-        ]
+        return [self.hydrate(c) for c in self._named(content_type, name)]
+
+    def find_uid(self, content_type: ContentType, uid: str) -> BaseContent | None:
+        """Content by a 5etools uid, as in tags and ``classFeatures``.
+
+        "Ability Score Improvement|Fighter|PHB|4" is a class feature (name,
+        class, class source, level, source); subclass features, subclasses
+        and deities have their own layouts (``_UID_LAYOUTS``), with 5etools'
+        defaults for the parts left out. Any other type takes "name|source",
+        and without a source this is ``find``.
+        """
+        fields = parse_uid(content_type, uid)
+        found = self._match_uid(content_type, fields) if fields else None
+        return self.hydrate(found) if found is not None else None
+
+    def _match_uid(
+        self, content_type: ContentType, fields: UidFields
+    ) -> BaseContent | None:
+        if content_type == ContentType.SUBCLASS:
+            candidates = list(self._by_type.get(content_type, {}).values())
+        else:
+            candidates = self._named(content_type, fields["name"] or "")
+        return next(
+            (
+                content
+                for content in candidates
+                if all(
+                    _norm(_field(content, key)) == _norm(value)
+                    for key, value in fields.items()
+                    if value is not None
+                )
+            ),
+            None,
+        )
+
+    def _named(
+        self, content_type: ContentType, name: str, source: str | None = None
+    ) -> list[BaseContent]:
+        named = self._by_name.get(content_type, {}).get(name.lower(), [])
+        if source:
+            source = source.lower()
+            return [c for c in named if _source(c).lower() == source]
+        return list(named)
 
     def get_all_by_type(self, content_type: ContentType | str) -> list[BaseContent]:
         """All content of a type. Adventures and books come without their text."""
@@ -470,8 +517,116 @@ def _source(content: BaseContent) -> str:
     return str(source)
 
 
-def _lookup_key(content: BaseContent) -> str:
-    return f"{content.name}|{_source(content)}".lower()
+Identity = tuple[str, ...]
+
+# What tells apart entities of a type that share a name and source, as
+# 5etools keys them (``KEYS`` in merge_copy, ``UrlUtil.URL_TO_HASH_BUILDER``)
+_IDENTITY: dict[ContentType, tuple[str, ...]] = {
+    ContentType.CLASS_FEATURE: ("className", "classSource", "level"),
+    ContentType.SUBCLASS_FEATURE: (
+        "className",
+        "classSource",
+        "subclassShortName",
+        "subclassSource",
+        "level",
+    ),
+    ContentType.SUBCLASS: ("className", "classSource"),
+    ContentType.SUBRACE: ("raceName", "raceSource"),
+    ContentType.DEITY: ("pantheon",),
+}
+
+# The parts of a uid after the name, with 5etools' default for each part left
+# empty (DataUtil.class.unpackUid*); a callable default reads an earlier part
+UidFields = dict[str, str | None]
+_Default = str | Callable[[UidFields], str | None] | None
+_UID_LAYOUTS: dict[ContentType, tuple[tuple[str, _Default], ...]] = {
+    ContentType.CLASS_FEATURE: (
+        ("className", None),
+        ("classSource", "PHB"),
+        ("level", None),
+        ("source", lambda f: f["classSource"]),
+    ),
+    ContentType.SUBCLASS_FEATURE: (
+        ("className", None),
+        ("classSource", "PHB"),
+        ("subclassShortName", None),
+        ("subclassSource", "PHB"),
+        ("level", None),
+        ("source", lambda f: f["subclassSource"]),
+    ),
+    ContentType.SUBCLASS: (
+        ("className", None),
+        ("classSource", "PHB"),
+        ("source", "PHB"),
+    ),
+    ContentType.DEITY: (("pantheon", None), ("source", None)),
+}
+
+
+def parse_uid(content_type: ContentType, uid: str) -> UidFields | None:
+    """The fields a 5etools uid names, by their 5etools names.
+
+    A subclass uid starts with the short name ("Alchemist|Artificer|EFA|EFA").
+    """
+    parts = [p.strip() for p in uid.split("|")]
+    if not parts[0]:
+        return None
+    first = "shortName" if content_type == ContentType.SUBCLASS else "name"
+    fields: UidFields = {first: parts[0]}
+    layout = _UID_LAYOUTS.get(content_type, (("source", None),))
+    for i, (key, default) in enumerate(layout, start=1):
+        value = parts[i] if i < len(parts) and parts[i] else None
+        if value is None:
+            value = default(fields) if callable(default) else default
+        fields[key] = value
+    return fields
+
+
+def _field(content: BaseContent, key: str) -> Any:
+    """A field of ``content`` by its 5etools name."""
+    if key == "source":
+        return _source(content)
+    for attr, info in type(content).model_fields.items():
+        if key in (attr, info.alias):
+            return getattr(content, attr)
+    return (content.model_extra or {}).get(key)
+
+
+def _norm(value: Any) -> str:
+    return str(value).lower() if value is not None else ""
+
+
+def _identity(content: BaseContent, content_type: ContentType) -> Identity:
+    return (
+        content.name.lower(),
+        _source(content).lower(),
+        *(_norm(_field(content, key)) for key in _IDENTITY.get(content_type, ())),
+    )
+
+
+def _reprint_alias(content: BaseContent, fields: UidFields) -> BaseContent | None:
+    """A copy of ``content`` with the name, source and so on of its reprint."""
+    alias = content.model_copy(deep=True)
+    try:
+        for field in ("reprinted_as", "reprintedAs"):
+            if hasattr(alias, field):
+                setattr(alias, field, [])
+        alias.name = fields.get("name") or content.name
+        alias.source.abbreviation = fields.get("source") or _source(content)
+        alias.source.name = alias.source.abbreviation
+        for key, value in fields.items():
+            if key in ("name", "source") or value is None:
+                continue
+            for attr, info in type(alias).model_fields.items():
+                if key in (attr, info.alias):
+                    current = getattr(alias, attr)
+                    setattr(
+                        alias, attr, int(value) if isinstance(current, int) else value
+                    )
+    except (AttributeError, ValueError):
+        logger.debug(f"Could not make a reprint alias of {content.name}", exc_info=True)
+        return None
+    return alias
 
 
 def _prepare(entity: Raw, content_type: ContentType) -> Raw:
