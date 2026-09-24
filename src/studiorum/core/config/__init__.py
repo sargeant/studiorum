@@ -3,7 +3,6 @@
 from .unified_config import (
     ApplicationConfig,
     ConfigFileNotFoundError,
-    MCPConfig,
     get_app_config,
     load_config,
     set_app_config,
@@ -12,7 +11,6 @@ from .unified_config import (
 __all__ = [
     "ApplicationConfig",
     "ConfigFileNotFoundError",
-    "MCPConfig",
     "get_app_config",
     "load_config",
     "set_app_config",

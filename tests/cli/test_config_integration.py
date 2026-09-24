@@ -43,7 +43,7 @@ class TestCLIConfigIntegration:
         """Test CLI with configuration file."""
         # Create a test config file
         test_config = {
-            "mcp": {"enabled": True, "port": 9999},
+            "image": {"include_images": True},
             "logging": {"level": "DEBUG"},
         }
 
@@ -104,10 +104,7 @@ class TestCLIConfigIntegration:
         """Test CLI with configuration validation errors."""
         # Create config with validation errors
         invalid_config = {
-            "mcp": {
-                "port": -1,  # Invalid port
-                "max_concurrent_requests": 0,  # Invalid value
-            }
+            "rendering": {"latex": {"engine": {"max_passes": 0}}}  # Below 1
         }
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
@@ -128,8 +125,7 @@ class TestCLIConfigIntegration:
         """Test CLI with environment variable configuration."""
         # Set environment variables
         env_vars = {
-            "STUDIORUM_MCP__ENABLED": "true",
-            "STUDIORUM_MCP__PORT": "7777",
+            "STUDIORUM_IMAGE__INCLUDE_IMAGES": "true",
             "STUDIORUM_LOGGING__LEVEL": "WARNING",
         }
 
@@ -177,46 +173,6 @@ class TestCLIConfigIntegration:
 
                 # Debug flag should still work (CLI args take precedence over config)
                 assert "DEBUG" in result.stdout or result.exit_code == 0
-        finally:
-            config_path.unlink()
-
-    def test_cli_config_with_mcp_settings(self) -> None:
-        """Test CLI with MCP-specific configuration."""
-        test_config = {
-            "mcp": {
-                "enabled": True,
-                "host": "0.0.0.0",
-                "port": 8443,
-                "max_concurrent_requests": 25,
-                "cache_size_mb": 1024,
-                "preload_content_types": ["creatures", "spells"],
-                "enable_hot_reload": True,
-                "log_requests": False,
-            }
-        }
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
-            yaml.dump(test_config, f)
-            config_path = Path(f.name)
-
-        try:
-            with patch("studiorum.cli.main.reset_cli_globals"):
-                result = self.runner.invoke(
-                    app,
-                    [
-                        "--config-file",
-                        str(config_path),
-                        "--verbose",
-                        "list",
-                        "adventures",
-                    ],
-                )
-
-                # Should show MCP server enabled message
-                assert (
-                    "MCP server enabled on 0.0.0.0:8443" in result.stdout
-                    or result.exit_code == 0
-                )
         finally:
             config_path.unlink()
 
