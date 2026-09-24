@@ -413,7 +413,6 @@ name = "core sub-packages are acyclic"
 type = "acyclic_siblings"
 ancestors = ["studiorum.core"]
 ignore_imports = [
-    "studiorum.core.base_context -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.models.content",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",
