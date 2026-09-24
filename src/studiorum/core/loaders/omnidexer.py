@@ -172,6 +172,8 @@ class Omnidexer:
             entities = [e for e in entities if e.get("name")]
         if content_type == ContentType.CREATURE:
             entities = [e for e in entities if not _is_reference_stub(e)]
+        if content_type == ContentType.SUBRACE:
+            entities = [e for e in entities if not _is_race_default(e)]
         prepared = [_prepare(e, content_type) for e in entities]
         try:
             return list(TypeAdapter(list[model]).validate_python(prepared))  # type: ignore[valid-type]
@@ -479,6 +481,11 @@ def _prepare(entity: Raw, content_type: ContentType) -> Raw:
         entity["source"] = entity["inherits"].get("source")
     if content_type == ContentType.ITEM:
         _inherit_type_entries(entity)
+    if content_type == ContentType.ITEM_PROPERTY and "name" not in entity:
+        # 5etools names a property after its first entry ("Two-Handed")
+        entries = entity.get("entries")
+        if entries and isinstance(entries[0], dict) and entries[0].get("name"):
+            entity["name"] = entries[0]["name"]
     return entity
 
 
@@ -497,6 +504,16 @@ def _is_reference_stub(creature: Raw) -> bool:
     if "ac" in creature or "hp" in creature:
         return False
     logger.debug(f"Skipping creature with no stat block: {creature.get('name')}")
+    return True
+
+
+def _is_race_default(subrace: Raw) -> bool:
+    """A nameless subrace holds its race's defaults, for merging into the race."""
+    if subrace.get("name"):
+        return False
+    logger.debug(
+        f"Skipping nameless subrace of {subrace.get('raceName')} ({subrace.get('source')})"
+    )
     return True
 
 

@@ -198,3 +198,28 @@ def test_magic_variants_take_their_source_from_inherits(tmp_path: Path) -> None:
     omnidexer = _load(tmp_path)
 
     assert omnidexer.find(ContentType.MAGICVARIANT, "+1 Test", "DMG") is not None
+
+
+def test_an_item_property_is_named_after_its_first_entry(tmp_path: Path) -> None:
+    prop = {
+        "abbreviation": "2H",
+        "source": "XPHB",
+        "entries": [{"type": "entries", "name": "Two-Handed", "entries": ["..."]}],
+    }
+    _write(tmp_path / "items-base.json", {"itemProperty": [prop]})
+
+    omnidexer = _load(tmp_path)
+
+    assert omnidexer.find(ContentType.ITEM_PROPERTY, "Two-Handed", "XPHB") is not None
+
+
+def test_a_nameless_subrace_is_left_to_its_race(tmp_path: Path) -> None:
+    default = {"source": "PHB", "raceName": "Human", "raceSource": "PHB"}
+    named = {**default, "name": "Variant", "entries": ["..."]}
+    _write(tmp_path / "races.json", {"subrace": [default, named]})
+
+    omnidexer = _load(tmp_path)
+
+    assert [s.name for s in omnidexer.get_all_by_type(ContentType.SUBRACE)] == [
+        "Variant"
+    ]
