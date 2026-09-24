@@ -149,6 +149,7 @@ async def test_list_publications() -> None:
     assert [(p["id"], p["kind"]) for p in result["publications"]] == [
         ("TA", "adventure"),
         ("TB", "book"),
+        ("TB-ST", "adventure"),
     ]
     books = await call("list_publications", kind="book")
     assert [p["name"] for p in books["publications"]] == ["Test Book"]

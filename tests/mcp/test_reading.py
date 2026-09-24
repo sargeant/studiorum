@@ -156,3 +156,11 @@ async def test_search_publication() -> None:
     # A section's own text, not its subsections'
     hooks = await call("search_publication", publication="TA", query="hook")
     assert [r["id"] for r in hooks["results"]] == ["001"]
+
+
+@pytest.mark.asyncio
+async def test_an_adventure_sharing_a_books_source_is_found_by_its_id() -> None:
+    book = await call("get_table_of_contents", publication="TB")
+    trek = await call("get_table_of_contents", publication="TB-ST")
+    assert (book["kind"], trek["kind"], trek["id"]) == ("book", "adventure", "TB-ST")
+    assert ids(trek) == [("200", "Trek", 1)]

@@ -178,7 +178,7 @@ async def list_publications(
     if kind in (None, "book"):
         found += [
             Publication(
-                id=b.source.abbreviation,
+                id=b.id or b.source.abbreviation,
                 name=b.name,
                 kind="book",
                 published=b.published,
@@ -190,7 +190,7 @@ async def list_publications(
     if kind in (None, "adventure"):
         found += [
             Publication(
-                id=a.source.abbreviation,
+                id=a.id or a.source.abbreviation,
                 name=a.name,
                 kind="adventure",
                 published=a.published,

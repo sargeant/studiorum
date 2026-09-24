@@ -162,7 +162,15 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "group": "supplement",
                     "storyline": "Tests",
                     "contents": [{"name": "Welcome"}, {"name": "The Cave"}],
-                }
+                },
+                {
+                    "name": "Test Book Side Trek",
+                    "id": "TB-ST",
+                    "source": "TB",
+                    "published": "2021-01-01",
+                    "storyline": "Tests",
+                    "contents": [{"name": "Trek"}],
+                },
             ]
         },
     )
@@ -198,6 +206,14 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     _write(tmp_path / "class" / "class-wizard.json", wizard)
 
     _write(tmp_path / "adventure" / "adventure-ta.json", {"data": ADVENTURE_TEXT})
+    _write(
+        tmp_path / "adventure" / "adventure-tb-st.json",
+        {
+            "data": [
+                {"type": "section", "name": "Trek", "id": "200", "entries": ["Go."]}
+            ]
+        },
+    )
     _write(
         tmp_path / "book" / "book-tb.json",
         {

@@ -59,7 +59,7 @@ async def get_table_of_contents(
     else:
         roots = _subsections(_find(pub, _chapters(pub), section_id)[0])
     return Contents(
-        id=pub.source.abbreviation,
+        id=_pub_id(pub),
         name=pub.name,
         kind="book" if isinstance(pub, Book) else "adventure",
         sections=[
@@ -94,7 +94,7 @@ async def read_section(
     if page > len(pages):
         raise ToolError(f"Section {section_id} has {len(pages)} page(s).")
     return SectionText(
-        publication=pub.source.abbreviation,
+        publication=_pub_id(pub),
         id=section_id,
         name=_name(node),
         path=path,
@@ -143,7 +143,7 @@ async def search_publication(
         (named if all(w in name for w in words) else mentioned).append(match)
     found = named + mentioned
     return SectionMatches(
-        publication=pub.source.abbreviation, total=len(found), results=found[:limit]
+        publication=_pub_id(pub), total=len(found), results=found[:limit]
     )
 
 
@@ -181,15 +181,22 @@ def _publication(services: Services, wanted: str) -> Adventure | Book:
         if isinstance(p, Adventure | Book)
     ]
     key = wanted.lower()
-    for p in found:
-        if key in (p.source.abbreviation.lower(), (p.id or "").lower(), p.name.lower()):
-            hydrated = omnidexer.hydrate(p)
-            return hydrated if isinstance(hydrated, Adventure | Book) else p
+    # An adventure can share its source with a book (MOT-NSS in MOT), so ids come first
+    for field in (_pub_id, lambda p: p.name, lambda p: p.source.abbreviation):
+        for p in found:
+            if field(p).lower() == key:
+                hydrated = omnidexer.hydrate(p)
+                return hydrated if isinstance(hydrated, Adventure | Book) else p
     raise not_found(
         "book or adventure",
         wanted,
-        [p.source.abbreviation for p in found] + [p.name for p in found],
+        [_pub_id(p) for p in found] + [p.name for p in found],
     )
+
+
+def _pub_id(pub: Adventure | Book) -> str:
+    """The id list_publications gives: 5etools' id, else the source."""
+    return pub.id or pub.source.abbreviation
 
 
 def _chapters(pub: Adventure | Book) -> list[Node]:
@@ -248,8 +255,7 @@ def _find(
     if hit := search(roots, []):
         return hit
     raise ToolError(
-        f"No section {wanted!r} in {pub.source.abbreviation}; "
-        "get_table_of_contents lists the ids."
+        f"No section {wanted!r} in {_pub_id(pub)}; get_table_of_contents lists the ids."
     )
 
 
