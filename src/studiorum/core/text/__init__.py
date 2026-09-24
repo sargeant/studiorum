@@ -2,7 +2,6 @@
 
 from .protocols import TextExtractionProtocol
 from .tag_parser import TagParser
-from .tag_resolver import TagResolver
 from .tag_types import (
     ContentReference,
     FormattingNode,
@@ -16,7 +15,6 @@ from .text_extractor import TextExtractor
 __all__ = [
     # Core classes
     "TagParser",
-    "TagResolver",
     "TextExtractor",
     # Protocols
     "TextExtractionProtocol",

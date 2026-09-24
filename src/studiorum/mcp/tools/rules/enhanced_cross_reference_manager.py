@@ -1,7 +1,7 @@
 """Enhanced cross-reference manager for rules intelligence.
 
 This module extends the existing CrossReferenceManager with rule-specific
-functionality for discovering and tracking relationships between D&D 5e
+functionality for discovering and tracking relationships between 5e
 rules, conditions, actions, and related content.
 
 Key Features:
@@ -30,7 +30,7 @@ from ....core.references.cross_reference_manager import (
     CrossReferenceManager,
 )
 from ....core.result import Error, Result, Success
-from ....core.text.tag_resolver import TagResolver
+from ....renderers.core.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
 
@@ -92,7 +92,7 @@ class EnhancedCrossReferenceManager(CrossReferenceManager):
 
     Extends the existing CrossReferenceManager with rule-specific functionality
     for discovering relationships, analyzing tag dependencies, and providing
-    intelligent cross-reference resolution for D&D 5e rules content.
+    intelligent cross-reference resolution for 5e rules content.
     """
 
     def __init__(self) -> None:
@@ -623,7 +623,7 @@ class EnhancedCrossReferenceManager(CrossReferenceManager):
     def _has_rule_conflict(self, rule1: RuleReference, rule2: RuleReference) -> bool:
         """Check if two rules have a known conflict."""
         # Example conflict detection logic
-        # This would be expanded with actual D&D 5e rule conflict knowledge
+        # This would be expanded with actual 5e rule conflict knowledge
 
         # Actions that require the same resource
         if rule1.rule_type == "action" and rule2.rule_type == "action":

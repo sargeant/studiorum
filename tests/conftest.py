@@ -20,7 +20,7 @@ from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
 from studiorum.core.models.creatures import Creature  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
-from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
+from studiorum.renderers.core.tag_resolver import TagResolver  # type: ignore
 
 # Import the test helper for consistent setup
 from tests.test_helpers import reset_test_environment

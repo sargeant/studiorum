@@ -1,6 +1,6 @@
 """MCP tools for rules intelligence.
 
-This module provides MCP tools for D&D 5e rules intelligence, including
+This module provides MCP tools for 5e rules intelligence, including
 cross-reference discovery, rule combination validation, and intelligent
 rule search capabilities.
 """
@@ -21,7 +21,7 @@ from ....core.error_types import (
 from ....core.logging import get_logger
 from ....core.result import Error
 from ....core.services.protocols import OmnidexerProtocol
-from ....core.text.tag_resolver import TagResolver
+from ....renderers.core.tag_resolver import TagResolver
 from .rule_intelligence_service import RuleIntelligenceConfig, RuleIntelligenceService
 
 logger = get_logger(__name__)
@@ -64,7 +64,7 @@ async def find_rule_cross_references(
     include_analysis: bool = True,
     ctx: AsyncRequestContext | None = None,
 ) -> dict[str, Any]:
-    """Find cross-references for a specific D&D 5e rule.
+    """Find cross-references for a specific 5e rule.
 
     This tool discovers relationships between rules, analyzes their interactions,
     and provides comprehensive cross-reference data with performance monitoring.
@@ -191,7 +191,7 @@ async def validate_rule_combination(
     context: dict[str, Any] | None = None,
     ctx: AsyncRequestContext | None = None,
 ) -> dict[str, Any]:
-    """Validate that a combination of D&D 5e rules can work together.
+    """Validate that a combination of 5e rules can work together.
 
     This tool analyzes rule interactions, detects conflicts and synergies,
     and provides validation results with detailed explanations.
@@ -342,7 +342,7 @@ async def search_rules_intelligent(
     limit: int = 20,
     ctx: AsyncRequestContext | None = None,
 ) -> dict[str, Any]:
-    """Perform intelligent search for D&D 5e rules with enhanced analysis.
+    """Perform intelligent search for 5e rules with enhanced analysis.
 
     This tool searches for rules with intelligent filtering, relationship analysis,
     and complexity scoring to provide comprehensive rule discovery.
@@ -654,7 +654,7 @@ async def get_rule_suggestions(
 RULE_INTELLIGENCE_TOOLS = {
     "find_rule_cross_references": {
         "function": find_rule_cross_references,
-        "description": "Find cross-references and relationships for a specific D&D 5e rule",
+        "description": "Find cross-references and relationships for a specific 5e rule",
         "parameters": {
             "rule_id": {
                 "type": "string",
@@ -676,7 +676,7 @@ RULE_INTELLIGENCE_TOOLS = {
     },
     "validate_rule_combination": {
         "function": validate_rule_combination,
-        "description": "Validate that a combination of D&D 5e rules can work together",
+        "description": "Validate that a combination of 5e rules can work together",
         "parameters": {
             "rule_ids": {
                 "type": "array",
@@ -692,7 +692,7 @@ RULE_INTELLIGENCE_TOOLS = {
     },
     "search_rules_intelligent": {
         "function": search_rules_intelligent,
-        "description": "Perform intelligent search for D&D 5e rules with enhanced analysis",
+        "description": "Perform intelligent search for 5e rules with enhanced analysis",
         "parameters": {
             "query": {
                 "type": "string",

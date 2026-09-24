@@ -19,7 +19,7 @@ if TYPE_CHECKING:
         SourceManagerProtocol,
         TemplateServiceProtocol,
     )
-    from studiorum.core.text.tag_resolver import TagResolver
+    from studiorum.renderers.core.tag_resolver import TagResolver
 
 # Global instances for CLI session performance
 _cli_omnidexer: Omnidexer | None = None
@@ -79,7 +79,7 @@ def get_cli_tag_resolver() -> TagResolver:
     """
     global _cli_tag_resolver
     if _cli_tag_resolver is None:
-        from studiorum.core.text.tag_resolver import TagResolver
+        from studiorum.renderers.core.tag_resolver import TagResolver
 
         # Pass the singleton omnidexer to avoid creating a second one
         omnidexer = get_cli_omnidexer()

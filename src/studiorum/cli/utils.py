@@ -10,7 +10,7 @@ from typing import Any, TypeVar
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.services.protocols import ContentListWriterProtocol
-from studiorum.core.text.tag_resolver import TagResolver
+from studiorum.renderers.core.tag_resolver import TagResolver
 
 T = TypeVar("T")
 

@@ -2,7 +2,7 @@
 
 This module provides the core rule intelligence service that implements
 the RuleIntelligenceProtocol, leveraging existing infrastructure for
-D&D 5e rule analysis, relationship discovery, and intelligent search.
+5e rule analysis, relationship discovery, and intelligent search.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from ....core.logging import get_logger
 from ....core.models.rule_types import Action, Condition, Hazard, Sense, Status
 from ....core.result import Error, Result, Success
 from ....core.services.protocols import OmnidexerProtocol
-from ....core.text.tag_resolver import TagResolver
+from ....renderers.core.tag_resolver import TagResolver
 from .enhanced_cross_reference_manager import (
     EnhancedCrossReferenceManager,
     RuleRelationship,
@@ -67,7 +67,7 @@ class RuleIntelligenceConfig(BaseModel):
 class RuleIntelligenceService:
     """Rule intelligence service with enhanced analysis capabilities.
 
-    This service provides intelligent analysis of D&D 5e rules using existing
+    This service provides intelligent analysis of 5e rules using existing
     infrastructure components like the TagResolver and OmnidexerProtocol.
     """
 
