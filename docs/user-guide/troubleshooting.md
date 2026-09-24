@@ -383,85 +383,24 @@ sudo chown -R $USER ~/.studiorum/
 
 ### Images Not Appearing
 
-**Problem**: Generated PDFs don't include expected images
+**Problem**: The `.tex` has `% Image placeholder` or `% Image not found` comments instead of images
 
 **Solution**:
 
-1. **Check image directory**:
+1. Placeholders mean images are off. Pass `--images`, or set `image.include_images: true`. Fluff images also need `--fluff --with-fluff-images`.
+2. "Image not found" means the file isn't under `image.image_directory`. Studiorum looks in `~/Code/5etools-img` unless you set another checkout:
 
    ```bash
-   # Verify image directory is set
-   echo $STUDIORUM_IMAGE__IMAGE_DIRECTORY
-
-   # Check if directory exists
-   ls "$STUDIORUM_IMAGE__IMAGE_DIRECTORY"
+   export STUDIORUM_IMAGE__IMAGE_DIRECTORY=~/src/5etools-img
    ```
 
-2. **Enable images explicitly**:
+3. A warning that an image "could not be converted to PNG" means Pillow couldn't read the file. Check it opens:
 
    ```bash
-   studiorum convert adventure cos --images
+   python -c "from PIL import Image; Image.open('map.webp').load()"
    ```
 
-3. **Test image processing**:
-
-   ```bash
-   # Convert single item with images
-   STUDIORUM_LOGGING_LEVEL=DEBUG studiorum convert items "Bag of Holding" --images --fluff --with-fluff-images
-
-   # Look for "Successfully processed image" messages
-   ```
-
-### Image Conversion Failures
-
-**Problem**: WebP images fail to convert to PNG
-
-**Solution**:
-
-1. **Install Pillow with WebP support**:
-
-   ```bash
-   pip install --upgrade Pillow[webp]
-   ```
-
-2. **Check format support**:
-
-   ```bash
-   python -c "from PIL import Image; print(Image.EXTENSION)"
-   ```
-
-3. **Test single image conversion**:
-
-   ```bash
-   # Manual conversion test
-   python -c "from PIL import Image; Image.open('test.webp').save('test.png')"
-   ```
-
-### Image Layout Problems
-
-**Problem**: Images break column layout or extend off pages
-
-**Solution**:
-
-1. **Use column-aware sizing**:
-
-   ```bash
-   # Items use smaller sizing for columns
-   studiorum convert items --images --image-quality digital
-   ```
-
-2. **Check for oversized images**:
-
-   ```bash
-   # Enable debug logging to see image processing
-   STUDIORUM_LOGGING_LEVEL=DEBUG studiorum convert creatures --images
-   ```
-
-3. **Use intelligent placement**:
-
-   ```bash
-   studiorum convert adventure cos --images --image-placement intelligent
-   ```
+See [Images](images.md) for how images are found, converted and placed.
 
 ## MCP Server Issues
 

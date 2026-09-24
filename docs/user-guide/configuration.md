@@ -72,7 +72,6 @@ rendering:
   output_format: "latex"  # latex, markdown
 
   # Content inclusion
-  include_images: true
   include_fluff: false
   include_appendices: true
 
@@ -126,67 +125,18 @@ rendering:
 
 ## Images Configuration
 
-Configure image processing and placement.
-
-### Basic Image Settings
+Three settings control images. See [Images](images.md) for how they are used.
 
 ```yaml
-images:
-  # Image directory
-  image_directory: "~/Code/5etools-img"
+image:
+  # Include images when a convert command has neither --images nor --no-images
+  include_images: false
 
-  # Processing options
-  include_images: true
-  image_quality: "print"  # digital, print, hybrid
-  image_placement: "intelligent"  # intelligent, simple
+  # A 5etools-img checkout. Defaults to ~/Code/5etools-img when that exists.
+  image_directory: ~/Code/5etools-img
 
-  # Performance
-  preload_images: true
-  enable_image_cache: true
-  max_concurrent_downloads: 5
-```
-
-### Content-Specific Images
-
-```yaml
-images:
-  # Control image types
-  bestiary_images: true
-  item_images: true
-  adventure_images: true
-  chapter_art: true
-
-  # Gallery settings
-  gallery_layout: "grid"  # grid, showcase, sequential, comparison
-
-  # Sizing and placement
-  max_width_percent: 80
-  max_height_percent: 60
-
-  # Format handling
-  preserve_transparency: false
-  background_color: "#f9f7f1"
-```
-
-### Image Sources
-
-```yaml
-image_sources:
-  - name: "5etools-official"
-    source_type: "git_repo"
-    git_repo_url: "https://github.com/5etools-mirror-3/5etools-img.git"
-    priority: 10
-    cache_ttl_hours: 168
-
-  - name: "user-assets"
-    source_type: "local_dir"
-    local_path: "~/5e/custom-artwork"
-    priority: 5  # Higher priority than official
-
-  - name: "fallback-web"
-    source_type: "http_api"
-    base_url: "https://5e.tools/img"
-    priority: 50
+  # Where converted PNGs and downloaded images go (default: <cache>/images)
+  cache_dir: null
 ```
 
 ## Logging Configuration
@@ -215,7 +165,6 @@ logging:
 logging:
   # Component-specific levels
   components:
-    image_processor: "DEBUG"
     latex_engine: "INFO"
     content_merger: "WARNING"
 
@@ -245,7 +194,6 @@ export STUDIORUM_DATA_SOURCES__PRIMARY_OVERRIDE__ENABLED=true
 # Images
 export STUDIORUM_IMAGE__IMAGE_DIRECTORY="~/Code/5etools-img"
 export STUDIORUM_IMAGE__INCLUDE_IMAGES=true
-export STUDIORUM_IMAGE__IMAGE_QUALITY="print"
 
 # Logging
 export STUDIORUM_LOGGING_LEVEL="DEBUG"
@@ -263,7 +211,7 @@ STUDIORUM_<SECTION>__<SUBSECTION>__<SETTING>=value
 ```
 
 Examples:
-- `STUDIORUM_IMAGES__INCLUDE_IMAGES=true`
+- `STUDIORUM_IMAGE__INCLUDE_IMAGES=true`
 - `STUDIORUM_RENDERING__OUTPUT_FORMAT="latex"`
 - `STUDIORUM_LOGGING__LEVEL="DEBUG"`
 
@@ -274,9 +222,8 @@ Override any configuration setting using command-line flags.
 ### Common CLI Options
 
 ```bash
-# Image settings
-studiorum convert adventure cos --images --image-quality print
-studiorum convert creatures --bestiary-images --no-item-images
+# Images
+studiorum convert adventure cos --images
 
 # Data source overrides
 studiorum convert spells --sources srd phb xge
@@ -284,9 +231,6 @@ studiorum convert spells --sources srd phb xge
 # Output settings
 studiorum convert adventure --output custom-name.tex
 studiorum convert creatures --format latex
-
-# Performance options
-studiorum convert adventure --preload-images --image-cache
 ```
 
 ### Debug and Troubleshooting
@@ -316,7 +260,6 @@ data:
 
 rendering:
   output_format: "latex"
-  include_images: true
   include_fluff: true
   include_appendices: true
 
@@ -330,33 +273,9 @@ rendering:
     geometry: "a4paper"
     font_size: "10pt"
 
-images:
-  image_directory: "~/Code/5etools-img"
+image:
+  image_directory: ~/Code/5etools-img
   include_images: true
-  image_quality: "print"
-  image_placement: "intelligent"
-
-  preload_images: true
-  enable_image_cache: true
-  max_concurrent_downloads: 5
-
-  bestiary_images: true
-  item_images: true
-  adventure_images: true
-  chapter_art: true
-
-  gallery_layout: "grid"
-
-image_sources:
-  - name: "5etools-official"
-    source_type: "git_repo"
-    git_repo_url: "https://github.com/5etools-mirror-3/5etools-img.git"
-    priority: 10
-
-  - name: "user-assets"
-    source_type: "local_dir"
-    local_path: "~/5e/custom-artwork"
-    priority: 5
 
 logging:
   level: "INFO"

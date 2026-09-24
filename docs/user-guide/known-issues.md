@@ -9,7 +9,7 @@ While this code currently works, there are some rough edges and random things th
 
 - Some tables are just too long for the default handling and overrun pages (horizontially or vertically). You can fix this by editing the `.tex` output and playing with the layout or using \dndlongtable instead.
 - DropCap at the start of chapters isn't handled at all; edit the `.tex` and play with `\DndDropCapLine{letter}{rest of all caps sentence}`
-- Image support is there but broken; don't expect any images for now
+- Maps inside a 5etools gallery render at half a column each, which is small for a dungeon map.
 - MCP support is experimental and often broken; my priority is getting the CLI solid for now, MCP later.
 - Creature names are _always_ in bold, based on the original source data. This can get a bit exhausting when the same creature is mentioned repeatedily in narrative paragraphs. If it bugs you, edit the `.tex` and remove the `\textbf{}` wrapper around the text.
 - Auto-installing the LaTeX template is half-baked; recommend you [install manually](https://github.com/ashonit/DND-5e-LaTeX-Template).

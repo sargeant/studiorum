@@ -71,10 +71,7 @@ Technical terms, acronyms, and concepts used throughout Studiorum documentation.
 ## G
 
 **Gallery**
-: A collection of multiple images arranged together with captions and layout controls.
-
-**Git Repository**
-: A version-controlled collection of files. Studiorum can use Git repos as image sources.
+: A 5etools entry holding several images, rendered as a grid with a caption under each.
 
 ## H
 
@@ -83,11 +80,8 @@ Technical terms, acronyms, and concepts used throughout Studiorum documentation.
 
 ## I
 
-**Image Placement**
-: The strategy for positioning images within LaTeX documents (intelligent vs. simple).
-
-**Image Source**
-: A configured location where Studiorum finds images (Git repo, local directory, web URL).
+**Image Directory**
+: The 5etools-img checkout that 5etools image paths are relative to (`image.image_directory`).
 
 ## J
 

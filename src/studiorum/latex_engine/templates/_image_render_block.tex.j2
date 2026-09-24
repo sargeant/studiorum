@@ -1,12 +1,4 @@
-% Studiorum Images: simple commands (Inline/Float/Wide/Fullpage/FullpageBleed)
-% Documentation: <# docs_url #>
-<@ if label @>% Auto-generated label: <# label #> (use \ref{<# label #>})
-<@ endif @>
-<@ set p = (placement or 'inline') @>
-<@ if p == 'fullpage' @>
-\StudiorumImageFullpage{<# path #>}{<# caption | latex_escape #>}<@ if label @>[<# label #>]<@ endif @>
-<@ elif p == 'pagewidth-top' or p == 'pagewidth-bottom' @>
-\StudiorumImageWide{<# path #>}{<# caption | latex_escape #>}<@ if label @>[<# label #>]<@ endif @>
-<@ else @>
-\StudiorumImageInline{<# path #>}{<# caption | latex_escape #>}<@ if label @>[<# label #>]<@ endif @>
-<@ endif @>
+<#-- One image (emit.py): Wide for maps, Inline otherwise; no caption without a title.
+     The caption arrives as LaTeX, with tags resolved and text escaped --#>
+<@ set command = 'StudiorumImageWide' if placement == 'wide' else 'StudiorumImageInline' @>
+\<# command #><@ if not caption @>*<@ endif @>{<# path #>}{<# caption #>}<@ if label @>[<# label #>]<@ endif @>

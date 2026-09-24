@@ -154,19 +154,6 @@ class TestFluffMatcherPhase5:
         ]
         assert all(section in sections for section in expected_sections)
 
-    def test_extract_fluff_images(self, mock_omnidexer, sample_creature_fluff):
-        """Test extracting images from fluff content."""
-        matcher = FluffMatcher(mock_omnidexer)
-
-        images = matcher.extract_fluff_images(sample_creature_fluff)
-
-        assert len(images) == 2
-        assert images[0]["path"] == "dragon/ancient-red.jpg"
-        assert images[0]["credit"] == "WotC"
-        assert images[1]["path"] == "dragon/lair-map.png"
-        assert all(img["source_fluff"] == "Ancient Red Dragon" for img in images)
-        assert all(img["source_abbreviation"] == "MM" for img in images)
-
     def test_empty_section_filter_returns_all(
         self, mock_omnidexer, sample_creature, sample_creature_fluff
     ):

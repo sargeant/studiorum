@@ -82,8 +82,8 @@
 <@ endif @>
 
 <#-- Render fluff images if available --#>
-<@ if rendering_context and rendering_context.metadata.get('fluff_images') and rendering_context.metadata.get('fluff_images_enabled') @>
-<# render_fluff_images(item.name, rendering_context.metadata['fluff_images'], entry_processor, rendering_context) #>
+<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<# render_fluff_images(item.name) #>
 <@ endif @>
 
 <@ if not loop.last @>
@@ -126,8 +126,8 @@
 <@ endif @>
 
 <#-- Render fluff images if available --#>
-<@ if rendering_context and rendering_context.metadata.get('fluff_images') and rendering_context.metadata.get('fluff_images_enabled') @>
-<# render_fluff_images(item.name, rendering_context.metadata['fluff_images'], entry_processor, rendering_context) #>
+<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<# render_fluff_images(item.name) #>
 <@ endif @>
 
 <@ if not loop.last @>

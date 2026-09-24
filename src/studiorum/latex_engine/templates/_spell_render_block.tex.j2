@@ -3,6 +3,7 @@
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 <@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
+<@ from "_fluff_images.tex.j2" import render_fluff_images with context @>
 
 <@ macro render_spell_header(spell) @>
 <@ if spell.get_full_level_text is defined @>
@@ -61,5 +62,8 @@
 <#-- Render fluff content after spell description if available --#>
 <@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
 <# render_fluff_for_content(spell.name, rendering_context.metadata['fluff']) #>
+<@ endif @>
+<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<# render_fluff_images(spell.name) #>
 <@ endif @>
 <@ endmacro @>

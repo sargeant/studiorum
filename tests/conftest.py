@@ -41,6 +41,20 @@ def _isolated_disk_cache(tmp_path_factory: pytest.TempPathFactory) -> Any:
         CacheManager.reset()
 
 
+@pytest.fixture(autouse=True, scope="session")
+def _no_5etools_img_checkout(tmp_path_factory: pytest.TempPathFactory) -> Any:
+    """Keep a developer's ~/Code/5etools-img out of image_directory's default."""
+    from studiorum.core.config import unified_config
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(
+            unified_config,
+            "FIVETOOLS_IMG_CHECKOUT",
+            tmp_path_factory.getbasetemp() / "no-5etools-img",
+        )
+        yield
+
+
 @pytest.fixture(autouse=True)
 def _reset_global_state() -> None:
     """Give every test fresh containers, registries, caches and config.

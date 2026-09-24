@@ -1,11 +1,11 @@
 """Token data models for 5e creature tokens."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..services.token_image_resolver import TokenImageResolver
     from .creatures import Creature
 
 
@@ -60,7 +60,7 @@ class TokenSheet:
     def from_creatures(
         cls,
         creatures: list["Creature"],
-        image_resolver: "TokenImageResolver",
+        token_image: "Callable[[Creature], Path | None]",
         default_count: int = 1,
         paper_size: str = "letter",
         margins: float = 0.25,
@@ -71,7 +71,7 @@ class TokenSheet:
 
         Args:
             creatures: List of creatures to create tokens for
-            image_resolver: Service to resolve token images
+            token_image: Finds a creature's token image, if it has one
             default_count: Default number of tokens per creature
             paper_size: Paper size for the token sheet
             margins: Page margins in inches
@@ -95,8 +95,7 @@ class TokenSheet:
         tokens_by_size: dict[str, list[TokenData]] = {}
 
         for creature in creatures:
-            # Resolve token image - this now automatically converts WebP to PNG
-            image_path = image_resolver.resolve_token_image(creature)
+            image_path = token_image(creature)
 
             # Extract creature info
             creature_size = creature.size if hasattr(creature, "size") else ["M"]
@@ -120,7 +119,7 @@ class TokenSheet:
             # Create token data
             token = TokenData(
                 creature_name=creature.name,
-                image_path=image_path,  # Already converted to PNG if needed
+                image_path=image_path,
                 size=creature_size,
                 count=token_count,
                 source=creature_source,

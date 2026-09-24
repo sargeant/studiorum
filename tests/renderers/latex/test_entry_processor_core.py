@@ -129,22 +129,14 @@ class TestRecursiveEntryProcessor:
         entry = {"type": "image", "href": "path/to/image.png", "title": "Test Image"}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        # With enhanced error handling, non-existent images generate fallback comments
-        assert (
-            "% Image processing failed (Image file not found: path/to/image.png): Test Image"
-            in result
-        )
+        assert result == "% Image not found: path/to/image.png"
 
     def test_process_entry_dict_image_without_title(self):
         """Test processing image without title."""
         entry = {"type": "image", "href": "path/to/image.png"}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        # With enhanced error handling, non-existent images generate fallback comments
-        assert (
-            "% Image processing failed: Image file not found: path/to/image.png"
-            in result
-        )
+        assert result == "% Image not found: path/to/image.png"
 
     def test_process_entry_dict_image_no_href(self):
         """Test processing image without href."""

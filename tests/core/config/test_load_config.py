@@ -6,6 +6,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
+from studiorum.core.config import unified_config
 from studiorum.core.config.unified_config import (
     ConfigFileNotFoundError,
     load_config,
@@ -104,3 +105,23 @@ def test_config_file_sets_convert_defaults(
     )
     assert result.exit_code == 0, result.output
     assert compile_pdf.called is auto_compile
+
+
+@pytest.mark.parametrize("image_config", ["", "image:\n  image_directory: null\n"])
+def test_image_directory_defaults_to_5etools_img_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, image_config: str
+) -> None:
+    checkout = tmp_path / "5etools-img"
+    checkout.mkdir()
+    monkeypatch.setattr(unified_config, "FIVETOOLS_IMG_CHECKOUT", checkout)
+    config_file = write_config(tmp_path / "config.yaml", image_config)
+    assert load_config(config_file).image.image_directory == checkout
+
+
+def test_image_directory_is_none_without_a_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(unified_config, "FIVETOOLS_IMG_CHECKOUT", tmp_path / "absent")
+    assert (
+        load_config(write_config(tmp_path / "c.yaml", "")).image.image_directory is None
+    )

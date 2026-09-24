@@ -67,7 +67,6 @@ class TestCLIFluffPhase5Integration:
         assert fluff_config.enabled is False  # Default
         assert fluff_config.placement == "before"
         assert fluff_config.deduplication is True
-        assert fluff_config.include_images is True
         assert fluff_config.sections == []
         assert fluff_config.allowed_sources == []
 
@@ -86,8 +85,6 @@ class TestCLIFluffPhase5Integration:
             placement="after",
             sections=["lair", "tactics"],
             allowed_sources=["MM", "VGM"],
-            max_images_per_entry=3,
-            image_placement="gallery",
         )
 
         content_config = ContentConfig(fluff=custom_fluff_config)
@@ -99,8 +96,6 @@ class TestCLIFluffPhase5Integration:
         assert fluff_config.placement == "after"
         assert fluff_config.sections == ["lair", "tactics"]
         assert fluff_config.allowed_sources == ["MM", "VGM"]
-        assert fluff_config.max_images_per_entry == 3
-        assert fluff_config.image_placement == "gallery"
 
     @pytest.mark.parametrize("command", ["creatures", "spells", "items"])
     def test_fluff_options_are_listed_in_help(self, command: str) -> None:
@@ -114,3 +109,55 @@ class TestCLIFluffPhase5Integration:
             "--with-fluff-images",
         ):
             assert option in result.output
+
+
+@pytest.mark.parametrize("kind", sorted(CASES))
+def test_fluff_images_render_as_converted_pngs(
+    kind: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from PIL import Image
+
+    from studiorum.core.models.fluff import BaseFluff
+
+    img = tmp_path / "5etools-img"
+    (img / "fluff").mkdir(parents=True)
+    Image.new("RGB", (4, 8)).save(img / "fluff" / "Art.webp", "WEBP")
+    monkeypatch.setenv("STUDIORUM_IMAGE__IMAGE_DIRECTORY", str(img))
+    monkeypatch.chdir(REPO_ROOT)
+    name = CASES[kind][1]
+    fluff = BaseFluff.model_validate(
+        {
+            "name": name,
+            "source": "SRD",
+            "entries": ["Some lore."],
+            "images": [
+                {
+                    "type": "image",
+                    "href": {"type": "internal", "path": "fluff/Art.webp"},
+                }
+            ],
+        }
+    )
+    output = tmp_path / "out.tex"
+    with patch("studiorum.core.services.fluff_matcher.FluffMatcher") as matcher:
+        getattr(matcher.return_value, f"match_{kind}_fluff").return_value = fluff
+        result = CliRunner().invoke(
+            app,
+            [
+                "convert",
+                *CASES[kind],
+                "--sources",
+                "SRD",
+                "--fluff",
+                "--with-fluff-images",
+                "--images",
+                "--output",
+                str(output),
+            ],
+        )
+
+    assert result.exit_code == 0, result.output
+    lines = [line for line in output.read_text().splitlines() if "/Art-" in line]
+    assert len(lines) == 1
+    assert lines[0].startswith("\\StudiorumImageInline*{")
+    assert lines[0].endswith(".png}{}")

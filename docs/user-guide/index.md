@@ -18,12 +18,9 @@ Transform 5e content into professional PDFs with studiorum's LaTeX-based typeset
 - **Adventure Modules**: Complete adventures with maps, NPCs, and encounters
 - **Homebrew Publications**: Your own content with professional presentation
 
-## Images and Galleries
+## Images
 
-Learn how Studiorum handles images and galleries using LaTeX macros:
-
-- [Images and Galleries](images-and-galleries.md) — single images via simple commands (e.g., `\StudiorumImageInline`), and gallery layouts (grid, sequential, comparison, showcase).
-- [Image Placement Reference](../image-placement.md) — simple commands and examples.
+[Images](images.md) covers 5etools plates and maps, galleries, fluff art, tokens and the image commands.
 
 ## Before You Begin
 
