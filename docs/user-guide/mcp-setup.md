@@ -57,24 +57,26 @@ Content tools return only entries that 5etools marks as part of the 2014 SRD or 
 | `list_publications` | The books and adventures loaded, oldest first |
 | `get_table_of_contents` | A book or adventure's chapters and sections, with their ids and sizes |
 | `read_section` | One chapter or section of a book or adventure as Markdown |
+| `search_publication` | The sections of a book or adventure that mention something |
 | `calculate_encounter_budget` | The XP for each encounter difficulty for a party |
 | `rate_encounter` | How hard a group of creatures is for a party |
 | `suggest_creatures` | Creatures that make an encounter of a given difficulty |
 
-The search tools return short summaries (name, source, level or challenge rating, and so on) with the number of matches, up to a `limit` of 100. If a name isn't found, the error suggests the closest names. Searches leave out an entry when a later book reprints it and the reprint is also a match, so you see the XPHB Fireball and not the PHB one. Pass `latest_only=false` to see both.
+The search tools return short summaries (name, source, level or challenge rating, and so on) with the number of matches, up to a `limit` of 100. If a name isn't found, the error suggests the closest names. When the SRD filter leaves matches out, `hidden_by_srd` says how many. Searches leave out an entry when a later book reprints it and the reprint is also a match, so you see the XPHB Fireball and not the PHB one. Pass `latest_only=false` to see both.
 
 `search_rules` matches every word of the query against a rule's name and text, name matches first, with a short snippet of the text around the match. It finds rules that aren't where you'd expect: in the 2024 rules, grappling is part of the Unarmed Strike variant rule.
 
-`get_content` returns an entry as Markdown: a creature as a statblock, and spells, items, classes and subclasses in their own layouts, with tags reduced to their text. Pass `format="json"` for the 5etools data instead. A class lists its features with their 5etools uids, such as `Spell Mastery|Wizard|XPHB|18`; pass one as the name with `content_type="classFeature"` (or `subclassFeature`) to read it. Without a `source`, `get_content` returns the latest edition.
+`get_content` returns an entry as Markdown: a creature as a statblock, and spells, items, classes and subclasses in their own layouts, with tags reduced to their text. Pass `format="json"` for the 5etools data instead. `references` lists what the entry's text links to, such as the items a creature carries, for further `get_content` calls. A class lists its features with their 5etools uids, such as `Spell Mastery|Wizard|XPHB|18`; pass one as the name with `content_type="classFeature"` (or `subclassFeature`) to read it. Without a `source`, `get_content` returns the latest edition.
 
 `list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
 
 ### Reading books and adventures
 
-`get_content` doesn't return books or adventures, which run to hundreds of thousands of characters. Read them in two steps:
+`get_content` doesn't return books or adventures, which run to hundreds of thousands of characters. Read them a section at a time:
 
-1. `get_table_of_contents` takes an id from `list_publications` (such as `LMoP`), or the full name, and lists its chapters with their sections' ids and their size in characters. A section that the adventure's text nests inside a chapter is listed beside it, as the 5etools site shows it. `depth` lists more levels of sections, and `section_id` lists the sections inside one section.
-2. `read_section` returns one chapter or section as Markdown, with the ids of its subsections. Tags such as `{@creature goblin|MM}` become their text ("goblin"), and a statblock becomes a line naming the creature, which `get_content` returns in full. A page holds up to 24,000 characters. A longer section comes in pages (`page`, `pages`), and a subsection too long for a page is left as a pointer to read on its own.
+1. `get_table_of_contents` takes an id from `list_publications` (such as `LMoP`), or the full name, and lists its chapters with their sections' ids and their size in characters. A section that the adventure's text nests inside a chapter is listed beside it, as the 5etools site shows it. A section that holds nothing but statblocks lists them in `statblocks`, so you can go straight to `get_content`. `depth` lists more levels of sections, and `section_id` lists the sections inside one section.
+2. `read_section` returns one chapter or section as Markdown, with the ids of its subsections. Tags such as `{@creature goblin|MM}` become their text ("goblin"), and a statblock becomes a line naming the creature, which `get_content` returns in full. A page holds up to 24,000 characters. A longer section comes in pages (`page`, `pages`), and a subsection too long for a page is left as a pointer to read on its own. `references` lists what the page links to: content for `get_content`, and other sections by id.
+3. `search_publication` finds the sections that mention something, with a breadcrumb path and a snippet. Every word must appear in a section's name or its own text; sections named for the words come first, then the rest in book order.
 
 ### Encounters
 
