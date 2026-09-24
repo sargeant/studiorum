@@ -12,11 +12,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from studiorum.core.logging import get_logger
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.encounter_types import (
+from studiorum.core.encounter.encounter_types import (
     EncounterConstraints,
 )
+from studiorum.core.logging import get_logger
+from studiorum.core.models.creatures import Creature
 from studiorum.core.services.encounter_collector import (
     EncounterCollector,
     EncounterCreature,
@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 
 
 class EnvironmentType(Enum):
-    """Standard D&D environment types with creature affinity data."""
+    """Standard 5e environment types with creature affinity data."""
 
     FOREST = "forest"
     DUNGEON = "dungeon"

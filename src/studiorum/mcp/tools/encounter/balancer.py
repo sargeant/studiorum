@@ -12,19 +12,19 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from studiorum.core.logging import get_logger
-from studiorum.core.models.encounter_types import (
+from studiorum.core.encounter.budget import EncounterBudgetCalculator
+from studiorum.core.encounter.encounter_types import (
     XP,
     EncounterConstraints,
     EncounterId,
     EnvironmentalModifiers,
     PartyComposition,
 )
+from studiorum.core.logging import get_logger
 from studiorum.core.services.encounter_collector import (
     EncounterCollector,
     EncounterGenerationResult,
 )
-from studiorum.mcp.tools.encounter.budget import EncounterBudgetCalculator
 
 logger = get_logger(__name__)
 

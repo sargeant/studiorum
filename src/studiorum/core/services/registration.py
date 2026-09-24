@@ -223,10 +223,4 @@ async def register_modern_services(container: ServiceContainer) -> None:
     )
     logger.debug("Registered ContentListWriterProtocol as singleton")
 
-    # Encounter building services (Package 2.3)
-    # Register after core services are available
-    from .encounter_services import register_encounter_services
-
-    register_encounter_services(container)
-
     logger.info("Modern service registration completed successfully")

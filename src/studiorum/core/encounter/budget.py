@@ -12,15 +12,15 @@ Provides mathematical precision for encounter balancing with full support for:
 
 from typing import Any
 
-from studiorum.core.logging import get_logger
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.encounter_types import (
+from studiorum.core.encounter.encounter_types import (
     XP,
     EncounterBudget,
     EncounterDifficulty,
     PartyComposition,
     PartyLevel,
 )
+from studiorum.core.logging import get_logger
+from studiorum.core.models.creatures import Creature
 
 logger = get_logger(__name__)
 
@@ -454,4 +454,4 @@ def calculate_encounter_budget(
 
     except Exception as e:
         logger.error(f"Encounter budget calculation failed: {e}")
-        raise ValueError(f"Budget calculation failed: {e}")
+        raise ValueError(f"Budget calculation failed: {e}") from e
