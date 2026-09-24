@@ -271,10 +271,11 @@ def spells(
         None, "--title", help="Document title", rich_help_panel="Output Control"
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(),
+        ...,
         "--pdf",
         help="Compile to PDF after conversion",
         rich_help_panel="Output Control",
+        default_factory=get_compile_pdf_default,
     ),
     open_pdf: bool = typer.Option(
         False,
@@ -284,10 +285,11 @@ def spells(
     ),
     # LaTeX document class options (inherited from other convert commands)
     document_class: str = typer.Option(
-        get_document_class_default(),
+        ...,
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
         rich_help_panel="Document Layout",
+        default_factory=get_document_class_default,
     ),
     paper: str | None = typer.Option(
         None,
@@ -345,10 +347,11 @@ def spells(
         rich_help_panel="Visual Styling",
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Visual Styling",
+        default_factory=get_with_images_default,
     ),
     sort: SpellSortMode = typer.Option(
         SpellSortMode.LEVEL,

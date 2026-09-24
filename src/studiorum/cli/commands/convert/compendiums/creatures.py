@@ -4,11 +4,11 @@ import asyncio
 import os
 from enum import Enum
 from pathlib import Path
-from typing import Any, Protocol
 
 import typer
 from rich import print as rprint
 
+from studiorum.cli.commands.convert.shared import resolve_option
 from studiorum.cli.config_factory import (
     get_compile_pdf_default,
     get_document_class_default,
@@ -26,12 +26,6 @@ from ..shared import compile_pdf as compile_pdf_async
 
 # Module logger
 logger = get_logger(__name__)
-
-
-class TyperOptionInfo(Protocol):
-    """Protocol for Typer OptionInfo objects that have a default value."""
-
-    default: Any
 
 
 class CreatureSortMode(str, Enum):
@@ -472,10 +466,11 @@ def creatures(
         None, "--title", help="Document title", rich_help_panel="Output Control"
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(),
+        ...,
         "--pdf",
         help="Compile to PDF after conversion",
         rich_help_panel="Output Control",
+        default_factory=get_compile_pdf_default,
     ),
     open_pdf: bool = typer.Option(
         False,
@@ -492,10 +487,11 @@ def creatures(
     ),
     # LaTeX document formatting options (same as convert_spells)
     document_class: str = typer.Option(
-        get_document_class_default(),
+        ...,
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
         rich_help_panel="Document Layout",
+        default_factory=get_document_class_default,
     ),
     paper: str | None = typer.Option(
         None,
@@ -553,10 +549,11 @@ def creatures(
         rich_help_panel="Visual Styling",
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Visual Styling",
+        default_factory=get_with_images_default,
     ),
     # Appendix options
     spells: bool = typer.Option(
@@ -703,18 +700,6 @@ def creatures(
 
     def _convert() -> None:
         try:
-            # Handle potential parameter resolution issues when called directly in tests
-            # This is needed because Typer parameter resolution doesn't work properly in direct calls
-            def normalize_typer_param(param: Any | TyperOptionInfo) -> Any:
-                """Normalize Typer parameters that may be OptionInfo objects.
-
-                When Typer functions are called directly (in tests), parameters
-                may be OptionInfo objects instead of resolved values.
-                """
-                if hasattr(param, "default"):  # It's a Typer OptionInfo object
-                    return param.default
-                return param
-
             nonlocal \
                 from_file, \
                 from_stdin, \
@@ -776,71 +761,71 @@ def creatures(
                 token_margins, \
                 token_paper_size
 
-            from_file = normalize_typer_param(from_file)
-            from_stdin = normalize_typer_param(from_stdin)
-            cr_range = normalize_typer_param(cr_range)
-            min_cr = normalize_typer_param(min_cr)
-            max_cr = normalize_typer_param(max_cr)
-            creature_types = normalize_typer_param(creature_types)
-            creature_tags = normalize_typer_param(creature_tags)
-            sizes = normalize_typer_param(sizes)
-            alignments = normalize_typer_param(alignments)
-            sources = normalize_typer_param(sources)
-            speaks_language = normalize_typer_param(speaks_language)
-            has_skill = normalize_typer_param(has_skill)
-            min_ac = normalize_typer_param(min_ac)
-            max_ac = normalize_typer_param(max_ac)
-            min_hp = normalize_typer_param(min_hp)
-            max_hp = normalize_typer_param(max_hp)
-            has_spellcasting = normalize_typer_param(has_spellcasting)
-            has_legendary = normalize_typer_param(has_legendary)
-            has_multiattack = normalize_typer_param(has_multiattack)
-            has_reactions = normalize_typer_param(has_reactions)
-            has_fly_speed = normalize_typer_param(has_fly_speed)
-            has_swim_speed = normalize_typer_param(has_swim_speed)
-            has_climb_speed = normalize_typer_param(has_climb_speed)
-            has_darkvision = normalize_typer_param(has_darkvision)
-            has_blindsight = normalize_typer_param(has_blindsight)
-            has_truesight = normalize_typer_param(has_truesight)
+            from_file = resolve_option(from_file)
+            from_stdin = resolve_option(from_stdin)
+            cr_range = resolve_option(cr_range)
+            min_cr = resolve_option(min_cr)
+            max_cr = resolve_option(max_cr)
+            creature_types = resolve_option(creature_types)
+            creature_tags = resolve_option(creature_tags)
+            sizes = resolve_option(sizes)
+            alignments = resolve_option(alignments)
+            sources = resolve_option(sources)
+            speaks_language = resolve_option(speaks_language)
+            has_skill = resolve_option(has_skill)
+            min_ac = resolve_option(min_ac)
+            max_ac = resolve_option(max_ac)
+            min_hp = resolve_option(min_hp)
+            max_hp = resolve_option(max_hp)
+            has_spellcasting = resolve_option(has_spellcasting)
+            has_legendary = resolve_option(has_legendary)
+            has_multiattack = resolve_option(has_multiattack)
+            has_reactions = resolve_option(has_reactions)
+            has_fly_speed = resolve_option(has_fly_speed)
+            has_swim_speed = resolve_option(has_swim_speed)
+            has_climb_speed = resolve_option(has_climb_speed)
+            has_darkvision = resolve_option(has_darkvision)
+            has_blindsight = resolve_option(has_blindsight)
+            has_truesight = resolve_option(has_truesight)
 
             # Normalize output control parameters
-            sort = normalize_typer_param(sort)
-            show_toc = normalize_typer_param(show_toc)
-            output_file = normalize_typer_param(output_file)
-            title = normalize_typer_param(title)
-            compile_pdf = normalize_typer_param(compile_pdf)
-            open_pdf = normalize_typer_param(open_pdf)
-            dry_run = normalize_typer_param(dry_run)
+            sort = resolve_option(sort)
+            show_toc = resolve_option(show_toc)
+            output_file = resolve_option(output_file)
+            title = resolve_option(title)
+            compile_pdf = resolve_option(compile_pdf)
+            open_pdf = resolve_option(open_pdf)
+            dry_run = resolve_option(dry_run)
 
             # Normalize LaTeX document parameters
-            document_class = normalize_typer_param(document_class)
-            paper = normalize_typer_param(paper)
-            fonts = normalize_typer_param(fonts)
-            no_outline = normalize_typer_param(no_outline)
-            font_size = normalize_typer_param(font_size)
-            background = normalize_typer_param(background)
-            high_contrast = normalize_typer_param(high_contrast)
-            two_column = normalize_typer_param(two_column)
-            justified = normalize_typer_param(justified)
-            statblock = normalize_typer_param(statblock)
-            with_images = normalize_typer_param(with_images)
-            spells = normalize_typer_param(spells)
-            fluff = normalize_typer_param(fluff)
-            deduplicate_fluff = normalize_typer_param(deduplicate_fluff)
-            fluff_sections = normalize_typer_param(fluff_sections)
-            fluff_sources = normalize_typer_param(fluff_sources)
-            with_fluff_images = normalize_typer_param(with_fluff_images)
-            creature_level = normalize_typer_param(creature_level)
-            tokens = normalize_typer_param(tokens)
-            token_count = normalize_typer_param(token_count)
-            columns_tiny = normalize_typer_param(columns_tiny)
-            columns_small = normalize_typer_param(columns_small)
-            columns_medium = normalize_typer_param(columns_medium)
-            columns_large = normalize_typer_param(columns_large)
-            columns_huge = normalize_typer_param(columns_huge)
-            columns_gargantuan = normalize_typer_param(columns_gargantuan)
-            token_margins = normalize_typer_param(token_margins)
-            token_paper_size = normalize_typer_param(token_paper_size)
+            document_class = resolve_option(document_class)
+            paper = resolve_option(paper)
+            fonts = resolve_option(fonts)
+            no_outline = resolve_option(no_outline)
+            font_size = resolve_option(font_size)
+            background = resolve_option(background)
+            high_contrast = resolve_option(high_contrast)
+            two_column = resolve_option(two_column)
+            justified = resolve_option(justified)
+            statblock = resolve_option(statblock)
+            with_images = resolve_option(with_images)
+            spells = resolve_option(spells)
+            fluff = resolve_option(fluff)
+            deduplicate_fluff = resolve_option(deduplicate_fluff)
+            fluff_sections = resolve_option(fluff_sections)
+            fluff_sources = resolve_option(fluff_sources)
+            with_fluff_images = resolve_option(with_fluff_images)
+            creature_level = resolve_option(creature_level)
+            tokens = resolve_option(tokens)
+            token_count = resolve_option(token_count)
+            columns_tiny = resolve_option(columns_tiny)
+            columns_small = resolve_option(columns_small)
+            columns_medium = resolve_option(columns_medium)
+            columns_large = resolve_option(columns_large)
+            columns_huge = resolve_option(columns_huge)
+            columns_gargantuan = resolve_option(columns_gargantuan)
+            token_margins = resolve_option(token_margins)
+            token_paper_size = resolve_option(token_paper_size)
 
             # Import creature-specific modules
             from studiorum.core.models.creature_filters import CreatureFilterCriteria

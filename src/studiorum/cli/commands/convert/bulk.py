@@ -33,18 +33,23 @@ def bulk(
         Path("output/bulk"), "--output-dir", "-d", help="Output directory"
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Visual Styling",
+        default_factory=get_with_images_default,
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
+        ...,
+        "--pdf",
+        help="Compile to PDF after conversion",
+        default_factory=get_compile_pdf_default,
     ),
     concurrent_limit: int = typer.Option(
-        get_concurrent_limit_default(),
+        ...,
         "--concurrent",
         help="Maximum concurrent operations",
+        default_factory=get_concurrent_limit_default,
     ),
 ) -> None:
     """

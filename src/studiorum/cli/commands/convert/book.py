@@ -46,22 +46,25 @@ def book(
         None, "--title", help="Document title", rich_help_panel="Output Control"
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Content Options",
+        default_factory=get_with_images_default,
     ),
     with_index: bool = typer.Option(
-        get_with_index_default(),
+        ...,
         "--index/--no-index",
         help="Include index",
         rich_help_panel="Content Options",
+        default_factory=get_with_index_default,
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(),
+        ...,
         "--pdf",
         help="Compile to PDF after conversion",
         rich_help_panel="Output Control",
+        default_factory=get_compile_pdf_default,
     ),
     open_pdf: bool = typer.Option(
         False,
@@ -71,10 +74,11 @@ def book(
     ),
     # LaTeX document class options
     document_class: str = typer.Option(
-        get_document_class_default(),
+        ...,
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
         rich_help_panel="Document Layout",
+        default_factory=get_document_class_default,
     ),
     paper: str | None = typer.Option(
         None,
@@ -83,10 +87,11 @@ def book(
         rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        get_fonts_default(),
+        ...,
         "--fonts",
         help="Font package to use (wotc, dmsguild)",
         rich_help_panel="Visual Styling",
+        default_factory=get_fonts_default,
     ),
     no_outline: bool | None = typer.Option(
         None,
@@ -133,22 +138,25 @@ def book(
     ),
     # Appendix options
     appendix_spells: bool = typer.Option(
-        get_appendix_spells_default(),
+        ...,
         "--spells/--no-spells",
         help="Generate spells appendix with all referenced spells",
         rich_help_panel="Appendices",
+        default_factory=get_appendix_spells_default,
     ),
     appendix_items: bool = typer.Option(
-        get_appendix_items_default(),
+        ...,
         "--items/--no-items",
         help="Generate items appendix with all referenced items",
         rich_help_panel="Appendices",
+        default_factory=get_appendix_items_default,
     ),
     appendix_creatures: bool = typer.Option(
-        get_appendix_creatures_default(),
+        ...,
         "--creatures/--no-creatures",
         help="Generate creatures appendix with all referenced creatures",
         rich_help_panel="Appendices",
+        default_factory=get_appendix_creatures_default,
     ),
     ultimate_appendix: bool = typer.Option(
         False,

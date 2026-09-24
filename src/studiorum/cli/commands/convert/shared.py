@@ -263,7 +263,10 @@ def resolve_option[T](value: T) -> T:
     # We avoid importing typer.models.OptionInfo to keep this lightweight
     # and avoid circular dependencies
     if hasattr(value, "default"):
-        # This is a Typer Option/Argument, return its default
+        # This is a Typer Option/Argument: call its factory, else take its default
+        factory = getattr(value, "default_factory", None)
+        if factory is not None:
+            return factory()  # type: ignore[no-any-return]
         return value.default  # type: ignore[attr-defined,no-any-return]
     # Regular value, return as-is
     return value

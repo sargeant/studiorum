@@ -40,9 +40,10 @@ class BaseConvertCommand:
             ),
             "title": typer.Option(None, "--title", help="Document title"),
             "compile_pdf": typer.Option(
-                get_compile_pdf_default(),
+                ...,
                 "--pdf",
                 help="Compile to PDF after conversion",
+                default_factory=get_compile_pdf_default,
             ),
         }
 
