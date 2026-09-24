@@ -68,35 +68,6 @@ class TestEnvironmentVariables:
         with pytest.raises(ValidationError):
             ApplicationConfig()
 
-    def test_mcp_config_environment_variables(self) -> None:
-        """Test STUDIORUM_MCP__* environment variables."""
-        env_vars = {
-            "STUDIORUM_MCP__ENABLED": "true",
-            "STUDIORUM_MCP__HOST": "0.0.0.0",
-            "STUDIORUM_MCP__PORT": "9090",
-            "STUDIORUM_MCP__MAX_CONCURRENT_REQUESTS": "20",
-            "STUDIORUM_MCP__REQUEST_TIMEOUT": "60",
-            "STUDIORUM_MCP__MEMORY_LIMIT_MB": "2048",
-            "STUDIORUM_MCP__CACHE_SIZE_MB": "512",
-            "STUDIORUM_MCP__PRELOAD_CONTENT_TYPES": '["creatures", "spells", "items"]',
-            "STUDIORUM_MCP__ENABLE_HOT_RELOAD": "true",
-            "STUDIORUM_MCP__LOG_REQUESTS": "false",
-        }
-        self._set_env_vars(env_vars)
-
-        config = ApplicationConfig()
-
-        assert config.mcp.enabled is True
-        assert config.mcp.host == "0.0.0.0"
-        assert config.mcp.port == 9090
-        assert config.mcp.max_concurrent_requests == 20
-        assert config.mcp.request_timeout == 60
-        assert config.mcp.memory_limit_mb == 2048
-        assert config.mcp.cache_size_mb == 512
-        assert config.mcp.preload_content_types == ["creatures", "spells", "items"]
-        assert config.mcp.enable_hot_reload is True
-        assert config.mcp.log_requests is False
-
     def test_paths_config_environment_variables(self) -> None:
         """Test STUDIORUM_PATHS__* environment variables."""
         import tempfile
@@ -284,29 +255,29 @@ class TestEnvironmentVariables:
 
         for str_value, expected_bool in boolean_tests:
             # Clean up any previous env var
-            os.environ.pop("STUDIORUM_MCP__ENABLED", None)
+            os.environ.pop("STUDIORUM_IMAGE__INCLUDE_IMAGES", None)
 
-            env_vars = {"STUDIORUM_MCP__ENABLED": str_value}
+            env_vars = {"STUDIORUM_IMAGE__INCLUDE_IMAGES": str_value}
             self._set_env_vars(env_vars)
 
             config = ApplicationConfig()
-            assert config.mcp.enabled == expected_bool, (
-                f"Failed for '{str_value}', got {config.mcp.enabled}, expected {expected_bool}"
+            assert config.image.include_images == expected_bool, (
+                f"Failed for '{str_value}', got {config.image.include_images}, expected {expected_bool}"
             )
 
     def test_type_conversion_integer(self) -> None:
         """Test integer type conversion from environment variables."""
         env_vars = {
-            "STUDIORUM_MCP__PORT": "8443",
+            "STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "5",
             "STUDIORUM_PROCESSING__MAX_WORKERS": "12",
         }
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
 
-        assert config.mcp.port == 8443
+        assert config.rendering.latex.engine.max_passes == 5
         assert config.processing.max_workers == 12
-        assert isinstance(config.mcp.port, int)
+        assert isinstance(config.rendering.latex.engine.max_passes, int)
         assert isinstance(config.processing.max_workers, int)
 
     def test_type_conversion_path(self) -> None:
@@ -331,21 +302,24 @@ class TestEnvironmentVariables:
     def test_type_conversion_list(self) -> None:
         """Test list type conversion from JSON strings in environment variables."""
         env_vars = {
-            "STUDIORUM_MCP__PRELOAD_CONTENT_TYPES": '["creatures", "spells", "items"]',
+            "STUDIORUM_RENDERING__LATEX__DOCUMENT__EXTRA_CLASS_OPTIONS": '["draft", "openany"]',
             "STUDIORUM_RENDERING__CONTENT__DEFAULT_SOURCES": '["phb", "mm"]',
         }
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
 
-        assert config.mcp.preload_content_types == ["creatures", "spells", "items"]
+        assert config.rendering.latex.document.extra_class_options == [
+            "draft",
+            "openany",
+        ]
         assert config.rendering.content.default_sources == ["phb", "mm"]
-        assert isinstance(config.mcp.preload_content_types, list)
+        assert isinstance(config.rendering.latex.document.extra_class_options, list)
         assert isinstance(config.rendering.content.default_sources, list)
 
     def test_invalid_type_conversion_integer(self) -> None:
         """Test that invalid integer values raise validation errors."""
-        env_vars = {"STUDIORUM_MCP__PORT": "not_a_number"}
+        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "not_a_number"}
         self._set_env_vars(env_vars)
 
         with pytest.raises(ValidationError):
@@ -361,21 +335,21 @@ class TestEnvironmentVariables:
 
     def test_constraint_validation(self) -> None:
         """Test that constraint validation works with environment variables."""
-        # Test negative port (should fail)
-        env_vars = {"STUDIORUM_MCP__PORT": "-1"}
+        # Test zero passes (should fail)
+        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "0"}
         self._set_env_vars(env_vars)
 
         with pytest.raises(ValidationError):
             ApplicationConfig()
 
-        # Clean up and test valid port
-        os.environ.pop("STUDIORUM_MCP__PORT")
-        env_vars = {"STUDIORUM_MCP__PORT": "8080"}
+        # Clean up and test a valid count
+        os.environ.pop("STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES")
+        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "4"}
         self._set_env_vars(env_vars)
 
         # Should not raise
         config = ApplicationConfig()
-        assert config.mcp.port == 8080
+        assert config.rendering.latex.engine.max_passes == 4
 
     def test_range_constraint_validation(self) -> None:
         """Test that range constraints work with environment variables."""
@@ -413,19 +387,20 @@ class TestEnvironmentVariables:
 
     def test_partial_configuration_override(self) -> None:
         """Test that partial environment overrides don't break defaults."""
-        # Only set one MCP field
-        env_vars = {"STUDIORUM_MCP__ENABLED": "true"}
+        # Only set one document field
+        env_vars = {"STUDIORUM_RENDERING__LATEX__DOCUMENT__PAPER_SIZE": "a4"}
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
+        document = config.rendering.latex.document
 
         # Override field should change
-        assert config.mcp.enabled is True
+        assert document.paper_size == "a4"
 
         # Default fields should remain unchanged
-        assert config.mcp.host == "localhost"  # Default value
-        assert config.mcp.port == 8080  # Default value
-        assert config.mcp.max_concurrent_requests == 10  # Default value
+        assert document.document_class == "dndbook"  # Default value
+        assert document.font_size == "11pt"  # Default value
+        assert document.two_column is True  # Default value
 
     def test_empty_environment_variables(self) -> None:
         """Test behavior with empty environment variable values."""
@@ -441,21 +416,21 @@ class TestEnvironmentVariables:
         """Test that environment variables are case insensitive according to Pydantic settings."""
         # Test mixed case - Pydantic should handle this based on case_sensitive=False
         env_vars = {
-            "studiorum_mcp__enabled": "true",  # lowercase
-            "STUDIORUM_MCP__PORT": "9000",  # uppercase
+            "studiorum_image__include_images": "true",  # lowercase
+            "STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "6",  # uppercase
         }
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
 
-        assert config.mcp.enabled is True
-        assert config.mcp.port == 9000
+        assert config.image.include_images is True
+        assert config.rendering.latex.engine.max_passes == 6
 
     def test_environment_variable_precedence_over_defaults(self) -> None:
         """Test that environment variables override default values."""
         # Set env vars that differ from defaults
         env_vars = {
-            "STUDIORUM_MCP__ENABLED": "true",  # Default is False
+            "STUDIORUM_IMAGE__INCLUDE_IMAGES": "true",  # Default is False
             "STUDIORUM_PROCESSING__MAX_WORKERS": "10",  # Default is 5
             "STUDIORUM_VALIDATION__STRICTNESS": "lenient",  # Default is "normal"
         }
@@ -464,19 +439,19 @@ class TestEnvironmentVariables:
         config = ApplicationConfig()
 
         # Environment values should override defaults
-        assert config.mcp.enabled is True  # Not default False
+        assert config.image.include_images is True  # Not default False
         assert config.processing.max_workers == 10  # Not default 5
         assert config.validation.strictness == "lenient"  # Not default "normal"
 
         # Unset values should still use defaults
-        assert config.mcp.host == "localhost"  # Default value
+        assert config.rendering.latex.document.paper_size == "letter"  # Default value
         assert config.logging.level == "WARNING"  # Default value
 
     def test_json_parsing_in_environment_variables(self) -> None:
         """Test JSON parsing for complex data structures in environment variables."""
         env_vars = {
             # Test list parsing
-            "STUDIORUM_MCP__PRELOAD_CONTENT_TYPES": '["creatures", "spells"]',
+            "STUDIORUM_RENDERING__LATEX__DOCUMENT__EXTRA_CLASS_OPTIONS": '["draft", "openany"]',
             # Test with spaces and special characters
             "STUDIORUM_RENDERING__CONTENT__DEFAULT_SOURCES": '["phb-2024", "mm-legacy"]',
         }
@@ -484,14 +459,17 @@ class TestEnvironmentVariables:
 
         config = ApplicationConfig()
 
-        assert config.mcp.preload_content_types == ["creatures", "spells"]
+        assert config.rendering.latex.document.extra_class_options == [
+            "draft",
+            "openany",
+        ]
         assert config.rendering.content.default_sources == ["phb-2024", "mm-legacy"]
 
     def test_invalid_json_in_environment_variables(self) -> None:
         """Test that invalid JSON in environment variables raises errors."""
         env_vars = {
             # Invalid JSON - missing closing bracket
-            "STUDIORUM_MCP__PRELOAD_CONTENT_TYPES": '["creatures", "spells"',
+            "STUDIORUM_RENDERING__LATEX__DOCUMENT__EXTRA_CLASS_OPTIONS": '["draft", "openany"',
         }
         self._set_env_vars(env_vars)
 
@@ -503,9 +481,8 @@ class TestEnvironmentVariables:
         env_vars = {
             # Logging
             "STUDIORUM_LOGGING__LEVEL": "DEBUG",
-            # MCP
-            "STUDIORUM_MCP__ENABLED": "true",
-            "STUDIORUM_MCP__PORT": "8443",
+            # LaTeX engine
+            "STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "4",
             # Paths (use relative paths to avoid permission issues)
             "STUDIORUM_DATA__DIRS": '["test_data"]',
             "STUDIORUM_PATHS__OUTPUT_PATH": "test_output",
@@ -525,8 +502,7 @@ class TestEnvironmentVariables:
 
         # Verify all sections are configured correctly
         assert config.logging.level == "DEBUG"
-        assert config.mcp.enabled is True
-        assert config.mcp.port == 8443
+        assert config.rendering.latex.engine.max_passes == 4
         assert config.data.dirs == [Path("test_data")]
         assert config.paths.output_path == Path("test_output")
         assert config.processing.max_workers == 8
@@ -563,7 +539,7 @@ class TestEnvironmentVariableIntegration:
         """Test that get_app_config() respects environment variables."""
         env_vars = {
             "STUDIORUM_LOGGING__LEVEL": "DEBUG",
-            "STUDIORUM_MCP__ENABLED": "true",
+            "STUDIORUM_IMAGE__INCLUDE_IMAGES": "true",
         }
         self._set_env_vars(env_vars)
 
@@ -573,7 +549,7 @@ class TestEnvironmentVariableIntegration:
         config = get_app_config()
 
         assert config.logging.level == "DEBUG"
-        assert config.mcp.enabled is True
+        assert config.image.include_images is True
 
     def test_config_isolation_between_tests(self) -> None:
         """Test that configuration changes don't leak between tests."""
