@@ -17,6 +17,7 @@ from studiorum.mcp.tools.encounter import (
     suggest_creatures,
 )
 from studiorum.mcp.tools.lookup import get_content, list_publications
+from studiorum.mcp.tools.reading import get_table_of_contents, read_section
 from studiorum.mcp.tools.search import search_creatures, search_items, search_spells
 from studiorum.services import build_services
 
@@ -32,8 +33,9 @@ mcp: FastMCP[Any] = FastMCP(
     name="studiorum",
     instructions=(
         "Read-only 5e content from 5etools data. Search tools return summaries; "
-        "get_content returns one entry in full. Content tools default to SRD "
-        "content only (srd_only=true)."
+        "get_content returns one entry in full. Books and adventures are read "
+        "through get_table_of_contents and read_section. Content tools default "
+        "to SRD content only (srd_only=true)."
     ),
     lifespan=lifespan,
     # Only ToolError messages reach the client; other exceptions are masked.
@@ -52,5 +54,7 @@ for tool in (
     calculate_encounter_budget,
     rate_encounter,
     suggest_creatures,
+    get_table_of_contents,
+    read_section,
 ):
     mcp.tool(tool)

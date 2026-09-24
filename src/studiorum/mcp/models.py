@@ -116,3 +116,30 @@ class CreatureSuggestions(BaseModel):
     )
     total: int = Field(description="Matches before the limit")
     results: list[SuggestedCreature]
+
+
+class SectionRef(BaseModel):
+    id: str
+    name: str
+    depth: int = Field(description="1 for the top level listed")
+    chars: int = Field(description="Size in Markdown characters")
+
+
+class Contents(BaseModel):
+    id: str
+    name: str
+    kind: Literal["book", "adventure"]
+    sections: list[SectionRef]
+
+
+class SectionText(BaseModel):
+    publication: str
+    id: str
+    name: str
+    path: list[str] = Field(
+        description="The sections this one sits in, outermost first"
+    )
+    page: int
+    pages: int
+    text: str = Field(description="Markdown")
+    sections: list[SectionRef] = Field(description="Subsections, to read on their own")

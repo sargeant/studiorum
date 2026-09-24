@@ -16,6 +16,42 @@ SRD_DATA = Path(__file__).parents[2] / "srd-data"
 NOT_SRD = ("srd", "srd52", "basicRules", "basicRules2024")
 
 
+# One section too long for a page: three paragraphs of 10,000 characters
+LONG = ["word " * 2000] * 3
+ADVENTURE_TEXT = [
+    {
+        "type": "section",
+        "name": "Welcome",
+        "id": "000",
+        "entries": [
+            "Hello {@creature goblin|MM|goblins}.",
+            {
+                "type": "entries",
+                "name": "Hooks",
+                "id": "001",
+                "entries": ["A hook.", {"type": "list", "items": ["one", "two"]}],
+            },
+        ],
+    },
+    {
+        "type": "section",
+        "name": "The Cave",
+        "id": "002",
+        "entries": [
+            {"type": "entries", "name": "Big Room", "id": "003", "entries": LONG},
+            {
+                "type": "table",
+                "caption": "Loot",
+                "colLabels": ["{@dice d4}", "Item"],
+                "rows": [["1", "{@item Potion of Healing|DMG}"], ["2-4", "Nothing"]],
+            },
+            {"type": "statblock", "tag": "creature", "name": "Goblin", "source": "MM"},
+            {"type": "insetReadaloud", "entries": ["You smell smoke."]},
+        ],
+    },
+]
+
+
 def _pick(path: Path, key: str, names: set[str]) -> list[dict[str, Any]]:
     entries = json.loads(path.read_text())[key]
     found = [e for e in entries if e["name"] in names]
@@ -84,6 +120,8 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "source": "TB",
                     "published": "2020-01-01",
                     "group": "core",
+                    "author": "Tests",
+                    "contents": [{"name": "Rules"}],
                 }
             ]
         },
@@ -99,6 +137,22 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "published": "2019-01-01",
                     "group": "supplement",
                     "storyline": "Tests",
+                    "contents": [{"name": "Welcome"}, {"name": "The Cave"}],
+                }
+            ]
+        },
+    )
+
+    _write(tmp_path / "adventure" / "adventure-ta.json", {"data": ADVENTURE_TEXT})
+    _write(
+        tmp_path / "book" / "book-tb.json",
+        {
+            "data": [
+                {
+                    "type": "section",
+                    "name": "Rules",
+                    "id": "100",
+                    "entries": ["Roll a {@dice d20}."],
                 }
             ]
         },
