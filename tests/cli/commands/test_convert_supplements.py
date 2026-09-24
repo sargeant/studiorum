@@ -42,25 +42,16 @@ class TestConvertSupplementCommand:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.supplement.create_latex_engine")
-    @patch("studiorum.cli.commands.convert.supplement.display_manager")
-    @patch("builtins.open")
-    @patch("pathlib.Path.mkdir")
+    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.display_manager")
     def test_convert_supplement_with_spells(
         self,
-        mock_mkdir,
-        mock_builtin_open,
         mock_display,
         mock_engine_factory,
         mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test converting supplement with spells."""
-        # Mock file operations
-        mock_file = Mock()
-        mock_file.read.return_value = json.dumps(self.mock_supplement_data)
-        mock_builtin_open.return_value.__enter__.return_value = mock_file
-
         # Mock dependencies
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
@@ -87,11 +78,14 @@ class TestConvertSupplementCommand:
 
         try:
             # Test command
-            result = self.runner.invoke(app, ["convert", "supplement", file_path])
+            output = Path(file_path).with_suffix(".tex")
+            result = self.runner.invoke(
+                app, ["convert", "supplement", file_path, "--output", str(output)]
+            )
 
-            # Verify success
-            assert result.exit_code == 0
+            assert result.exit_code == 0, result.output
             assert "Supplement converted" in result.stdout
+            output.unlink()
 
         finally:
             Path(file_path).unlink()
@@ -108,7 +102,7 @@ class TestConvertSupplementCommand:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.supplement.display_manager")
+    @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     def test_convert_supplement_empty_content(
         self,

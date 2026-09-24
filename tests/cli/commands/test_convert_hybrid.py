@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.cli.commands.convert import (
-    _handle_resolution_result,
+from studiorum.cli.commands.convert.run import (
+    handle_resolution_result as _handle_resolution_result,
     resolve_content_or_file,
 )
 from studiorum.core.models.adventures import Adventure
@@ -78,7 +78,7 @@ class TestHybridParameterDetection:
 
         # Mock successful resolution
         with patch(
-            "studiorum.cli.commands.convert.shared.ContentResolver"
+            "studiorum.cli.commands.convert.run.ContentResolver"
         ) as mock_resolver_class:
             mock_resolver = Mock()
             mock_resolver_class.return_value = mock_resolver

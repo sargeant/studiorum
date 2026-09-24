@@ -285,7 +285,7 @@ class TestEnhancedFileSupportIntegration:
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.spells._render_spellbook"
+            "studiorum.cli.commands.convert.spells._render_spellbook"
         ) as mock_render_spellbook:
             # Mock the render spellbook function to return a simple string
             mock_render_spellbook.return_value = "Mock LaTeX output for spells"
@@ -390,7 +390,7 @@ class TestEnhancedFileSupportIntegration:
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.creatures._render_bestiary"
+            "studiorum.cli.commands.convert.creatures._render_bestiary"
         ) as mock_render_creatures:
             # Mock the render bestiary function to return a simple string
             mock_render_creatures.return_value = "Mock LaTeX output for creatures"
@@ -506,7 +506,7 @@ class TestEnhancedFileSupportIntegration:
 
         with (
             patch(
-                "studiorum.cli.commands.convert.compendiums.items._render_itemcompendium"
+                "studiorum.cli.commands.convert.items._render_itemcompendium"
             ) as mock_render_items,
             patch(
                 "studiorum.core.services.item_collector.ItemCollector._get_item_value_in_gp"

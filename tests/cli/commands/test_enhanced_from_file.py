@@ -199,26 +199,11 @@ class TestEnhancedFromFileSupport:
 
         return [MockItem(name, item_type) for name, item_type in item_data]
 
-    def setup_config_mocks(self, mock_app_config):
-        """Set up the complete config mocking pattern used by working tests."""
-        # Mock app config with complete structure
-        mock_config = Mock()
-        mock_config.rendering.latex.document.paper_size = "letter"
-        mock_config.rendering.latex.document.fonts = None
-        mock_config.rendering.latex.document.font_size = "11pt"
-        mock_config.rendering.latex.document.background = "full"
-        mock_config.rendering.latex.document.no_outline = False
-        mock_config.rendering.latex.document.high_contrast = False
-        mock_config.rendering.latex.document.two_column = True
-        mock_config.rendering.latex.document.justified_text = False
-        mock_app_config.return_value = mock_config
-
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_spells_simple_format_backward_compatibility(
         self,
@@ -226,7 +211,6 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_app_config,
         mock_tag_resolver,
         mock_get_omnidexer,
     ):
@@ -239,18 +223,6 @@ class TestEnhancedFromFileSupport:
         mock_omnidexer_instance = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver.return_value = Mock()
-
-        # Mock app config with complete structure
-        mock_config = Mock()
-        mock_config.rendering.latex.document.paper_size = "letter"
-        mock_config.rendering.latex.document.fonts = None
-        mock_config.rendering.latex.document.font_size = "11pt"
-        mock_config.rendering.latex.document.background = "full"
-        mock_config.rendering.latex.document.no_outline = False
-        mock_config.rendering.latex.document.high_contrast = False
-        mock_config.rendering.latex.document.two_column = True
-        mock_config.rendering.latex.document.justified_text = False
-        mock_app_config.return_value = mock_config
 
         # Mock spell collector following working test pattern
         mock_collector = Mock()
@@ -309,10 +281,9 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_spells_enhanced_format_with_counts(
         self,
@@ -320,7 +291,6 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_app_config,
         mock_tag_resolver,
         mock_get_omnidexer,
     ):
@@ -335,7 +305,6 @@ class TestEnhancedFromFileSupport:
         mock_tag_resolver.return_value = Mock()
 
         # Set up config mocks
-        self.setup_config_mocks(mock_app_config)
 
         # Mock spell collector following working test pattern
         mock_collector = Mock()
@@ -384,10 +353,9 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_spells_enhanced_format_with_sources(
         self,
@@ -395,7 +363,6 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_app_config,
         mock_tag_resolver,
         mock_get_omnidexer,
     ):
@@ -410,7 +377,6 @@ class TestEnhancedFromFileSupport:
         mock_tag_resolver.return_value = Mock()
 
         # Set up config mocks
-        self.setup_config_mocks(mock_app_config)
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
@@ -456,7 +422,7 @@ class TestEnhancedFromFileSupport:
         assert result.exit_code == 0
         assert output_file.exists()
 
-    @patch("studiorum.cli.commands.convert.compendiums.creatures._render_bestiary")
+    @patch("studiorum.cli.commands.convert.creatures._render_bestiary")
     @patch("studiorum.core.services.creature_collector.CreatureCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
@@ -518,7 +484,7 @@ class TestEnhancedFromFileSupport:
         # (counts are metadata for statblock generation, not duplication)
         assert mock_collector.collect_creatures.call_count >= 1
 
-    @patch("studiorum.cli.commands.convert.compendiums.items._render_itemcompendium")
+    @patch("studiorum.cli.commands.convert.items._render_itemcompendium")
     @patch("studiorum.core.services.item_collector.ItemCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
@@ -615,7 +581,7 @@ class TestEnhancedFromFileSupport:
         assert result.exit_code == 1
         assert "does not exist" in result.stdout or "Error" in result.stdout
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
@@ -680,7 +646,7 @@ Haste|PHB"""
         assert result.exit_code == 0
         assert output_file.exists()
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
@@ -748,7 +714,7 @@ Haste|PHB"""
         assert result.exit_code == 0
         assert output_file.exists()
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
@@ -811,7 +777,7 @@ Haste|PHB"""
         # Should still load all spells, including those with 0 count
         assert mock_collector.collect_spells.call_count >= 1
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
@@ -871,7 +837,7 @@ Haste|PHB"""
         assert result.exit_code == 0
         assert output_file.exists()
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)

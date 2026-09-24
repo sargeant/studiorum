@@ -88,10 +88,9 @@ class TestConvertSpellsCommand:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
+    @patch("studiorum.cli.commands.convert.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_convert_spells_with_spell_names(
         self,
@@ -99,7 +98,6 @@ class TestConvertSpellsCommand:
         mock_display,
         mock_render_spellbook,
         mock_spell_collector_class,
-        mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
     ):
@@ -109,21 +107,6 @@ class TestConvertSpellsCommand:
         mock_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
-
-        # Mock app config with complete structure
-        mock_config = Mock()
-        mock_config.rendering.latex.document.paper_size = "letter"
-        mock_config.rendering.latex.document.fonts = None
-        mock_config.rendering.latex.document.font_size = "11pt"
-        mock_config.rendering.latex.document.background = "full"
-        mock_config.rendering.latex.document.no_outline = False
-        mock_config.rendering.latex.document.high_contrast = False
-        mock_config.rendering.latex.document.two_column = True
-        mock_config.rendering.latex.document.justified_text = False
-        mock_config.rendering.latex.document.no_outline = (
-            False  # Add the missing no_outline field
-        )
-        mock_app_config.return_value = mock_config
 
         # Mock spell collector
         mock_collector = Mock()
@@ -197,7 +180,7 @@ class TestConvertSpellsCommand:
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
+    @patch("studiorum.cli.commands.convert.spells.display_manager")
     def test_convert_spells_no_spells_found(
         self,
         mock_display,
