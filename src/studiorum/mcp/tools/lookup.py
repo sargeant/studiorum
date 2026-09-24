@@ -94,9 +94,9 @@ async def get_content(
         text=to_markdown(content_type, data) if format == "markdown" else None,
         data=data if format == "json" else None,
         references=[
-            Reference(**r)
-            for r in markdown.references(data)
-            if (r["name"].lower(), r.get("source", "").lower())
+            r
+            for r in resolve_references(services, markdown.references(data))
+            if (r.name.lower(), (r.source or "").lower())
             != (entry.name.lower(), entry.source.abbreviation.lower())
         ],
     )
@@ -223,6 +223,22 @@ async def search_content(
             for c in kept[offset : offset + limit]
         ],
     )
+
+
+def resolve_references(
+    services: Services, found: list[dict[str, str]]
+) -> list[Reference]:
+    """References with the name and source of the entry each one finds, as it has them."""
+    out = []
+    for ref in found:
+        if ref.get("source") and ref["type"] in ContentType._value2member_map_:
+            match = services.omnidexer.find(
+                ContentType(ref["type"]), ref["name"], ref["source"]
+            )
+            if match is not None:
+                ref = ref | {"name": match.name, "source": match.source.abbreviation}
+        out.append(Reference(**ref))
+    return out
 
 
 def content_uid(content_type: str, content: BaseContent) -> str | None:

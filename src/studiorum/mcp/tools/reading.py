@@ -17,12 +17,12 @@ from studiorum.mcp.deps import get_services
 from studiorum.mcp.errors import not_found
 from studiorum.mcp.models import (
     Contents,
-    Reference,
     SectionMatch,
     SectionMatches,
     SectionRef,
     SectionText,
 )
+from studiorum.mcp.tools.lookup import resolve_references
 from studiorum.services import Services
 
 PAGE_CHARS = 24_000
@@ -94,7 +94,9 @@ async def read_section(
         page=page,
         pages=len(pages),
         text=pages[page - 1][0],
-        references=[Reference(**r) for r in markdown.references(pages[page - 1][1])],
+        references=resolve_references(
+            services, markdown.references(pages[page - 1][1])
+        ),
         sections=[
             SectionRef(id=n["id"], name=_name(n), depth=1, chars=_chars(n))
             for n in _subsections(node)
