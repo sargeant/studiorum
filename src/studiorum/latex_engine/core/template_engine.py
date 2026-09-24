@@ -13,9 +13,31 @@ from studiorum.core.latex_utils import (
     escape_latex_text,
 )
 from studiorum.core.logging import get_logger
+from studiorum.core.models.creatures import Ability, Spellcasting
 from studiorum.core.types import LaTeXConfig as LaTeXConfigDict
 
+from . import model_text
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
+
+
+def _cli_tag_resolver() -> Any:
+    """The CLI's tag resolver, or None if it cannot be built."""
+    try:
+        from ...cli.services import get_cli_tag_resolver
+
+        return get_cli_tag_resolver()
+    except Exception:
+        return None
+
+
+def _cli_omnidexer_and_tag_resolver() -> tuple[Any, Any]:
+    """The CLI's omnidexer and tag resolver, or (None, None) if either fails."""
+    try:
+        from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
+
+        return get_cli_omnidexer(), get_cli_tag_resolver()
+    except Exception:
+        return None, None
 
 
 class LaTeXTemplateEngine:
@@ -308,8 +330,19 @@ class LaTeXTemplateEngine:
 
             return value
 
+        def processed_ac_text(creature: Any) -> str:
+            """Creature AC with tags in armour sources resolved."""
+            return model_text.creature_ac_text(creature, _cli_tag_resolver())
+
+        def processed_senses(creature: Any) -> str | None:
+            """Creature senses with tags resolved."""
+            return model_text.creature_senses_text(creature, _cli_tag_resolver())
+
         def safe_processed_name(obj: Any) -> str:
             """Safely get processed name from object or dict."""
+            if isinstance(obj, (Ability, Spellcasting)):
+                omnidexer, tag_resolver = _cli_omnidexer_and_tag_resolver()
+                return model_text.ability_name_text(obj, omnidexer, tag_resolver)
             if hasattr(obj, "get_processed_name"):
                 try:
                     return obj.get_processed_name()
@@ -339,6 +372,8 @@ class LaTeXTemplateEngine:
         self.env.filters["clean_jinja_comments"] = clean_jinja_comments
         self.env.filters["dnd_smallcaps"] = dnd_smallcaps
         self.env.filters["safe_processed_name"] = safe_processed_name
+        self.env.filters["processed_ac_text"] = processed_ac_text
+        self.env.filters["processed_senses"] = processed_senses
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.

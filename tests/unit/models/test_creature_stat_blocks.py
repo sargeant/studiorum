@@ -19,6 +19,7 @@ from studiorum.core.models.creatures import (
     Speed,
 )
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.latex_engine.core import model_text
 
 
 class TestCreatureStatBlockRendering:
@@ -404,12 +405,9 @@ class TestCreatureAbilities:
             name="Multiattack", entries=["The creature makes two weapon attacks."]
         )
 
-        # Test fallback name processing (without tag processing)
-        with patch(
-            "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
-        ):
-            name = ability.get_processed_name()
-            assert name == "Multiattack"
+        # Without a tag resolver the name is returned unprocessed
+        name = model_text.ability_name_text(ability, None, None)
+        assert name == "Multiattack"
 
     def test_complex_entry_structure(self):
         """Test handling of complex entry structures."""

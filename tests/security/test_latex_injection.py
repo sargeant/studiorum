@@ -213,6 +213,8 @@ class TestTemplateInjectionVulnerabilities:
         class MockCreature:
             def __init__(self):
                 self.name = "Dragon\\def\\evil{PWNED}"
+                self.ac = "19 (Natural Armor)"
+                self.senses = None
                 self.strength = 27
                 self.dexterity = 10
                 self.constitution = 19
@@ -240,9 +242,6 @@ class TestTemplateInjectionVulnerabilities:
             def get_size_type_alignment(self):
                 return "Large dragon, chaotic evil"
 
-            def get_processed_ac_text(self):
-                return "19 (Natural Armor)"
-
             def get_hp_text(self):
                 return "256 (27d12 + 108)"
 
@@ -268,9 +267,6 @@ class TestTemplateInjectionVulnerabilities:
                 return ""
 
             def get_formatted_senses(self):
-                return ""
-
-            def get_processed_senses(self):
                 return ""
 
             def get_formatted_languages(self):

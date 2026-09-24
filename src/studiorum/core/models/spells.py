@@ -3,10 +3,7 @@
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
-    from ..error_types import BaseError
-    from ..result import Result
-    from ..text.tag_resolver import TagResolver
-    from .processors import SpellProcessor
+    pass
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -572,45 +569,6 @@ class Spell(BaseContent):
         """Get enhanced duration text (same as current implementation)."""
         return self.get_duration_text()
 
-    def get_higher_level_scaling_text(self) -> str:
-        """Get higher level scaling description text."""
-        if not self.higher_level:
-            return ""
-
-        # Try modern processor pattern first, fallback to simple text extraction
-        try:
-            # Try to get tag resolver from service container
-            from ...cli.services import get_cli_tag_resolver
-            from ..result import Error
-
-            # Use sync access since this method is sync
-            tag_resolver = get_cli_tag_resolver()
-
-            processor = self.get_processor()
-            result = processor.get_higher_level_with_context(tag_resolver)
-            if isinstance(result, Error):
-                # Service worked but processing failed, use fallback
-                text = self._extract_simple_text_from_entries(self.higher_level or [])
-            else:
-                text = result.unwrap()
-
-        except Exception:
-            # Service container failed, use simple text extraction fallback
-            text = self._extract_simple_text_from_entries(
-                self.higher_level or [], skip_section_names=True
-            )
-
-        # Remove LaTeX paragraph headers since we want just the content
-        import re
-
-        # Remove paragraph headers like \paragraph{At Higher Levels}
-        text = re.sub(r"\\paragraph\{[^}]*\}\s*", "", text)
-        # Remove textbf headers as well
-        text = text.replace("**At Higher Levels**", "")
-        text = text.replace("\\textbf{At Higher Levels}", "")
-        # Clean up extra whitespace
-        return text.strip()
-
     @staticmethod
     def _extract_simple_text_from_entries(
         entries: list[Any], skip_section_names: bool = False
@@ -670,23 +628,6 @@ class Spell(BaseContent):
 
         return " ".join(text_parts)
 
-    def get_text(self) -> str:
-        """Get spell text using modern template service APIs."""
-        from ...cli.services import get_cli_template_service
-        from ...core.references.content_tracker import ContentTracker
-        from ...latex_engine.services.template_service import TemplateService
-
-        template_service = get_cli_template_service()
-        content_tracker = ContentTracker()
-        # Cast to concrete implementation to access bind_context
-        concrete_service = (
-            template_service
-            if isinstance(template_service, TemplateService)
-            else template_service
-        )
-        bound_service = concrete_service.bind_context(content_tracker)  # type: ignore[attr-defined]
-        return bound_service.render_entry(self.entries)
-
     # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
     # Legacy method get_higher_level_text removed - access .higher_level directly and use RecursiveEntryProcessor
@@ -722,16 +663,3 @@ class Spell(BaseContent):
             name = name.replace(char, escape)
 
         return name
-
-    def get_processor(self) -> "SpellProcessor":
-        """Get processor for this spell that can work with services."""
-        from .processors import SpellProcessor
-
-        return SpellProcessor(self)
-
-    def resolve_tags_with_service(
-        self, tag_resolver: "TagResolver"
-    ) -> "Result[Spell, BaseError]":
-        """Resolve tags using provided tag resolver service."""
-        processor = self.get_processor()
-        return processor.resolve_tags(tag_resolver)

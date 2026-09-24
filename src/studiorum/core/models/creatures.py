@@ -19,11 +19,7 @@ from .content import BaseContent
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from ..error_types import BaseError
     from ..loaders.omnidexer import Omnidexer
-    from ..result import Result
-    from ..text.tag_resolver import TagResolver
-    from .processors import CreatureProcessor
 
 
 class SkillBonus(BaseModel):
@@ -98,62 +94,6 @@ class ArmorClass(BaseModel):
                 result += f" {self.condition}"
             return result
         return "Unknown"
-
-    def get_processed_ac_text(self, tag_resolver: "TagResolver | None" = None) -> str:
-        """Get armor class text with 5e.tools markup processed for LaTeX.
-
-        Args:
-            tag_resolver: Optional TagResolver service. If None, will get from global container.
-        """
-        if self.special:
-            try:
-                if tag_resolver is None:
-                    from ...cli.services import get_cli_tag_resolver
-
-                    tag_resolver = get_cli_tag_resolver()
-                return str(tag_resolver.process_text(self.special))
-            except Exception:
-                return self.special
-        elif self.ac is not None:
-            result = str(self.ac)
-
-            # Get tag_resolver once for all processing in this method
-            if self.from_ or self.condition:
-                if tag_resolver is None:
-                    try:
-                        from ...cli.services import get_cli_tag_resolver
-
-                        tag_resolver = get_cli_tag_resolver()
-                    except Exception:
-                        tag_resolver = None
-
-            if self.from_:
-                # Process 5e.tools markup tags in armor sources
-                processed_sources = []
-                for source in self.from_:
-                    try:
-                        if tag_resolver is not None:
-                            processed_source = tag_resolver.process_text(source)
-                            processed_sources.append(str(processed_source))
-                        else:
-                            processed_sources.append(source)
-                    except Exception:
-                        # Fallback to raw source if tag processing fails
-                        processed_sources.append(source)
-                sources = ", ".join(processed_sources)
-                result += f" ({sources})"
-            if self.condition:
-                try:
-                    if tag_resolver is not None:
-                        processed_condition = tag_resolver.process_text(self.condition)
-                        result += f" {processed_condition}"
-                    else:
-                        result += f" {self.condition}"
-                except Exception:
-                    result += f" {self.condition}"
-            return result
-        else:
-            return "Unknown"
 
 
 class HitPoints(BaseModel):
@@ -314,79 +254,6 @@ class Ability(BaseModel):
     def __str__(self) -> str:
         return self.name
 
-    def get_processed_name(self) -> str:
-        """Get ability name with 5e.tools markup processed for LaTeX."""
-        # Import check to avoid circular imports
-        import asyncio
-
-        # Check if we're in an async context and can safely use services
-        can_use_services = True
-        try:
-            # If we're in an async context, get_service_sync will fail
-            asyncio.get_running_loop()
-            can_use_services = False
-        except RuntimeError:
-            # No running loop, safe to use sync services
-            pass
-
-        # If we can't use services safely, return plain name
-        if not can_use_services:
-            return self.name
-
-        # Try advanced processing with services
-        try:
-            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
-            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
-            from ...renderers.core.interfaces import RenderingContext
-
-            # Get services for proper tag processing
-            omnidexer = get_cli_omnidexer()
-            tag_resolver = get_cli_tag_resolver()
-
-            # Create a proper rendering context for entry processing
-            context = RenderingContext(
-                output_format="latex",
-                debug_mode=False,
-                omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                metadata={
-                    "source_name": "unknown",
-                    "tag_resolver": tag_resolver,
-                    "content_type": "creature",
-                },
-            )
-
-            # Use recursive entry processor to handle 5e.tools markup
-            processor = RecursiveEntryProcessor(use_dnd_template=True)
-
-            # Process the name as if it were entry content
-            if self.name:
-                # Convert name to entry format and process
-                processed_entries = processor.process_entries([self.name], context)
-                return "\n".join(processed_entries)
-            return ""
-
-        except Exception:
-            # Fallback to original name if processing fails
-            return self.name
-
-    def get_text(self) -> str:
-        """Get creature text using modern template service APIs."""
-        from ...cli.services import get_cli_template_service
-        from ...core.references.content_tracker import ContentTracker
-        from ...latex_engine.services.template_service import TemplateService
-
-        template_service = get_cli_template_service()
-        content_tracker = ContentTracker()
-        # Cast to concrete implementation to access bind_context
-        concrete_service = (
-            template_service
-            if isinstance(template_service, TemplateService)
-            else template_service
-        )
-        bound_service = concrete_service.bind_context(content_tracker)  # type: ignore[attr-defined]
-        return bound_service.render_entry(self.entries)
-
     # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
 
@@ -427,44 +294,6 @@ class Spellcasting(BaseModel):
     displayAs: str | None = Field(
         None, description="Where to display this spellcasting feature"
     )
-
-    def get_processed_name(self) -> str:
-        """Get spellcasting name with 5e.tools markup processed for LaTeX."""
-        try:
-            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
-            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
-            from ...renderers.core.interfaces import RenderingContext
-
-            # Get services for proper tag processing
-            omnidexer = get_cli_omnidexer()
-            tag_resolver = get_cli_tag_resolver()
-
-            # Create a proper rendering context for entry processing
-            context = RenderingContext(
-                output_format="latex",
-                debug_mode=False,
-                omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                metadata={
-                    "source_name": "unknown",
-                    "tag_resolver": tag_resolver,
-                    "content_type": "creature",
-                },
-            )
-
-            # Use recursive entry processor to handle 5e.tools markup
-            processor = RecursiveEntryProcessor(use_dnd_template=True)
-
-            # Process the name as if it were entry content
-            if self.name:
-                # Convert name to entry format and process
-                processed_entries = processor.process_entries([self.name], context)
-                return "\n".join(processed_entries)
-            return ""
-
-        except Exception:
-            # Fallback to original name if processing fails
-            return self.name
 
 
 @content_type(
@@ -828,19 +657,6 @@ class Creature(BaseContent):
             return ", ".join(str(ac) for ac in self.ac)
         return str(self.ac)
 
-    def get_processed_ac_text(self) -> str:
-        """Get formatted AC text with 5e.tools markup processed."""
-        if isinstance(self.ac, list):
-            ac_parts = []
-            for ac_item in self.ac:
-                if isinstance(ac_item, int):
-                    ac_parts.append(str(ac_item))
-                else:
-                    # ArmorClass object
-                    ac_parts.append(ac_item.get_processed_ac_text())
-            return ", ".join(ac_parts)
-        return str(self.ac)
-
     def get_hp_text(self) -> str:
         """Get formatted HP text."""
         return str(self.hp)
@@ -1135,40 +951,6 @@ class Creature(BaseContent):
             if isinstance(self.senses, list)
             else str(self.senses)
         )
-
-    def get_processed_senses(self) -> str | None:
-        """Get senses with 5e.tools markup processed for LaTeX using modern service patterns."""
-        if not self.senses:
-            return None
-
-        try:
-            # Try to get tag resolver from service container
-            from ...cli.services import get_cli_tag_resolver
-
-            tag_resolver = get_cli_tag_resolver()
-
-            processor = self.get_processor()
-            # Use the processor's senses processing method if available
-            if hasattr(processor, "_process_senses_with_tag_resolver"):
-                return processor._process_senses_with_tag_resolver(
-                    self.senses, tag_resolver
-                )
-            # Fallback to basic tag processing
-            if isinstance(self.senses, str):
-                return tag_resolver.process_text(self.senses)
-            return str(self.senses)
-
-        except Exception:
-            # Fallback to formatted senses with basic tag stripping
-            formatted_senses = self.get_formatted_senses()
-            if formatted_senses:
-                # Strip basic 5etools tags like {@sense blindsight} -> blindsight
-                import re
-
-                # Simple regex to strip basic tag markup
-                cleaned = re.sub(r"\{@\w+\s+([^}]+)\}", r"\1", formatted_senses)
-                return cleaned
-            return formatted_senses
 
     def get_formatted_languages(self) -> str | None:
         """Get formatted languages list."""
@@ -1590,26 +1372,6 @@ class Creature(BaseContent):
                     return True
 
         return False
-
-    def get_processor(self) -> "CreatureProcessor":
-        """Get processor for this creature that can work with services."""
-        from .processors import CreatureProcessor
-
-        return CreatureProcessor(self)
-
-    def resolve_tags_with_service(
-        self, tag_resolver: "TagResolver"
-    ) -> "Result[Creature, BaseError]":
-        """Resolve tags using provided tag resolver service."""
-        processor = self.get_processor()
-        return processor.resolve_tags(tag_resolver)
-
-    def enrich_with_services(
-        self, omnidexer: "Omnidexer", tag_resolver: "TagResolver"
-    ) -> "Result[Creature, BaseError]":
-        """Enrich creature using provided services."""
-        processor = self.get_processor()
-        return processor.enrich_with_content(omnidexer, tag_resolver)
 
     def get_pronoun_subject(self) -> str:
         """Subject pronoun for the creature: they/it (5etools parity)."""

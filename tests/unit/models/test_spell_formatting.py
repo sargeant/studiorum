@@ -193,19 +193,6 @@ class TestSpellFormattingMethods:
         instant_spell = Spell.model_validate(instant_data)
         assert instant_spell.get_enhanced_duration_text() == "Instantaneous"
 
-    def test_get_higher_level_scaling_text(
-        self, sample_spell_data: dict[str, Any]
-    ) -> None:
-        """Test higher level scaling text extraction."""
-        spell = Spell.model_validate(sample_spell_data)
-        expected = "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd."
-        assert spell.get_higher_level_scaling_text() == expected
-
-        # Test spell without higher level scaling
-        no_scaling_data = {**sample_spell_data, "entriesHigherLevel": None}
-        no_scaling_spell = Spell.model_validate(no_scaling_data)
-        assert no_scaling_spell.get_higher_level_scaling_text() == ""
-
     def test_get_spell_list_classes(self, sample_spell_data: dict[str, Any]) -> None:
         """Test spell list class formatting."""
         # Add spell list data
@@ -304,7 +291,6 @@ class TestSpellFormattingMethods:
         assert minimal_spell.get_damage_text() == ""
         assert minimal_spell.get_condition_text() == ""
         assert minimal_spell.get_area_text() == ""
-        assert minimal_spell.get_higher_level_scaling_text() == ""
         assert minimal_spell.get_spell_list_classes() == ""
         assert minimal_spell.is_concentration() is False
 
