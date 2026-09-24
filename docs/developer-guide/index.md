@@ -1,96 +1,20 @@
 ---
-title: Introduction
-description: Architecture overview, API reference, and development patterns for building applications with studiorum
+title: Developer Guide
+description: Where to start when working on the Studiorum code
 ---
 
 # Developer Guide
 
-Build applications with studiorum's modern Python architecture for 5e content processing.
+Studiorum is a Python 3.12 package managed with `uv`. [Getting Started](getting-started.md) covers setting up a checkout, running the checks and tests, and building these docs. The [contributing guide](https://github.com/sargeant/studiorum/blob/develop/CONTRIBUTING.md) covers branches, commit messages and pull requests.
 
-## Quick Start Examples
+The code is being restructured, so this guide does not describe its internals. Those change too often to keep a public copy accurate. The maintainers keep design notes outside the repository, under these topic names:
 
-### Simple Content Access
+- Service Container and Async Architecture: how the CLI and the MCP server get their services
+- Content Loading, Content Type System and 5etools Data Format: reading 5etools JSON into models
+- Data Modelling Patterns and Pydantic Strategy: how the content models are built and validated
+- Tag System, LaTeX Rendering and Rendering Pipeline: turning entries and `{@tag}` markup into LaTeX
+- CLI Architecture and MCP Strategy: the two front ends
+- Result Pattern and Type Safety Patterns: error handling and typing conventions
+- Testing Strategy and Git Workflow: how changes are tested and merged
 
-Load and explore 5e content programmatically:
-
-```python
-from studiorum.cli.utils import get_omnidexer
-
-# Get all spells
-omnidexer = get_omnidexer()
-spells = list(omnidexer.get_all_by_type("spell"))
-
-# Find specific content
-light = list(omnidexer.find_all("spell", "Light"))[0]
-print(f"{light.name}: {light.get_level_text()}")
-```
-
-### Content Processing
-
-Work with typed models and validation:
-
-```python
-from studiorum.cli.utils import get_omnidexer
-from studiorum.core.models.spells import Spell
-
-omnidexer = get_omnidexer()
-
-# Access spell properties with full type safety
-spell: Spell = list(omnidexer.find_all("spell", "Sacred Flame"))[0]
-print(f"School: {spell.school}")         # "Evocation"
-print(f"Verbal: {spell.components.verbal}")  # True
-
-# Render processed spell text using the template pipeline
-print(spell.get_text())
-```
-
-### Rendering Pipeline
-
-Convert 5e content to LaTeX/PDF:
-
-```python
-from studiorum.cli.utils import get_omnidexer
-from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.appendix_generator import AppendixGenerator, AppendixFlags
-from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
-
-# Services
-omnidexer = get_omnidexer()
-template_engine = LaTeXTemplateEngine()
-
-# Track content references
-tracker = ContentTracker()
-tracker.add_content("spell", "Guidance", "SRD")
-
-# Generate appendices with referenced content
-generator = AppendixGenerator(omnidexer, template_engine)
-flags = AppendixFlags(spells=True)
-appendices = generator.generate_appendices(tracker, flags)
-
-# Each appendix contains ready-to-embed LaTeX content
-for appendix in appendices:
-    print(appendix.content)
-```
-
-## Development Path
-
-1. **[Architecture](architecture.md)** - Understand the system design
-1. **[Models](models.md)** - Work with typed 5e content models
-1. **[API Reference](api/)** - Explore services and rendering systems
-
-## Core Contribution
-
-Contribute to studiorum itself:
-
-1. **[Contributing](contributing.md)** - Development workflow and standards
-1. **[Getting Started](getting-started.md#core-development)** - Contributor setup
-
----
-
-## Resources
-
-- 📖 **[Architecture Deep Dive](architecture.md)** - Complete system design
-- 🔧 **[API Reference](api/)** - Comprehensive API documentation
-- 🤖 **[AI Agent Patterns](ai-agents.md)** - MCP development guide
-- 🚀 **[Contributing](contributing.md)** - Join the development community
-- 💬 **[Discussions](https://github.com/sargeant/studiorum/discussions)** - Community support
+If you need detail on one of these, open an issue or a discussion on GitHub and ask.
