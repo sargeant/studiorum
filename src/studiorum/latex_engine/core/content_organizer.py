@@ -25,7 +25,7 @@ class ContentOrganizer:
         self._sorters = self._build_dynamic_sorters()
 
     def _build_dynamic_sorters(self) -> dict[str, Callable]:
-        """Build sorter mappings from registry metadata (Phase 3 migration).
+        """Build sorter mappings from registry metadata.
 
         Returns:
             Dictionary mapping content type strings to sorter functions
@@ -52,7 +52,7 @@ class ContentOrganizer:
             registry = get_content_type_registry()
             for enum_value, metadata in registry.get_all().items():
                 try:
-                    # Use ContentType constructor for safe validation (Phase 3 pattern)
+                    # Use ContentType constructor for safe validation
                     content_type = ContentType(enum_value)
                     content_type_str = content_type.value
 
@@ -532,12 +532,12 @@ class ContentOrganizer:
         Returns:
             Formatted title
         """
-        # Use registry-based dynamic titles (Phase 3 migration)
+        # Use registry-based dynamic titles
         title_mapping = self._get_content_type_titles()
         return title_mapping.get(content_type, content_type.replace("_", " ").title())
 
     def _get_content_type_titles(self) -> dict[str, str]:
-        """Get content type titles from registry metadata (Phase 3 migration).
+        """Get content type titles from registry metadata.
 
         Returns:
             Dictionary mapping content type strings to human-readable titles
@@ -568,7 +568,7 @@ class ContentOrganizer:
             registry = get_content_type_registry()
             for enum_value, metadata in registry.get_all().items():
                 try:
-                    # Use ContentType constructor for safe validation (Phase 3 pattern)
+                    # Use ContentType constructor for safe validation
                     content_type = ContentType(enum_value)
                     content_type_str = content_type.value
 

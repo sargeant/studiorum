@@ -15,9 +15,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-# Legacy exception imports removed in Phase 3
-# All error handling now uses Result[T, E] patterns exclusively
-
 __all__ = [
     # Enums
     "ErrorSeverity",
@@ -113,9 +110,6 @@ class BaseError(BaseModel):
     source: str | None = None
     suggestions: list[str] | None = Field(default_factory=list)
 
-    # to_exception() method removed in Phase 3
-    # All error handling now uses Result[T, E] patterns
-
     def with_suggestion(self, suggestion: str) -> BaseError:
         """Add a suggestion to this error."""
         suggestions = list(self.suggestions or [])
@@ -167,9 +161,6 @@ class ValidationError(BaseError):
     parent_name: str | None = None
     category: ErrorCategory = ErrorCategory.VALIDATION
 
-    # to_exception() method removed in Phase 3
-    # Use Result[T, E] patterns instead of exceptions
-
 
 class ProcessingError(BaseError):
     """Error for content processing failures."""
@@ -180,9 +171,6 @@ class ProcessingError(BaseError):
     parent_name: str | None = None
     context: dict[str, Any] | None = Field(default_factory=dict)
     category: ErrorCategory = ErrorCategory.PROCESSING
-
-    # to_exception() method removed in Phase 3
-    # Use Result[T, E] patterns instead of exceptions
 
 
 class UnknownTypeError(ProcessingError):
@@ -197,9 +185,6 @@ class UnknownTypeError(ProcessingError):
         if not self.entry_type:
             raise ValueError("entry_type is required for UnknownTypeError")
 
-    # to_exception() method removed in Phase 3
-    # Use Result[T, E] patterns instead of exceptions
-
 
 class MalformedDataError(ProcessingError):
     """Error for malformed data structures."""
@@ -208,9 +193,6 @@ class MalformedDataError(ProcessingError):
 
     expected_type: str | None = None
     actual_type: str | None = None
-
-    # to_exception() method removed in Phase 3
-    # Use Result[T, E] patterns instead of exceptions
 
 
 # New MCP-specific error types

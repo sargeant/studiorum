@@ -197,7 +197,7 @@ class DocumentStructureBuilder:
         """
         sections = []
 
-        # Content type priority for organization (Phase 3 migration)
+        # Content type priority for organization
         content_type_order = self._get_content_type_order()
 
         # Add chapters in preferred order
@@ -221,7 +221,7 @@ class DocumentStructureBuilder:
     def _get_content_type_order(self) -> list[str]:
         """Get ordered list of content types for document organization.
 
-        Uses registry-based approach for Phase 3 migration.
+        Uses the content type registry.
         Provides sensible default ordering for document structure.
 
         Returns:

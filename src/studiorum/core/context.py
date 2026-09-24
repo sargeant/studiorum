@@ -37,9 +37,6 @@ from studiorum.core.logging import get_logger
 from .error_types import (
     MCPError,
 )
-
-# Legacy exception import removed in Phase 3
-# Context now uses Result[T, E] patterns exclusively
 from .services.container import ServiceContainer
 from .services.lifecycle import ServiceLifecycle
 from .services.protocols import (

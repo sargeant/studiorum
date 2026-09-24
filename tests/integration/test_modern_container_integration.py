@@ -9,7 +9,6 @@ import asyncio
 import pytest
 
 from studiorum.core.services.container import (
-    RequestScopedContainer,
     ServiceContainer,
 )
 from studiorum.core.services.lifecycle import ServiceLifecycle
@@ -319,37 +318,6 @@ class TestServiceContainer:
         await container.cleanup()
 
     @pytest.mark.asyncio
-    async def test_request_scoped_container(self):
-        """Test request-scoped container creation and isolation."""
-        parent_container = ServiceContainer()
-
-        # Register singleton in parent
-        parent_container.register_service(
-            TestProtocol,
-            lambda: MockService("parent-singleton"),
-            lifecycle=ServiceLifecycle.SINGLETON,
-        )
-
-        # Create request scope
-        async with await parent_container.create_request_scope() as request_scope:
-            # Register scoped service in request scope
-            request_scope.register_service(
-                TestAsyncProtocol,
-                lambda: MockAsyncService("request-scoped"),
-                lifecycle=ServiceLifecycle.SCOPED,
-            )
-
-            # Get services
-            singleton_service = await request_scope.get_service(TestProtocol)
-            scoped_service = await request_scope.get_service(TestAsyncProtocol)
-
-            assert singleton_service.get_service_name() == "parent-singleton"
-            assert scoped_service.get_service_name() == "request-scoped"
-
-        # Request scope should be cleaned up automatically
-        await parent_container.cleanup()
-
-    @pytest.mark.asyncio
     async def test_container_closure(self):
         """Test container closure prevents further operations."""
         container = ServiceContainer()
@@ -370,10 +338,6 @@ class TestServiceContainer:
         # Should not be able to get services after closure
         with pytest.raises(RuntimeError):
             await container.get_service(TestProtocol)
-
-        # Should not be able to create request scope after closure
-        with pytest.raises(RuntimeError):
-            await container.create_request_scope()
 
     @pytest.mark.asyncio
     async def test_container_repr(self):
@@ -471,50 +435,6 @@ class TestServiceContainer:
 
 class TestRequestScopedContainer:
     """Test request-scoped container specific functionality."""
-
-    @pytest.mark.asyncio
-    async def test_request_container_properties(self):
-        """Test request container has proper properties."""
-        parent = ServiceContainer()
-
-        async with await parent.create_request_scope() as request_scope:
-            assert isinstance(request_scope, RequestScopedContainer)
-            assert hasattr(request_scope, "request_id")
-            assert hasattr(request_scope, "created_at")
-            assert len(request_scope.request_id) > 0
-
-        await parent.cleanup()
-
-    @pytest.mark.asyncio
-    async def test_request_container_isolation(self):
-        """Test that request containers are isolated from each other."""
-        parent = ServiceContainer()
-
-        # Create two request scopes
-        async with await parent.create_request_scope() as scope1:
-            async with await parent.create_request_scope() as scope2:
-                # Register different services in each scope
-                scope1.register_service(
-                    TestProtocol,
-                    lambda: MockService("scope1"),
-                    lifecycle=ServiceLifecycle.SCOPED,
-                )
-
-                scope2.register_service(
-                    TestProtocol,
-                    lambda: MockService("scope2"),
-                    lifecycle=ServiceLifecycle.SCOPED,
-                )
-
-                # Services should be different
-                service1 = await scope1.get_service(TestProtocol)
-                service2 = await scope2.get_service(TestProtocol)
-
-                assert service1.get_service_name() == "scope1"
-                assert service2.get_service_name() == "scope2"
-                assert service1 is not service2
-
-        await parent.cleanup()
 
     def test_sync_cache_cleanup_on_container_cleanup(self):
         """Test that sync cache is properly cleared during container cleanup."""

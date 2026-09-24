@@ -1,7 +1,7 @@
 """Content search tools for the Studiorum MCP server.
 
 This module provides content search functionality with <200ms performance targets,
-leveraging the PerformanceOptimizedOmnidexer and AsyncRequestContext infrastructure.
+built on the AsyncRequestContext infrastructure.
 
 Key Features:
 - Unified content search with type safety

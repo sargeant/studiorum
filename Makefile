@@ -50,7 +50,7 @@ else
 UV_SYNC_BASE := uv sync $(UV_SYNC_FLAGS)
 endif
 
-.PHONY: help uv uv-docs test mypy lint-imports pyright-errors pyright-warnings pyright-json typecheck-full pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade env-info check-lockfile export-env cache-info clean-cache
+.PHONY: help uv uv-docs test mypy lint-imports pyright-errors pyright-warnings pyright-json typecheck-full pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full doctor upgrade env-info check-lockfile export-env cache-info clean-cache
 
 # Parallel execution control - only sync targets should be serial
 # This allows make to run independent targets in parallel while ensuring
@@ -80,22 +80,6 @@ help:
 	@echo "  lint-imports - Check import layering and core cycles (import-linter)"
 	@echo "  pip-audit    - Security vulnerability scan"
 	@echo "  bandit       - Static security analysis"
-	@echo ""
-	@echo "Smart test selection:"
-	@echo "  test-quick        - Quick feedback (changed files + fast tests)"
-	@echo "  test-impacted     - Run only tests impacted by changes"
-	@echo "  test-focused      - Run tests for current feature branch"
-	@echo "  test-impact-analyze - Analyze which tests are impacted"
-	@echo ""
-	@echo "Test performance and quality:"
-	@echo "  test-profile      - Run tests with performance profiling"
-	@echo "  test-perf-baseline - Create performance baseline"
-	@echo "  test-perf-compare - Compare against baseline"
-	@echo "  test-perf-track   - Track performance history"
-	@echo "  test-perf-trends  - Show performance trends"
-	@echo "  test-quality      - Analyze test quality metrics"
-	@echo "  test-quality-gate - Check quality gates"
-	@echo "  test-quality-strict - Strict quality validation"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  docs-serve   - Start documentation auto-rebuild server"
@@ -255,80 +239,6 @@ test-latex-integration: uv
 	@echo "  - LaTeX installation (texlive)"
 	@echo "  - DND-5e-LaTeX-Template"
 	pytest -m "latex_compilation" tests/integration/latex/ -v || (echo "LaTeX integration tests failed"; exit 1)
-
-# Smart Test Selection (Phase 4.1)
-## Run only tests impacted by current changes
-test-impacted: uv
-	@echo "Analyzing test impact for current changes..."
-	@$(SCRIPTS_DIR)/run_impacted_tests.sh
-
-## Analyze which tests are impacted by changes
-test-impact-analyze: uv
-	@echo "Analyzing test impact..."
-	@git diff --name-only main...HEAD | xargs python $(SCRIPTS_DIR)/test_impact_analyzer.py
-
-## Run tests for current feature branch
-test-focused: uv
-	@echo "Running tests for current feature branch..."
-	@$(SCRIPTS_DIR)/run_impacted_tests.sh origin/main
-
-## Quick feedback loop - changed files + fast tests
-test-quick: uv
-	@echo "Running quick test suite (changed files + fast tests)..."
-	@if [ -n "$$(git diff --name-only HEAD 2>/dev/null)" ]; then \
-		$(SCRIPTS_DIR)/run_impacted_tests.sh HEAD; \
-	else \
-		pytest -m "fast" --tb=short; \
-	fi
-
-# Test Performance and Quality Monitoring (Phase 4.2)
-## Run tests with performance profiling
-test-profile: uv
-	@echo "Running tests with performance profiling..."
-	pytest --profile -m "not slow" || true
-	@echo "Performance report saved to .test-performance-report.json"
-
-## Create performance baseline
-test-perf-baseline: uv
-	@echo "Creating performance baseline..."
-	python $(SCRIPTS_DIR)/performance_baseline.py --create-baseline
-	@echo "Performance baseline created"
-
-## Compare performance against baseline
-test-perf-compare: uv
-	@echo "Comparing performance against baseline..."
-	pytest --profile -m "not slow" || true
-	python $(SCRIPTS_DIR)/performance_baseline.py --compare
-
-## Track performance history
-test-perf-track: uv
-	@echo "Tracking performance history..."
-	pytest --profile -m "not slow" || true
-	python $(SCRIPTS_DIR)/performance_baseline.py --track
-
-## Show performance trends
-test-perf-trends: uv
-	@echo "Showing performance trends..."
-	python $(SCRIPTS_DIR)/performance_baseline.py --trends
-
-
-## Analyze test quality metrics
-test-quality: uv
-	@echo "Analyzing test quality metrics..."
-	python $(SCRIPTS_DIR)/test_quality_metrics.py --report || (echo "Test quality analysis failed"; exit 1)
-	@echo "Test quality analysis completed"
-
-## Check test quality gates
-test-quality-gate: uv
-	@echo "Checking test quality gates..."
-	python $(SCRIPTS_DIR)/test_quality_metrics.py --check --fail-on-issues || (echo "Test quality gates failed"; exit 1)
-	@echo "Test quality gates passed"
-
-## Comprehensive test quality validation
-test-quality-strict: uv
-	@echo "Running strict test quality validation..."
-	python $(SCRIPTS_DIR)/test_quality_metrics.py --check --strict --fail-on-issues || (echo "Strict test quality validation failed"; exit 1)
-	@echo "Strict test quality validation passed"
 
 # Documentation
 ## Build HTML docs and open in browser
