@@ -17,9 +17,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from studiorum.core.logging import get_logger
-
-from ...core.context import AsyncRequestContext
-from ...core.services.protocols import SourceManagerProtocol
+from studiorum.mcp.context import AsyncRequestContext
 
 logger = get_logger(__name__)
 
@@ -111,7 +109,7 @@ async def manage_data_sources(
 
     try:
         # Get the source manager service
-        manager = await context.get_service(SourceManagerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        manager = context.services.source_manager
 
         if action == "list":
             # Get repository statistics

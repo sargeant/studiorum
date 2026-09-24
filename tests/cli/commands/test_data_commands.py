@@ -354,15 +354,11 @@ class TestCLIIntegration:
 
     def test_error_handling_shows_user_friendly_messages(self):
         """Test that errors show user-friendly messages."""
-        # Test service access errors are handled gracefully by patching at the service level
-        with patch(
-            "studiorum.core.services.container.ServiceContainer.get_service_sync"
-        ) as mock_service:
-            mock_service.side_effect = Exception("Service unavailable")
+        with patch("studiorum.cli.commands.data._load_config") as mock_load:
+            mock_load.side_effect = Exception("Service unavailable")
 
             result = self.runner.invoke(app, ["data", "list"])
             assert result.exit_code == 1
-            # Service errors during initialization show as configuration errors
             assert (
                 "Error listing repositories" in result.stdout
                 or "Configuration error" in result.stdout

@@ -3174,7 +3174,6 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
     { name = "typer" },
-    { name = "watchdog" },
 ]
 
 [package.optional-dependencies]
@@ -3246,7 +3245,6 @@ requires-dist = [
     { name = "rich", specifier = ">=14.0.0,<15.0.0" },
     { name = "structlog", marker = "extra == 'observability'", specifier = ">=25.0.0" },
     { name = "typer", specifier = ">=0.9.0,<1.0.0" },
-    { name = "watchdog", specifier = ">=6.0.0,<7.0.0" },
 ]
 provides-extras = ["observability"]
 

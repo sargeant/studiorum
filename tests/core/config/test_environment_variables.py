@@ -17,7 +17,6 @@ from studiorum.core.config.unified_config import (
     get_app_config,
     reset_app_config,
 )
-from studiorum.core.services.container import ServiceContainer
 
 
 class TestEnvironmentVariables:
@@ -41,7 +40,6 @@ class TestEnvironmentVariables:
 
         # Reset configs again for clean slate
         reset_app_config()
-        ServiceContainer.reset_global_instance()
 
     def _set_env_vars(self, env_vars: dict[str, str]) -> None:
         """Set environment variables and track original values."""
@@ -640,7 +638,6 @@ class TestEnvironmentVariableIntegration:
             else:
                 os.environ[key] = original_value
         reset_app_config()
-        ServiceContainer.reset_global_instance()
 
     def _set_env_vars(self, env_vars: dict[str, str]) -> None:
         """Set environment variables and track original values."""

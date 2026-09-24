@@ -19,8 +19,8 @@ from typing import Any, Literal, cast
 from fastmcp import FastMCP
 
 from studiorum.core.logging import get_logger
+from studiorum.mcp.context import async_request_context
 
-from ..core.context import async_request_context
 from ..core.error_types import (
     ErrorCategory,
     MCPError,

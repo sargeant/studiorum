@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 import typer
 
-from studiorum.cli.utils import resolve_option
+from studiorum.cli.commands.convert.shared import resolve_option
 
 if TYPE_CHECKING:
     pass
@@ -19,8 +19,8 @@ from studiorum.cli.config_factory import (
     get_document_class_default,
     get_with_images_default,
 )
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.latex_config import LaTeXConfig
 from studiorum.core.config.unified_config import get_app_config  # noqa: F401
 from studiorum.core.logging import get_logger
@@ -271,10 +271,11 @@ def spells(
         None, "--title", help="Document title", rich_help_panel="Output Control"
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(),
+        ...,
         "--pdf",
         help="Compile to PDF after conversion",
         rich_help_panel="Output Control",
+        default_factory=get_compile_pdf_default,
     ),
     open_pdf: bool = typer.Option(
         False,
@@ -284,10 +285,11 @@ def spells(
     ),
     # LaTeX document class options (inherited from other convert commands)
     document_class: str = typer.Option(
-        get_document_class_default(),
+        ...,
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
         rich_help_panel="Document Layout",
+        default_factory=get_document_class_default,
     ),
     paper: str | None = typer.Option(
         None,
@@ -345,10 +347,11 @@ def spells(
         rich_help_panel="Visual Styling",
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Visual Styling",
+        default_factory=get_with_images_default,
     ),
     sort: SpellSortMode = typer.Option(
         SpellSortMode.LEVEL,
@@ -501,8 +504,8 @@ def spells(
                 load_task = display_manager.add_task(
                     "[cyan]Loading spell data...", total=None
                 )
-                omnidexer = get_omnidexer()
-                tag_resolver = get_tag_resolver()
+                omnidexer = get_services().omnidexer
+                tag_resolver = get_services().tag_resolver
                 display_manager.update_task(load_task, completed=100)
 
             # Parse input sources and build criteria

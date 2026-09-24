@@ -2,9 +2,10 @@
 
 import typer
 
+from studiorum.cli.context import get_services
+
 # Re-export functions that tests may need to mock
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.resolvers.content_resolver import ContentResolver
 

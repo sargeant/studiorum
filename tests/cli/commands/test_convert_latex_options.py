@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -36,10 +36,9 @@ class TestLaTeXDocumentOptions:
             ]
         }
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
@@ -50,7 +49,6 @@ class TestLaTeXDocumentOptions:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_user_config,
         mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
@@ -80,18 +78,6 @@ class TestLaTeXDocumentOptions:
             False  # Add the missing no_outline field
         )
         mock_app_config.return_value = mock_config
-
-        # Mock user config with defaults (all None to use app config defaults)
-        mock_user_config_obj = Mock()
-        mock_user_config_obj.latex.paper_size = None
-        mock_user_config_obj.latex.fonts = None
-        mock_user_config_obj.latex.font_size = None
-        mock_user_config_obj.latex.background = None
-        mock_user_config_obj.latex.no_outline = None
-        mock_user_config_obj.latex.high_contrast = None
-        mock_user_config_obj.latex.two_column = None
-        mock_user_config_obj.latex.justified = None
-        mock_user_config.return_value = mock_user_config_obj
 
         # Mock LaTeX engine
         mock_engine = Mock()
@@ -156,11 +142,10 @@ class TestLaTeXDocumentOptions:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.services.Services.load_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     @patch("studiorum.cli.commands.convert.book.create_latex_engine")
     @patch("studiorum.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
@@ -172,7 +157,6 @@ class TestLaTeXDocumentOptions:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_user_config,
         mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
@@ -217,18 +201,6 @@ class TestLaTeXDocumentOptions:
         mock_config.rendering.latex.document.justified_text = False
         mock_config.rendering.latex.document.no_outline = False
         mock_app_config.return_value = mock_config
-
-        # Mock user config with defaults (all None to use app config defaults)
-        mock_user_config_obj = Mock()
-        mock_user_config_obj.latex.paper_size = None
-        mock_user_config_obj.latex.fonts = None
-        mock_user_config_obj.latex.font_size = None
-        mock_user_config_obj.latex.background = None
-        mock_user_config_obj.latex.no_outline = None
-        mock_user_config_obj.latex.high_contrast = None
-        mock_user_config_obj.latex.two_column = None
-        mock_user_config_obj.latex.justified = None
-        mock_user_config.return_value = mock_user_config_obj
 
         # Mock LaTeX engine
         mock_engine = Mock()
@@ -276,20 +248,18 @@ class TestLaTeXDocumentOptions:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.supplement.create_latex_engine")
     @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
-    @patch("studiorum.core.config.sources.get_content_config")
     @patch(
         "studiorum.cli.commands.convert.base.BaseConvertCommand.apply_config_hierarchy"
     )
     def test_supplement_with_paper_size_from_settings(
         self,
         mock_apply_config_hierarchy,
-        mock_get_content_config,
         mock_mkdir,
         mock_builtin_open,
         mock_display,
@@ -331,19 +301,6 @@ class TestLaTeXDocumentOptions:
             "statblock": "2024",
         }
         mock_apply_config_hierarchy.return_value = mock_config_dict
-
-        # Mock user config (should return None values to test fallback to app config)
-        mock_user_config = Mock()
-        mock_user_config.latex.paper_size = None
-        mock_user_config.latex.fonts = None
-        mock_user_config.latex.no_outline = None
-        mock_user_config.latex.background = None
-        mock_user_config.latex.high_contrast = None
-        mock_user_config.latex.font_size = None
-        mock_user_config.latex.two_column = None
-        mock_user_config.latex.justified = None
-        mock_user_config.latex.document.statblock = None
-        mock_get_content_config.return_value = mock_user_config
 
         # Mock file operations
         mock_file = Mock()

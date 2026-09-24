@@ -16,7 +16,8 @@ from studiorum.core.logging.logger import StudiorumLogger  # noqa: E402
 
 StudiorumLogger._initialized = True
 
-from studiorum.cli.utils import get_omnidexer  # noqa: E402
+from studiorum.core.config.unified_config import load_config  # noqa: E402
+from studiorum.services import build_services  # noqa: E402
 
 XP_BUDGET = {
     1: (50, 75, 100),
@@ -141,12 +142,11 @@ def difficulty_label(total_xp: int, party_size: int, level: int) -> str:
 
     if total_xp >= budget_high:
         return "HIGH"
-    elif total_xp >= budget_mod:
+    if total_xp >= budget_mod:
         return "Moderate"
-    elif total_xp >= budget_low:
+    if total_xp >= budget_low:
         return "Low"
-    else:
-        return "Trivial"
+    return "Trivial"
 
 
 def main():
@@ -166,7 +166,7 @@ def main():
         print("No creatures found in file.")
         sys.exit(1)
 
-    omnidexer = get_omnidexer()
+    omnidexer = build_services(load_config()).omnidexer
 
     print(f"\n{'=' * 60}")
     print("ENCOUNTER REPORT")

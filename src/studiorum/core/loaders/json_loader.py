@@ -3,23 +3,30 @@
 import json
 from datetime import timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     pass
 
 from pydantic import ValidationError
 
+from ..cache import get_cache
 from ..config.unified_config import get_app_config
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
-from ..services.access import get_cache
-from ..services.protocols import CacheProtocol
 from ..validation.error_tracker import ValidationErrorTracker
 from .base import DataLoader
 from .content_factory import ContentFactory
 
 logger = get_logger(__name__)
+
+
+class _KeyValueCache(Protocol):
+    """The part of diskcache.Cache the loader uses."""
+
+    def get(self, key: str, default: Any = None) -> Any: ...
+
+    def set(self, key: str, value: Any, expire: Any = None) -> Any: ...
 
 
 # Content factory for creating content instances
@@ -63,7 +70,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # If we can't stat the file, just use the path
             return f"json_loader:{self._content_type.value}:{path}:0:0"
 
-    def _get_cache_safe(self) -> CacheProtocol:
+    def _get_cache_safe(self) -> _KeyValueCache:
         """Get cache service safely, handling both sync and async contexts."""
         import asyncio
 
@@ -78,8 +85,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # Not in async context, use normal cache
             return get_cache()
 
-    def _create_noop_cache(self) -> CacheProtocol:
-        """Create a no-op cache that implements CacheProtocol."""
+    def _create_noop_cache(self) -> _KeyValueCache:
+        """Create a cache that stores nothing."""
 
         class NoOpCache:
             def get(self, key: str, default: Any = None) -> Any:
@@ -97,7 +104,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             def close(self) -> None:
                 pass
 
-        return NoOpCache()  # type: ignore[return-value]
+        return NoOpCache()
 
     def load(self, path: Path) -> list[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""

@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from studiorum.core.context import AsyncRequestContext
 from studiorum.core.error_types import ProcessingError
 from studiorum.core.models.rule_types import Action, Condition
 from studiorum.core.result import Error, Success
+from studiorum.mcp.context import AsyncRequestContext
 from studiorum.mcp.tools.rules import (
     find_rule_cross_references,
     get_rule_suggestions,
@@ -55,7 +55,6 @@ class TestRulesIntelligence:
     def mock_context(self) -> MagicMock:
         """Create a mock async request context for testing."""
         context = MagicMock(spec=AsyncRequestContext)
-        context.get_service = AsyncMock()
         context.record_cache_hit = MagicMock()
         context.record_cache_miss = MagicMock()
         context.record_async_operation = MagicMock()
@@ -187,7 +186,6 @@ class TestRulesIntelligence:
         self, mock_context: MagicMock
     ) -> None:
         """Test successful rule cross-reference discovery."""
-        mock_context.get_service.return_value = MagicMock()
 
         # Mock the service creation and method calls
         with patch(
@@ -244,7 +242,6 @@ class TestRulesIntelligence:
         self, mock_context: MagicMock
     ) -> None:
         """Test successful rule combination validation."""
-        mock_context.get_service.return_value = MagicMock()
 
         with patch(
             "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
@@ -299,7 +296,6 @@ class TestRulesIntelligence:
         self, mock_context: MagicMock
     ) -> None:
         """Test successful intelligent rule search."""
-        mock_context.get_service.return_value = MagicMock()
 
         with patch(
             "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
@@ -365,7 +361,6 @@ class TestRulesIntelligence:
     @pytest.mark.asyncio
     async def test_get_rule_suggestions_success(self, mock_context: MagicMock) -> None:
         """Test successful rule suggestion generation."""
-        mock_context.get_service.return_value = MagicMock()
 
         with patch(
             "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
@@ -551,8 +546,6 @@ class TestRulesIntelligence:
     async def test_performance_targets(self, mock_context: MagicMock) -> None:
         """Test that operations meet performance targets."""
         import time
-
-        mock_context.get_service.return_value = MagicMock()
 
         with patch(
             "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"

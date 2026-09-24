@@ -218,7 +218,7 @@ class TestLiberalParsing:
             assert fluff_items[1].name == "Incomplete Fluff"
 
             # Test text extraction using modern RecursiveEntryProcessor
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -229,7 +229,7 @@ class TestLiberalParsing:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
             processed_entries = entry_processor.process_entries(
@@ -343,7 +343,7 @@ class TestLiberalParsing:
         spell = Spell.model_validate(complex_spell_data)
 
         # Test main description extraction using modern RecursiveEntryProcessor
-        from studiorum.cli.utils import get_omnidexer
+        from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
         from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
         from studiorum.renderers.core.interfaces import RenderingContext
@@ -352,7 +352,7 @@ class TestLiberalParsing:
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
-            omnidexer=get_omnidexer(),
+            omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
         processed_entries = entry_processor.process_entries(
@@ -415,7 +415,7 @@ class TestLiberalParsing:
         ability = Ability.model_validate(complex_ability_data)
 
         # Define entry_processor and rendering_context in this scope
-        from studiorum.cli.utils import get_omnidexer
+        from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
         from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
         from studiorum.renderers.core.interfaces import RenderingContext
@@ -424,7 +424,7 @@ class TestLiberalParsing:
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
-            omnidexer=get_omnidexer(),
+            omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
 
@@ -486,7 +486,7 @@ class TestLiberalParsing:
         item = Item.model_validate(complex_item_data)
 
         # Define entry_processor and rendering_context in this scope
-        from studiorum.cli.utils import get_omnidexer
+        from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
         from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
         from studiorum.renderers.core.interfaces import RenderingContext
@@ -495,7 +495,7 @@ class TestLiberalParsing:
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
-            omnidexer=get_omnidexer(),
+            omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
 
@@ -769,7 +769,7 @@ class TestLiberalParsing:
 
             # Test text extraction works with highly nested structure
             # Define entry_processor and rendering_context in this scope
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -780,7 +780,7 @@ class TestLiberalParsing:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
 

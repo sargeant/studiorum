@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from studiorum.cli.services import get_cli_template_service
+from studiorum.cli.context import get_services
 from studiorum.core.models.content import Source  # type: ignore
 from studiorum.core.models.creatures import (  # type: ignore
     Ability,
@@ -607,7 +607,7 @@ class TestAbility:
         )
         assert str(ability) == "Multiattack"
         # Test description extraction using template service
-        template_service = get_cli_template_service()
+        template_service = get_services().template_service
         content_tracker = ContentTracker()
         bound = template_service.bind_context(content_tracker)
         description = bound.render_entry(ability.entries)
@@ -625,7 +625,7 @@ class TestAbility:
         ]
         ability: Any = Ability(name="Breath Weapon", entries=entries)
         # Test complex entries using template service
-        template_service = get_cli_template_service()
+        template_service = get_services().template_service
         content_tracker = ContentTracker()
         bound = template_service.bind_context(content_tracker)
         result = bound.render_entry(ability.entries)
@@ -641,7 +641,7 @@ class TestAbility:
         ]
         ability: Any = Ability(name="Complex Ability", entries=entries)
         # Test text entries using template service
-        template_service = get_cli_template_service()
+        template_service = get_services().template_service
         content_tracker = ContentTracker()
         bound = template_service.bind_context(content_tracker)
         result = bound.render_entry(ability.entries)
@@ -665,7 +665,7 @@ class TestAbility:
         ]
         ability: Any = Ability(name="List Ability", entries=entries)
         # Test list entries using modern RecursiveEntryProcessor
-        from studiorum.cli.utils import get_omnidexer
+        from studiorum.cli.context import get_services
         from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
         from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -673,7 +673,7 @@ class TestAbility:
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
-            omnidexer=get_omnidexer(),
+            omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
         processed_entries = entry_processor.process_entries(
@@ -697,7 +697,7 @@ class TestAbility:
         ]
         ability: Any = Ability(name="Nested Ability", entries=entries)
         # Test nested entries using modern RecursiveEntryProcessor
-        from studiorum.cli.utils import get_omnidexer
+        from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
         from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
         from studiorum.renderers.core.interfaces import RenderingContext
@@ -706,7 +706,7 @@ class TestAbility:
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
-            omnidexer=get_omnidexer(),
+            omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
         processed_entries = entry_processor.process_entries(
@@ -725,7 +725,7 @@ class TestAbility:
         # Empty entries
         ability1: Any = Ability(name="Empty", entries=[])
         # Test empty entries using template service
-        template_service = get_cli_template_service()
+        template_service = get_services().template_service
         content_tracker = ContentTracker()
         bound = template_service.bind_context(content_tracker)
         assert bound.render_entry(ability1.entries) == ""

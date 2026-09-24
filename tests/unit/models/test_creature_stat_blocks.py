@@ -4,11 +4,11 @@ These tests focus on the core functionality of creature models for generating
 properly formatted stat blocks with ability scores, modifiers, and complex text formatting.
 """
 
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 
-from studiorum.cli.services import get_cli_template_service
+from studiorum.cli.context import get_services
 from studiorum.core.models.creatures import (
     Ability,
     ArmorClass,
@@ -389,11 +389,15 @@ class TestCreatureAbilities:
         )
 
         # Test fallback text extraction (without tag processing)
+
+        # Built before the patch: the patch only reaches the template filters
+        template_service = get_services().template_service
         with patch(
-            "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.services.Services.tag_resolver",
+            new_callable=PropertyMock,
+            side_effect=Exception("No resolver"),
         ):
             # Use template service for text extraction
-            template_service = get_cli_template_service()
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             text = bound.render_entry(simple_ability.entries)
@@ -429,11 +433,15 @@ class TestCreatureAbilities:
         )
 
         # Test fallback text extraction
+
+        # Built before the patch: the patch only reaches the template filters
+        template_service = get_services().template_service
         with patch(
-            "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.services.Services.tag_resolver",
+            new_callable=PropertyMock,
+            side_effect=Exception("No resolver"),
         ):
             # Use template service for text extraction
-            template_service = get_cli_template_service()
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             text = bound.render_entry(complex_ability.entries)

@@ -8,13 +8,14 @@ from pathlib import Path
 import typer
 from rich import print as rprint
 
+from studiorum.cli.commands.convert.shared import resolve_option
 from studiorum.cli.config_factory import (
     get_compile_pdf_default,
     get_document_class_default,
     get_with_images_default,
 )
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer, get_tag_resolver, resolve_option
 from studiorum.core.config.latex_config import LaTeXConfig
 from studiorum.core.logging import get_logger
 from studiorum.core.models.items import Item
@@ -287,10 +288,11 @@ def items(
         None, "--title", help="Document title", rich_help_panel="Output Control"
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(),
+        ...,
         "--pdf",
         help="Compile to PDF after conversion",
         rich_help_panel="Output Control",
+        default_factory=get_compile_pdf_default,
     ),
     open_pdf: bool = typer.Option(
         False,
@@ -300,10 +302,11 @@ def items(
     ),
     # LaTeX document class options (inherited from other convert commands)
     document_class: str = typer.Option(
-        get_document_class_default(),
+        ...,
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
         rich_help_panel="Document Layout",
+        default_factory=get_document_class_default,
     ),
     paper: str | None = typer.Option(
         None,
@@ -361,10 +364,11 @@ def items(
         rich_help_panel="Visual Styling",
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Visual Styling",
+        default_factory=get_with_images_default,
     ),
     sort: ItemSortMode = typer.Option(
         ItemSortMode.TYPE,
@@ -506,8 +510,8 @@ def items(
                 load_task = display_manager.add_task(
                     "[cyan]Loading item data...", total=None
                 )
-                omnidexer = get_omnidexer()
-                tag_resolver = get_tag_resolver()
+                omnidexer = get_services().omnidexer
+                tag_resolver = get_services().tag_resolver
                 display_manager.update_task(load_task, completed=100)
 
             # Parse input sources and build criteria

@@ -1,7 +1,7 @@
 """Tests for BaseConvertCommand architecture."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 from studiorum.cli.commands.convert.base import (
     AppendixMixin,
@@ -21,9 +21,9 @@ class TestBaseConvertCommand:
         assert command._content_reference_manager is not None
 
     @patch("studiorum.cli.commands.convert.base.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     def test_apply_config_hierarchy_basic(
-        self, mock_get_content_config, mock_get_app_config
+        self,
+        mock_get_app_config,
     ):
         """Test basic config hierarchy application."""
         # Mock configurations matching actual config structure
@@ -51,16 +51,14 @@ class TestBaseConvertCommand:
         )
 
         assert config["paper_size"] == "legal"  # CLI override
-        assert (
-            config["fonts"] == "default_fonts"
-        )  # App config fallback (user config is None)
+        assert config["fonts"] == "default_fonts"  # App config fallback
         assert config["main_font"] is None  # main_font not in config structures
         assert config["title"] is None  # No title in config structures
 
     @patch("studiorum.cli.commands.convert.base.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     def test_apply_config_hierarchy_all_cli_args(
-        self, mock_get_content_config, mock_get_app_config
+        self,
+        mock_get_app_config,
     ):
         """Test config hierarchy with all CLI arguments provided."""
         # Mock configurations matching actual config structure
@@ -76,14 +74,6 @@ class TestBaseConvertCommand:
         mock_app_config.paths.output_path = Path("output")
 
         mock_get_app_config.return_value = mock_app_config
-
-        mock_user_config = Mock()
-        mock_user_config.latex.paper_size = "letterpaper"
-        # Create nested structure for fonts
-        mock_fonts = Mock()
-        mock_fonts.main_font = "User Font"
-        mock_user_config.latex.fonts = mock_fonts
-        mock_get_content_config.return_value = mock_user_config
 
         command = BaseConvertCommand()
 
@@ -107,9 +97,9 @@ class TestBaseConvertCommand:
         assert config["output_directory"] == Path("cli_output")
 
     @patch("studiorum.cli.commands.convert.base.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     def test_apply_config_hierarchy_none_values(
-        self, mock_get_content_config, mock_get_app_config
+        self,
+        mock_get_app_config,
     ):
         """Test config hierarchy with None CLI values."""
         # Mock configurations matching actual config structure
@@ -125,28 +115,18 @@ class TestBaseConvertCommand:
         mock_app_config.paths.output_path = Path("output")
         mock_get_app_config.return_value = mock_app_config
 
-        mock_user_config = Mock()
-        mock_user_config.latex.paper_size = "letterpaper"
-        # Create nested structure for fonts
-        mock_fonts = Mock()
-        mock_fonts.main_font = "User Font"
-        mock_user_config.latex.fonts = mock_fonts
-        mock_get_content_config.return_value = mock_user_config
-
         command = BaseConvertCommand()
 
         # None CLI args should not override lower priorities
         config = command.apply_config_hierarchy(
-            paper=None,  # Should use user config
-            main_font=None,  # Should use user config
+            paper=None,
+            main_font=None,
         )
 
-        assert (
-            config["paper_size"] == "a4paper"
-        )  # App config fallback (user config is None)
+        assert config["paper_size"] == "a4paper"  # App config fallback
         assert config["main_font"] is None  # main_font not in config structures
 
-    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_get_content_loader_omnidexer_source(self, mock_get_omnidexer):
         """Test content loader with omnidexer source."""
         mock_omnidexer = Mock()
@@ -203,7 +183,7 @@ class TestBaseConvertCommand:
                 assert mock_create_source.call_count == 2
                 assert mock_loader.add_source.call_count == 2
 
-    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_get_content_reference_manager(self, mock_get_omnidexer):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
@@ -231,7 +211,7 @@ class TestAppendixMixin:
         # Should have content reference manager
         assert hasattr(mixin, "_content_reference_manager")
 
-    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_get_content_reference_manager(self, mock_get_omnidexer):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()

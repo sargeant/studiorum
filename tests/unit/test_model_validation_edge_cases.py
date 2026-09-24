@@ -6,7 +6,7 @@ that might cause validation issues.
 
 from typing import Any, cast
 
-from studiorum.cli.services import get_cli_template_service
+from studiorum.cli.context import get_services
 from studiorum.core.models.creatures import (  # type: ignore
     Ability,
     ArmorClass,
@@ -99,7 +99,7 @@ class TestModelValidationEdgeCases:
             assert spell.name == spell_data["name"]
 
             # Test text extraction using new template service pattern
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             description = bound.render_entry(spell.entries)
@@ -174,7 +174,7 @@ class TestModelValidationEdgeCases:
             spell = Spell.model_validate(spell_data)
 
             # Test higher level text extraction using template service
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             if spell.higher_level:
@@ -357,7 +357,7 @@ class TestModelValidationEdgeCases:
             assert ability.name == cast(dict, ability_data)["name"]
 
             # Test ability description extraction using template service
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
@@ -367,7 +367,7 @@ class TestModelValidationEdgeCases:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
             processed_entries = entry_processor.process_entries(
@@ -448,7 +448,7 @@ class TestModelValidationEdgeCases:
 
             if item.entries:
                 # Test item description extraction using modern RecursiveEntryProcessor
-                from studiorum.cli.utils import get_omnidexer
+                from studiorum.cli.context import get_services
                 from studiorum.core.references.content_tracker import ContentTracker
                 from studiorum.latex_engine.core.entry_processor import (
                     RecursiveEntryProcessor,
@@ -459,7 +459,7 @@ class TestModelValidationEdgeCases:
                 content_tracker = ContentTracker()
                 rendering_context = RenderingContext(
                     output_format="latex",
-                    omnidexer=get_omnidexer(),
+                    omnidexer=get_services().omnidexer,
                     content_tracker=content_tracker,
                 )
                 processed_entries = entry_processor.process_entries(

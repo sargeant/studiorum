@@ -1,7 +1,7 @@
 """Tests for spell conversion CLI commands."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -86,10 +86,9 @@ class TestConvertSpellsCommand:
             },
         ]
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
@@ -100,7 +99,6 @@ class TestConvertSpellsCommand:
         mock_display,
         mock_render_spellbook,
         mock_spell_collector_class,
-        mock_user_config,
         mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
@@ -126,18 +124,6 @@ class TestConvertSpellsCommand:
             False  # Add the missing no_outline field
         )
         mock_app_config.return_value = mock_config
-
-        # Mock user config with defaults (all None to use app config defaults)
-        mock_user_config_obj = Mock()
-        mock_user_config_obj.latex.paper_size = None
-        mock_user_config_obj.latex.fonts = None
-        mock_user_config_obj.latex.font_size = None
-        mock_user_config_obj.latex.background = None
-        mock_user_config_obj.latex.no_outline = None
-        mock_user_config_obj.latex.high_contrast = None
-        mock_user_config_obj.latex.two_column = None
-        mock_user_config_obj.latex.justified = None
-        mock_user_config.return_value = mock_user_config_obj
 
         # Mock spell collector
         mock_collector = Mock()
@@ -208,8 +194,8 @@ class TestConvertSpellsCommand:
         assert result.exit_code == 1
         assert "File does not exist" in result.stdout
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
     def test_convert_spells_no_spells_found(

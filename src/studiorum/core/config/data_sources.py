@@ -9,6 +9,8 @@ Key Components:
 - ExtensionDataSourceConfig: Extension data sources (homebrew, URLs)
 - SourceAttributionConfig: Content attribution (separate concern)
 - DataSourcesConfig: Complete data sources configuration
+- ContentSource and ContentConfiguration: the directory and GitHub sources
+  that the loaders read when no primary override is enabled
 
 Architecture:
 1. SRD Data: Always available bundled content
@@ -263,3 +265,135 @@ class DataSourcesConfig(BaseModel):
             issues.append("Duplicate extension names found")
 
         return issues
+
+
+class SourceType(str, Enum):
+    """Types of content sources."""
+
+    GITHUB = "github"
+    DIRECTORY = "directory"
+    WEB = "web"  # Future feature
+
+
+class ContentSource(BaseModel):
+    """Configuration for a content source."""
+
+    name: str = Field(..., description="Unique name for this source")
+    type: SourceType = Field(..., description="Type of content source")
+    enabled: bool = Field(default=True, description="Whether this source is active")
+    priority: int = Field(
+        default=1, description="Priority order (lower = higher priority)"
+    )
+
+    # GitHub source fields
+    url: str | None = Field(None, description="GitHub repository URL or web URL")
+    branch: str | None = Field(default="master", description="Git branch to use")
+
+    # Directory source fields
+    path: str | Path | None = Field(None, description="Local directory path")
+
+    # Update settings
+    auto_update: bool = Field(
+        default=True, description="Automatically update this source"
+    )
+    update_interval: str = Field(default="daily", description="Update frequency")
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        """Validate source name is safe for filesystem."""
+        if not v.replace("-", "").replace("_", "").isalnum():
+            raise ValueError(
+                "Source name must contain only alphanumeric characters, "
+                "hyphens, and underscores"
+            )
+        return v
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v: str | None, info: Any) -> str | None:
+        """Validate URL is provided for web/github sources."""
+        if info.data.get("type") in [SourceType.GITHUB, SourceType.WEB] and not v:
+            raise ValueError(f"URL is required for {info.data.get('type')} sources")
+        return v
+
+    @field_validator("path")
+    @classmethod
+    def validate_path(cls, v: str | Path | None, info: Any) -> Path | None:
+        """Validate path is provided for directory sources."""
+        if info.data.get("type") == SourceType.DIRECTORY:
+            if not v:
+                raise ValueError("Path is required for directory sources")
+            return Path(v).expanduser().resolve()
+        return Path(v).expanduser().resolve() if v else None
+
+
+def _find_project_root() -> Path:
+    """Find the directory holding test-data/ and srd-data/, starting from cwd."""
+    current = Path.cwd()
+    for candidate in [current, *current.parents]:
+        if (candidate / "test-data").exists() and (candidate / "srd-data").exists():
+            return candidate
+    # Without a project root the default sources point at missing directories
+    return current
+
+
+def default_content_sources() -> list[ContentSource]:
+    """The test-data and SRD directories of the nearest project root."""
+    project_root = _find_project_root()
+    return [
+        ContentSource(
+            name="test-data",
+            type=SourceType.DIRECTORY,
+            path=project_root / "test-data",
+            priority=0,
+        ),
+        ContentSource(
+            name="srd",
+            type=SourceType.DIRECTORY,
+            path=project_root / "srd-data",
+            priority=1,
+        ),
+    ]
+
+
+class ContentConfiguration(BaseModel):
+    """The content sources the loaders read, with the directory for clones."""
+
+    content_sources: list[ContentSource] = Field(
+        default_factory=list, description="List of content sources"
+    )
+    cache_dir: Path = Field(
+        default_factory=lambda: Path.home() / ".cache" / "studiorum",
+        description="Cache directory",
+    )
+
+    def model_post_init(self, __context: Any) -> None:
+        """Make sure the clone directory exists."""
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def get_enabled_sources(self) -> list[ContentSource]:
+        """Get list of enabled sources sorted by priority."""
+        enabled = [source for source in self.content_sources if source.enabled]
+        return sorted(enabled, key=lambda x: (x.priority, x.name))
+
+    def get_source_by_name(self, name: str) -> ContentSource | None:
+        """Get source by name."""
+        for source in self.content_sources:
+            if source.name == name:
+                return source
+        return None
+
+    def add_source(self, source: ContentSource) -> None:
+        """Add a new content source."""
+        if self.get_source_by_name(source.name):
+            raise ValueError(f"Source with name '{source.name}' already exists")
+        self.content_sources.append(source)
+
+    def remove_source(self, name: str) -> bool:
+        """Remove a content source by name."""
+        for i, source in enumerate(self.content_sources):
+            if source.name == name:
+                del self.content_sources[i]
+                return True
+        return False

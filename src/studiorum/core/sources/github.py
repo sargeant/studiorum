@@ -7,7 +7,7 @@ import shutil
 import subprocess  # nosec B404
 from pathlib import Path
 
-from ..config.sources import ContentSource, SourceType
+from ..config.data_sources import ContentSource, SourceType
 from ..logging import get_logger
 from ..security import ExecutableNotFoundError, get_git_executable
 

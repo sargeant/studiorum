@@ -8,7 +8,7 @@ import pytest
 from hypothesis import example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from studiorum.cli.services import get_cli_template_service
+from studiorum.cli.context import get_services
 from studiorum.core.models.spells import (
     Spell,
     SpellComponent,
@@ -443,7 +443,7 @@ class TestSpellDataIntegrity:
 
         assert len(spell.entries) > 0
         # Use template service for description extraction
-        template_service = get_cli_template_service()
+        template_service = get_services().template_service
         content_tracker = ContentTracker()
         bound = template_service.bind_context(content_tracker)
         description_text = bound.render_entry(spell.entries)

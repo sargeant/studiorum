@@ -17,13 +17,13 @@ from __future__ import annotations
 from typing import Any
 
 from studiorum.core.logging import get_logger
-
-from ..core.api import ModernContextualAPI
-from ..core.context import (
+from studiorum.mcp.api import ModernContextualAPI
+from studiorum.mcp.context import (
     AsyncRequestContext,
     async_request_context,
     performance_monitored_context,
 )
+
 from ..core.error_types import (
     ContentNotFoundError,
     ErrorCategory,
@@ -33,7 +33,6 @@ from ..core.error_types import (
     MCPException,
 )
 from ..core.result import Error
-from ..core.services.protocols import OmnidexerProtocol
 from .async_service_bridge import (
     MCPServiceContext,
     create_mcp_service_context,
@@ -453,7 +452,6 @@ class ModernMCPRequestHandler:
             # Add appendices if requested using protocol-based services
             if include_appendices:
                 try:
-                    # content_factory = await ctx.get_service(ContentFactoryProtocol)  # Placeholder
                     # Appendix generation would be implemented on the content factory
                     response_data["appendices"] = {
                         "note": "Appendix generation not yet implemented"
@@ -502,7 +500,7 @@ class ModernMCPRequestHandler:
             }
 
         # Get protocol-validated omnidexer for book lookup
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        omnidexer = ctx.services.omnidexer
 
         # Search for the book
         ctx.record_async_operation()
@@ -606,7 +604,7 @@ class ModernMCPRequestHandler:
             ctx.sources.extend(sources)
 
         # Get protocol-validated omnidexer
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        omnidexer = ctx.services.omnidexer
 
         ctx.record_async_operation()
 
@@ -663,7 +661,7 @@ class ModernMCPRequestHandler:
             ctx.sources.extend(sources)
 
         # Get protocol-validated omnidexer
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        omnidexer = ctx.services.omnidexer
 
         ctx.record_async_operation()
 
@@ -1247,7 +1245,7 @@ class ModernMCPRequestHandler:
             This replaces the complex context management with a simple pattern:
             >>> # Instead of complex async context management:
             >>> # async with async_request_context(...) as ctx:
-            >>> #     omnidexer = await ctx.get_service(OmnidexerProtocol)
+            >>> #     omnidexer = ctx.services.omnidexer
             >>> #     results = omnidexer.search(query)
             >>>
             >>> # Use the bridge pattern:

@@ -4,9 +4,9 @@ These tests focus on how creature abilities and descriptions handle
 5etools markup tags like {@atk}, {@damage}, {@spell}, etc.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
-from studiorum.cli.services import get_cli_template_service
+from studiorum.cli.context import get_services
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core import model_text
@@ -53,7 +53,7 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
@@ -69,7 +69,7 @@ class TestCreatureMarkupProcessing:
             mock_processor_class.return_value = mock_processor
 
             # Use template service for description rendering
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             description = bound.render_entry(ability.entries)
@@ -152,8 +152,13 @@ class TestCreatureMarkupProcessing:
         )
 
         # Test that fallback works when tag processing raises exceptions
+        from studiorum.cli.context import get_services
+
+        # Built before the patch: the patch only reaches the template filters
+        template_service = get_services().template_service
         with patch(
-            "studiorum.cli.services.get_cli_tag_resolver",
+            "studiorum.services.Services.tag_resolver",
+            new_callable=PropertyMock,
             side_effect=Exception("CLI service error"),
         ):
             # With no tag resolver the name stays raw
@@ -161,10 +166,9 @@ class TestCreatureMarkupProcessing:
             assert fallback_name == "Spell Attack {@spell magic missile}"
 
             # Should fall back to simple text extraction
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             fallback_description = bound.render_entry(ability.entries)
@@ -199,7 +203,7 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
@@ -215,10 +219,10 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             processed_text = bound.render_entry(complex_ability.entries)
@@ -237,9 +241,11 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
-            patch("studiorum.cli.services.get_cli_omnidexer") as mock_get_omnidexer,
+            patch(
+                "studiorum.services.Services.omnidexer", new_callable=PropertyMock
+            ) as mock_get_omnidexer,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -257,10 +263,10 @@ class TestCreatureMarkupProcessing:
             mock_context = Mock()
             mock_context_class.return_value = mock_context
 
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             template_service.bind_context(content_tracker).render_entry(ability.entries)
 
@@ -287,7 +293,7 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
@@ -302,10 +308,10 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             processed_text = template_service.bind_context(
                 content_tracker
@@ -331,7 +337,7 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
@@ -349,7 +355,7 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -360,7 +366,7 @@ class TestCreatureMarkupProcessing:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
             processed_entries = entry_processor.process_entries(
@@ -386,7 +392,7 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
@@ -401,7 +407,7 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -412,7 +418,7 @@ class TestCreatureMarkupProcessing:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
             processed_entries = entry_processor.process_entries(
@@ -436,7 +442,7 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
@@ -470,10 +476,10 @@ class TestCreatureMarkupProcessing:
                 "The dragon exhales acid in a 60-foot line that is 5 feet wide.",
                 "Each creature in that line must make a DC 18 Dexterity saving throw, taking 12d8 acid damage on a failed save, or half as much damage on a successful one.",
             ]
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             processed_description = template_service.bind_context(
                 content_tracker
@@ -489,14 +495,18 @@ class TestCreatureMarkupEdgeCases:
         ability = Ability(name="Empty Test", entries=[])
 
         # Should handle empty entries gracefully
+        from studiorum.cli.context import get_services
+
+        # Built before the patch: the patch only reaches the template filters
+        template_service = get_services().template_service
         with patch(
-            "studiorum.cli.services.get_cli_tag_resolver",
+            "studiorum.services.Services.tag_resolver",
+            new_callable=PropertyMock,
             side_effect=Exception("No CLI service"),
         ):
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
             content_tracker = ContentTracker()
             description = template_service.bind_context(content_tracker).render_entry(
                 ability.entries
@@ -516,14 +526,18 @@ class TestCreatureMarkupEdgeCases:
         )
 
         # Test fallback text extraction without tag processing
+        from studiorum.cli.context import get_services
+
+        # Built before the patch: the patch only reaches the template filters
+        template_service = get_services().template_service
         with patch(
-            "studiorum.cli.services.get_cli_tag_resolver",
+            "studiorum.services.Services.tag_resolver",
+            new_callable=PropertyMock,
             side_effect=Exception("No CLI service"),
         ):
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
             content_tracker = ContentTracker()
             description = template_service.bind_context(content_tracker).render_entry(
                 ability.entries
@@ -548,14 +562,18 @@ class TestCreatureMarkupEdgeCases:
         ability = Ability(name="Malformed Test", entries=entries)
 
         # Should handle malformed entries without crashing
+        from studiorum.cli.context import get_services
+
+        # Built before the patch: the patch only reaches the template filters
+        template_service = get_services().template_service
         with patch(
-            "studiorum.cli.services.get_cli_tag_resolver",
+            "studiorum.services.Services.tag_resolver",
+            new_callable=PropertyMock,
             side_effect=Exception("No CLI service"),
         ):
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
             content_tracker = ContentTracker()
             description = template_service.bind_context(content_tracker).render_entry(
                 ability.entries
@@ -572,7 +590,7 @@ class TestCreatureMarkupEdgeCases:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
@@ -582,10 +600,10 @@ class TestCreatureMarkupEdgeCases:
             # Mock the CLI service to return our mock tag resolver
             mock_get_tag_resolver.return_value = mock_tag_resolver
             # Should fall back to simple text extraction
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             description = template_service.bind_context(content_tracker).render_entry(
                 ability.entries
@@ -600,7 +618,7 @@ class TestCreatureMarkupEdgeCases:
 
         with (
             patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_get_tag_resolver,
             patch(
                 "studiorum.renderers.core.interfaces.RenderingContext",
@@ -610,10 +628,10 @@ class TestCreatureMarkupEdgeCases:
             # Mock the CLI service to return our mock tag resolver
             mock_get_tag_resolver.return_value = mock_tag_resolver
             # Should fall back to simple text extraction
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
 
-            template_service = get_cli_template_service()
+            template_service = get_services().template_service
             content_tracker = ContentTracker()
             description = template_service.bind_context(content_tracker).render_entry(
                 ability.entries

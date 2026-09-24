@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from studiorum.core.config.sources import ContentSource, SourceType
+from studiorum.core.config.data_sources import ContentSource, SourceType
 from studiorum.core.sources.github import GitHubSourceManager
 
 

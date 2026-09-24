@@ -92,10 +92,11 @@ def build_cache() -> dict[str, dict]:
 
     StudiorumLogger._initialized = True
 
-    from studiorum.cli.utils import get_omnidexer
+    from studiorum.core.config.unified_config import load_config
+    from studiorum.services import build_services
 
     print("Building creature XP cache (one-time operation)...")
-    omnidexer = get_omnidexer()
+    omnidexer = build_services(load_config()).omnidexer
 
     cache: dict[str, dict] = {}
     creatures = list(omnidexer.get_all_by_type("creature"))
@@ -181,12 +182,11 @@ def difficulty_label(total_xp: int, party_size: int, level: int) -> str:
 
     if total_xp >= budget_high:
         return "HIGH"
-    elif total_xp >= budget_mod:
+    if total_xp >= budget_mod:
         return "Moderate"
-    elif total_xp >= budget_low:
+    if total_xp >= budget_low:
         return "Low"
-    else:
-        return "Trivial"
+    return "Trivial"
 
 
 def main():

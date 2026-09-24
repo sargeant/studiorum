@@ -6,8 +6,9 @@ __snapshots__/. After an intended change to the output, refresh them with:
 
     uv run pytest tests/e2e --snapshot-update
 
-The tests run with HOME pointed at an empty directory so the developer's own
-~/.studiorum/config.yaml (data sources, layout defaults) cannot leak in.
+The tests load tests/test-config.yaml through STUDIORUM_CONFIG_FILE, so the
+developer's own ~/.studiorum/config.yaml (data sources, layout defaults)
+cannot leak in.
 """
 
 import os
@@ -91,19 +92,14 @@ def tex_snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
 @pytest.fixture
 def isolated_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     """Run the CLI against the repo's test data with no user configuration."""
-    home = tmp_path / "home"
-    home.mkdir()
     for name in [n for n in os.environ if n.startswith("STUDIORUM_")]:
         monkeypatch.delenv(name)
-    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv(
         "STUDIORUM_CONFIG_FILE", str(REPO_ROOT / "tests" / "test-config.yaml")
     )
-    monkeypatch.setenv("STUDIORUM_DISABLE_PRIMARY_OVERRIDE", "true")
     monkeypatch.chdir(REPO_ROOT)
     # The .tex output does not need the DND LaTeX class installed, only
-    # compilation does, and the check looks under HOME.
+    # compilation does.
     monkeypatch.setattr(
         LaTeXTemplateEngine, "check_dnd_template_availability", lambda self: True
     )

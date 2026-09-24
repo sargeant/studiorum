@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -78,9 +78,9 @@ class TestAdventureContentOutput:
 
         return mock_tracker
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_spells_option(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -152,9 +152,9 @@ class TestAdventureContentOutput:
                 assert call_args[1]["content_type_filter"] == "spell"
                 assert call_args[1]["title"] == "Test Adventure"
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_creatures_option(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -216,9 +216,9 @@ class TestAdventureContentOutput:
                 )  # keyword argument
                 assert call_args[1]["content_type_filter"] == "creature"
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_items_option(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -278,9 +278,9 @@ class TestAdventureContentOutput:
                 assert call_args[1]["output_path"] == items_output  # keyword argument
                 assert call_args[1]["content_type_filter"] == "item"
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_all_content_types(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -341,9 +341,9 @@ class TestAdventureContentOutput:
                 # Verify ContentListWriter was called 3 times (once for each content type)
                 assert mock_writer.write_content_list.call_count == 3
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_with_custom_title(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -401,9 +401,9 @@ class TestAdventureContentOutput:
                 call_args = mock_writer.write_content_list.call_args
                 assert call_args[1]["title"] == "Custom Adventure Title"
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_content_list_error(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -462,9 +462,9 @@ class TestAdventureContentOutput:
                 assert result.exit_code == 0
                 assert "Error" in result.stdout or "Warning" in result.stdout
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_empty_content_tracker(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -527,13 +527,14 @@ class TestAdventureContentOutput:
         """Test that output directories are created automatically."""
         with (
             patch(
-                "studiorum.cli.commands.convert.adventure.get_content_list_writer"
+                "studiorum.services.Services.content_list_writer",
+                new_callable=PropertyMock,
             ) as mock_get_writer,
             patch(
-                "studiorum.cli.commands.convert.adventure.get_omnidexer"
+                "studiorum.services.Services.omnidexer", new_callable=PropertyMock
             ) as mock_get_omnidexer,
             patch(
-                "studiorum.cli.commands.convert.adventure.get_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_tag_resolver,
         ):
             # Setup mocks
@@ -594,13 +595,14 @@ class TestAdventureContentOutput:
         """Test adventure conversion without any content output options (normal behavior)."""
         with (
             patch(
-                "studiorum.cli.commands.convert.adventure.get_content_list_writer"
+                "studiorum.services.Services.content_list_writer",
+                new_callable=PropertyMock,
             ) as mock_get_writer,
             patch(
-                "studiorum.cli.commands.convert.adventure.get_omnidexer"
+                "studiorum.services.Services.omnidexer", new_callable=PropertyMock
             ) as mock_get_omnidexer,
             patch(
-                "studiorum.cli.commands.convert.adventure.get_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_tag_resolver,
         ):
             # Setup mocks

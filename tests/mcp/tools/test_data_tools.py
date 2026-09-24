@@ -4,11 +4,11 @@ This module tests the new MCP tools for data repository management
 from Package 3 implementation.
 """
 
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, PropertyMock
 
 import pytest
 
-from studiorum.core.context import AsyncRequestContext
+from studiorum.mcp.context import AsyncRequestContext
 from studiorum.mcp.tools.attribution import manage_source_attribution
 from studiorum.mcp.tools.data import manage_data_sources
 
@@ -22,7 +22,7 @@ class TestDataSourcesMCPTool:
         # Mock context and manager
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Mock statistics response
         mock_manager.get_source_statistics.return_value = {
@@ -69,7 +69,7 @@ class TestDataSourcesMCPTool:
         # Mock context and manager
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Mock detailed statistics
         mock_manager.get_source_statistics.return_value = {
@@ -133,7 +133,7 @@ class TestDataSourcesMCPTool:
         # Mock context and manager
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Call tool
         result = await manage_data_sources(
@@ -157,7 +157,7 @@ class TestDataSourcesMCPTool:
         # Mock context
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Call tool with invalid path
         result = await manage_data_sources(
@@ -178,7 +178,7 @@ class TestDataSourcesMCPTool:
         # Mock context and manager
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Call tool
         result = await manage_data_sources(
@@ -201,7 +201,7 @@ class TestDataSourcesMCPTool:
         # Mock context
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Call tool
         result = await manage_data_sources(
@@ -223,7 +223,7 @@ class TestDataSourcesMCPTool:
         # Mock context
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Call tool with invalid URL
         result = await manage_data_sources(
@@ -240,7 +240,7 @@ class TestDataSourcesMCPTool:
         # Mock context
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Call tool
         result = await manage_data_sources(
@@ -264,7 +264,7 @@ class TestDataSourcesMCPTool:
         """Test behavior with unknown action."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_manager = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         result = await manage_data_sources(
             action="invalid_action", context=mock_context
@@ -277,7 +277,7 @@ class TestDataSourcesMCPTool:
     async def test_service_exception(self):
         """Test handling of service exceptions."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
-        mock_context.get_service = AsyncMock(
+        type(mock_context).services = PropertyMock(
             side_effect=Exception("Service unavailable")
         )
 
@@ -297,7 +297,7 @@ class TestSourceAttributionMCPTool:
         # Mock context and attribution manager
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_attribution = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_attribution)
+        mock_context.services.content_attribution = mock_attribution
 
         # Mock source data
         mock_attribution.get_all_sources.return_value = ["PHB", "MM", "DMG", "HOMEBREW"]
@@ -344,7 +344,7 @@ class TestSourceAttributionMCPTool:
         """Test resolving a known source abbreviation."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_attribution = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_attribution)
+        mock_context.services.content_attribution = mock_attribution
 
         # Mock source resolution
         mock_attribution.resolve_source.return_value = {
@@ -374,7 +374,7 @@ class TestSourceAttributionMCPTool:
         """Test resolving an unknown source abbreviation."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_attribution = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_attribution)
+        mock_context.services.content_attribution = mock_attribution
 
         # Mock source resolution for unknown source
         mock_attribution.resolve_source.return_value = None
@@ -397,7 +397,7 @@ class TestSourceAttributionMCPTool:
         """Test setting source priority via MCP."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_attribution = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_attribution)
+        mock_context.services.content_attribution = mock_attribution
 
         # Call tool
         result = await manage_source_attribution(
@@ -419,7 +419,7 @@ class TestSourceAttributionMCPTool:
         """Test setting negative priority (should fail)."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_attribution = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_attribution)
+        mock_context.services.content_attribution = mock_attribution
 
         # Call tool with negative priority
         result = await manage_source_attribution(
@@ -438,7 +438,7 @@ class TestSourceAttributionMCPTool:
         """Test getting attribution system info."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_attribution = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_attribution)
+        mock_context.services.content_attribution = mock_attribution
 
         # Mock sources with mix of official and unofficial
         mock_attribution.get_all_sources.return_value = [
@@ -470,7 +470,7 @@ class TestSourceAttributionMCPTool:
         """Test behavior with missing required parameters."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
         mock_attribution = Mock()
-        mock_context.get_service = AsyncMock(return_value=mock_attribution)
+        mock_context.services.content_attribution = mock_attribution
 
         # Test resolve without abbreviation
         result = await manage_source_attribution(action="resolve", context=mock_context)
@@ -506,7 +506,7 @@ class TestSourceAttributionMCPTool:
     async def test_service_exception(self):
         """Test handling of service exceptions."""
         mock_context = AsyncMock(spec=AsyncRequestContext)
-        mock_context.get_service = AsyncMock(
+        type(mock_context).services = PropertyMock(
             side_effect=Exception("Attribution service failed")
         )
 

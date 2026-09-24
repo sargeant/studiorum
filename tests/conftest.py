@@ -9,9 +9,13 @@ from typing import Any
 # into CliRunner output. It reads this at import, so set it before the CLI loads.
 os.environ.setdefault("_TYPER_FORCE_DISABLE_TERMINAL", "1")
 
+# Tests read tests/test-config.yaml, never the developer's ~/.studiorum/config.yaml.
+# Set before the CLI is imported, since its option defaults are read at import.
+os.environ["STUDIORUM_CONFIG_FILE"] = str(Path(__file__).parent / "test-config.yaml")
+
 import pytest
 
-from studiorum.core.config.sources import (  # type: ignore
+from studiorum.core.config.data_sources import (  # type: ignore
     ContentConfiguration,
     ContentSource,
     SourceType,
@@ -327,24 +331,12 @@ def make_tag_resolver():
 @pytest.fixture
 def test_data_omnidexer() -> Omnidexer:
     """Omnidexer using test-data and srd-data sources."""
-    import os
 
-    # Set test configuration environment variable BEFORE resetting containers
-    # This ensures the config is loaded from the correct file
-    os.environ["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"
-
-    # Use full reset sequence for complete isolation
     reset_test_environment()
-
-    # Note: reset_test_environment() now handles both container systems via reset_all_containers()
-    # No need for additional container resets here
 
     # Get omnidexer - create directly for test compatibility
     omnidexer = Omnidexer()
     omnidexer.load_all_data()
-
-    # The container already calls load_all_data() when creating the omnidexer
-    # No need to call it again - doing so triggers duplicate detection
 
     # NOTE: There is a known issue where books fail to load in test environment
     # due to complex global state corruption. This affects multiple test files.

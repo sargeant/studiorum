@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.cli.main import get_tag_resolver
+from studiorum.cli.context import get_services
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.references.content_tracker import ContentTracker
@@ -141,7 +141,7 @@ This section contains basic text to ensure the DND template is working correctly
 
         # Create rendering context
         content_tracker = ContentTracker()
-        tag_resolver = get_tag_resolver()
+        tag_resolver = get_services().tag_resolver
 
         document_metadata = DocumentMetadata(
             title=book.name,
@@ -214,7 +214,7 @@ This section contains basic text to ensure the DND template is working correctly
 
         # Create rendering context
         content_tracker = ContentTracker()
-        tag_resolver = get_tag_resolver()
+        tag_resolver = get_services().tag_resolver
 
         document_metadata = DocumentMetadata(
             title=adventure.name,

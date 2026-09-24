@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -22,8 +22,8 @@ class TestErrorHandlingPaths:
 
         self.runner = CliRunner()
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_json_decode_error(self, mock_tag_resolver, mock_omnidexer):
         """Test handling of invalid JSON files."""
         # Mock dependencies
@@ -48,8 +48,8 @@ class TestErrorHandlingPaths:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("builtins.open")
     def test_renderer_exception(
@@ -113,11 +113,10 @@ class TestSpecialCases:
 
         self.runner = CliRunner()
 
-    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.load_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     @patch("studiorum.cli.commands.convert.book.create_latex_engine")
     @patch("studiorum.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
@@ -129,7 +128,6 @@ class TestSpecialCases:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_user_config,
         mock_app_config,
         mock_tag_resolver,
         mock_shared_omnidexer,
@@ -175,18 +173,6 @@ class TestSpecialCases:
         mock_config.rendering.latex.document.justified_text = False
         mock_config.rendering.latex.document.no_outline = False
         mock_app_config.return_value = mock_config
-
-        # Mock user config with defaults (all None to use app config defaults)
-        mock_user_config_obj = Mock()
-        mock_user_config_obj.latex.paper_size = None
-        mock_user_config_obj.latex.fonts = None
-        mock_user_config_obj.latex.font_size = None
-        mock_user_config_obj.latex.background = None
-        mock_user_config_obj.latex.no_outline = None
-        mock_user_config_obj.latex.high_contrast = None
-        mock_user_config_obj.latex.two_column = None
-        mock_user_config_obj.latex.justified = None
-        mock_user_config.return_value = mock_user_config_obj
 
         # Mock LaTeX engine
         mock_engine = Mock()

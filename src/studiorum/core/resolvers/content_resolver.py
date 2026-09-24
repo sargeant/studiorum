@@ -7,7 +7,7 @@ for modern MCP and CLI usage patterns.
 import asyncio
 import difflib
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -19,15 +19,23 @@ from studiorum.core.loaders.content_merger import ContentMerger
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.result import Error, Result, Success
-from studiorum.core.services.protocols import OmnidexerProtocol, TagResolverProtocol
 
 if TYPE_CHECKING:
-    from studiorum.core.context import AsyncRequestContext
     from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.models.item_filters import ItemFilterCriteria
     from studiorum.core.models.spell_filters import SpellFilterCriteria
 
 logger = get_logger(__name__)
+
+
+class ResolutionContext(Protocol):
+    """What the async search methods record on an MCP request context."""
+
+    sources: list[str]
+
+    def record_async_operation(self) -> None: ...
+
+    async def add_async_error(self, error: MCPError) -> None: ...
 
 
 class ResolutionStatus(Enum):
@@ -118,9 +126,9 @@ class ContentResolver:
 
     def __init__(
         self,
-        omnidexer: OmnidexerProtocol,
-        tag_resolver: TagResolverProtocol | None = None,
-        context: Optional["AsyncRequestContext"] = None,
+        omnidexer: "Omnidexer",
+        tag_resolver: object | None = None,
+        context: ResolutionContext | None = None,
     ) -> None:
         """Initialize resolver with protocol-validated services.
 
@@ -138,20 +146,8 @@ class ContentResolver:
         # LRU cache state across operations for improved performance
         self.content_merger: ContentMerger | None = None
 
-        # Try to get shared content merger singleton from omnidexer first
         if hasattr(omnidexer, "get_content_merger"):
             self.content_merger = omnidexer.get_content_merger()
-            if self.content_merger is not None:
-                logger.debug("Using shared ContentMerger singleton from omnidexer")
-        elif hasattr(omnidexer, "_omnidexer") and hasattr(
-            omnidexer._omnidexer, "get_content_merger"
-        ):
-            # Handle service wrapper - get shared singleton from wrapped omnidexer
-            self.content_merger = omnidexer._omnidexer.get_content_merger()
-            if self.content_merger is not None:
-                logger.debug(
-                    "Using shared ContentMerger singleton from wrapped omnidexer"
-                )
 
         # ContentMerger singleton should always be available from properly initialized omnidexer
         if self.content_merger is None:
@@ -160,20 +156,6 @@ class ContentResolver:
                 "This indicates an omnidexer initialization issue. "
                 "Ensure omnidexer is properly initialized with source manager support."
             )
-
-    @classmethod
-    async def from_context(cls, context: "AsyncRequestContext") -> "ContentResolver":
-        """Create resolver from context with protocol validation.
-
-        Args:
-            context: Async request context with protocol-based services
-
-        Returns:
-            ContentResolver instance with protocol-validated services
-        """
-        omnidexer = await context.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
-        tag_resolver = await context.get_service(TagResolverProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
-        return cls(omnidexer, tag_resolver, context)
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to an adventure.

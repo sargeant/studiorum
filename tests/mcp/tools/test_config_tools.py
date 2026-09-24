@@ -1,7 +1,7 @@
 """Comprehensive tests for MCP configuration tools.
 
 This module tests all MCP configuration tools that enable natural language
-configuration management for D&D 5e project settings.
+configuration management for 5e project settings.
 
 Test categories:
 - Basic tool functionality (get_configuration, update_configuration)
@@ -25,12 +25,12 @@ import pytest
 from studiorum.core.config.unified_config import (
     ApplicationConfig,
 )
-from studiorum.core.context import AsyncRequestContext
 from studiorum.core.error_types import (
     ErrorCategory,
     MCPError,
     MCPErrorCode,
 )
+from studiorum.mcp.context import AsyncRequestContext
 from studiorum.mcp.tools.config import (
     ConfigurationResponse,
     PresetInfo,

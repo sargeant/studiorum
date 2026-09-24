@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -40,8 +40,8 @@ class TestConvertSupplementCommand:
             ]
         }
 
-    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.supplement.create_latex_engine")
     @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
@@ -106,8 +106,8 @@ class TestConvertSupplementCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     def test_convert_supplement_empty_content(

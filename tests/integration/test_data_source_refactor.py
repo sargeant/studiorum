@@ -18,7 +18,7 @@ import shutil
 import tempfile
 import time
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -29,8 +29,7 @@ from studiorum.core.config.data_sources import (
     DataSourceType,
     ExtensionDataSourceConfig,
 )
-from studiorum.core.context import AsyncRequestContext
-from studiorum.core.services.container import ServiceContainer
+from studiorum.mcp.context import AsyncRequestContext
 
 
 class TestDataSourceRefactorIntegration:
@@ -52,8 +51,6 @@ class TestDataSourceRefactorIntegration:
     def _reset_all_global_state(self) -> None:
         """Reset all known global state for complete test isolation."""
         try:
-            ServiceContainer.reset_global_instance()
-
             # Reset CLI-specific globals
             from studiorum.cli.main import reset_cli_globals
 
@@ -181,7 +178,7 @@ class TestDataSourceRefactorIntegration:
         # Mock AsyncRequestContext and manager
         mock_context = Mock(spec=AsyncRequestContext)
         mock_manager = Mock()  # Use regular Mock for synchronous method
-        mock_context.get_service = AsyncMock(return_value=mock_manager)
+        mock_context.services.source_manager = mock_manager
 
         # Mock repository data - return actual dict, not coroutine
         stats_data = {
@@ -217,7 +214,7 @@ class TestDataSourceRefactorIntegration:
         assert "performance" in result
         assert result["total_count"] == 2
         assert result["performance"]["target_met"] is True
-        mock_context.get_service.assert_called()
+        mock_manager.get_source_statistics.assert_called()
 
         # Test MCP status action
         result = await manage_data_sources(action="status", context=mock_context)

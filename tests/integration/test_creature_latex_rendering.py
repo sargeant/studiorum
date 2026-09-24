@@ -6,7 +6,7 @@ including stat block generation, markup processing, and document compilation.
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 
@@ -101,8 +101,8 @@ class TestCreatureLaTeXRendering:
             ],
         }
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_creature_stat_block_latex_generation(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -157,8 +157,8 @@ class TestCreatureLaTeXRendering:
             assert "Large dragon (chromatic)" in creature.get_size_type_alignment()
             assert "chaotic evil" in creature.get_size_type_alignment()
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_creature_abilities_latex_processing(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -190,7 +190,7 @@ class TestCreatureLaTeXRendering:
                 processed_name = model_text.ability_name_text(
                     trait, mock_omnidexer, mock_tag_resolver
                 )
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -201,7 +201,7 @@ class TestCreatureLaTeXRendering:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
             processed_entries = entry_processor.process_entries(
@@ -226,7 +226,7 @@ class TestCreatureLaTeXRendering:
             bite_action = creature.action[1]  # Bite attack
 
             # Define entry_processor and rendering_context in this scope
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -237,7 +237,7 @@ class TestCreatureLaTeXRendering:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
 
@@ -282,8 +282,8 @@ class TestCreatureLaTeXRendering:
         simple_creature = Creature.model_validate(simple_creature_data)
         assert simple_creature.requires_full_width_layout() is False
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_creature_document_rendering_integration(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -383,8 +383,8 @@ class TestCreatureLaTeXRendering:
             else spellcasting_data.get("headerEntries", [""])[0]
         )
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_creature_complex_markup_integration(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -417,7 +417,7 @@ class TestCreatureLaTeXRendering:
             poison_breath = creature.action[3]  # Poison Breath action
 
             # Define entry_processor and rendering_context in this scope
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -428,7 +428,7 @@ class TestCreatureLaTeXRendering:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
 
@@ -566,8 +566,8 @@ class TestCreatureRenderingParityPhase3:
     5. Empty sections handling
     """
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_named_creature_pronouns_and_headers(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -633,8 +633,8 @@ class TestCreatureRenderingParityPhase3:
         assert "their turn" in header_text  # Named creature uses "their"
         assert "its turn" not in header_text  # Should not use generic pronoun
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_generic_creature_pronouns_and_headers(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -697,8 +697,8 @@ class TestCreatureRenderingParityPhase3:
         assert "its turn" in header_text  # Generic creature uses "its"
         assert "their turn" not in header_text  # Should not use named creature pronoun
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_lair_variant_parenthetical(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -752,8 +752,8 @@ class TestCreatureRenderingParityPhase3:
             in header_text
         )
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_structured_headers_rendering(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -814,8 +814,8 @@ class TestCreatureRenderingParityPhase3:
             "@spell fireball" in structured_entry.entries[0]
         )  # Should contain markup for processing
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_empty_sections_handling(self, mock_get_omnidexer, mock_get_tag_resolver):
         """Test sections omitted when both entries and spells are empty."""
         # Setup mocks
@@ -861,8 +861,8 @@ class TestCreatureRenderingParityPhase3:
         assert creature.get_section_header("legendary") is None
         assert creature.get_section_header("reaction") is None
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_integration_rendering_pipeline_with_new_helpers(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):

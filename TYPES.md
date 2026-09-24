@@ -4,55 +4,7 @@ This document catalogs legitimate `# type: ignore` patterns in the Studiorum cod
 
 ## Legitimate Type Ignore Patterns
 
-### 1. Protocol Type Tokens (`type-abstract`)
-
-**Pattern**: Using `@runtime_checkable` protocols as type tokens for service registration/resolution
-
-**Example**:
-
-```python
-# Service registration
-container.register_service(
-    ConfigurationProtocol,  # type: ignore[type-abstract]
-    create_configuration_service,
-    lifecycle=ServiceLifecycle.SINGLETON,
-)
-
-# Service resolution
-service = await container.get_service(ConfigurationProtocol)  # type: ignore[type-abstract]
-```
-
-**Why Legitimate**:
-
-- Protocols are `@runtime_checkable` and work correctly at runtime
-- MyPy sees protocols as abstract and unsuitable as type tokens
-- This is a fundamental limitation when building protocol-based DI systems
-- The service container pattern requires protocols as runtime type identifiers
-
-**Files**: Throughout service registration and access patterns
-**Count**: ~20+ instances across `registration.py`, `access.py`, `context.py`, `factories.py`
-
-### 2. Legacy Compatibility Bridges
-
-**Pattern**: Bridging between old global singleton patterns and new service-based patterns
-
-**Example**:
-
-```python
-# Legacy global container access
-request_container_raw = await global_container.create_request_scope()
-request_container = cast(RequestScopedContainer, request_container_raw)
-```
-
-**Why Legitimate**:
-
-- Provides backward compatibility during service container migration
-- Old global container doesn't have full typing
-- Runtime behavior is correct, type system can't verify the cast
-- Temporary pattern during architectural transition
-
-**Files**: `container.py` - global container bridge functions
-**Count**: 1-2 instances in compatibility layers
+There are no permanent categories left. The protocol type tokens (`type-abstract`) went with the service container, and the legacy container bridges with it. Services are now attributes of a `Services` dataclass typed with concrete classes (see `src/studiorum/services.py`), so nothing needs a protocol as a lookup key.
 
 ## Type Ignore Anti-Patterns (SHOULD BE FIXED)
 
@@ -234,15 +186,14 @@ if isinstance(result, Error):
 
 Every `# type: ignore` must include:
 
-- **Specific error type**: `[type-abstract]`, `[return-value]`, etc.
+- **Specific error type**: `[attr-defined]`, `[return-value]`, etc.
 - **Brief comment**: Why this ignore is necessary
 - **Context**: Reference this document for detailed explanation
 
 **Example**:
 
 ```python
-service = await container.get_service(ConfigurationProtocol)  # type: ignore[type-abstract]
-# ^ Protocol used as type token - see TYPES.md section 1
+value = resolve_option(value)  # type: ignore[attr-defined] # Typer OptionInfo when called directly
 ```
 
 ## Cleanup Strategy
@@ -251,8 +202,6 @@ service = await container.get_service(ConfigurationProtocol)  # type: ignore[typ
 
 1. **P1-Critical**: Dictionary typing, union dispatch - Always fix these
 2. **P2-Important**: Protocol implementation issues - Usually fixable
-3. **P3-Optional**: Legacy bridges - Acceptable during transitions
-4. **P4-Permanent**: Protocol type tokens - Legitimate architectural pattern
 
 ### Validation Process
 
@@ -263,12 +212,7 @@ service = await container.get_service(ConfigurationProtocol)  # type: ignore[typ
 
 ## Current Status
 
-**Total Type Ignores**: ~50 (after P1-P2 cleanup)
-**Legitimate**: ~30 (protocol type tokens, legacy bridges)
-**Target**: <50 total with all fixable issues resolved
-
-**P1 Result System**: 19→0 ignores eliminated ✅
-**P2 Service Container**: 33→0 fixable ignores eliminated ✅
+Count them with `rg -c "type: ignore" src | awk -F: '{s+=$2} END {print s}'`. None are `type-abstract`.
 
 # Data Modeling Guidelines
 

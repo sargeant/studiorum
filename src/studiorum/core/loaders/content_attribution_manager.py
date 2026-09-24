@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..config.sources import get_content_config
+from ..config.unified_config import get_app_config
 from ..logging import get_logger
 
 logger = get_logger(__name__)
@@ -34,7 +34,7 @@ class ContentAttributionManager:
 
     def __init__(self) -> None:
         """Initialize with content configuration."""
-        self.config = get_content_config()
+        self.config = get_app_config().content_configuration()
         self._source_info_cache: dict[str, dict[str, Any]] | None = None
 
     def get_service_name(self) -> str:

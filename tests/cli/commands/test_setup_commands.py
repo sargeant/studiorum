@@ -8,7 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.commands.setup import app
-from studiorum.core.config.sources import (
+from studiorum.core.config.data_sources import (
     ContentConfiguration,
     ContentSource,
     SourceType,
@@ -28,7 +28,6 @@ class TestSetupWizardCommand:
         # Create mock config
         self.mock_config = ContentConfiguration()
         self.mock_config.cache_dir = self.temp_dir / "cache"
-        self.mock_config.config_dir = self.temp_dir / "config"
 
         # Create mock config manager
         self.mock_config_manager = Mock()
@@ -43,7 +42,7 @@ class TestSetupWizardCommand:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     @patch("studiorum.cli.commands.setup.Prompt")
     @patch("studiorum.cli.commands.setup._scan_content")
@@ -64,7 +63,7 @@ class TestSetupWizardCommand:
         self.mock_config_manager.reset_to_defaults.assert_called_once()
         mock_scan.assert_called_once()
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     @patch("studiorum.cli.commands.setup.Prompt")
     def test_wizard_defaults_without_scan(
@@ -81,7 +80,7 @@ class TestSetupWizardCommand:
         assert "studiorum data scan" in result.stdout
         self.mock_config_manager.reset_to_defaults.assert_called_once()
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     @patch("studiorum.cli.commands.setup.Prompt")
     @patch("studiorum.cli.commands.setup._setup_custom")
@@ -98,7 +97,7 @@ class TestSetupWizardCommand:
         assert result.exit_code == 0
         mock_setup_custom.assert_called_once_with(self.mock_config_manager)
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     @patch("studiorum.cli.commands.setup.Prompt")
     @patch("studiorum.cli.commands.setup._setup_local")
@@ -115,7 +114,7 @@ class TestSetupWizardCommand:
         assert result.exit_code == 0
         mock_setup_local.assert_called_once_with(self.mock_config_manager)
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     def test_wizard_existing_sources_cancel(self, mock_confirm, mock_get_manager):
         """Test setup wizard with existing sources - user cancels."""
@@ -137,7 +136,7 @@ class TestSetupWizardCommand:
         assert "1 content sources configured" in result.stdout
         assert "Setup cancelled" in result.stdout
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     @patch("studiorum.cli.commands.setup.Prompt")
     def test_wizard_existing_sources_remove_and_reconfigure(
@@ -180,7 +179,6 @@ class TestSetupHelperFunctions:
         # Create mock config
         self.mock_config = ContentConfiguration()
         self.mock_config.cache_dir = self.temp_dir / "cache"
-        self.mock_config.config_dir = self.temp_dir / "config"
         self.mock_config.content_sources = []
 
         # Create mock config manager
@@ -421,7 +419,7 @@ class TestScanContentFunction:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.current_sources")
     @patch("studiorum.cli.commands.setup.ContentSourceManager")
     @patch("studiorum.cli.commands.setup.console")
     def test_scan_content_success(
@@ -456,7 +454,7 @@ class TestScanContentFunction:
         calls = [str(call) for call in mock_console.print.call_args_list]
         assert any("Downloading and scanning content" in str(call) for call in calls)
 
-    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.current_sources")
     @patch("studiorum.cli.commands.setup.ContentSourceManager")
     @patch("studiorum.cli.commands.setup.console")
     def test_scan_content_error(
@@ -500,7 +498,7 @@ class TestCheckSetupCommand:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.current_sources")
     def test_check_setup_no_sources(self, mock_get_config):
         """Test check setup with no sources configured."""
         self.mock_config.content_sources = []
@@ -512,7 +510,7 @@ class TestCheckSetupCommand:
         assert "No content sources configured" in result.stdout
         assert "studiorum setup wizard" in result.stdout
 
-    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.current_sources")
     @patch("studiorum.cli.commands.setup.ContentSourceManager")
     def test_check_setup_success(self, mock_manager_class, mock_get_config):
         """Test successful setup check."""
@@ -547,7 +545,7 @@ class TestCheckSetupCommand:
         assert "1 content sources configured" in result.stdout
         assert "25 content files available" in result.stdout
 
-    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.current_sources")
     @patch("studiorum.cli.commands.setup.ContentSourceManager")
     def test_check_setup_error(self, mock_manager_class, mock_get_config):
         """Test setup check with error."""
@@ -583,7 +581,7 @@ class TestResetSetupCommand:
         self.runner = CliRunner()
         self.mock_config_manager = Mock()
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     def test_reset_setup_confirmed(self, mock_confirm, mock_get_manager):
         """Test reset setup when user confirms."""
@@ -597,7 +595,7 @@ class TestResetSetupCommand:
         assert "studiorum data scan" in result.stdout
         self.mock_config_manager.reset_to_defaults.assert_called_once()
 
-    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.SourcesFile")
     @patch("studiorum.cli.commands.setup.Confirm")
     def test_reset_setup_cancelled(self, mock_confirm, mock_get_manager):
         """Test reset setup when user cancels."""

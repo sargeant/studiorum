@@ -10,7 +10,8 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from ....core.context import AsyncRequestContext
+from studiorum.mcp.context import AsyncRequestContext
+
 from ....core.error_types import (
     ErrorCategory,
     MCPError,
@@ -20,7 +21,6 @@ from ....core.error_types import (
 )
 from ....core.logging import get_logger
 from ....core.result import Error
-from ....core.services.protocols import OmnidexerProtocol
 from ....renderers.core.tag_resolver import TagResolver
 from .rule_intelligence_service import RuleIntelligenceConfig, RuleIntelligenceService
 
@@ -38,7 +38,7 @@ async def _get_rule_intelligence_service(
 
     if _rule_intelligence_service is None:
         # Get required services from context
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        omnidexer = ctx.services.omnidexer
 
         # Create tag resolver (assuming it's available as a singleton or can be created)
         # In a real implementation, this would also come from the service container

@@ -17,25 +17,21 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING, Any
 
-from studiorum.core.logging import get_logger
-
-from .context import (
-    async_request_context,
-    performance_monitored_context,
-)
-from .error_types import (
+from studiorum.core.error_types import (
     ContentNotFoundError,
     MCPError,
 )
-from .result import Error, Result, Success
-from .services.protocols import (
-    OmnidexerProtocol,
+from studiorum.core.logging import get_logger
+from studiorum.core.result import Error, Result, Success
+from studiorum.mcp.context import (
+    async_request_context,
+    performance_monitored_context,
 )
 
 if TYPE_CHECKING:
-    from .config.unified_config import ApplicationConfig
-    from .models.adventures import Adventure
-    from .models.base import Content
+    from studiorum.core.config.unified_config import ApplicationConfig
+    from studiorum.core.models.adventures import Adventure
+    from studiorum.core.models.base import Content
 
 logger = get_logger(__name__)
 
@@ -96,9 +92,12 @@ class ModernContextualAPI:
                 # Protocol-based service access - get resolver with validated services
 
                 # Create resolver with protocol-validated services
-                from .resolvers.content_resolver import ContentResolver
+                from studiorum.core.resolvers.content_resolver import ContentResolver
 
-                resolver = await ContentResolver.from_context(ctx)
+                services = ctx.services
+                resolver = ContentResolver(
+                    services.omnidexer, services.tag_resolver, context=ctx
+                )
 
                 # Perform async search with performance tracking
                 ctx.record_async_operation()
@@ -142,7 +141,7 @@ class ModernContextualAPI:
         async with context_manager as ctx:
             try:
                 # Protocol-validated services
-                omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+                omnidexer = ctx.services.omnidexer
 
                 # Async adventure resolution
                 ctx.record_async_operation()
@@ -179,7 +178,7 @@ class ModernContextualAPI:
                 adventure = adventures[0]  # Take the first match
 
                 # Type safety: ensure it's actually an adventure
-                from .models.adventures import Adventure
+                from studiorum.core.models.adventures import Adventure
 
                 if not isinstance(adventure, Adventure):
                     # If it's not an Adventure instance, try to create one
@@ -279,7 +278,7 @@ class ModernContextualAPI:
         async with async_request_context(config_override=config_override) as ctx:
             try:
                 # Get protocol-validated omnidexer
-                omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+                omnidexer = ctx.services.omnidexer
 
                 # Async character progression lookup
                 ctx.record_async_operation()

@@ -3,20 +3,21 @@
 from pathlib import Path
 
 import typer
+import yaml
+from pydantic import ValidationError
 from rich import print as rprint
 
+from studiorum.cli.context import install_services, reset_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.loader import ConfigLoader, ConfigValidationError
 from studiorum.core.config.unified_config import (
+    ConfigFileNotFoundError,
+    load_config,
     reset_app_config,
     set_app_config,
 )
-from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
 from studiorum.core.logging.logger import setup_logging
-from studiorum.core.result import is_error_result
-from studiorum.core.services.access import get_app_config
-from studiorum.renderers.core.tag_resolver import TagResolver
+from studiorum.services import build_services
 
 logger = get_logger(__name__)
 
@@ -55,11 +56,12 @@ def show_version() -> None:
 
 @app.callback()
 def main(
+    ctx: typer.Context,
     verbose: bool = typer.Option(False, "--verbose", help="Enable verbose output"),
     debug: bool = typer.Option(
         False, "--debug", help="Enable debug output (most verbose)"
     ),
-    config_file: Path = typer.Option(
+    config_file: Path | None = typer.Option(
         None,
         "--config-file",
         "-c",
@@ -78,54 +80,21 @@ def main(
     reset_cli_globals()
     reset_app_config()  # Reset config cache to allow new config loading
 
-    # Load configuration with optional file override
     try:
-        if config_file:
-            # Use ConfigLoader for file-based configuration
-            config_loader = ConfigLoader()
-            config_result = config_loader.load_with_overrides(
-                config_file=config_file, env_overrides=True
-            )
-            if is_error_result(config_result):
-                error = config_result.error
-                rprint(f"[red]Error loading configuration: {error.message}[/red]")
-                if error.suggestions:
-                    rprint("[yellow]Suggestions:[/yellow]")
-                    for suggestion in error.suggestions:
-                        rprint(f"  - {suggestion}")
-                raise typer.Exit(1)
-            config = config_result.unwrap()
-            # Update global config cache with loaded config
-            set_app_config(config)
-            if verbose or debug:
-                rprint(f"[green]Configuration loaded from:[/green] {config_file}")
-        else:
-            # Use default configuration loading (environment + defaults)
-            config = get_app_config()
-
-        # Validate configuration at startup
-        # This will trigger Pydantic validation and create directories
-        _ = config.model_dump()
-        if verbose or debug:
-            logger = get_logger(__name__)
-            logger.debug("Configuration loaded successfully")
-            logger.debug(
-                f"LaTeX engine: {config.rendering.latex.engine.primary_engine}"
-            )
-            logger.debug(f"Output path: {config.paths.output_path}")
-            if config.mcp.enabled:
-                logger.debug(
-                    f"MCP server enabled on {config.mcp.host}:{config.mcp.port}"
-                )
-    except ConfigValidationError as e:
-        rprint(f"[red]Configuration validation error:[/red] {e.message}")
-        if e.errors:
-            for error_msg in e.errors:
-                rprint(f"  • {error_msg}")
+        config = load_config(config_file)
+    except ConfigFileNotFoundError as e:
+        rprint(f"[red]Configuration error:[/red] {e}")
+        raise typer.Exit(1)
+    except (yaml.YAMLError, ValidationError) as e:
+        rprint(f"[red]Error loading configuration:[/red] {e}")
         raise typer.Exit(1)
     except Exception as e:
         rprint(f"[red]Configuration error:[/red] {e}")
         raise typer.Exit(1)
+    set_app_config(config)
+    install_services(ctx, build_services(config))
+    if config_file and (verbose or debug):
+        rprint(f"[green]Configuration loaded from:[/green] {config_file}")
 
     # Determine log level priority: debug > verbose > config default
     if debug:
@@ -175,42 +144,9 @@ except ImportError as e:
     logger.error("CLI functionality will be limited")
 
 
-def get_omnidexer() -> Omnidexer:
-    """Get the omnidexer instance from the service container.
-
-    This function provides backward compatibility for tests that expect
-    these functions to be available from studiorum.cli.main.
-    """
-    from studiorum.cli.utils import get_omnidexer as _get_omnidexer
-
-    return _get_omnidexer()
-
-
-def get_tag_resolver() -> TagResolver:
-    """Get the tag resolver instance from the service container.
-
-    This function provides backward compatibility for tests that expect
-    these functions to be available from studiorum.cli.main.
-    """
-    from studiorum.cli.utils import get_tag_resolver as _get_tag_resolver
-
-    return _get_tag_resolver()
-
-
 def reset_cli_globals() -> None:
-    """Reset CLI global variables for testing.
-
-    This function clears the global state maintained by the CLI module
-    to ensure clean test isolation.
-    """
-    from studiorum.cli.utils import reset_cli_services
-    from studiorum.core.services.container import ServiceContainer
-
-    # Reset the global container for clean state
-    ServiceContainer.reset_global_instance()
-
-    # Reset CLI service singletons to ensure clean state per command
-    reset_cli_services()
+    """Forget the Services built outside a CLI invocation (for tests)."""
+    reset_services()
 
 
 if __name__ == "__main__":

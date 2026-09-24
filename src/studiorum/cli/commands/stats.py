@@ -7,8 +7,8 @@ from rich import print as rprint
 from rich.panel import Panel
 from rich.table import Table
 
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer
 from studiorum.core.models.content import ContentType
 
 app: typer.Typer = typer.Typer(help="Show content statistics and analysis")
@@ -31,57 +31,46 @@ def show_overview() -> None:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_omnidexer()
-
-                # Check if omnidexer has load_all_data method (raw Omnidexer)
-                # or if it's a service wrapper (will lazy load on access)
-                if hasattr(omnidexer, "load_all_data"):
-                    omnidexer.load_all_data()
-                else:
-                    # Service wrapper - trigger lazy loading by accessing content
-                    _ = omnidexer.get_all_by_type(ContentType.SPELL)
+                omnidexer = get_services().omnidexer
 
                 display_manager.update_task(load_task, completed=100)
 
             # Get statistics - check if method exists
             stats: dict[str, Any]
-            if hasattr(omnidexer, "get_statistics"):
-                stats = omnidexer.get_statistics()
-            else:
-                # Calculate statistics from loaded data
-                stats = {
-                    "total_items": 0,
-                    "by_type": {},
-                    "by_source": {},
-                    "loaded_types": [],
-                }
+            # Calculate statistics from loaded data
+            stats = {
+                "total_items": 0,
+                "by_type": {},
+                "by_source": {},
+                "loaded_types": [],
+            }
 
-                # Get stats for each content type
-                for content_type in ContentType:
-                    try:
-                        items = omnidexer.get_all_by_type(content_type)
-                        if items:
-                            stats["by_type"][content_type.value] = len(items)
-                            stats["total_items"] += len(items)
-                            stats["loaded_types"].append(content_type.value)
+            # Get stats for each content type
+            for content_type in ContentType:
+                try:
+                    items = omnidexer.get_all_by_type(content_type)
+                    if items:
+                        stats["by_type"][content_type.value] = len(items)
+                        stats["total_items"] += len(items)
+                        stats["loaded_types"].append(content_type.value)
 
-                            # Track by source
-                            for item in items:
-                                if hasattr(item, "source"):
-                                    source_data = item.source
-                                    if hasattr(source_data, "abbreviation"):
-                                        source = source_data.abbreviation
-                                    else:
-                                        source = str(source_data)
+                        # Track by source
+                        for item in items:
+                            if hasattr(item, "source"):
+                                source_data = item.source
+                                if hasattr(source_data, "abbreviation"):
+                                    source = source_data.abbreviation
                                 else:
-                                    source = "Unknown"
-                                stats["by_source"][source] = (
-                                    stats["by_source"].get(source, 0) + 1
-                                )
-                    except (AttributeError, ValueError, TypeError):
-                        # Skip content types that don't exist or aren't loaded
-                        # This is expected for some content types
-                        continue  # nosec B110
+                                    source = str(source_data)
+                            else:
+                                source = "Unknown"
+                            stats["by_source"][source] = (
+                                stats["by_source"].get(source, 0) + 1
+                            )
+                except (AttributeError, ValueError, TypeError):
+                    # Skip content types that don't exist or aren't loaded
+                    # This is expected for some content types
+                    continue  # nosec B110
 
             # Overview panel
             overview = f"""
@@ -157,7 +146,7 @@ def show_content_stats(
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_omnidexer()
+                omnidexer = get_services().omnidexer
                 omnidexer.load_all_data()
                 display_manager.update_task(load_task, completed=100)
 
@@ -223,57 +212,46 @@ def show_source_stats() -> None:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_omnidexer()
-
-                # Check if omnidexer has load_all_data method (raw Omnidexer)
-                # or if it's a service wrapper (will lazy load on access)
-                if hasattr(omnidexer, "load_all_data"):
-                    omnidexer.load_all_data()
-                else:
-                    # Service wrapper - trigger lazy loading by accessing content
-                    _ = omnidexer.get_all_by_type(ContentType.SPELL)
+                omnidexer = get_services().omnidexer
 
                 display_manager.update_task(load_task, completed=100)
 
             # Get statistics - check if method exists
             stats: dict[str, Any]
-            if hasattr(omnidexer, "get_statistics"):
-                stats = omnidexer.get_statistics()
-            else:
-                # Calculate statistics from loaded data
-                stats = {
-                    "total_items": 0,
-                    "by_type": {},
-                    "by_source": {},
-                    "loaded_types": [],
-                }
+            # Calculate statistics from loaded data
+            stats = {
+                "total_items": 0,
+                "by_type": {},
+                "by_source": {},
+                "loaded_types": [],
+            }
 
-                # Get stats for each content type
-                for content_type in ContentType:
-                    try:
-                        items = omnidexer.get_all_by_type(content_type)
-                        if items:
-                            stats["by_type"][content_type.value] = len(items)
-                            stats["total_items"] += len(items)
-                            stats["loaded_types"].append(content_type.value)
+            # Get stats for each content type
+            for content_type in ContentType:
+                try:
+                    items = omnidexer.get_all_by_type(content_type)
+                    if items:
+                        stats["by_type"][content_type.value] = len(items)
+                        stats["total_items"] += len(items)
+                        stats["loaded_types"].append(content_type.value)
 
-                            # Track by source
-                            for item in items:
-                                if hasattr(item, "source"):
-                                    source_data = item.source
-                                    if hasattr(source_data, "abbreviation"):
-                                        source = source_data.abbreviation
-                                    else:
-                                        source = str(source_data)
+                        # Track by source
+                        for item in items:
+                            if hasattr(item, "source"):
+                                source_data = item.source
+                                if hasattr(source_data, "abbreviation"):
+                                    source = source_data.abbreviation
                                 else:
-                                    source = "Unknown"
-                                stats["by_source"][source] = (
-                                    stats["by_source"].get(source, 0) + 1
-                                )
-                    except (AttributeError, ValueError, TypeError):
-                        # Skip content types that don't exist or aren't loaded
-                        # This is expected for some content types
-                        continue  # nosec B110
+                                    source = str(source_data)
+                            else:
+                                source = "Unknown"
+                            stats["by_source"][source] = (
+                                stats["by_source"].get(source, 0) + 1
+                            )
+                except (AttributeError, ValueError, TypeError):
+                    # Skip content types that don't exist or aren't loaded
+                    # This is expected for some content types
+                    continue  # nosec B110
 
             if "by_source" not in stats:
                 rprint("[yellow]No source information available[/yellow]")

@@ -14,8 +14,8 @@ from studiorum.cli.config_factory import (
     get_fonts_default,
     get_with_images_default,
 )
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.latex_engine import create_latex_engine
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -33,20 +33,25 @@ def supplement(
         ["all"], "--type", help="Content types to include"
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Visual Styling",
+        default_factory=get_with_images_default,
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
+        ...,
+        "--pdf",
+        help="Compile to PDF after conversion",
+        default_factory=get_compile_pdf_default,
     ),
     # LaTeX document class options
     document_class: str = typer.Option(
-        get_document_class_default(),
+        ...,
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
         rich_help_panel="Document Layout",
+        default_factory=get_document_class_default,
     ),
     paper: str | None = typer.Option(
         None,
@@ -55,10 +60,11 @@ def supplement(
         rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        get_fonts_default(),
+        ...,
         "--fonts",
         help="Font package to use (wotc, dmsguild)",
         rich_help_panel="Visual Styling",
+        default_factory=get_fonts_default,
     ),
     no_outline: bool | None = typer.Option(
         None,
@@ -132,8 +138,8 @@ def supplement(
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_omnidexer()
-                tag_resolver = get_tag_resolver()
+                omnidexer = get_services().omnidexer
+                tag_resolver = get_services().tag_resolver
                 display_manager.update_task(load_task, completed=100)
 
             # Load supplement content

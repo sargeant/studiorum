@@ -16,8 +16,6 @@ from __future__ import annotations
 import time
 from typing import Any, Literal, cast
 
-from studiorum.core.api import ModernContextualAPI
-from studiorum.core.context import async_request_context
 from studiorum.core.error_types import (
     ContentNotFoundError,
     ContentNotFoundExceptionError,
@@ -28,7 +26,8 @@ from studiorum.core.error_types import (
 )
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import Source
-from studiorum.core.services.protocols import OmnidexerProtocol
+from studiorum.mcp.api import ModernContextualAPI
+from studiorum.mcp.context import async_request_context
 
 from .models import (
     FeatAnalysis,
@@ -227,7 +226,7 @@ class CharacterProgressionTools:
                     ctx.sources.extend(sources)
 
                 # Get protocol-validated omnidexer
-                omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+                omnidexer = ctx.services.omnidexer
 
                 # Get eligible feats using enhanced protocol
                 if hasattr(omnidexer, "get_eligible_feats_async"):
@@ -329,7 +328,7 @@ class CharacterProgressionTools:
                     ctx.sources.extend(sources)
 
                 # Get protocol-validated omnidexer
-                omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+                omnidexer = ctx.services.omnidexer
 
                 # Get multiclass options using enhanced protocol
                 if hasattr(omnidexer, "analyze_multiclass_eligibility_async"):

@@ -22,13 +22,13 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, ValidationError
 
 from studiorum.core.logging import get_logger
+from studiorum.mcp.context import AsyncRequestContext
 
 from ...core.config.unified_config import (
     ApplicationConfig,
     get_app_config,
     set_app_config,
 )
-from ...core.context import AsyncRequestContext
 from ...core.error_types import (
     ErrorCategory,
     MCPError,

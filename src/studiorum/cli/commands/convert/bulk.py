@@ -3,7 +3,6 @@
 import asyncio
 import os
 from pathlib import Path
-from typing import cast
 
 import typer
 from rich import print as rprint
@@ -13,11 +12,10 @@ from studiorum.cli.config_factory import (
     get_concurrent_limit_default,
     get_with_images_default,
 )
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
-from studiorum.core.services.protocols import OmnidexerProtocol
 from studiorum.latex_engine import create_latex_engine
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -35,18 +33,23 @@ def bulk(
         Path("output/bulk"), "--output-dir", "-d", help="Output directory"
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(),
+        ...,
         "--images/--no-images",
         help="Include images",
         rich_help_panel="Visual Styling",
+        default_factory=get_with_images_default,
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
+        ...,
+        "--pdf",
+        help="Compile to PDF after conversion",
+        default_factory=get_compile_pdf_default,
     ),
     concurrent_limit: int = typer.Option(
-        get_concurrent_limit_default(),
+        ...,
         "--concurrent",
         help="Maximum concurrent operations",
+        default_factory=get_concurrent_limit_default,
     ),
 ) -> None:
     """
@@ -69,9 +72,9 @@ def bulk(
                 init_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_omnidexer()
-                tag_resolver = get_tag_resolver()
-                resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
+                omnidexer = get_services().omnidexer
+                tag_resolver = get_services().tag_resolver
+                resolver = ContentResolver(omnidexer)
                 display_manager.update_task(init_task, completed=100)
 
             # Perform bulk resolution based on content type

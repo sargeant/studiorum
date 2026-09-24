@@ -1,5 +1,1 @@
-"""Modern CLI interface for studiorum."""
-
-from .main import app
-
-__all__ = ["app"]
+"""Command-line interface for studiorum. The Typer app is studiorum.cli.main:app."""
