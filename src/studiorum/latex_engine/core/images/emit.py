@@ -2,11 +2,13 @@
 
 The layout lives in ``_image_render_block.tex.j2`` and
 ``_gallery_render_block.tex.j2``; this module finds the files and fills them in.
+``text`` turns a 5etools string (a caption, which may hold tags) into LaTeX.
 """
 
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from functools import cache
 from typing import TYPE_CHECKING, Any
 
@@ -25,7 +27,10 @@ WIDE_IMAGE_TYPES = frozenset({"map", "mapPlayer"})
 
 
 def image(
-    entry: dict[str, Any], context: RenderingContext, resolver: ImageResolver
+    entry: dict[str, Any],
+    context: RenderingContext,
+    resolver: ImageResolver,
+    text: Callable[[str], str],
 ) -> str:
     """LaTeX for a 5etools ``image`` entry."""
     title = entry.get("title") or ""
@@ -36,14 +41,17 @@ def image(
         return f"% Image not found: {_describe(entry.get('href'))}"
     return _template("_image_render_block.tex.j2").render(
         path=path.as_posix(),
-        caption=title,
+        caption=text(title) if title else "",
         label=_label(entry),
         placement="wide" if entry.get("imageType") in WIDE_IMAGE_TYPES else "inline",
     )
 
 
 def gallery(
-    entry: dict[str, Any], context: RenderingContext, resolver: ImageResolver
+    entry: dict[str, Any],
+    context: RenderingContext,
+    resolver: ImageResolver,
+    text: Callable[[str], str],
 ) -> str:
     """LaTeX for a 5etools ``gallery`` entry: a grid, skipping missing images."""
     if not context.metadata.get("include_images", True):
@@ -56,11 +64,15 @@ def gallery(
         if path is None:
             missing.append(f"% Image not found: {_describe(member.get('href'))}")
         else:
-            found.append({"path": path.as_posix(), "caption": member.get("title", "")})
+            caption = member.get("title")
+            found.append(
+                {"path": path.as_posix(), "caption": text(caption) if caption else ""}
+            )
     if not found:
         return "\n".join(missing) or "% Empty gallery"
+    caption = entry.get("caption") or entry.get("title")
     grid = _template("_gallery_render_block.tex.j2").render(
-        images=found, caption=entry.get("caption") or entry.get("title")
+        images=found, caption=text(caption) if caption else ""
     )
     return "\n".join([*missing, grid])
 

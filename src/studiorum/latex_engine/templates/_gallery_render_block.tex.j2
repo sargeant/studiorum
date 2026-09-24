@@ -6,7 +6,7 @@
         \centering
         \StudiorumImageInlineNoCaption{<# image.path #>}
 <@ if image.caption @>
-        \caption{<# image.caption | latex_escape #>}
+        \caption{<# image.caption #>}
 <@ endif @>
     \end{subfigure}
 <@ if not loop.last @>
@@ -15,6 +15,6 @@
 <@ endif @>
 <@ endfor @>
 <@ if caption @>
-    \caption{<# caption | latex_escape #>}
+    \caption{<# caption #>}
 <@ endif @>
 \end{figure}

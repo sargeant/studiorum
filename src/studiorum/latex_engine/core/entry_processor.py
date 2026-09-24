@@ -1,5 +1,6 @@
 """Recursive entry processor for LaTeX rendering of 5etools entry structures."""
 
+from collections.abc import Callable
 from typing import Any
 
 from studiorum.core.entry_registry import ValidationMode, get_registry
@@ -424,13 +425,16 @@ class RecursiveEntryProcessor:
 
     def _process_image(self, image: dict[str, Any], context: RenderingContext) -> str:
         """Process an image entry."""
-        return emit.image(image, context, self._resolver())
+        return emit.image(image, context, self._resolver(), self._text(context))
 
     def _process_gallery(
         self, gallery: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process a gallery entry."""
-        return emit.gallery(gallery, context, self._resolver())
+        return emit.gallery(gallery, context, self._resolver(), self._text(context))
+
+    def _text(self, context: RenderingContext) -> Callable[[str], str]:
+        return lambda text: self._process_text_with_tags(text, context)
 
     def _resolver(self) -> ImageResolver:
         if self._image_resolver is None:

@@ -96,3 +96,20 @@ def test_gallery_is_a_grid_skipping_missing(processor: RecursiveEntryProcessor) 
     assert "\\caption{Player Version}" in out
     assert "\\hfill" in out
     assert out.endswith("\\end{figure}")
+
+
+def test_caption_tags_are_resolved(processor: RecursiveEntryProcessor) -> None:
+    class Tags:
+        def process_text(self, text: str, context: Any) -> str:
+            return text.replace("{@creature Myla|DoSI}", "\\textbf{Myla}")
+
+    ctx = RenderingContext(output_format="latex", tag_resolver=Tags())
+    entry = {
+        "type": "image",
+        "href": href("Player.webp"),
+        "title": "Laylee may not handle {@creature Myla|DoSI}'s fire.",
+    }
+
+    out = processor.process_entry_dict(entry, ctx).strip()
+
+    assert out.endswith("{Laylee may not handle \\textbf{Myla}'s fire.}")
