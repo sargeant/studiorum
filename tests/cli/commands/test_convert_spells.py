@@ -218,3 +218,44 @@ class TestConvertSpellsCommand:
         assert "No spells found matching criteria" in result.stdout
         assert "could not be found" in result.stdout
         assert "Suggestions" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("flag", "has_material"), [("--material", True), ("--no-material", False)]
+)
+def test_material_flag_filters_both_ways(
+    flag: str, has_material: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """--material and --no-material set one tri-state filter."""
+    from studiorum.core.services.spell_collector import SpellCollector
+
+    monkeypatch.chdir(Path(__file__).resolve().parents[3])
+    collected = []
+    original = SpellCollector.collect_spells
+
+    def spy(self, criteria):
+        result = original(self, criteria)
+        collected.append((criteria, result.spells))
+        return result
+
+    with patch.object(SpellCollector, "collect_spells", spy):
+        result = CliRunner().invoke(
+            app,
+            [
+                "convert",
+                "spells",
+                "--level",
+                "3",
+                "--sources",
+                "SRD",
+                flag,
+                "--output",
+                str(tmp_path / "spells.tex"),
+            ],
+        )
+
+    assert result.exit_code == 0, result.output
+    criteria, spells = collected[0]
+    assert criteria.has_material is has_material
+    assert spells
+    assert all(spell.has_material_components() is has_material for spell in spells)

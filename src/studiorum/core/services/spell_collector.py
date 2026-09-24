@@ -283,10 +283,6 @@ class SpellCollector:
             if spell.has_material_components() != criteria.has_material:
                 return False
 
-        # No material components filter
-        if criteria.no_material and spell.has_material_components():
-            return False
-
         # Concentration filtering
         if criteria.concentration is not None:
             if spell.is_concentration() != criteria.concentration:

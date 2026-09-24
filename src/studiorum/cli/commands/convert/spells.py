@@ -79,10 +79,6 @@ Material = Annotated[
     Maybe,
     option("--material/--no-material", text="Filter by material components", panel=P),
 ]
-NoMaterial = Annotated[
-    bool,
-    option("--no-material", text="Exclude spells with material components", panel=P),
-]
 Concentration = Annotated[
     Maybe,
     option(
@@ -147,7 +143,6 @@ def spells(
     verbal: Verbal = None,
     somatic: Somatic = None,
     material: Material = None,
-    no_material: NoMaterial = False,
     concentration: Concentration = None,
     ritual: Ritual = None,
     damage_types: DamageTypes = None,
@@ -314,7 +309,6 @@ def _collect(
             has_verbal=params["verbal"],
             has_somatic=params["somatic"],
             has_material=params["material"],
-            no_material=params["no_material"],
             concentration=params["concentration"],
             ritual=params["ritual"],
             damage_types=params["damage_types"] or None,
