@@ -5,7 +5,7 @@ from abc import abstractmethod
 from studiorum.core.models.content_models import content_type_of
 
 from ...core.models.content import BaseContent, ContentType
-from ..core.interfaces import RenderingContext
+from ..context import RenderingContext
 from .renderer import BaseRenderer
 
 

@@ -19,7 +19,7 @@ from studiorum.core.loaders.data_dir import DataDir, DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
 from studiorum.core.models.creatures import Creature  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
-from studiorum.renderers.core.tag_resolver import TagResolver  # type: ignore
+from studiorum.renderers.tags import TagResolver
 
 # Import the test helper for consistent setup
 from tests.test_helpers import reset_test_environment
@@ -290,19 +290,8 @@ def make_omnidexer():
 
 
 @pytest.fixture
-def tag_resolver(loaded_omnidexer: Omnidexer) -> TagResolver:
-    """Create a tag resolver with loaded data."""
-    return TagResolver(loaded_omnidexer)
-
-
-@pytest.fixture
-def make_tag_resolver():
-    """Factory for creating tag resolvers with custom omnidexer configurations."""
-
-    def _make_tag_resolver(omnidexer: Omnidexer) -> TagResolver:
-        return TagResolver(omnidexer)
-
-    return _make_tag_resolver
+def tag_resolver() -> TagResolver:
+    return TagResolver()
 
 
 @pytest.fixture
@@ -343,9 +332,3 @@ def content_availability(test_data_omnidexer: Omnidexer) -> dict[str, bool]:
         "races": len(test_data_omnidexer.get_all_by_type("race")) > 0,
         "feats": len(test_data_omnidexer.get_all_by_type("feat")) > 0,
     }
-
-
-@pytest.fixture
-def test_data_tag_resolver(test_data_omnidexer: Omnidexer) -> TagResolver:
-    """Create a tag resolver using test-data sources."""
-    return TagResolver(test_data_omnidexer)

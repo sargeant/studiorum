@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from ...core.models.content import BaseContent
-from ..core.interfaces import RenderingContext
+from ..context import RenderingContext
 from .renderer import BaseRenderer
 
 

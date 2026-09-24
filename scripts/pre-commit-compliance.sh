@@ -23,11 +23,9 @@ fi
 
 # Check for trademark violations
 # Allowlist specific files where controlled references are required
-# - Core handlers (branding detection logic)
-# - LaTeX tag renderer (branding formatting logic)
 # - Tag tests (branding formatting tests)
 # - Website landing page (docs/index.md)
-ALLOWLIST_PATTERN='^(src/studiorum/renderers/core/handlers\.py|src/studiorum/latex_engine/core/tag_renderer\.py|tests/renderers/test_tags\.py|docs/index\.md)$'
+ALLOWLIST_PATTERN='^(tests/renderers/test_tags\.py|docs/index\.md)$'
 
 # Stricter branding patterns to reduce false positives:
 #  - Dungeons {&,\&,and} Dragons (flexible whitespace)

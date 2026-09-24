@@ -8,7 +8,7 @@ from typer.testing import CliRunner
 
 from studiorum.cli.main import app
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.renderers.core.tag_resolver import TagResolver
+from studiorum.renderers.tags import TagResolver
 
 
 @pytest.mark.cli
