@@ -178,7 +178,9 @@ def find_one(
         raise ToolError(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
-    return (drop_reprinted(allowed) or allowed)[0]
+    latest = drop_reprinted(allowed) or allowed
+    # 5etools marks 2024 content edition "one"; prefer it when nothing else decides
+    return sorted(latest, key=lambda c: getattr(c, "edition", None) != "one")[0]
 
 
 async def search_content(

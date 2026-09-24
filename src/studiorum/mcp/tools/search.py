@@ -140,6 +140,10 @@ def _reprints(content: BaseContent) -> set[tuple[str, str]]:
         first = next(iter(fields.values()), None)
         if first and fields.get("source"):
             keys.add((str(first).lower(), str(fields["source"]).lower()))
+            # A specific variant reprinted as a generic one ("+3 Armor|XDMG")
+            # is reprinted as the item of its own name there
+            if getattr(content, "genericVariant", None):
+                keys.add((content.name.lower(), str(fields["source"]).lower()))
     return keys
 
 
