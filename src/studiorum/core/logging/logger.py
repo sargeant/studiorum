@@ -61,9 +61,12 @@ class StudiorumLogger:
 
         # Debug the send_to_logfire logic
         if debug:
-            print(f"🐛 DEBUG: enable_telemetry={enable_telemetry}")
-            print(f"🐛 DEBUG: logfire_token present={logfire_token is not None}")
-            print(f"🐛 DEBUG: send_to_logfire={send_to_logfire}")
+            print(f"🐛 DEBUG: enable_telemetry={enable_telemetry}", file=sys.stderr)
+            print(
+                f"🐛 DEBUG: logfire_token present={logfire_token is not None}",
+                file=sys.stderr,
+            )
+            print(f"🐛 DEBUG: send_to_logfire={send_to_logfire}", file=sys.stderr)
 
         # Configure Logfire
         logfire.configure(
@@ -73,6 +76,8 @@ class StudiorumLogger:
                 min_log_level=console_min_level,  # type: ignore[arg-type]
                 include_timestamps=True,
                 colors="auto" if sys.stderr.isatty() else "never",
+                # stdout carries command output, and MCP's stdio protocol
+                output=sys.stderr,
             ),
             send_to_logfire=send_to_logfire,
         )
@@ -101,19 +106,27 @@ class StudiorumLogger:
                 logfire.instrument_httpx()
             except Exception as e:
                 if debug:
-                    print(f"🐛 DEBUG: httpx instrumentation skipped: {e}")
+                    print(
+                        f"🐛 DEBUG: httpx instrumentation skipped: {e}", file=sys.stderr
+                    )
 
             try:
                 logfire.instrument_requests()
             except Exception as e:
                 if debug:
-                    print(f"🐛 DEBUG: requests instrumentation skipped: {e}")
+                    print(
+                        f"🐛 DEBUG: requests instrumentation skipped: {e}",
+                        file=sys.stderr,
+                    )
 
             try:
                 logfire.instrument_system_metrics()
             except Exception as e:
                 if debug:
-                    print(f"🐛 DEBUG: system metrics instrumentation skipped: {e}")
+                    print(
+                        f"🐛 DEBUG: system metrics instrumentation skipped: {e}",
+                        file=sys.stderr,
+                    )
 
         cls._initialized = True
         logfire.debug(
