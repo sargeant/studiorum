@@ -6,27 +6,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .additional_spells import AdditionalSpells
 from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
-
-
-class SubclassAdditionalSpells(BaseModel):
-    """Additional spells granted by the subclass."""
-
-    prepared: dict[str, list[str]] | None = Field(
-        None, description="Prepared spells by level"
-    )
-    expanded: dict[str, list[str]] | None = Field(
-        None, description="Expanded spell list by level"
-    )
-    known: dict[str, list[str]] | None = Field(
-        None, description="Known spells by level"
-    )
-    innate: dict[str, dict[str, Any]] | None = Field(
-        None, description="Innate spellcasting"
-    )
-
-    model_config = ConfigDict(extra="allow")  # Allow other spell granting mechanisms
 
 
 class CopyMetadata(BaseModel):
@@ -56,7 +38,7 @@ class Subclass(BaseContent):
     subclass_features: list[str] = Field(
         ..., alias="subclassFeatures", description="List of subclass feature references"
     )
-    additional_spells: list[SubclassAdditionalSpells] | None = Field(
+    additional_spells: list[AdditionalSpells] | None = Field(
         None,
         alias="additionalSpells",
         description="Additional spells granted by subclass",
@@ -67,7 +49,7 @@ class Subclass(BaseContent):
     cant_known: list[dict[str, Any]] | None = Field(
         None, alias="cantKnown", description="Cantrips known progression"
     )
-    spells_known_progression: list[dict[str, Any]] | None = Field(
+    spells_known_progression: list[int] | None = Field(
         None, alias="spellsKnownProgression", description="Spells known progression"
     )
     edition: str | None = Field(None, description="Edition this subclass is from")

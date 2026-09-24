@@ -3,6 +3,7 @@
 from pydantic import BaseModel, Field
 
 from .content import BaseContent
+from .entry_types import Entry
 
 
 class TrapRating(BaseModel):
@@ -24,9 +25,11 @@ class Trap(BaseContent):
     )
 
     # Detection and mechanics
-    trigger: str | None = Field(None, description="What triggers the trap")
-    effect: str | None = Field(None, description="What the trap does when triggered")
-    countermeasures: str | None = Field(
+    trigger: list[Entry] | None = Field(None, description="What triggers the trap")
+    effect: list[Entry] | None = Field(
+        None, description="What the trap does when triggered"
+    )
+    countermeasures: list[Entry] | None = Field(
         None, description="How to disable or avoid the trap"
     )
 

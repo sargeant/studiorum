@@ -6,14 +6,29 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .additional_spells import AdditionalSpells
 from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
+
+
+class SpellPrerequisite(BaseModel):
+    """A required spell picked from a filter, e.g. a warlock cantrip that deals damage."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    choose: str = Field(..., description="Filter the spell must match")
+    entry: str | None = Field(None, description="How to describe the requirement")
+    entry_summary: str | None = Field(
+        None, alias="entrySummary", description="Short form of the description"
+    )
 
 
 class Prerequisite(BaseModel):
     """Represents a prerequisite for an optional feature."""
 
-    spell: list[str] | None = Field(None, description="Required spells")
+    spell: list[str | SpellPrerequisite] | None = Field(
+        None, description="Required spells"
+    )
     level: dict[str, Any] | None = Field(None, description="Level requirements")
     feature: list[str] | None = Field(None, description="Required features")
     proficiency: list[dict[str, Any]] | None = Field(
@@ -35,25 +50,6 @@ class ResourceConsumption(BaseModel):
 
     name: str = Field(..., description="Name of consumed resource")
     amount: int | None = Field(None, description="Amount consumed")
-
-
-class AdditionalSpells(BaseModel):
-    """Additional spells granted by the feature."""
-
-    prepared: dict[str, list[str]] | None = Field(
-        None, description="Prepared spells by level"
-    )
-    expanded: dict[str, list[str]] | None = Field(
-        None, description="Expanded spell list by level"
-    )
-    innate: dict[str, dict[str, Any]] | None = Field(
-        None, description="Innate spellcasting"
-    )
-    known: dict[str, list[str]] | None = Field(
-        None, description="Known spells by level"
-    )
-
-    model_config = ConfigDict(extra="allow")  # Allow other spell granting mechanisms
 
 
 class OptionalFeature(BaseContent):
