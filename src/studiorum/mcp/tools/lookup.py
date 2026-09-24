@@ -13,7 +13,9 @@ from studiorum.core.models.books import Book
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import not_found
+from studiorum.mcp.layouts import to_markdown
 from studiorum.mcp.models import ContentEntry, Publication, Publications
+from studiorum.mcp.tools.search import drop_reprinted
 from studiorum.services import Services
 
 # Adventures and books are read by section, not whole.
@@ -21,6 +23,7 @@ EntryType = Literal[
     "action",
     "background",
     "class",
+    "classFeature",
     "condition",
     "creature",
     "deity",
@@ -30,8 +33,11 @@ EntryType = Literal[
     "item",
     "optionalfeature",
     "race",
+    "sense",
     "spell",
+    "status",
     "subclass",
+    "subclassFeature",
     "trap",
     "variantrule",
     "vehicle",
@@ -40,25 +46,88 @@ EntryType = Literal[
 
 async def get_content(
     content_type: EntryType,
-    name: str,
+    name: Annotated[
+        str,
+        Field(
+            description="A name, or a 5etools uid such as "
+            "'Spell Mastery|Wizard|XPHB|18' for a class feature"
+        ),
+    ],
     source: Annotated[
-        str | None, Field(description="Source abbreviation; else the first match")
+        str | None, Field(description="Source abbreviation; else the latest edition")
     ] = None,
+    format: Annotated[  # noqa: A002 - the name clients see
+        Literal["markdown", "json"],
+        Field(description="markdown: laid out to read; json: the 5etools data"),
+    ] = "markdown",
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ContentEntry:
-    """One entry in full (a statblock, a spell's text), found by type and name."""
+    """One entry in full (a statblock, a spell, a class and its features), by type and name."""
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
+    data = entry.model_dump(mode="json", by_alias=True, exclude_none=True) | {
+        "source": entry.source.abbreviation
+    }
+    if content_type == "class":
+        data["subclasses"] = _subclasses(services, entry, srd_only)
     return ContentEntry(
         type=content_type,
         name=entry.name,
         source=entry.source.abbreviation,
         srd=entry.is_srd,
-        data=entry.model_dump(mode="json", by_alias=True, exclude_none=True)
-        | {"source": entry.source.abbreviation},
+        text=to_markdown(content_type, data) if format == "markdown" else None,
+        data=data if format == "json" else None,
     )
+
+
+def _subclasses(
+    services: Services, cls: BaseContent, srd_only: bool
+) -> list[dict[str, str]]:
+    """The loaded subclasses of a class, which 5etools keeps apart from it."""
+    named = [
+        (sub, sub.model_dump(by_alias=True).get("classSource"))
+        for sub in services.omnidexer.get_all_by_type(ContentType.SUBCLASS)
+        if getattr(sub, "class_name", None) == cls.name and (sub.is_srd or not srd_only)
+    ]
+    # The repo's SRD bundle points its subclasses at the PHB class
+    exact = [sub for sub, source in named if source == cls.source.abbreviation]
+    return sorted(
+        (
+            {"name": sub.name, "source": sub.source.abbreviation}
+            for sub in exact or [sub for sub, _ in named]
+        ),
+        key=lambda s: s["name"],
+    )
+
+
+# Where a feature uid keeps the class name and level ("name|class|classSource|level")
+_FEATURE_UID_FIELDS = {
+    ContentType.CLASS_FEATURE: {"className": 1, "level": 3},
+    ContentType.SUBCLASS_FEATURE: {"className": 1, "subclassShortName": 3, "level": 5},
+}
+
+
+def _by_uid(services: Services, ctype: ContentType, uid: str) -> list[BaseContent]:
+    """The entry a 5etools uid names, then for features any with the same name, class and level.
+
+    The looser match finds features whose sources differ from their uid's,
+    as in the repo's SRD bundle.
+    """
+    exact = services.omnidexer.find_uid(ctype, uid)
+    found = [exact] if exact else []
+    fields = _FEATURE_UID_FIELDS.get(ctype)
+    if fields:
+        parts = uid.split("|")
+        wanted = {k: parts[i] for k, i in fields.items() if i < len(parts) and parts[i]}
+        for c in services.omnidexer.find_all(ctype, parts[0]):
+            raw = c.model_dump(by_alias=True)
+            if c is not exact and all(
+                str(raw.get(k, "")).lower() == v.lower() for k, v in wanted.items()
+            ):
+                found.append(c)
+    return found
 
 
 def find_one(
@@ -73,7 +142,11 @@ def find_one(
     ctype = ContentType(content_type)
     matches = [
         c
-        for c in omnidexer.find_all(ctype, name)
+        for c in (
+            _by_uid(services, ctype, name)
+            if "|" in name
+            else omnidexer.find_all(ctype, name)
+        )
         if source is None or c.source.abbreviation.lower() == source.lower()
     ]
     if not matches:
@@ -85,7 +158,7 @@ def find_one(
         raise ToolError(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
-    return allowed[0]
+    return (drop_reprinted(allowed) or allowed)[0]
 
 
 async def list_publications(

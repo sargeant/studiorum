@@ -113,7 +113,10 @@ async def test_search_items_names_the_type() -> None:
 
 @pytest.mark.asyncio
 async def test_get_content_returns_the_entry() -> None:
-    result = await call("get_content", content_type="spell", name="fireball")
+    result = await call(
+        "get_content", content_type="spell", name="fireball", format="json"
+    )
+    assert result["text"] is None
     assert result["name"] == "Fireball"
     assert result["srd"] is True
     assert result["data"]["level"] == 3
@@ -173,3 +176,35 @@ async def test_searches_leave_out_reprinted_entries() -> None:
     assert [(r["name"], r["source"]) for r in latest["results"]] == [("Alarm", "XPHB")]
     both = await call("search_spells", query="alarm", latest_only=False)
     assert [r["source"] for r in both["results"]] == ["SRD", "XPHB"]
+
+
+@pytest.mark.asyncio
+async def test_get_content_as_markdown() -> None:
+    goblin = (await call("get_content", content_type="creature", name="Goblin"))["text"]
+    assert goblin.startswith("# Goblin\n\n*Small humanoid (goblinoid), neutral evil*")
+    assert "**Armor Class** 15 (leather armor, shield)" in goblin
+    assert "| 8 (-1) | 14 (+2) | 10 (+0) | 10 (+0) | 8 (-1) | 8 (-1) |" in goblin
+    assert "**Challenge** 1/4 (50 XP)" in goblin
+    assert "***Scimitar.*** *Melee Weapon Attack:* +4 to hit" in goblin
+
+    fireball = (await call("get_content", content_type="spell", name="Fireball"))[
+        "text"
+    ]
+    assert "*Level 3 Evocation*" in fireball
+    assert "**Range** 150 feet" in fireball
+    assert "{@" not in fireball
+
+
+@pytest.mark.asyncio
+async def test_get_content_reads_classes_and_features() -> None:
+    wizard = (await call("get_content", content_type="class", name="Wizard"))["text"]
+    assert "**Hit Die** d6" in wizard
+    assert "- Level 1: Arcane Recovery (`Arcane Recovery|Wizard||1`)" in wizard
+    assert "- School of Evocation (SRD)" in wizard
+
+    by_uid = await call(
+        "get_content",
+        content_type="classFeature",
+        name="Arcane Recovery|Wizard||1",  # as the class lists it
+    )
+    assert by_uid["text"].startswith("# Arcane Recovery\n\n*Level 1 Wizard feature*")

@@ -51,7 +51,10 @@ class ContentEntry(BaseModel):
     name: str
     source: str
     srd: bool
-    data: dict[str, Any] = Field(description="The entry as 5etools models it")
+    text: str | None = Field(None, description="The entry as Markdown")
+    data: dict[str, Any] | None = Field(
+        None, description="The entry as 5etools models it"
+    )
 
 
 class Publication(BaseModel):
