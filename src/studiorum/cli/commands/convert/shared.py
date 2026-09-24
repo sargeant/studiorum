@@ -4,13 +4,13 @@
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import typer
 from rich import print as rprint
 
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.protocols.progress import ProgressCallback
@@ -198,7 +198,7 @@ def resolve_content_or_file(
             raise typer.Exit(1)
 
     # Try to resolve as abbreviation using omnidexer with progress
-    omnidexer = get_omnidexer(progress_callback=progress_callback)
+    omnidexer = get_services().load_omnidexer(progress_callback)
     resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
 
     if content_type == ContentType.ADVENTURE:
@@ -233,3 +233,65 @@ def handle_resolution_result(
     rprint(f"[red]Error:[/red] {content_name.title()} '{query}' not found.")
     rprint(f"Run [bold]studiorum list {content_name}s[/bold] to see available content.")
     raise typer.Exit(1)
+
+
+def resolve_option[T](value: T) -> T:
+    """Resolve a Typer OptionInfo/ArgumentInfo to its default value if needed.
+
+    When CLI functions are called directly from tests, parameters that are
+    defined with typer.Option() or typer.Argument() are passed as the
+    OptionInfo/ArgumentInfo objects themselves rather than their resolved
+    values. This function extracts the default value when needed.
+
+    Args:
+        value: Either a regular value or a Typer OptionInfo/ArgumentInfo object
+
+    Returns:
+        The resolved value (either the input value or its default)
+
+    Example:
+        ```python
+        # In CLI function:
+        def my_command(
+            file: Path | None = typer.Option(None, "--file")
+        ):
+            # Resolve for test compatibility
+            file = resolve_option(file)
+            # Now file is always Path | None, never OptionInfo
+        ```
+    """
+    # Check if this is a Typer Option/Argument object by looking for 'default' attribute
+    # We avoid importing typer.models.OptionInfo to keep this lightweight
+    # and avoid circular dependencies
+    if hasattr(value, "default"):
+        # This is a Typer Option/Argument, return its default
+        return value.default  # type: ignore[attr-defined,no-any-return]
+    # Regular value, return as-is
+    return value
+
+
+def resolve_options(**kwargs: Any) -> dict[str, Any]:
+    """Resolve multiple Typer OptionInfo objects at once.
+
+    Convenience function for resolving multiple parameters in one call.
+
+    Args:
+        **kwargs: Named parameters to resolve
+
+    Returns:
+        Dictionary with same keys but resolved values
+
+    Example:
+        ```python
+        # In CLI function:
+        def my_command(
+            file: Path | None = typer.Option(None),
+            name: str = typer.Option("default")
+        ):
+            # Resolve all at once
+            resolved = resolve_options(file=file, name=name)
+            file = resolved["file"]
+            name = resolved["name"]
+        ```
+    """
+    return {key: resolve_option(value) for key, value in kwargs.items()}

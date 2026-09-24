@@ -8,6 +8,7 @@ import typer
 from studiorum.cli.config_factory import (
     get_compile_pdf_default,
 )
+from studiorum.cli.context import get_services
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.loaders.content_sources import (
     ContentLoader,
@@ -27,9 +28,7 @@ class BaseConvertCommand:
 
     def __init__(self) -> None:
         """Initialize the base convert command."""
-        from studiorum.cli.utils import get_omnidexer
-
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         self._content_reference_manager = ContentReferenceManager(omnidexer)
 
     @staticmethod
@@ -139,14 +138,13 @@ class BaseConvertCommand:
         use_stdin: bool = False,
     ) -> ContentLoader:
         """Get a content loader configured with the specified sources."""
-        from studiorum.cli.utils import get_omnidexer as get_omnidexer_sync
 
         loader = ContentLoader()
 
         if use_omnidexer:
             from studiorum.core.models.content import ContentType
 
-            omnidexer = get_omnidexer_sync()
+            omnidexer = get_services().omnidexer
             # Convert string to ContentType enum
             content_type_enum = ContentType(content_type.lower())
             source = create_omnidexer_source(omnidexer, content_type_enum)
@@ -410,10 +408,9 @@ class AppendixMixin:
 
     def __init__(self) -> None:
         """Initialize the appendix mixin."""
-        from studiorum.cli.utils import get_omnidexer as get_omnidexer_sync
 
         if not hasattr(self, "_content_reference_manager"):
-            omnidexer = get_omnidexer_sync()
+            omnidexer = get_services().omnidexer
             self._content_reference_manager = ContentReferenceManager(omnidexer)
 
         self.logger = get_logger(self.__class__.__name__)

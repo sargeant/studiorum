@@ -1,7 +1,7 @@
 """Tests for BaseConvertCommand architecture."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 from studiorum.cli.commands.convert.base import (
     AppendixMixin,
@@ -126,7 +126,7 @@ class TestBaseConvertCommand:
         assert config["paper_size"] == "a4paper"  # App config fallback
         assert config["main_font"] is None  # main_font not in config structures
 
-    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_get_content_loader_omnidexer_source(self, mock_get_omnidexer):
         """Test content loader with omnidexer source."""
         mock_omnidexer = Mock()
@@ -183,7 +183,7 @@ class TestBaseConvertCommand:
                 assert mock_create_source.call_count == 2
                 assert mock_loader.add_source.call_count == 2
 
-    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_get_content_reference_manager(self, mock_get_omnidexer):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
@@ -211,7 +211,7 @@ class TestAppendixMixin:
         # Should have content reference manager
         assert hasattr(mixin, "_content_reference_manager")
 
-    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_get_content_reference_manager(self, mock_get_omnidexer):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()

@@ -7,11 +7,11 @@ import typer
 from rich import print as rprint
 from rich.table import Table
 
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer
 from studiorum.core.models.content import ContentType
 
-app: typer.Typer = typer.Typer(help="List available D&D content")
+app: typer.Typer = typer.Typer(help="List available 5e content")
 console = display_manager.console
 
 # Constants for formatting
@@ -90,8 +90,8 @@ def list_content(
 
     def _list_content() -> None:
         try:
-            # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = get_omnidexer()
+            # Load omnidexer
+            omnidexer = get_services().omnidexer
 
             # Filter content
             if content_type:
@@ -168,8 +168,8 @@ def list_sources() -> None:
 
     def _list_sources() -> None:
         try:
-            # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = get_omnidexer()
+            # Load omnidexer
+            omnidexer = get_services().omnidexer
 
             # Get statistics
             stats = omnidexer.get_statistics()
@@ -207,8 +207,8 @@ def list_adventures() -> None:
 
     def _list_adventures() -> None:
         try:
-            # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = get_omnidexer()
+            # Load omnidexer
+            omnidexer = get_services().omnidexer
 
             # Get all adventures
             adventures = omnidexer.get_all_by_type(ContentType("adventure"))
@@ -253,8 +253,8 @@ def list_books() -> None:
 
     def _list_books() -> None:
         try:
-            # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = get_omnidexer()
+            # Load omnidexer
+            omnidexer = get_services().omnidexer
 
             # Get all books
             books = omnidexer.get_all_by_type(ContentType("book"))

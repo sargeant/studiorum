@@ -7,6 +7,7 @@ import yaml
 from pydantic import ValidationError
 from rich import print as rprint
 
+from studiorum.cli.context import install_services, reset_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.config.unified_config import (
     ConfigFileNotFoundError,
@@ -14,10 +15,9 @@ from studiorum.core.config.unified_config import (
     reset_app_config,
     set_app_config,
 )
-from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
 from studiorum.core.logging.logger import setup_logging
-from studiorum.renderers.core.tag_resolver import TagResolver
+from studiorum.services import build_services
 
 logger = get_logger(__name__)
 
@@ -56,6 +56,7 @@ def show_version() -> None:
 
 @app.callback()
 def main(
+    ctx: typer.Context,
     verbose: bool = typer.Option(False, "--verbose", help="Enable verbose output"),
     debug: bool = typer.Option(
         False, "--debug", help="Enable debug output (most verbose)"
@@ -91,6 +92,7 @@ def main(
         rprint(f"[red]Configuration error:[/red] {e}")
         raise typer.Exit(1)
     set_app_config(config)
+    install_services(ctx, build_services(config))
     if config_file and (verbose or debug):
         rprint(f"[green]Configuration loaded from:[/green] {config_file}")
 
@@ -142,42 +144,9 @@ except ImportError as e:
     logger.error("CLI functionality will be limited")
 
 
-def get_omnidexer() -> Omnidexer:
-    """Get the omnidexer instance from the service container.
-
-    This function provides backward compatibility for tests that expect
-    these functions to be available from studiorum.cli.main.
-    """
-    from studiorum.cli.utils import get_omnidexer as _get_omnidexer
-
-    return _get_omnidexer()
-
-
-def get_tag_resolver() -> TagResolver:
-    """Get the tag resolver instance from the service container.
-
-    This function provides backward compatibility for tests that expect
-    these functions to be available from studiorum.cli.main.
-    """
-    from studiorum.cli.utils import get_tag_resolver as _get_tag_resolver
-
-    return _get_tag_resolver()
-
-
 def reset_cli_globals() -> None:
-    """Reset CLI global variables for testing.
-
-    This function clears the global state maintained by the CLI module
-    to ensure clean test isolation.
-    """
-    from studiorum.cli.utils import reset_cli_services
-    from studiorum.core.services.container import ServiceContainer
-
-    # Reset the global container for clean state
-    ServiceContainer.reset_global_instance()
-
-    # Reset CLI service singletons to ensure clean state per command
-    reset_cli_services()
+    """Forget the Services built outside a CLI invocation (for tests)."""
+    reset_services()
 
 
 if __name__ == "__main__":

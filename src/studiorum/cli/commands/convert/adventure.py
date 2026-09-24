@@ -16,8 +16,8 @@ from studiorum.cli.config_factory import (
     get_fonts_default,
     get_with_images_default,
 )
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_content_list_writer, get_omnidexer, get_tag_resolver
 from studiorum.core.config.unified_config import get_app_config  # noqa: F401
 from studiorum.core.models.content import ContentType
 from studiorum.core.references.content_tracker import ContentTracker
@@ -226,9 +226,9 @@ def adventure(
 
                 # Get omnidexer and tag resolver (omnidexer already loaded by resolve_content_or_file)
                 omnidexer = (
-                    get_omnidexer()
+                    get_services().omnidexer
                 )  # Get cached instance since data is already loaded
-                tag_resolver = get_tag_resolver()
+                tag_resolver = get_services().tag_resolver
 
             # Apply chapter filter if specified
             chapter_numbers: list[int] | None = None
@@ -469,7 +469,7 @@ def _write_content_outputs(
         return
 
     # Get ContentListWriter service
-    content_list_writer = get_content_list_writer()
+    content_list_writer = get_services().content_list_writer
 
     # Write each requested content type
     for content_type, output_path in requested_outputs:

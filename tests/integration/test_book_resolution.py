@@ -2,7 +2,7 @@
 
 import pytest
 
-from studiorum.cli.main import get_omnidexer
+from studiorum.cli.context import get_services
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
@@ -15,7 +15,7 @@ class TestBookResolution:
 
     def test_omnidexer_loads_book_with_enriched_content(self):
         """Test that omnidexer loads books with enriched content from dual-file architecture."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         book_type = ContentType("book")
         books = omnidexer.get_all_by_type(book_type)
 
@@ -33,7 +33,7 @@ class TestBookResolution:
 
     def test_resolve_book_phb_success(self):
         """Test successful book resolution with content loading."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
         result = resolver.resolve_book("TEST")
 
@@ -50,7 +50,7 @@ class TestBookResolution:
 
     def test_resolve_book_test_success(self):
         """Test test book resolution."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
         result = resolver.resolve_book("TEST")
 
@@ -69,7 +69,7 @@ class TestBookResolution:
 
     def test_resolve_nonexistent_book(self):
         """Test resolving a book that doesn't exist."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
         result = resolver.resolve_book("nonexistent")
 
@@ -78,7 +78,7 @@ class TestBookResolution:
 
     def test_book_metadata_preservation(self):
         """Test that book metadata is preserved during content merging."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
         result = resolver.resolve_book("TEST")
 
@@ -93,7 +93,7 @@ class TestBookResolution:
 
     def test_book_vs_adventure_architecture_consistency(self):
         """Test that books and adventures follow the same dual-file architecture."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
 
         # Test book resolution
@@ -116,7 +116,7 @@ class TestBookResolution:
 
     def test_content_cache_functionality(self):
         """Test that content caching works for books."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
 
         # Clear cache stats
@@ -126,28 +126,21 @@ class TestBookResolution:
                 "ContentMerger not available - omnidexer may not have source_manager"
             )
         content_merger.clear_cache()
-        stats_before = content_merger.get_cache_stats()
 
-        # First load should be a cache miss
+        # First load reads the content file (or finds it already enriched)
         result1 = resolver.resolve_book("TEST")
         stats_after_first = content_merger.get_cache_stats()
-
         assert result1.content is not None
-        assert stats_after_first["misses"] > stats_before["misses"]
 
-        # Second load should use cache (assuming caching is enabled)
+        # Second load must not read the file again
         result2 = resolver.resolve_book("TEST")
         stats_after_second = content_merger.get_cache_stats()
-
         assert result2.content is not None
-        # Either cache hit or miss is acceptable depending on cache settings
-        assert (
-            stats_after_second["total_requests"] >= stats_after_first["total_requests"]
-        )
+        assert stats_after_second["misses"] == stats_after_first["misses"]
 
     def test_missing_content_file_handling(self):
         """Test graceful handling when content file is missing."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
 
         # Try to find a book that has metadata but might not have content
         book_type = ContentType("book")
@@ -166,7 +159,7 @@ class TestBookResolution:
 
     def test_end_to_end_book_conversion_ready(self):
         """Test that book resolution produces content suitable for conversion."""
-        omnidexer = get_omnidexer()
+        omnidexer = get_services().omnidexer
         resolver = ContentResolver(omnidexer)
         result = resolver.resolve_book("TEST")
 

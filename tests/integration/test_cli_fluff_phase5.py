@@ -1,6 +1,6 @@
 """Integration tests for Phase 5 CLI fluff features."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 
@@ -12,7 +12,7 @@ from studiorum.cli.commands.convert.compendiums.spells import spells
 class TestCLIFluffPhase5Integration:
     """Integration tests for Phase 5 CLI enhancements."""
 
-    @patch("studiorum.cli.commands.convert.compendiums.creatures.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.creatures.display_manager")
     def test_creatures_with_fluff_sections(
         self, mock_display_manager, mock_get_omnidexer, tmp_path
@@ -98,7 +98,7 @@ class TestCLIFluffPhase5Integration:
                     # Expected to fail during rendering, but should reach fluff processing
                     assert "No LaTeX content was generated" in str(e)
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
     def test_spells_with_fluff_sources(
         self, mock_display_manager, mock_get_omnidexer, tmp_path
@@ -177,7 +177,7 @@ class TestCLIFluffPhase5Integration:
                     # Expected to fail during rendering
                     assert "No LaTeX content was generated" in str(e)
 
-    @patch("studiorum.cli.commands.convert.compendiums.items.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.items.display_manager")
     def test_items_with_fluff_images(
         self, mock_display_manager, mock_get_omnidexer, tmp_path

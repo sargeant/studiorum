@@ -171,10 +171,10 @@ class ContentBuilder:
                 return False
 
             # Create a simple render context (minimal requirements)
-            from studiorum.cli.main import get_omnidexer, get_tag_resolver
+            from studiorum.cli.context import get_services
 
-            omnidexer = get_omnidexer()
-            tag_resolver = get_tag_resolver()
+            omnidexer = get_services().omnidexer
+            tag_resolver = get_services().tag_resolver
 
             context = RenderingContext(
                 output_format="latex",

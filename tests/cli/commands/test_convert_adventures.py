@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -36,8 +36,8 @@ class TestConvertAdventureCommand:
             ]
         }
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
@@ -99,8 +99,8 @@ class TestConvertAdventureCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.get_app_config")
     @patch(
         "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
@@ -221,7 +221,7 @@ class TestConvertAdventureCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.core.resolvers.ContentResolver")
     def test_convert_adventure_resolution_failure(
         self, mock_resolver_class, mock_omnidexer
@@ -252,9 +252,9 @@ class TestConvertAdventureCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout or "Did you mean?" in result.stdout
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.load_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")

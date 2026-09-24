@@ -14,8 +14,8 @@ from studiorum.cli.config_factory import (
     get_fonts_default,
     get_with_images_default,
 )
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.latex_engine import create_latex_engine
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -132,8 +132,8 @@ def supplement(
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_omnidexer()
-                tag_resolver = get_tag_resolver()
+                omnidexer = get_services().omnidexer
+                tag_resolver = get_services().tag_resolver
                 display_manager.update_task(load_task, completed=100)
 
             # Load supplement content

@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -31,9 +31,9 @@ class TestConvertBookCommand:
             ]
         }
 
-    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.services.Services.load_omnidexer")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.get_app_config")
     @patch("studiorum.cli.commands.convert.book.create_latex_engine")
     @patch("studiorum.cli.commands.convert.book.display_manager")
@@ -108,7 +108,7 @@ class TestConvertBookCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.book.get_app_config")
     @patch("studiorum.cli.commands.convert.book.create_latex_engine")
     @patch("studiorum.cli.commands.convert.book.display_manager")

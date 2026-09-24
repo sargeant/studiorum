@@ -20,7 +20,7 @@ Service Factories:
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from studiorum.core.error_types import (
     ConfigurationError,
@@ -1364,8 +1364,8 @@ def create_template_service_with_components(
     template_service = TemplateService(
         text_extractor=text_extractor,
         latex_formatter=latex_formatter,
-        tag_resolver=tag_resolver,
-        omnidexer=omnidexer,
+        tag_resolver=cast("TagResolver", tag_resolver),
+        omnidexer=cast("Omnidexer", omnidexer),
     )
     logger.debug("TemplateService with components initialized successfully")
     return template_service

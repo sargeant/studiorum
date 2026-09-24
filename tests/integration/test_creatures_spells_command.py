@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 
@@ -99,8 +99,8 @@ Some spell content here."""
         test_content_tracker = ContentTracker() if spells_flag else None
         assert test_content_tracker is None
 
-    @patch("studiorum.cli.utils.get_omnidexer")
-    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.creature_collector.CreatureCollector")
     def test_creatures_command_without_spells_flag(
         self, mock_creature_collector, mock_tag_resolver, mock_omnidexer
@@ -157,8 +157,8 @@ Some spell content here."""
             if output_path.exists():
                 output_path.unlink()
 
-    @patch("studiorum.cli.utils.get_omnidexer")
-    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.creature_collector.CreatureCollector")
     @patch("studiorum.core.services.appendix_generator.AppendixGenerator")
     def test_creatures_command_with_spells_flag(

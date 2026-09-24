@@ -1,7 +1,7 @@
 """Tests for spell conversion CLI commands."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -86,8 +86,8 @@ class TestConvertSpellsCommand:
             },
         ]
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
@@ -194,8 +194,8 @@ class TestConvertSpellsCommand:
         assert result.exit_code == 1
         assert "File does not exist" in result.stdout
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
     def test_convert_spells_no_spells_found(

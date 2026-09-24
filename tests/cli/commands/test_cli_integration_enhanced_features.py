@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -103,9 +103,9 @@ class TestCLIIntegrationEnhancedFeatures:
         file_path.write_text(content, encoding="utf-8")
         return file_path
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_conversion_with_and_without_content_output(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -185,8 +185,8 @@ class TestCLIIntegrationEnhancedFeatures:
                 mock_writer.write_content_list.assert_called_once()
 
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_spell_conversion_with_traditional_and_enhanced_files(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class
     ):
@@ -273,10 +273,11 @@ class TestCLIIntegrationEnhancedFeatures:
             "studiorum.cli.commands.convert.adventure.resolve_content_or_file"
         ) as mock_resolve:
             with patch(
-                "studiorum.cli.commands.convert.adventure.get_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_tag_resolver:
                 with patch(
-                    "studiorum.cli.commands.convert.adventure.get_content_list_writer"
+                    "studiorum.services.Services.content_list_writer",
+                    new_callable=PropertyMock,
                 ) as mock_get_writer:
                     # Setup resolve_content_or_file mock
                     from studiorum.core.models.adventures import Adventure
@@ -385,10 +386,11 @@ class TestCLIIntegrationEnhancedFeatures:
             "studiorum.cli.commands.convert.adventure.resolve_content_or_file"
         ) as mock_resolve:
             with patch(
-                "studiorum.cli.commands.convert.adventure.get_tag_resolver"
+                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
             ) as mock_tag_resolver:
                 with patch(
-                    "studiorum.cli.commands.convert.adventure.get_content_list_writer"
+                    "studiorum.services.Services.content_list_writer",
+                    new_callable=PropertyMock,
                 ) as mock_get_writer:
                     # Setup resolve_content_or_file mock
                     from studiorum.core.models.adventures import Adventure
@@ -477,10 +479,11 @@ class TestCLIIntegrationEnhancedFeatures:
             "studiorum.core.services.spell_collector.SpellCollector"
         ) as mock_spell_collector:
             with patch(
-                "studiorum.cli.commands.convert.compendiums.spells.get_omnidexer"
+                "studiorum.services.Services.omnidexer", new_callable=PropertyMock
             ) as mock_get_omnidexer:
                 with patch(
-                    "studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver"
+                    "studiorum.services.Services.tag_resolver",
+                    new_callable=PropertyMock,
                 ) as mock_tag_resolver:
                     with patch(
                         "studiorum.cli.commands.convert.compendiums.spells._render_spellbook"
@@ -556,10 +559,12 @@ class TestCLIIntegrationEnhancedFeatures:
             "studiorum.cli.commands.convert.adventure.resolve_content_or_file"
         ) as mock_resolve:
             with patch(
-                "studiorum.cli.commands.convert.adventure.get_content_list_writer"
+                "studiorum.services.Services.content_list_writer",
+                new_callable=PropertyMock,
             ) as mock_get_writer:
                 with patch(
-                    "studiorum.cli.commands.convert.adventure.get_tag_resolver"
+                    "studiorum.services.Services.tag_resolver",
+                    new_callable=PropertyMock,
                 ) as mock_tag_resolver:
                     # Setup resolve_content_or_file mock
                     from studiorum.core.models.adventures import Adventure
@@ -640,10 +645,11 @@ class TestCLIIntegrationEnhancedFeatures:
             "studiorum.core.services.spell_collector.SpellCollector"
         ) as mock_spell_collector:
             with patch(
-                "studiorum.cli.commands.convert.compendiums.spells.get_omnidexer"
+                "studiorum.services.Services.omnidexer", new_callable=PropertyMock
             ) as mock_get_omnidexer:
                 with patch(
-                    "studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver"
+                    "studiorum.services.Services.tag_resolver",
+                    new_callable=PropertyMock,
                 ) as mock_tag_resolver:
                     with patch(
                         "studiorum.cli.commands.convert.compendiums.spells._render_spellbook"

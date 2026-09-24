@@ -16,28 +16,29 @@ from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Ability, Spellcasting
 from studiorum.core.types import LaTeXConfig as LaTeXConfigDict
 
+from ..services.template_service import active_template_service
 from . import model_text
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
 
-def _cli_tag_resolver() -> Any:
-    """The CLI's tag resolver, or None if it cannot be built."""
+def _active_tag_resolver() -> Any:
+    """The active template service's tag resolver, or None if there is none."""
     try:
-        from ...cli.services import get_cli_tag_resolver
-
-        return get_cli_tag_resolver()
+        service = active_template_service()
     except Exception:
         return None
+    return service.tag_resolver if service is not None else None
 
 
-def _cli_omnidexer_and_tag_resolver() -> tuple[Any, Any]:
-    """The CLI's omnidexer and tag resolver, or (None, None) if either fails."""
+def _active_omnidexer_and_tag_resolver() -> tuple[Any, Any]:
+    """The active template service's omnidexer and tag resolver, or (None, None)."""
     try:
-        from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
-
-        return get_cli_omnidexer(), get_cli_tag_resolver()
+        service = active_template_service()
     except Exception:
         return None, None
+    if service is None:
+        return None, None
+    return service.omnidexer, service.tag_resolver
 
 
 class LaTeXTemplateEngine:
@@ -332,16 +333,16 @@ class LaTeXTemplateEngine:
 
         def processed_ac_text(creature: Any) -> str:
             """Creature AC with tags in armour sources resolved."""
-            return model_text.creature_ac_text(creature, _cli_tag_resolver())
+            return model_text.creature_ac_text(creature, _active_tag_resolver())
 
         def processed_senses(creature: Any) -> str | None:
             """Creature senses with tags resolved."""
-            return model_text.creature_senses_text(creature, _cli_tag_resolver())
+            return model_text.creature_senses_text(creature, _active_tag_resolver())
 
         def safe_processed_name(obj: Any) -> str:
             """Safely get processed name from object or dict."""
             if isinstance(obj, (Ability, Spellcasting)):
-                omnidexer, tag_resolver = _cli_omnidexer_and_tag_resolver()
+                omnidexer, tag_resolver = _active_omnidexer_and_tag_resolver()
                 return model_text.ability_name_text(obj, omnidexer, tag_resolver)
             if hasattr(obj, "get_processed_name"):
                 try:
@@ -517,9 +518,7 @@ class LaTeXTemplateEngine:
 
         # Add template services if not already provided
         if "template_service" not in kwargs:
-            from ...cli.services import get_cli_template_service
-
-            context["template_service"] = get_cli_template_service()
+            context["template_service"] = active_template_service()
 
         if "content_tracker" not in kwargs:
             from ...core.references.content_tracker import ContentTracker

@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
 from studiorum.core.logging import get_logger
 from studiorum.renderers.core.interfaces import RenderingContext
 
 if TYPE_CHECKING:
+    from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.references.content_tracker import ContentTracker
-    from studiorum.core.services.protocols import OmnidexerProtocol, TagResolverProtocol
     from studiorum.core.text.protocols import TextExtractionProtocol
     from studiorum.latex_engine.formatters.protocols import LaTeXFormattingProtocol
     from studiorum.latex_engine.services.protocols import ContextBoundTemplateProtocol
+    from studiorum.renderers.core.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
 
@@ -28,8 +31,8 @@ class TemplateService:
         self,
         text_extractor: TextExtractionProtocol,
         latex_formatter: LaTeXFormattingProtocol,
-        tag_resolver: TagResolverProtocol,
-        omnidexer: OmnidexerProtocol,
+        tag_resolver: TagResolver,
+        omnidexer: Omnidexer,
     ) -> None:
         """Initialize the template service with injected components.
 
@@ -104,3 +107,23 @@ class TemplateService:
             logger.warning(f"Failed to process field text tags: {e}")
             # Fallback to escaped raw text
             return self.latex_formatter.escape_latex_chars(text)
+
+
+# The CLI registers where templates get their TemplateService until the render
+# pipeline takes it as a parameter (restructure step 10).
+_template_service_provider: ContextVar[Callable[[], TemplateService] | None] = (
+    ContextVar("_template_service_provider", default=None)
+)
+
+
+def set_template_service_provider(
+    provider: Callable[[], TemplateService] | None,
+) -> None:
+    """Set the function that returns the TemplateService templates should use."""
+    _template_service_provider.set(provider)
+
+
+def active_template_service() -> TemplateService | None:
+    """The registered TemplateService, or None when nothing has registered one."""
+    provider = _template_service_provider.get()
+    return provider() if provider is not None else None

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -137,7 +137,9 @@ class TestCLIErrorHandling:
 
     def test_info_content_not_found(self) -> None:
         """Test info content command with non-existent content."""
-        with patch("studiorum.cli.main.get_omnidexer") as mock_omnidexer:
+        with patch(
+            "studiorum.services.Services.omnidexer", new_callable=PropertyMock
+        ) as mock_omnidexer:
             mock_omni: Any = Mock()
             mock_omni.find.return_value = None
             mock_omnidexer.return_value = mock_omni

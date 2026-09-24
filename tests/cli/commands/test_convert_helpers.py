@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -22,8 +22,8 @@ class TestErrorHandlingPaths:
 
         self.runner = CliRunner()
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_json_decode_error(self, mock_tag_resolver, mock_omnidexer):
         """Test handling of invalid JSON files."""
         # Mock dependencies
@@ -48,8 +48,8 @@ class TestErrorHandlingPaths:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("builtins.open")
     def test_renderer_exception(
@@ -113,9 +113,9 @@ class TestSpecialCases:
 
         self.runner = CliRunner()
 
-    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.load_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.get_app_config")
     @patch("studiorum.cli.commands.convert.book.create_latex_engine")
     @patch("studiorum.cli.commands.convert.book.display_manager")

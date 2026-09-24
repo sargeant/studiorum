@@ -453,10 +453,11 @@ root_package = "studiorum"
 
 [[tool.importlinter.contracts]]
 id = "layers"
-name = "Layers: cli and mcp above latex_engine above renderers above core"
+name = "Layers: cli and mcp above services above latex_engine above renderers above core"
 type = "layers"
 layers = [
     "studiorum.cli | studiorum.mcp",
+    "studiorum.services",
     "studiorum.latex_engine",
     "studiorum.renderers",
     "studiorum.core",
@@ -472,8 +473,6 @@ ignore_imports = [
     "studiorum.core.services.factories -> studiorum.renderers.core.interfaces",
     "studiorum.core.services.factories -> studiorum.renderers.core.tag_resolver",
     "studiorum.core.services.protocols -> studiorum.renderers.core.interfaces",
-    "studiorum.latex_engine.core.entry_renderers -> studiorum.cli.services",
-    "studiorum.latex_engine.core.template_engine -> studiorum.cli.services",
     "studiorum.latex_engine.utils.progress_tracker -> studiorum.cli.display_manager",
     "studiorum.renderers.core.interfaces -> studiorum.latex_engine.core.tag_renderer",
 ]

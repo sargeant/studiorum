@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -39,8 +39,8 @@ class TestLaTeXEngineIntegration:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.cli.utils.get_omnidexer")
-    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
     @patch("studiorum.cli.commands.convert.display_manager")
     def test_adventure_pdf_uses_latex_compiler_with_config(
@@ -107,8 +107,8 @@ class TestLaTeXEngineIntegration:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.cli.utils.get_omnidexer")
-    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.book.compile_pdf_async")
     @patch("studiorum.cli.commands.convert.display_manager")
     def test_book_pdf_uses_configured_engine(

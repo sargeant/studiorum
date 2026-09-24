@@ -709,7 +709,7 @@ class TestCreatureRegressionSuite:
                     # This should not raise exceptions
                     for action in creature.action:
                         if hasattr(action, "entries") and action.entries:
-                            from studiorum.cli.utils import get_omnidexer
+                            from studiorum.cli.context import get_services
                             from studiorum.core.references.content_tracker import (
                                 ContentTracker,
                             )
@@ -726,7 +726,7 @@ class TestCreatureRegressionSuite:
                             content_tracker = ContentTracker()
                             rendering_context = RenderingContext(
                                 output_format="latex",
-                                omnidexer=get_omnidexer(),
+                                omnidexer=get_services().omnidexer,
                                 content_tracker=content_tracker,
                             )
                             processed_entries = entry_processor.process_entries(

@@ -423,9 +423,9 @@ class TestRenderingPerformance:
 
         # Skip if we detect async context conflicts that would prevent service initialization
         try:
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.context import get_services
 
-            get_cli_template_service()
+            _ = get_services().template_service
         except Exception as e:
             if "async context" in str(e) or "event loop" in str(e):
                 pytest.skip(f"Skipping due to async context conflict: {e}")

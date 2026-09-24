@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -105,9 +105,9 @@ class TestEnhancedFileSupportIntegration:
                 f"Line {i}: expected '{expected_line}', got '{line}'"
             )
 
-    @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
-    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_to_content_lists_workflow(
         self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
     ):
@@ -224,8 +224,8 @@ class TestEnhancedFileSupportIntegration:
                     items_output, [(2, "Shortsword", "PHB"), (1, "Longsword", "PHB")]
                 )
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_spells_conversion_workflow(
         self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
@@ -314,8 +314,8 @@ class TestEnhancedFileSupportIntegration:
             # SpellCollector uses find_all, not get_spell
             assert mock_omnidexer.find_all.call_count == 3
 
-    @patch("studiorum.cli.commands.convert.compendiums.creatures.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.creatures.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_creatures_conversion_workflow(
         self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
@@ -419,8 +419,8 @@ class TestEnhancedFileSupportIntegration:
             # CreatureCollector uses find() when specific sources are provided (like "Goblin|MM")
             assert mock_omnidexer.find.call_count == 3
 
-    @patch("studiorum.cli.commands.convert.compendiums.items.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.items.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_items_conversion_workflow(
         self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer

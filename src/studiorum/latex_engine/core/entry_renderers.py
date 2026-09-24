@@ -8,6 +8,7 @@ from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+from studiorum.latex_engine.services.template_service import active_template_service
 from studiorum.renderers.core.interfaces import RenderingContext
 
 
@@ -63,9 +64,7 @@ class SpellEntryRenderer(BaseEntryRenderer):
         if hasattr(context, "template_service") and context.template_service:
             template_service = context.template_service
         else:
-            from ...cli.services import get_cli_template_service
-
-            template_service = get_cli_template_service()
+            template_service = active_template_service()
 
         # Get entry processor for structured content handling
         from .entry_processor import RecursiveEntryProcessor
@@ -123,9 +122,7 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         if hasattr(context, "template_service") and context.template_service:
             template_service = context.template_service
         else:
-            from ...cli.services import get_cli_template_service
-
-            template_service = get_cli_template_service()
+            template_service = active_template_service()
 
         # Get entry processor for structured content handling
         from .entry_processor import RecursiveEntryProcessor
@@ -176,9 +173,7 @@ class ItemEntryRenderer(BaseEntryRenderer):
         if hasattr(context, "template_service") and context.template_service:
             template_service = context.template_service
         else:
-            from ...cli.services import get_cli_template_service
-
-            template_service = get_cli_template_service()
+            template_service = active_template_service()
 
         # Get entry processor for structured content handling
         from .entry_processor import RecursiveEntryProcessor

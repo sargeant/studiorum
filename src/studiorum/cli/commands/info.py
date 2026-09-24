@@ -6,8 +6,8 @@ import typer
 from rich import print as rprint
 from rich.panel import Panel
 
+from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
@@ -18,7 +18,7 @@ from studiorum.core.services.protocols import OmnidexerProtocol
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
 console = display_manager.console
 
-# Constants for D&D calculations and formatting
+# Constants for 5e calculations and formatting
 DND_ABILITY_BASE = 10  # Base value for ability score modifier calculation
 DND_MODIFIER_DIVISOR = 2  # Divisor for ability score modifier calculation
 BYTES_PER_KB = 1024
@@ -60,7 +60,7 @@ def show_content_info(
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_omnidexer()
+                omnidexer = get_services().omnidexer
                 display_manager.update_task(
                     load_task, completed=TASK_COMPLETION_PERCENT
                 )

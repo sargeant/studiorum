@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -213,8 +213,8 @@ class TestEnhancedFromFileSupport:
         mock_config.rendering.latex.document.justified_text = False
         mock_app_config.return_value = mock_config
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
@@ -307,8 +307,8 @@ class TestEnhancedFromFileSupport:
         assert result.exit_code == 0
         assert output_file.exists()
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
@@ -382,8 +382,8 @@ class TestEnhancedFromFileSupport:
         # Verify the collector was called
         assert mock_collector.collect_spells.call_count >= 1
 
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
@@ -458,8 +458,8 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.cli.commands.convert.compendiums.creatures._render_bestiary")
     @patch("studiorum.core.services.creature_collector.CreatureCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.creatures.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.creatures.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_creatures_enhanced_format_with_counts(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
     ):
@@ -520,8 +520,8 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.cli.commands.convert.compendiums.items._render_itemcompendium")
     @patch("studiorum.core.services.item_collector.ItemCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.items.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.items.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_items_enhanced_format_with_counts(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
     ):
@@ -617,8 +617,8 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_mixed_format_handling(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
     ):
@@ -682,8 +682,8 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_comments_and_whitespace_handling(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
     ):
@@ -750,8 +750,8 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_zero_count_handling(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
     ):
@@ -813,8 +813,8 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_large_count_handling(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
     ):
@@ -873,8 +873,8 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_complex_names_with_special_characters(
         self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
     ):

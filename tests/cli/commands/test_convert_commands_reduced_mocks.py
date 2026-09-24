@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -43,8 +43,8 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.cli.utils.get_omnidexer")
-    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
     @patch("studiorum.cli.commands.convert.display_manager")
     def test_adventure_conversion_with_real_data_latex_only(
@@ -111,8 +111,8 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.cli.utils.get_omnidexer")
-    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
     @patch("studiorum.cli.commands.convert.display_manager")
     def test_book_conversion_with_real_data_latex_only(
@@ -178,8 +178,8 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @pytest.mark.requires_latex
-    @patch("studiorum.cli.commands.convert.get_omnidexer")
-    @patch("studiorum.cli.commands.convert.get_tag_resolver")
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
     @patch("studiorum.cli.commands.convert.display_manager")
     def test_pdf_compilation_uses_configured_compiler(

@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from logfire.testing import CaptureLogfire
 
-from studiorum.cli.services import get_cli_template_service
+from studiorum.cli.context import get_services
 from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
@@ -303,7 +303,7 @@ class TestDataValidationStress:
         assert spell.name == "Complex Test Spell"
 
         # Use template service for description extraction
-        template_service = get_cli_template_service()
+        template_service = get_services().template_service
         content_tracker = ContentTracker()
         bound = template_service.bind_context(content_tracker)
         description_text = bound.render_entry(spell.entries)
@@ -448,7 +448,7 @@ class TestDataValidationStress:
         item = Item.model_validate(complex_item)
         assert item.name == "Complex Item"
         # Use modern RecursiveEntryProcessor for item description extraction
-        from studiorum.cli.utils import get_omnidexer
+        from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
         from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
         from studiorum.renderers.core.interfaces import RenderingContext
@@ -457,7 +457,7 @@ class TestDataValidationStress:
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
-            omnidexer=get_omnidexer(),
+            omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
         processed_entries = entry_processor.process_entries(

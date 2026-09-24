@@ -4,7 +4,7 @@ These tests verify that the creature conversion pipeline works correctly
 with actual data from the 5etools dataset, ensuring real-world compatibility.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 
@@ -251,8 +251,8 @@ class TestCreatureRealDataIntegration:
         assert "0" in spells_dict  # Cantrips
         assert "9" in spells_dict  # 9th level spells
 
-    @patch("studiorum.cli.main.get_tag_resolver")
-    @patch("studiorum.cli.main.get_omnidexer")
+    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_real_data_markup_processing(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -327,7 +327,7 @@ class TestCreatureRealDataIntegration:
             mock_processor_class.return_value = mock_processor
 
             greataxe_action = orc.action[0]
-            from studiorum.cli.utils import get_omnidexer
+            from studiorum.cli.context import get_services
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
@@ -338,7 +338,7 @@ class TestCreatureRealDataIntegration:
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
-                omnidexer=get_omnidexer(),
+                omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
             processed_entries = entry_processor.process_entries(
