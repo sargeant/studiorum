@@ -1,292 +1,99 @@
-"""Tests for entry type registry and validation infrastructure."""
+"""The entry type registry: which types are known, and what an unknown one does."""
 
 import warnings
-from unittest.mock import patch
 
 import pytest
 
 from studiorum.core.entry_registry import (
-    EntryTypeCategory,
+    KNOWN_ENTRY_TYPES,
     EntryTypeRegistry,
     ValidationMode,
     get_registry,
     set_validation_mode,
 )
 from studiorum.core.exceptions import EntryProcessingWarning
+from studiorum.core.models.entry_types import TYPED_ENTRY_TYPES
 from studiorum.core.result import Error, Success
 
 
-class TestValidationMode:
-    """Test ValidationMode enum."""
-
-    def test_validation_modes_exist(self):
-        """Test that all expected validation modes exist."""
-        assert ValidationMode.STRICT.value == "strict"
-        assert ValidationMode.PERMISSIVE.value == "permissive"
-        assert ValidationMode.SILENT.value == "silent"
+def test_known_types_cover_5etools_and_every_typed_entry() -> None:
+    assert {"section", "abilityDc", "bonus", "statblock", "cell"} <= KNOWN_ENTRY_TYPES
+    assert TYPED_ENTRY_TYPES <= KNOWN_ENTRY_TYPES
+    assert {"text", "action", "spell", "creature"} <= TYPED_ENTRY_TYPES
 
 
-class TestEntryTypeCategory:
-    """Test EntryTypeCategory enum."""
+def test_known_types_are_counted() -> None:
+    registry = EntryTypeRegistry(ValidationMode.STRICT)
 
-    def test_categories_exist(self):
-        """Test that all expected categories exist."""
-        categories = [
-            EntryTypeCategory.RECURSIVE,
-            EntryTypeCategory.BLOCK,
-            EntryTypeCategory.INLINE,
-            EntryTypeCategory.LIST_ITEM,
-            EntryTypeCategory.EMBEDDED,
-            EntryTypeCategory.MEDIA,
-            EntryTypeCategory.MISC,
-        ]
-        assert len(categories) == 7
+    for entry_type in ("section", "table", "table"):
+        assert isinstance(registry.validate_entry_type(entry_type), Success)
+
+    assert registry.entry_counts == {"section": 1, "table": 2}
+    assert registry.unknown_types == set()
 
 
-class TestEntryTypeRegistry:
-    """Test EntryTypeRegistry functionality."""
+def test_an_unknown_type_fails_in_strict_mode() -> None:
+    registry = EntryTypeRegistry(ValidationMode.STRICT)
 
-    def setup_method(self):
-        """Set up test fixtures."""
+    result = registry.validate_entry_type("unknownType")
 
-        self.registry = EntryTypeRegistry(ValidationMode.PERMISSIVE)
+    assert isinstance(result, Error)
+    assert result.error.entry_type == "unknownType"
+    assert registry.unknown_types == {"unknownType"}
 
-    def test_initialization(self):
-        """Test registry initialization."""
-        registry = EntryTypeRegistry(ValidationMode.STRICT)
-        assert registry.validation_mode == ValidationMode.STRICT
-        assert len(registry.known_types) > 0
-        assert len(registry.unknown_types) == 0
-        assert registry.statistics.total_entries == 0
 
-    def test_known_types_comprehensive(self):
-        """Test that registry contains expected known types from 5etools."""
-        known_types = self.registry.known_types
+def test_an_unknown_type_warns_in_permissive_mode() -> None:
+    registry = EntryTypeRegistry(ValidationMode.PERMISSIVE)
 
-        # Test some key types from each category
-        recursive_types = {"entries", "section", "table", "inset", "variant"}
-        assert recursive_types.issubset(known_types)
-
-        block_types = {"abilityDc", "abilityAttackMod", "abilityGeneric"}
-        assert block_types.issubset(known_types)
-
-        inline_types = {"bonus", "dice", "actions", "attack"}
-        assert inline_types.issubset(known_types)
-
-        # Test total count is reasonable (should be 30+ types)
-        assert len(known_types) >= 30
-
-    def test_is_known_type(self):
-        """Test is_known_type method."""
-        assert self.registry.is_known_type("section")
-        assert self.registry.is_known_type("table")
-        assert self.registry.is_known_type("entries")
-        assert not self.registry.is_known_type("unknownType")
-        assert not self.registry.is_known_type("")
-
-    def test_get_category(self):
-        """Test get_category method."""
-        assert self.registry.get_category("section") == EntryTypeCategory.RECURSIVE
-        assert self.registry.get_category("abilityDc") == EntryTypeCategory.BLOCK
-        assert self.registry.get_category("bonus") == EntryTypeCategory.INLINE
-        assert self.registry.get_category("item") == EntryTypeCategory.LIST_ITEM
-        assert self.registry.get_category("image") == EntryTypeCategory.MEDIA
-        assert self.registry.get_category("unknownType") is None
-
-    def test_validate_entry_type_known(self):
-        """Test validation of known entry types."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        # Test with ValidationContext (modern interface)
-        context1 = ValidationContext(entry_data={}, entry_type="section")
-        self.registry.validate_entry_type(context1)
-
-        context2 = ValidationContext(entry_data={"type": "table"}, entry_type="table")
-        self.registry.validate_entry_type(context2)
-
-        # Check statistics are updated
-        assert self.registry.statistics.entry_counts["section"] == 1
-        assert self.registry.statistics.entry_counts["table"] == 1
-
-    def test_validate_entry_type_unknown_strict(self):
-        """Test validation of unknown entry types in strict mode."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        strict_registry = EntryTypeRegistry(ValidationMode.STRICT)
-
-        context = ValidationContext(entry_data={}, entry_type="unknownType")
-
-        result = strict_registry.validate_entry_type(context)
-
-        # Should return Error result
-        assert isinstance(result, Error)
-        assert result.error.entry_type == "unknownType"
-        assert "unknownType" in strict_registry.unknown_types
-
-    def test_validate_entry_type_unknown_permissive(self):
-        """Test validation of unknown entry types in permissive mode."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        context = ValidationContext(entry_data={}, entry_type="unknownType")
-
-        with pytest.warns(EntryProcessingWarning, match="Unknown entry type"):
-            result = self.registry.validate_entry_type(context)
-
-        # Should return Success result with warning
-        assert isinstance(result, Success)
-        assert result.unwrap() is None
-
-        assert "unknownType" in self.registry.unknown_types
-        assert self.registry.statistics.entry_counts["unknownType"] == 1
-
-    def test_validate_entry_type_unknown_silent(self):
-        """Test validation of unknown entry types in silent mode."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        silent_registry = EntryTypeRegistry(ValidationMode.SILENT)
-
-        context = ValidationContext(entry_data={}, entry_type="unknownType")
-
-        # Should not raise exception or warning
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")  # Turn warnings into errors
-            result = silent_registry.validate_entry_type(context)
-
-        # Should return Success result
-        assert isinstance(result, Success)
-        assert result.unwrap() is None
-        assert "unknownType" in silent_registry.unknown_types
-
-    def test_validate_entry_type_with_context(self):
-        """Test validation with full context information."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        entry = {"type": "unknownType", "name": "Test"}
-
-        context = ValidationContext(
-            entry_data=entry,
-            source="PHB",
-            parent_name="Chapter 1",
-            entry_type="unknownType",
+    with pytest.warns(EntryProcessingWarning) as caught:
+        result = registry.validate_entry_type(
+            "unknownType", source="PHB", parent_name="Chapter 1"
         )
 
-        with pytest.warns(EntryProcessingWarning) as warning_info:
-            result = self.registry.validate_entry_type(context)
-
-        # Should return Success result
-        assert isinstance(result, Success)
-        assert result.unwrap() is None
-
-        warning_msg = str(warning_info[0].message)
-        assert "unknownType" in warning_msg
-        assert "PHB" in warning_msg
-        assert "Chapter 1" in warning_msg
-
-    def test_validate_entry_structure_string(self):
-        """Test validation of string entries."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        context = ValidationContext(entry_data="Plain text entry")
-        result = self.registry.validate_entry_structure(context)
-
-        assert result.success is True
-        assert result.entry.type == "text"
-        assert result.entry.content == "Plain text entry"
-
-    def test_validate_entry_structure_dict(self):
-        """Test validation of dict entries."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        entry = {"type": "section", "name": "Test Section"}
-        context = ValidationContext(entry_data=entry)
-        result = self.registry.validate_entry_structure(context)
-
-        assert result.success is True
-        assert result.entry.type == "section"
-        assert result.entry.name == "Test Section"
-
-    def test_validate_entry_structure_invalid(self):
-        """Test validation of invalid entry structures."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        context = ValidationContext(entry_data=123)
-        result = self.registry.validate_entry_structure(context)
-
-        assert result.success is False
-        assert len(result.errors) == 1
-        assert "must be dict or string" in result.errors[0]
-
-    def test_reset_statistics(self):
-        """Test statistics reset functionality."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        # Generate some statistics
-        context1 = ValidationContext(entry_data={}, entry_type="section")
-        self.registry.validate_entry_type(context1)
-
-        context2 = ValidationContext(entry_data={}, entry_type="unknownType")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")  # Ignore warnings for this test
-            self.registry.validate_entry_type(context2)
-
-        assert self.registry.statistics.total_entries > 0
-        assert len(self.registry.unknown_types) > 0
-
-        # Reset and verify
-        self.registry.reset_statistics()
-        assert self.registry.statistics.total_entries == 0
-        assert len(self.registry.unknown_types) == 0
-
-    @patch("studiorum.core.entry_registry.logger")
-    def test_log_statistics(self, mock_logger):
-        """Test statistics logging."""
-        from studiorum.core.entry_registry import ValidationContext
-
-        # Generate some statistics
-        context1 = ValidationContext(entry_data={}, entry_type="section")
-        self.registry.validate_entry_type(context1)
-        self.registry.validate_entry_type(context1)  # Test count
-
-        context2 = ValidationContext(entry_data={}, entry_type="unknownType")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")  # Ignore warnings for this test
-            self.registry.validate_entry_type(context2)
-
-        self.registry.log_statistics()
-
-        # Verify logging calls
-        assert mock_logger.info.call_count >= 2  # Total + known types
-        assert mock_logger.warning.call_count >= 1  # Unknown types
-
-    @patch("studiorum.core.entry_registry.logger")
-    def test_log_statistics_empty(self, mock_logger):
-        """Test statistics logging with no data."""
-        self.registry.log_statistics()
-
-        mock_logger.info.assert_called_once_with(
-            "No entry processing statistics available"
-        )
+    assert isinstance(result, Success)
+    message = str(caught[0].message)
+    assert "unknownType" in message
+    assert "PHB" in message
+    assert "Chapter 1" in message
+    assert registry.entry_counts["unknownType"] == 1
 
 
-class TestGlobalRegistry:
-    """Test global registry functions."""
+def test_an_unknown_type_passes_silently_in_silent_mode() -> None:
+    registry = EntryTypeRegistry(ValidationMode.SILENT)
 
-    def test_get_registry(self):
-        """Test get_registry returns the same instance."""
-        registry1 = get_registry()
-        registry2 = get_registry()
-        assert registry1 is registry2
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = registry.validate_entry_type("unknownType")
 
-    def test_set_validation_mode(self):
-        """Test set_validation_mode changes global mode."""
-        original_mode = get_registry().validation_mode
+    assert isinstance(result, Success)
+    assert registry.unknown_types == {"unknownType"}
 
-        try:
-            set_validation_mode(ValidationMode.STRICT)
-            assert get_registry().validation_mode == ValidationMode.STRICT
 
-            set_validation_mode(ValidationMode.SILENT)
-            assert get_registry().validation_mode == ValidationMode.SILENT
-        finally:
-            # Restore original mode
-            set_validation_mode(original_mode)
+def test_the_mode_can_be_overridden_per_call() -> None:
+    registry = EntryTypeRegistry(ValidationMode.SILENT)
+
+    result = registry.validate_entry_type(
+        "unknownType", validation_mode=ValidationMode.STRICT
+    )
+
+    assert isinstance(result, Error)
+
+
+def test_statistics_reset() -> None:
+    registry = EntryTypeRegistry(ValidationMode.SILENT)
+    registry.validate_entry_type("unknownType")
+
+    registry.reset_statistics()
+
+    assert not registry.entry_counts
+    assert not registry.unknown_types
+
+
+def test_the_global_registry_is_shared_and_its_mode_settable() -> None:
+    assert get_registry() is get_registry()
+    original = get_registry().validation_mode
+    try:
+        set_validation_mode(ValidationMode.STRICT)
+        assert get_registry().validation_mode == ValidationMode.STRICT
+    finally:
+        set_validation_mode(original)

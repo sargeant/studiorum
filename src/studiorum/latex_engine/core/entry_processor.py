@@ -202,19 +202,12 @@ class RecursiveEntryProcessor:
 
         # Validate entry type if not empty and not in SILENT mode
         if entry_type and self._validation_mode != ValidationMode.SILENT:
-            # Create ValidationContext for modern interface
-            from studiorum.core.entry_registry import ValidationContext
-
-            validation_context = ValidationContext(
-                entry_data=entry,
+            validation_result = self._registry.validate_entry_type(
+                entry_type,
                 source=context.metadata.get("source_name", "unknown"),
                 parent_name=f"depth_{self._depth}",
-                entry_type=entry_type,
                 validation_mode=self._validation_mode,
             )
-
-            # Use modern ValidationContext interface
-            validation_result = self._registry.validate_entry_type(validation_context)
             if isinstance(validation_result, Error):
                 self._errors_encountered += 1
                 # For backward compatibility, log error and return empty string
@@ -2089,7 +2082,7 @@ class RecursiveEntryProcessor:
             "entries_processed": self._entries_processed,
             "errors_encountered": self._errors_encountered,
             "current_depth": self._depth,
-            "registry_statistics": self._registry.statistics,
+            "registry_statistics": dict(self._registry.entry_counts),
             "unknown_types": list(self._registry.unknown_types),
         }
 

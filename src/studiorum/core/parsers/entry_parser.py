@@ -121,19 +121,12 @@ class EntryParser:
 
         # Validate entry type if not empty
         if entry_type:
-            # Create ValidationContext for modern interface
-            from ..entry_registry import ValidationContext
-
-            context = ValidationContext(
-                entry_data=entry,
+            validation_result = self._registry.validate_entry_type(
+                entry_type,
                 source=self.source.abbreviation,
                 parent_name=self.parent_name,
-                entry_type=entry_type,
                 validation_mode=self._validation_mode,
             )
-
-            # Use modern ValidationContext interface
-            validation_result = self._registry.validate_entry_type(context)
             if isinstance(validation_result, Error):
                 self._errors_encountered += 1
                 return validation_result.with_context(
@@ -392,7 +385,7 @@ class EntryParser:
             errors_encountered=self._errors_encountered,
             source=self.source.abbreviation,
             parent_name=self.parent_name,
-            registry_statistics=self._registry.statistics.entry_counts.copy(),
+            registry_statistics=dict(self._registry.entry_counts),
             unknown_types=list(self._registry.unknown_types),
         )
 

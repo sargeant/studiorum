@@ -6,7 +6,7 @@ that appear in 5e content, replacing the generic dict[str, Any] pattern
 with type-safe, validated structures.
 """
 
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -255,23 +255,8 @@ class GenericEntry(BaseEntry):
     @field_validator("type")
     @classmethod
     def validate_type_not_known(cls, v: str) -> str:
-        """Warn about unknown entry types."""
-        known_types = {
-            "text",
-            "action",
-            "table",
-            "list",
-            "inset",
-            "entries",
-            "options",
-            "variant",
-            "quote",
-            "image",
-            "item",
-            "spell",
-            "creature",
-        }
-        if v in known_types:
+        """Reject types that have their own entry class."""
+        if v in TYPED_ENTRY_TYPES:
             raise ValueError(
                 f"Use specific entry class for type '{v}' instead of GenericEntry"
             )
@@ -296,6 +281,12 @@ DiscriminatedEntry = Annotated[
     | TextEntry,
     Field(discriminator="type"),
 ]
+
+# The types with their own entry class, from their ``type`` Literals
+TYPED_ENTRY_TYPES: frozenset[str] = frozenset(
+    member.model_fields["type"].default
+    for member in get_args(get_args(DiscriminatedEntry)[0])
+)
 
 # Full Entry type includes discriminated entries, generic fallback, and plain strings
 # Order matters: try discriminated first, then generic, then string
