@@ -22,44 +22,24 @@ def merge_metadata_content(
     if _is_book(metadata):
         return _merge_book(metadata, sections)
 
-    by_name = {
-        section.get("name", ""): section
-        for section in sections
-        if isinstance(section, dict) and section.get("type") == "section"
-    }
-    matched: set[str] = set()
+    chapters = [c for c in metadata.get("contents", []) if isinstance(c, dict)]
+    if len(chapters) != len(sections):
+        chapters = [{} for _ in sections]
+    # 5etools pairs contents[i] with data[i]; the text's own name is the fallback
     merged_contents = []
-    for chapter in metadata.get("contents", []):
-        if not isinstance(chapter, dict):
+    for chapter, section in zip(chapters, sections, strict=True):
+        if not isinstance(section, dict):
             continue
-        name = chapter.get("name", "")
-        match, matched_name = by_name.get(name), name
-        ordinal = chapter.get("ordinal")
-        if (
-            match is None
-            and isinstance(ordinal, dict)
-            and ordinal.get("type") == "appendix"
-        ):
-            matched_name = f"Appendix {ordinal.get('identifier', '')}: {name}"
-            match = by_name.get(matched_name)
-        # Chapters with no text are left out rather than rendered empty
-        if match is not None:
-            merged = dict(chapter)
-            merged["entries"] = match.get("entries", [])
-            if "id" in match:
-                merged["ordinal"] = {"type": "section", "identifier": match["id"]}
-            merged_contents.append(merged)
-            matched.add(matched_name)
-
-    for name, section in by_name.items():
-        if name not in matched:
-            extra: dict[str, Any] = {
-                "name": name,
-                "entries": section.get("entries", []),
-            }
-            if "id" in section:
-                extra["ordinal"] = {"type": "section", "identifier": section["id"]}
-            merged_contents.append(extra)
+        merged = dict(chapter)
+        merged.setdefault("name", section.get("name", "Unnamed Chapter"))
+        merged["entries"] = (
+            section.get("entries", [])
+            if section.get("type") == "section"
+            else [section]
+        )
+        if "id" in section:
+            merged["ordinal"] = {"type": "section", "identifier": section["id"]}
+        merged_contents.append(merged)
 
     return {**metadata, "contents": merged_contents}
 

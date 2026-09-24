@@ -19,13 +19,12 @@ def _section(name: str, *entries: str, **extra: object) -> dict:
     return {"type": "section", "name": name, "entries": list(entries), **extra}
 
 
-def test_chapters_take_entries_from_matching_sections() -> None:
+def test_chapters_pair_with_sections_by_position() -> None:
     text = {
         "data": [
-            _section("Intro", "Hello.", id="001"),
+            _section("Dramatis Personae", "Hello.", id="001"),
             _section("Appendix A: Lore", "Old things."),
-            {"type": "image", "name": "Intro"},
-            _section("Bonus", "Extra."),
+            {"type": "entries", "name": "Unwritten", "entries": ["Later."]},
         ]
     }
 
@@ -42,9 +41,22 @@ def test_chapters_take_entries_from_matching_sections() -> None:
             "ordinal": {"type": "appendix", "identifier": "A"},
             "entries": ["Old things."],
         },
-        {"name": "Bonus", "entries": ["Extra."]},
+        {
+            "name": "Not Written",
+            "entries": [
+                {"type": "entries", "name": "Unwritten", "entries": ["Later."]}
+            ],
+        },
     ]
     assert merged["level"] == ADVENTURE["level"]
+
+
+def test_sections_keep_their_names_when_the_counts_differ() -> None:
+    text = {"data": [_section("Only", "Text.")]}
+
+    merged = merge_metadata_content(ADVENTURE, text)
+
+    assert merged["contents"] == [{"name": "Only", "entries": ["Text."]}]
 
 
 def test_no_text_leaves_empty_chapters() -> None:
