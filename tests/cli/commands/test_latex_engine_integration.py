@@ -41,11 +41,9 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
-    @patch("studiorum.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_adventure_pdf_uses_latex_compiler_with_config(
         self,
-        mock_display,
         mock_compile_pdf,
         mock_get_tag_resolver,
         mock_get_omnidexer,
@@ -67,10 +65,6 @@ class TestLaTeXEngineIntegration:
         mock_compile_pdf.return_value = None  # Async function returns None
 
         # Mock display manager for clean output
-        mock_display.progress.return_value.__enter__ = Mock()
-        mock_display.progress.return_value.__exit__ = Mock()
-        mock_display.add_task.return_value = "task_id"
-        mock_display.update_task = Mock()
 
         # Use real test data file with absolute path for CI compatibility
         test_file = self.test_data_dir / "adventure-example.json"
@@ -109,11 +103,9 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.book.compile_pdf_async")
-    @patch("studiorum.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_book_pdf_uses_configured_engine(
         self,
-        mock_display,
         mock_compile_pdf,
         mock_get_tag_resolver,
         mock_get_omnidexer,
@@ -135,10 +127,6 @@ class TestLaTeXEngineIntegration:
         mock_compile_pdf.return_value = None  # Async function returns None
 
         # Mock display manager for clean output
-        mock_display.progress.return_value.__enter__ = Mock()
-        mock_display.progress.return_value.__exit__ = Mock()
-        mock_display.add_task.return_value = "task_id"
-        mock_display.update_task = Mock()
 
         # Use real test data file with absolute path for CI compatibility
         test_file = self.test_data_dir / "book-example.json"
@@ -181,7 +169,7 @@ class TestLaTeXEngineIntegration:
 
     def test_latex_compiler_helper_creates_proper_config(self):
         """Test that create_latex_compiler helper creates proper configuration."""
-        from studiorum.cli.commands.convert.shared import create_latex_compiler
+        from studiorum.cli.commands.convert.run import create_latex_compiler
         from studiorum.latex_engine.config.compilation import CompilationConfig
 
         # Test the helper function creates properly configured compiler

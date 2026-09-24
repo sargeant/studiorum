@@ -193,7 +193,7 @@ Every `# type: ignore` must include:
 **Example**:
 
 ```python
-value = resolve_option(value)  # type: ignore[attr-defined] # Typer OptionInfo when called directly
+name = info.get("name")  # type: ignore[attr-defined] # Dynamic dict access - see TYPES.md
 ```
 
 ## Cleanup Strategy

@@ -1,62 +1,57 @@
-"""Bulk conversion command."""
+"""convert bulk: several adventures or books, one .tex file each."""
 
 import asyncio
-import os
 from pathlib import Path
+from typing import Annotated
 
 import typer
 from rich import print as rprint
 
-from studiorum.cli.config_factory import (
-    get_compile_pdf_default,
-    get_concurrent_limit_default,
-    get_with_images_default,
-)
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.content import ContentType
-from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
+from studiorum.core.models.document_metadata import DocumentType
+from studiorum.core.resolvers import ContentResolver
 from studiorum.latex_engine import create_latex_engine
-from studiorum.renderers.core.interfaces import RenderingContext
 
-from .shared import compile_pdf as compile_pdf_async
+from . import options as opt
+from .adventure import rendering_context
+from .options import ConvertOptions
+from .run import compile_pdf, conversion_errors, document_metadata
+
+# Abbreviations that --type mixed treats as books; everything else is an adventure
+BOOKS = {"phb", "mm", "dmg", "xgte", "tcoe", "vgtm", "mtof"}
 
 
 def bulk(
-    content_list: list[str] = typer.Argument(
-        ..., help="List of adventure/book abbreviations or file paths"
-    ),
-    content_type: str = typer.Option(
-        "adventure", "--type", help="Content type (adventure, book, mixed)"
-    ),
-    output_dir: Path = typer.Option(
-        Path("output/bulk"), "--output-dir", "-d", help="Output directory"
-    ),
-    with_images: bool = typer.Option(
-        ...,
-        "--images/--no-images",
-        help="Include images",
-        rich_help_panel="Visual Styling",
-        default_factory=get_with_images_default,
-    ),
-    compile_pdf: bool = typer.Option(
-        ...,
-        "--pdf",
-        help="Compile to PDF after conversion",
-        default_factory=get_compile_pdf_default,
-    ),
-    concurrent_limit: int = typer.Option(
-        ...,
-        "--concurrent",
-        help="Maximum concurrent operations",
-        default_factory=get_concurrent_limit_default,
-    ),
+    ctx: typer.Context,
+    content_list: Annotated[
+        list[str], typer.Argument(help="List of adventure/book abbreviations")
+    ],
+    content_type: Annotated[
+        str, typer.Option("--type", help="Content type (adventure, book, mixed)")
+    ] = "adventure",
+    output_dir: Annotated[
+        Path, typer.Option("--output-dir", "-d", help="Output directory")
+    ] = Path("output/bulk"),
+    # Shared options, read through ctx.params by ConvertOptions
+    pdf: opt.Pdf = None,
+    toc: opt.Toc = None,
+    index: opt.Index = None,
+    images: opt.Images = None,
+    document_class: opt.DocumentClass = None,
+    paper: opt.Paper = None,
+    two_column: opt.TwoColumn = None,
+    justified: opt.Justified = None,
+    fonts: opt.Fonts = None,
+    font_size: opt.FontSize = None,
+    background: opt.Background = None,
+    outline: opt.Outline = None,
+    high_contrast: opt.HighContrast = None,
+    statblock: opt.Statblock = None,
 ) -> None:
     """
-    ⚡ Convert multiple content items using optimized bulk operations
-
-    Uses async bulk resolution for significantly faster processing when
-    converting multiple adventures, books, or mixed content.
+    ⚡ Convert several adventures or books, one .tex file each
 
     \\b
     Examples:
@@ -64,176 +59,83 @@ def bulk(
       studiorum convert bulk phb mm dmg --type book
       studiorum convert bulk cos phb mm --type mixed
     """
+    options = ConvertOptions.from_context(ctx)
+    with conversion_errors():
+        with display_manager.progress("Initializing") as _:
+            task = display_manager.add_task("[cyan]Loading content data...", total=None)
+            resolver = ContentResolver(get_services().omnidexer)
+            display_manager.update_task(task, completed=100)
 
-    def _bulk_convert() -> None:
-        try:
-            # Load omnidexer and resolver
-            with display_manager.progress("Initializing") as _:
-                init_task = display_manager.add_task(
-                    "[cyan]Loading content data...", total=None
-                )
-                omnidexer = get_services().omnidexer
-                tag_resolver = get_services().tag_resolver
-                resolver = ContentResolver(omnidexer)
-                display_manager.update_task(init_task, completed=100)
-
-            # Perform bulk resolution based on content type
-            with display_manager.progress("Resolving content") as _:
-                resolve_task = display_manager.add_task(
-                    f"[cyan]Resolving {len(content_list)} items...",
-                    total=len(content_list),
-                )
-
-                if content_type == "adventure":
-                    results = resolver.resolve_adventures_bulk(content_list)
-                elif content_type == "book":
-                    results = resolver.resolve_books_bulk(content_list)
-                elif content_type == "mixed":
-                    # For mixed content, try to determine types from abbreviations
-                    mixed_requests = []
-                    for abbrev in content_list:
-                        # Simple heuristic: common book abbreviations
-                        if abbrev.lower() in [
-                            "phb",
-                            "mm",
-                            "dmg",
-                            "xgte",
-                            "tcoe",
-                            "vgtm",
-                            "mtof",
-                        ]:
-                            mixed_requests.append((abbrev, ContentType("book")))
-                        else:
-                            mixed_requests.append((abbrev, ContentType("adventure")))
-                    results = resolver.resolve_multiple(mixed_requests)
-                else:
-                    rprint(f"[red]Error:[/red] Invalid content type: {content_type}")
-                    raise typer.Exit(1)
-
-                display_manager.update_task(resolve_task, completed=len(content_list))
-
-            # Filter successful results
-            successful_results = [r for r in results if r.is_success and r.content]
-            failed_results = [r for r in results if not r.is_success]
-
-            if failed_results:
-                rprint(
-                    f"[yellow]Warning:[/yellow] {len(failed_results)} items failed to resolve:"
-                )
-                for result in failed_results:
-                    rprint(f"  • {result.query}: {result.status.value}")
-                    if result.suggestions:
-                        rprint(f"    Suggestions: {', '.join(result.suggestions[:3])}")
-
-            if not successful_results:
-                rprint("[red]Error:[/red] No content could be resolved")
-                raise typer.Exit(1)
-
-            # Create output directory
-            output_dir.mkdir(parents=True, exist_ok=True)
-
-            # Create semaphore to limit concurrent operations
-            semaphore = asyncio.Semaphore(concurrent_limit)
-
-            async def convert_single_item(
-                result: ContentResolutionResult,
-            ) -> tuple[str, bool]:
-                """Convert a single content item with concurrency control."""
-                async with semaphore:
-                    try:
-                        content = result.content
-                        if content is None:
-                            return result.query, False
-
-                        output_filename = f"{result.query}.tex"
-                        output_path = output_dir / output_filename
-
-                        # Create render context
-                        context = RenderingContext(
-                            output_format="latex",
-                            omnidexer=omnidexer,
-                            tag_resolver=tag_resolver,
-                            metadata={
-                                "title": f"{content.name}",
-                                "include_images": with_images,
-                                "include_toc": True,
-                            },
-                        )
-
-                        # Render document
-                        engine = create_latex_engine()
-                        latex_result = engine.render_document([content], context)
-
-                        # Write output
-                        with open(output_path, "w", encoding="utf-8") as f:
-                            f.write(latex_result)
-
-                        # Compile PDF if requested
-                        if compile_pdf:
-                            asyncio.run(compile_pdf_async(output_path))
-
-                        return result.query, True
-                    except Exception as e:
-                        rprint(f"[red]Error converting {result.query}:[/red] {e}")
-                        return result.query, False
-
-            # Process all items concurrently with progress tracking
-            with display_manager.progress("Converting content") as _:
-                convert_task = display_manager.add_task(
-                    f"[green]Converting {len(successful_results)} items...",
-                    total=len(successful_results),
-                )
-
-                # Create conversion tasks
-                conversion_tasks = [
-                    convert_single_item(result) for result in successful_results
+        if content_type == "adventure":
+            results = resolver.resolve_adventures_bulk(content_list)
+        elif content_type == "book":
+            results = resolver.resolve_books_bulk(content_list)
+        elif content_type == "mixed":
+            results = resolver.resolve_multiple(
+                [
+                    (
+                        a,
+                        ContentType.BOOK
+                        if a.lower() in BOOKS
+                        else ContentType.ADVENTURE,
+                    )
+                    for a in content_list
                 ]
-
-                # Process with progress updates
-                async def process_conversions() -> list[tuple[str, bool]]:
-                    completed_results = []
-                    for task in asyncio.as_completed(conversion_tasks):
-                        item_name, success = await task
-                        completed_results.append((item_name, success))
-                        display_manager.update_task(convert_task, advance=1)
-                    return completed_results
-
-                completed_results = asyncio.run(process_conversions())
-
-            # Report results
-            successful_conversions = [
-                name for name, success in completed_results if success
-            ]
-            failed_conversions = [
-                name for name, success in completed_results if not success
-            ]
-
-            rprint("\n[green]✓[/green] Bulk conversion completed:")
-            rprint(f"  • Successfully converted: {len(successful_conversions)} items")
-            if failed_conversions:
-                rprint(f"  • Failed conversions: {len(failed_conversions)} items")
-            rprint(f"  • Output directory: {output_dir}")
-
-            if successful_conversions:
-                rprint("\n[green]Successfully converted:[/green]")
-                for name in successful_conversions:
-                    rprint(f"  ✓ {name}")
-
-            if failed_conversions:
-                rprint("\n[red]Failed to convert:[/red]")
-                for name in failed_conversions:
-                    rprint(f"  ✗ {name}")
-
-        except typer.Exit:
-            # Re-raise typer.Exit cleanly to avoid double error messages
-            raise
-        except Exception as e:
-            import traceback
-
-            rprint(f"[red]Error:[/red] {e}")
-            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                # In CI, print full traceback for debugging
-                traceback.print_exc()
+            )
+        else:
+            rprint(f"[red]Error:[/red] Invalid content type: {content_type}")
             raise typer.Exit(1)
 
-    _bulk_convert()
+        for result in results:
+            if not result.is_success:
+                rprint(
+                    f"[yellow]Warning:[/yellow] {result.query}: {result.status.value}"
+                )
+                if result.suggestions:
+                    rprint(f"    Suggestions: {', '.join(result.suggestions[:3])}")
+        resolved = [r for r in results if r.is_success and r.content]
+        if not resolved:
+            rprint("[red]Error:[/red] No content could be resolved")
+            raise typer.Exit(1)
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        converted: list[str] = []
+        failed: list[str] = []
+        with display_manager.progress("Converting content") as _:
+            task = display_manager.add_task(
+                f"[green]Converting {len(resolved)} items...", total=len(resolved)
+            )
+            for result in resolved:
+                content = result.content
+                if content is None:
+                    continue
+                try:
+                    metadata = document_metadata(
+                        options, content.name, DocumentType.BOOK
+                    )
+                    latex = create_latex_engine().render_document(
+                        [content], rendering_context(options, metadata, None)
+                    )
+                    output_path = output_dir / f"{result.query}.tex"
+                    output_path.write_text(latex, encoding="utf-8")
+                    if options.compile_pdf:
+                        asyncio.run(compile_pdf(output_path))
+                    converted.append(result.query)
+                except Exception as e:
+                    rprint(f"[red]Error converting {result.query}:[/red] {e}")
+                    failed.append(result.query)
+                display_manager.update_task(task, advance=1)
+
+        rprint("\n[green]✓[/green] Bulk conversion completed:")
+        rprint(f"  • Successfully converted: {len(converted)} items")
+        if failed:
+            rprint(f"  • Failed conversions: {len(failed)} items")
+        rprint(f"  • Output directory: {output_dir}")
+        for heading, names, mark in (
+            ("[green]Successfully converted:[/green]", converted, "✓"),
+            ("[red]Failed to convert:[/red]", failed, "✗"),
+        ):
+            if names:
+                rprint(f"\n{heading}")
+                for name in names:
+                    rprint(f"  {mark} {name}")

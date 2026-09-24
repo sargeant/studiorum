@@ -437,8 +437,8 @@ studiorum config show
 studiorum config show --section images
 studiorum config show --section data_sources
 
-# Validate configuration
-studiorum config validate
+# Check the configuration, data sources and cache
+studiorum doctor
 ```
 
 ### Common Configuration Issues

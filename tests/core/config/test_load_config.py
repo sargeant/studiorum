@@ -81,7 +81,7 @@ def test_config_file_sets_convert_defaults(
     )
     compile_pdf = AsyncMock()
     monkeypatch.setattr(
-        "studiorum.cli.commands.convert.compendiums.creatures.compile_pdf_async",
+        "studiorum.cli.commands.convert.run.compile_pdf",
         compile_pdf,
     )
     config_file = write_config(

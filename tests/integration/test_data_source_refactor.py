@@ -115,15 +115,6 @@ class TestDataSourceRefactorIntegration:
             assert result.exit_code == 0
             assert "Data Source System Status" in result.stdout
 
-            # 6. Check repositories
-            result = self.runner.invoke(app, ["data", "check"])
-            assert result.exit_code == 0
-            # Accept either success message or needs attention message for test environment
-            assert (
-                "repository checks" in result.stdout
-                or "Repository configuration needs attention" in result.stdout
-            )
-
     def test_cli_config_commands(self) -> None:
         """Test CLI configuration commands."""
         # Create temporary config for testing
@@ -154,12 +145,6 @@ class TestDataSourceRefactorIntegration:
             )
             # Show command may fail if app config isn't properly mocked, just check it tries
             assert "Configuration" in result.stdout or result.exit_code != 0
-
-            # Test config validate with explicit config file
-            with patch("studiorum.cli.commands.config._load_raw_config") as mock_load:
-                mock_load.return_value = {"data_sources": {"srd": {"enabled": True}}}
-                result = self.runner.invoke(app, ["config", "validate"])
-                # May succeed or fail depending on mocking, but shouldn't crash
 
     def test_deprecated_cli_commands_removed(self) -> None:
         """Test that deprecated CLI commands have been completely removed."""
@@ -237,7 +222,7 @@ class TestDataSourceRefactorIntegration:
         # Test multiple operations
         start_time = time.time()
         self.runner.invoke(app, ["data", "status"])
-        self.runner.invoke(app, ["data", "check"])
+        self.runner.invoke(app, ["doctor"])
         end_time = time.time()
 
         duration = end_time - start_time

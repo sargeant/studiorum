@@ -116,9 +116,8 @@ class TestSpecialCases:
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.load_omnidexer")
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.get_app_config")
-    @patch("studiorum.cli.commands.convert.book.create_latex_engine")
-    @patch("studiorum.cli.commands.convert.book.display_manager")
+    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     @pytest.mark.skip(reason="Test requires proper isolation from global container")
@@ -128,7 +127,6 @@ class TestSpecialCases:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_app_config,
         mock_tag_resolver,
         mock_shared_omnidexer,
         mock_omnidexer,
@@ -161,18 +159,6 @@ class TestSpecialCases:
         )
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
-
-        # Mock app config with complete structure
-        mock_config = Mock()
-        mock_config.rendering.latex.document.paper_size = "letter"
-        mock_config.rendering.latex.document.fonts = None
-        mock_config.rendering.latex.document.font_size = "11pt"
-        mock_config.rendering.latex.document.background = "full"
-        mock_config.rendering.latex.document.high_contrast = False
-        mock_config.rendering.latex.document.two_column = True
-        mock_config.rendering.latex.document.justified_text = False
-        mock_config.rendering.latex.document.no_outline = False
-        mock_app_config.return_value = mock_config
 
         # Mock LaTeX engine
         mock_engine = Mock()

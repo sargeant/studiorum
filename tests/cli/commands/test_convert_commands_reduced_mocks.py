@@ -45,11 +45,9 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
-    @patch("studiorum.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.commands.convert.run.create_latex_compiler")
     def test_adventure_conversion_with_real_data_latex_only(
         self,
-        mock_display,
         mock_create_compiler,
         mock_get_tag_resolver,
         mock_get_omnidexer,
@@ -76,10 +74,6 @@ class TestConvertCommandsWithReducedMocking:
         mock_create_compiler.return_value = mock_compiler
 
         # Mock display manager for clean output
-        mock_display.progress.return_value.__enter__ = Mock()
-        mock_display.progress.return_value.__exit__ = Mock()
-        mock_display.add_task.return_value = "task_id"
-        mock_display.update_task = Mock()
 
         # Use real test data file with absolute path for CI compatibility
         test_file = self.test_data_dir / "adventure-example.json"
@@ -113,11 +107,9 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
-    @patch("studiorum.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.commands.convert.run.create_latex_compiler")
     def test_book_conversion_with_real_data_latex_only(
         self,
-        mock_display,
         mock_create_compiler,
         mock_get_tag_resolver,
         mock_get_omnidexer,
@@ -144,10 +136,6 @@ class TestConvertCommandsWithReducedMocking:
         mock_create_compiler.return_value = mock_compiler
 
         # Mock display manager for clean output
-        mock_display.progress.return_value.__enter__ = Mock()
-        mock_display.progress.return_value.__exit__ = Mock()
-        mock_display.add_task.return_value = "task_id"
-        mock_display.update_task = Mock()
 
         # Use real test data file with absolute path for CI compatibility
         test_file = self.test_data_dir / "book-example.json"
@@ -180,11 +168,9 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.requires_latex
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
-    @patch("studiorum.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_pdf_compilation_uses_configured_compiler(
         self,
-        mock_display,
         mock_compile_pdf,
         mock_get_tag_resolver,
         mock_get_omnidexer,
@@ -206,10 +192,6 @@ class TestConvertCommandsWithReducedMocking:
         mock_compile_pdf.return_value = None  # Async function returns None
 
         # Mock display manager for clean output
-        mock_display.progress.return_value.__enter__ = Mock()
-        mock_display.progress.return_value.__exit__ = Mock()
-        mock_display.add_task.return_value = "task_id"
-        mock_display.update_task = Mock()
 
         # Use real test data file with absolute path for CI compatibility
         test_file = self.test_data_dir / "adventure-example.json"
@@ -253,7 +235,7 @@ class TestConvertCommandsWithReducedMocking:
 
     def test_compiler_helper_function_creates_proper_config(self):
         """Test create_latex_compiler helper function without mocking."""
-        from studiorum.cli.commands.convert.shared import create_latex_compiler
+        from studiorum.cli.commands.convert.run import create_latex_compiler
         from studiorum.latex_engine.config.compilation import CompilationConfig
         from studiorum.latex_engine.core.compiler import LaTeXCompiler
 

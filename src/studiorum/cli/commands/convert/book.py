@@ -1,169 +1,55 @@
-"""Book conversion command."""
+"""convert book: a sourcebook."""
 
-import asyncio
-import os
 from pathlib import Path
+from typing import Annotated
 
 import typer
-from rich import print as rprint
 
-from studiorum.cli.config_factory import (
-    get_appendix_creatures_default,
-    get_appendix_items_default,
-    get_appendix_spells_default,
-    get_compile_pdf_default,
-    get_document_class_default,
-    get_fonts_default,
-    get_with_images_default,
-    get_with_index_default,
-)
-from studiorum.cli.context import get_services
-from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.unified_config import get_app_config  # noqa: F401
 from studiorum.core.models.content import ContentType
-from studiorum.latex_engine import create_latex_engine
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.core.models.document_metadata import DocumentType
+from studiorum.core.references.content_tracker import ContentTracker
 
-from .base import BaseConvertCommand
-from .shared import (
-    compile_pdf as compile_pdf_async,
-    resolve_content_or_file,
+from . import options as opt
+from .adventure import (
+    AppendixCreatures,
+    AppendixItems,
+    AppendixSpells,
+    UltimateAppendix,
+    load_content,
+    render_document,
+    rendering_context,
 )
+from .options import ConvertOptions
+from .run import conversion_errors, document_metadata, write_document
 
 
 def book(
-    content_source: str = typer.Argument(
-        ..., help="Book abbreviation (e.g., 'phb') or file path"
-    ),
-    output_file: Path | None = typer.Option(
-        None,
-        "--output",
-        "-o",
-        help="Output LaTeX file",
-        rich_help_panel="Output Control",
-    ),
-    title: str | None = typer.Option(
-        None, "--title", help="Document title", rich_help_panel="Output Control"
-    ),
-    with_images: bool = typer.Option(
-        ...,
-        "--images/--no-images",
-        help="Include images",
-        rich_help_panel="Content Options",
-        default_factory=get_with_images_default,
-    ),
-    with_index: bool = typer.Option(
-        ...,
-        "--index/--no-index",
-        help="Include index",
-        rich_help_panel="Content Options",
-        default_factory=get_with_index_default,
-    ),
-    compile_pdf: bool = typer.Option(
-        ...,
-        "--pdf",
-        help="Compile to PDF after conversion",
-        rich_help_panel="Output Control",
-        default_factory=get_compile_pdf_default,
-    ),
-    open_pdf: bool = typer.Option(
-        False,
-        "--open",
-        help="Open PDF file after compilation (requires --pdf)",
-        rich_help_panel="Output Control",
-    ),
-    # LaTeX document class options
-    document_class: str = typer.Option(
-        ...,
-        "--document-class",
-        help="LaTeX document class (dndbook, dndarticle)",
-        rich_help_panel="Document Layout",
-        default_factory=get_document_class_default,
-    ),
-    paper: str | None = typer.Option(
-        None,
-        "--paper",
-        help="Paper size (letter, a4, a5)",
-        rich_help_panel="Document Layout",
-    ),
-    fonts: str | None = typer.Option(
-        ...,
-        "--fonts",
-        help="Font package to use (wotc, dmsguild)",
-        rich_help_panel="Visual Styling",
-        default_factory=get_fonts_default,
-    ),
-    no_outline: bool | None = typer.Option(
-        None,
-        "--no-outline",
-        help="Disable document outline",
-        rich_help_panel="Visual Styling",
-    ),
-    font_size: str | None = typer.Option(
-        None,
-        "--font-size",
-        help="Base font size (10pt, 11pt, 12pt)",
-        rich_help_panel="Visual Styling",
-    ),
-    background: str | None = typer.Option(
-        None,
-        "--background",
-        "--bg",
-        help="Background style (full, none, print)",
-        rich_help_panel="Visual Styling",
-    ),
-    high_contrast: bool | None = typer.Option(
-        None,
-        "--high-contrast",
-        help="Use high contrast mode",
-        rich_help_panel="Visual Styling",
-    ),
-    two_column: bool | None = typer.Option(
-        None,
-        "--two-column/--one-column",
-        help="Use two-column layout",
-        rich_help_panel="Document Layout",
-    ),
-    justified: bool | None = typer.Option(
-        None,
-        "--justified/--not-justified",
-        help="Justify text columns",
-        rich_help_panel="Document Layout",
-    ),
-    statblock: str | None = typer.Option(
-        None,
-        "--statblock",
-        help="Statblock style (2014/classic/2024/modern)",
-        rich_help_panel="Visual Styling",
-    ),
-    # Appendix options
-    appendix_spells: bool = typer.Option(
-        ...,
-        "--spells/--no-spells",
-        help="Generate spells appendix with all referenced spells",
-        rich_help_panel="Appendices",
-        default_factory=get_appendix_spells_default,
-    ),
-    appendix_items: bool = typer.Option(
-        ...,
-        "--items/--no-items",
-        help="Generate items appendix with all referenced items",
-        rich_help_panel="Appendices",
-        default_factory=get_appendix_items_default,
-    ),
-    appendix_creatures: bool = typer.Option(
-        ...,
-        "--creatures/--no-creatures",
-        help="Generate creatures appendix with all referenced creatures",
-        rich_help_panel="Appendices",
-        default_factory=get_appendix_creatures_default,
-    ),
-    ultimate_appendix: bool = typer.Option(
-        False,
-        "--ultimate-appendix",
-        help="Generate recursive appendices (creatures include spells, spells include creatures)",
-        rich_help_panel="Appendices",
-    ),
+    ctx: typer.Context,
+    content_source: Annotated[
+        str, typer.Argument(help="Book abbreviation (e.g., 'phb') or file path")
+    ],
+    appendix_spells: AppendixSpells = None,
+    appendix_items: AppendixItems = None,
+    appendix_creatures: AppendixCreatures = None,
+    ultimate_appendix: UltimateAppendix = False,
+    # Shared options, read through ctx.params by ConvertOptions
+    output: opt.Output = None,
+    title: opt.Title = None,
+    pdf: opt.Pdf = None,
+    open_pdf: opt.OpenPdf = False,
+    toc: opt.Toc = None,
+    index: opt.Index = None,
+    images: opt.Images = None,
+    document_class: opt.DocumentClass = None,
+    paper: opt.Paper = None,
+    two_column: opt.TwoColumn = None,
+    justified: opt.Justified = None,
+    fonts: opt.Fonts = None,
+    font_size: opt.FontSize = None,
+    background: opt.Background = None,
+    outline: opt.Outline = None,
+    high_contrast: opt.HighContrast = None,
+    statblock: opt.Statblock = None,
 ) -> None:
     """
     📚 Convert book to LaTeX
@@ -177,159 +63,30 @@ def book(
       studiorum convert book /path/to/phb.json     # Use file path
       studiorum list books                         # See available content
     """
-
-    def _convert() -> None:
-        result = None  # Initialize to avoid UnboundLocalError
-        try:
-            # Load content and resolve with progress reporting
-            with display_manager.progress("Loading content") as _:
-                from studiorum.cli.progress_adapter import create_progress_adapter
-
-                # Create progress adapter to bridge DisplayManager to service layer
-                progress_adapter = create_progress_adapter(display_manager)
-
-                # Resolve content source (file or abbreviation) with progress
-                content_items, source_desc = resolve_content_or_file(
-                    content_source,
-                    ContentType("book"),
-                    progress_callback=progress_adapter,
-                )
-
-                # Get omnidexer and tag resolver (omnidexer already loaded by resolve_content_or_file)
-                omnidexer = (
-                    get_services().omnidexer
-                )  # Get cached instance since data is already loaded
-                tag_resolver = get_services().tag_resolver
-
-            # Determine output file
-            if output_file is None:
-                if "file:" in source_desc:
-                    # Use input filename for file-based sources
-                    input_name = Path(content_source).with_suffix(".tex").name
-                else:
-                    # Use content name for abbreviation-based sources
-                    input_name = f"{content_source}.tex"
-                output_path = Path("output/books") / input_name
-            else:
-                output_path = output_file
-
-            # Create LaTeX configuration using base class
-            command_instance = BaseConvertCommand()
-            config = command_instance.apply_config_hierarchy(
-                paper=paper,
-                fonts=fonts,
-                background=background,
-                no_outline=no_outline,
-                font_size=font_size,
-                high_contrast=high_contrast,
-                two_column=two_column,
-                justified=justified,
-                statblock=statblock,
-            )
-
-            # Import legacy config classes for backward compatibility
-            from studiorum.core.config.latex_config import (
-                LaTeXConfig,
-                LaTeXDocumentConfig,
-            )
-
-            latex_doc_config = LaTeXDocumentConfig(
-                document_class=document_class,
-                paper_size=config["paper_size"],
-                font_size=config["font_size"],
-                background=config["background"],
-                high_contrast=config["high_contrast"],
-                two_column=config["two_column"],
-                justified_text=config["justified"],
-                fonts=config["fonts"],
-                no_outline=config["no_outline"],
-                statblock=config["statblock"],
-            )
-            latex_config = LaTeXConfig(document=latex_doc_config)
-
-            # Create document metadata for proper DND template rendering
-            from studiorum.core.models.document_metadata import (
-                DocumentMetadata,
-                DocumentType,
-            )
-
-            # Get book title - handle both dict and object formats
-            if hasattr(content_items[0], "name"):
-                book_title = content_items[0].name
-            elif isinstance(content_items[0], dict):
-                book_title = content_items[0].get("name", "Player's Handbook")
-            else:
-                book_title = "Player's Handbook"
-
-            metadata = DocumentMetadata(
-                title=title or book_title,
-                document_type=DocumentType.BOOK,
-                include_toc=True,
-                include_index=with_index,
-            )
-
-            # Create content tracker for appendix generation
-            from studiorum.core.references.content_tracker import ContentTracker
-
-            content_tracker = ContentTracker()
-
-            # Create render context
-            context = RenderingContext(
-                output_format="latex",
-                omnidexer=omnidexer,
-                content_tracker=content_tracker,
-                tag_resolver=tag_resolver,
-                metadata={
-                    "title": title or f"Book: {book_title}",
-                    "include_images": with_images,
-                    "include_toc": True,
-                    "include_index": with_index,
-                    "tag_resolver": tag_resolver,
-                    "document_metadata": metadata,
-                    "latex_config": latex_config,
-                    "content_tracker": content_tracker,
-                    "appendix_spells": appendix_spells,
-                    "appendix_items": appendix_items,
-                    "appendix_creatures": appendix_creatures,
-                    "ultimate_appendix": ultimate_appendix,
-                },
-            )
-
-            # Render document
-            engine = create_latex_engine()
-            with display_manager.progress("Rendering book") as _:
-                render_task = display_manager.add_task(
-                    "[green]Rendering book...", total=None
-                )
-                result = engine.render_document(content_items, context)
-                display_manager.update_task(render_task, completed=100)
-
-            # Write output
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            if result:
-                with open(output_path, "w", encoding="utf-8") as f:
-                    f.write(result)
-                rprint(
-                    f"[green]✓[/green] Book converted ({source_desc}): {output_path}"
-                )
-            else:
-                rprint("[red]Error:[/red] No content was generated")
-                raise typer.Exit(1)
-
-            # Compile PDF if requested
-            if compile_pdf:
-                asyncio.run(compile_pdf_async(output_path, open_pdf))
-
-        except typer.Exit:
-            # Re-raise typer.Exit cleanly to avoid double error messages
-            raise
-        except Exception as e:
-            import traceback
-
-            rprint(f"[red]Error:[/red] {e}")
-            # Only print traceback when explicitly requested for local diagnostics
-            if os.getenv("STUDIORUM_DEBUG_TRACEBACK") in {"1", "true", "True"}:
-                traceback.print_exc()
-            raise typer.Exit(1)
-
-    _convert()
+    options = ConvertOptions.from_context(ctx)
+    with conversion_errors():
+        content_items, source_desc = load_content(content_source, ContentType.BOOK)
+        name = content_items[0].name
+        metadata = document_metadata(options, options.title or name, DocumentType.BOOK)
+        context = rendering_context(
+            options,
+            metadata,
+            ContentTracker(),
+            title=options.title or f"Book: {name}",
+            appendix_spells=appendix_spells,
+            appendix_items=appendix_items,
+            appendix_creatures=appendix_creatures,
+            ultimate_appendix=ultimate_appendix,
+        )
+        latex = render_document(content_items, context, "book")
+        file_name = (
+            Path(content_source).with_suffix(".tex").name
+            if "file:" in source_desc
+            else f"{content_source}.tex"
+        )
+        write_document(
+            options,
+            latex,
+            Path("output/books") / file_name,
+            f"Book converted ({source_desc})",
+        )

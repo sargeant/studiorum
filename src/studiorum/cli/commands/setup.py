@@ -324,62 +324,6 @@ def _scan_content() -> None:
     _do_scan()
 
 
-@app.command("check")
-def check_setup() -> None:
-    """Check current setup and configuration."""
-    config = current_sources()
-
-    if not config.content_sources:
-        console.print("[red]❌ No content sources configured[/red]")
-        console.print("Run [bold]studiorum setup wizard[/bold] to get started.")
-        raise typer.Exit(1)
-
-    console.print(
-        f"[green]✅ {len(config.content_sources)} content sources configured[/green]"
-    )
-
-    # Check source availability
-    source_manager = ContentSourceManager(config)
-
-    def _check() -> None:
-        try:
-            import asyncio
-
-            asyncio.run(source_manager.ensure_all_sources())
-            asyncio.run(source_manager.build_content_index())
-
-            stats = source_manager.get_statistics()
-
-            console.print(
-                f"[green]✅ {stats['total_files']} content files available[/green]"
-            )
-
-            # Show summary
-            table = Table(title="Setup Status")
-            table.add_column("Component", style="cyan")
-            table.add_column("Status", style="green")
-            table.add_column("Details")
-
-            table.add_row(
-                "Content Sources",
-                "✅ Configured",
-                f"{len(config.content_sources)} sources",
-            )
-            table.add_row(
-                "Content Files", "✅ Available", f"{stats['total_files']} files"
-            )
-            table.add_row("Cache Directory", "✅ Ready", str(config.cache_dir))
-
-            console.print(table)
-
-        except Exception as e:
-            console.print(f"[red]❌ Setup check failed: {e}[/red]")
-            console.print("Run [bold]studiorum setup wizard[/bold] to reconfigure.")
-            raise typer.Exit(1)
-
-    _check()
-
-
 @app.command("reset")
 def reset_setup() -> None:
     """Reset configuration to defaults."""

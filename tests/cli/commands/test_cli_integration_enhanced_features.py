@@ -214,7 +214,7 @@ class TestCLIIntegrationEnhancedFeatures:
         mock_collector_class.return_value = mock_collector
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.spells._render_spellbook"
+            "studiorum.cli.commands.convert.spells._render_spellbook"
         ) as mock_render:
             mock_render.return_value = "Mock LaTeX output"
 
@@ -320,7 +320,7 @@ class TestCLIIntegrationEnhancedFeatures:
                             mock_tracker_class.return_value = mock_tracker
 
                             with patch(
-                                "studiorum.cli.commands.convert.adventure.compile_pdf_async"
+                                "studiorum.cli.commands.convert.run.compile_pdf"
                             ) as mock_compile_pdf:
                                 mock_compile_pdf.return_value = None
 
@@ -486,7 +486,7 @@ class TestCLIIntegrationEnhancedFeatures:
                     new_callable=PropertyMock,
                 ) as mock_tag_resolver:
                     with patch(
-                        "studiorum.cli.commands.convert.compendiums.spells._render_spellbook"
+                        "studiorum.cli.commands.convert.spells._render_spellbook"
                     ) as mock_render_spellbook:
                         # Setup omnidexer and tag resolver mocks
                         mock_omnidexer_instance = Mock()
@@ -652,7 +652,7 @@ class TestCLIIntegrationEnhancedFeatures:
                     new_callable=PropertyMock,
                 ) as mock_tag_resolver:
                     with patch(
-                        "studiorum.cli.commands.convert.compendiums.spells._render_spellbook"
+                        "studiorum.cli.commands.convert.spells._render_spellbook"
                     ) as mock_render_spellbook:
                         # Setup omnidexer and tag resolver mocks
                         mock_omnidexer_instance = Mock()

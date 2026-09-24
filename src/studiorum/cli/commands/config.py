@@ -19,7 +19,6 @@ import yaml
 from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
-from rich.table import Table
 
 from studiorum.core.config.data_sources import DataSourcesConfig
 from studiorum.core.config.unified_config import get_app_config
@@ -42,9 +41,6 @@ Configuration management for Studiorum's settings and three-tier data source arc
 
   [dim]# Show specific section[/dim]
   studiorum config show --section data_sources
-
-  [dim]# Validate configuration[/dim]
-  studiorum config validate
 
   [dim]# Reset to defaults[/dim]
   studiorum config reset
@@ -178,101 +174,6 @@ def show_config(
     except Exception as e:
         logger.error(f"Error showing configuration: {e}")
         console.print(f"[red]Error showing configuration: {e}[/red]")
-        raise typer.Exit(1)
-
-
-@config_app.command("validate")
-def validate_config(
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Show detailed validation info"
-    ),
-) -> None:
-    """Validate current configuration.
-
-    [bold]Examples:[/bold]
-      [dim]# Basic validation[/dim]
-      studiorum config validate
-
-      [dim]# Detailed validation info[/dim]
-      studiorum config validate --verbose
-    """
-    try:
-        console.print("[yellow]🔍 Validating configuration...[/yellow]")
-
-        # Load raw config and check for data sources
-        raw_config = _load_raw_config()
-
-        if "data_sources" not in raw_config:
-            console.print("[yellow]⚠️  No data_sources configuration found.[/yellow]")
-            console.print("Creating default data sources configuration...")
-
-            # Create default config
-            default_data_config = DataSourcesConfig()
-            raw_config["data_sources"] = default_data_config.model_dump()
-            _save_config(raw_config)
-            console.print("[green]✅ Default configuration created.[/green]")
-            return
-
-        # Validate data sources configuration
-        try:
-            data_config = DataSourcesConfig.model_validate(raw_config["data_sources"])
-        except Exception as e:
-            console.print(f"[red]❌ Configuration validation failed: {e}[/red]")
-            console.print("Please correct the configuration manually.")
-            raise typer.Exit(1)
-
-        # Run configuration validation
-        validation_errors = data_config.validate_configuration()
-
-        if validation_errors:
-            console.print(
-                f"[red]❌ Found {len(validation_errors)} validation errors:[/red]"
-            )
-
-            table = Table(title="Validation Issues")
-            table.add_column("Issue", style="yellow")
-            table.add_column("Severity", style="red")
-
-            for error in validation_errors:
-                severity = (
-                    "Warning"
-                    if "warning" in error.lower() or "not found" in error
-                    else "Error"
-                )
-                table.add_row(error, severity)
-
-            console.print(table)
-
-            console.print("\n[cyan]Suggestions:[/cyan]")
-            console.print("  • Check file paths exist")
-            console.print("  • Verify URL formats")
-            console.print("  • Review extension configurations")
-
-            raise typer.Exit(1)
-        console.print("[green]✅ Configuration is valid![/green]")
-
-        if verbose:
-            console.print("\n[cyan]Validation Details:[/cyan]")
-            console.print(f"  • SRD enabled: {data_config.srd.enabled}")
-            console.print(
-                f"  • Primary override: {data_config.primary_override.enabled}"
-            )
-            console.print(f"  • Extensions: {len(data_config.extensions)} configured")
-            console.print(
-                f"  • Active extensions: {len(data_config.get_enabled_extensions())}"
-            )
-            console.print(
-                f"  • Attribution sources: {len(data_config.source_attribution.custom_sources)}"
-            )
-
-            if data_config.get_active_data_sources():
-                console.print("\n[cyan]Active Data Sources:[/cyan]")
-                for source in data_config.get_active_data_sources():
-                    console.print(f"  • {source}")
-
-    except Exception as e:
-        logger.error(f"Error validating configuration: {e}")
-        console.print(f"[red]Error validating configuration: {e}[/red]")
         raise typer.Exit(1)
 
 

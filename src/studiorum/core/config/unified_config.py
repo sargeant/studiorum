@@ -202,15 +202,18 @@ class LaTeXEngineConfig(BaseModel):
 
 
 class LaTeXDocumentConfig(BaseModel):
-    """Configuration for LaTeX document structure and styling."""
+    """The LaTeX document's class, layout and front and back matter.
 
-    document_class: str = Field(
-        default="dndbook",
-        description="LaTeX document class (dndbook, dndarticle, article, book)",
+    The defaults give the class options documents have always rendered with:
+    ``letterpaper, 11pt, bg=full, twocolumn, stats=modern``.
+    """
+
+    document_class: Literal["dndbook", "dndarticle"] = Field(
+        default="dndbook", description="LaTeX document class"
     )
-    class_options: list[str] = Field(
-        default_factory=lambda: ["justified", "twocolumn"],
-        description="Document class options",
+    extra_class_options: list[str] = Field(
+        default_factory=list,
+        description="Class options with no field of their own, passed after the rest",
     )
     paper_size: Literal["letter", "a4", "a5"] = Field(
         default="letter", description="Paper size"
@@ -228,10 +231,12 @@ class LaTeXDocumentConfig(BaseModel):
         default=False, description="Use high contrast mode for printing"
     )
     justified_text: bool = Field(default=False, description="Justify text columns")
-    fancy_headers: bool = Field(default=True, description="Use fancy page headers")
+    fancy_headers: bool = Field(
+        default=False, description="Use the class's fancy page decorations"
+    )
     two_column: bool = Field(default=True, description="Use two-column layout")
     show_toc: bool = Field(default=True, description="Include table of contents")
-    show_index: bool = Field(default=True, description="Include alphabetical index")
+    show_index: bool = Field(default=False, description="Include alphabetical index")
     fonts: Literal["wotc", "dmsguild"] | None = Field(
         default=None, description="Font package to use (wotc, dmsguild)"
     )
@@ -242,6 +247,25 @@ class LaTeXDocumentConfig(BaseModel):
         default="2024",
         description="Statblock style (2014/classic for legacy, 2024/modern for updated)",
     )
+
+    def class_options(self) -> list[str]:
+        """The options for ``\\documentclass``, without duplicates."""
+        options = [f"{self.paper_size}paper", self.font_size, f"bg={self.background}"]
+        if self.high_contrast:
+            options.append("highcontrast")
+        if self.justified_text:
+            options.append("justified")
+        if self.fancy_headers:
+            options.append("fancy")
+        options.append("twocolumn" if self.two_column else "onecolumn")
+        if self.fonts:
+            options.append(f"fonts={self.fonts}")
+        if self.no_outline:
+            options.append("nooutline")
+        if self.statblock in ("2024", "modern"):
+            options.append("stats=modern")
+        options.extend(self.extra_class_options)
+        return list(dict.fromkeys(options))
 
 
 class LaTeXRenderingConfig(BaseModel):

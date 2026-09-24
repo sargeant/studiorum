@@ -197,18 +197,18 @@ class TestEnvironmentVariables:
     def test_rendering_latex_document_config_environment_variables(self) -> None:
         """Test STUDIORUM_RENDERING__LATEX__DOCUMENT__* environment variables."""
         env_vars = {
-            "STUDIORUM_RENDERING__LATEX__DOCUMENT__DOCUMENT_CLASS": "article",
-            "STUDIORUM_RENDERING__LATEX__DOCUMENT__CLASS_OPTIONS": '["onecolumn", "draft"]',
+            "STUDIORUM_RENDERING__LATEX__DOCUMENT__DOCUMENT_CLASS": "dndarticle",
+            "STUDIORUM_RENDERING__LATEX__DOCUMENT__EXTRA_CLASS_OPTIONS": '["draft"]',
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__PAPER_SIZE": "a4",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__FONT_SIZE": "12pt",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__FONT_SCHEME": "system",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__BACKGROUND": "none",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__HIGH_CONTRAST": "true",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__JUSTIFIED_TEXT": "true",
-            "STUDIORUM_RENDERING__LATEX__DOCUMENT__FANCY_HEADERS": "false",
+            "STUDIORUM_RENDERING__LATEX__DOCUMENT__FANCY_HEADERS": "true",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__TWO_COLUMN": "false",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__SHOW_TOC": "false",
-            "STUDIORUM_RENDERING__LATEX__DOCUMENT__SHOW_INDEX": "false",
+            "STUDIORUM_RENDERING__LATEX__DOCUMENT__SHOW_INDEX": "true",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__FONTS": "wotc",
             "STUDIORUM_RENDERING__LATEX__DOCUMENT__NO_OUTLINE": "true",
         }
@@ -216,18 +216,18 @@ class TestEnvironmentVariables:
 
         config = ApplicationConfig()
 
-        assert config.rendering.latex.document.document_class == "article"
-        assert config.rendering.latex.document.class_options == ["onecolumn", "draft"]
+        assert config.rendering.latex.document.document_class == "dndarticle"
+        assert config.rendering.latex.document.extra_class_options == ["draft"]
         assert config.rendering.latex.document.paper_size == "a4"
         assert config.rendering.latex.document.font_size == "12pt"
         assert config.rendering.latex.document.font_scheme == "system"
         assert config.rendering.latex.document.background == "none"
         assert config.rendering.latex.document.high_contrast is True
         assert config.rendering.latex.document.justified_text is True
-        assert config.rendering.latex.document.fancy_headers is False
+        assert config.rendering.latex.document.fancy_headers is True
         assert config.rendering.latex.document.two_column is False
         assert config.rendering.latex.document.show_toc is False
-        assert config.rendering.latex.document.show_index is False
+        assert config.rendering.latex.document.show_index is True
         assert config.rendering.latex.document.fonts == "wotc"
         assert config.rendering.latex.document.no_outline is True
 

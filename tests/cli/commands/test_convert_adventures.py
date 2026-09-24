@@ -40,23 +40,14 @@ class TestConvertAdventureCommand:
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
-    @patch("builtins.open")
-    @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_file_path(
         self,
-        mock_mkdir,
-        mock_builtin_open,
         mock_display,
         mock_engine_factory,
         mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test converting adventure from file path."""
-        # Mock file operations
-        mock_file = Mock()
-        mock_file.read.return_value = json.dumps(self.mock_adventure_data)
-        mock_builtin_open.return_value.__enter__.return_value = mock_file
-
         # Mock dependencies - create a mock that passes isinstance checks
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
@@ -83,25 +74,21 @@ class TestConvertAdventureCommand:
 
         try:
             # Test command
-            result = self.runner.invoke(app, ["convert", "adventure", file_path])
+            output = Path(file_path).with_suffix(".tex")
+            result = self.runner.invoke(
+                app, ["convert", "adventure", file_path, "--output", str(output)]
+            )
 
-            # Verify success
-            if result.exit_code != 0:
-                print(f"Command failed with output: {result.stdout}")
-                print(f"Command stderr: {result.stderr}")
-            assert result.exit_code == 0
+            assert result.exit_code == 0, result.output
             assert "Adventure converted" in result.stdout
-
-            # Verify file operations
-            mock_builtin_open.assert_called()
-            mock_mkdir.assert_called()
+            assert output.read_text().startswith("\\documentclass")
+            output.unlink()
 
         finally:
             Path(file_path).unlink()
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.adventure.get_app_config")
     @patch(
         "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
@@ -114,7 +101,6 @@ class TestConvertAdventureCommand:
         mock_display,
         mock_engine_factory,
         mock_enrich_content,
-        mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
     ):
@@ -146,20 +132,6 @@ class TestConvertAdventureCommand:
 
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
-
-        # Mock app config with complete structure
-        mock_config = Mock()
-        mock_config.rendering.latex.document.paper_size = "letter"
-        mock_config.rendering.latex.document.fonts = None
-        mock_config.rendering.latex.document.font_size = "10pt"
-        mock_config.rendering.latex.document.background = "full"
-        mock_config.rendering.latex.document.high_contrast = False
-        mock_config.rendering.latex.document.two_column = False
-        mock_config.rendering.latex.document.justified_text = False
-        mock_config.rendering.latex.document.no_outline = (
-            False  # Add the missing no_outline field
-        )
-        mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
         mock_latex = Mock()
@@ -257,14 +229,10 @@ class TestConvertAdventureCommand:
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
-    @patch("builtins.open")
-    @patch("pathlib.Path.mkdir")
-    @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
+    @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_convert_adventure_with_pdf_compilation(
         self,
         mock_compile_pdf,
-        mock_mkdir,
-        mock_builtin_open,
         mock_display,
         mock_engine_factory,
         mock_tag_resolver,
@@ -272,11 +240,6 @@ class TestConvertAdventureCommand:
         mock_omnidexer,
     ):
         """Test adventure conversion with PDF compilation."""
-        # Mock file operations
-        mock_file = Mock()
-        mock_file.read.return_value = json.dumps(self.mock_adventure_data)
-        mock_builtin_open.return_value.__enter__.return_value = mock_file
-
         # Mock dependencies
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
@@ -309,13 +272,16 @@ class TestConvertAdventureCommand:
 
         try:
             # Test command with PDF flag
+            output = Path(file_path).with_suffix(".tex")
             result = self.runner.invoke(
-                app, ["convert", "adventure", file_path, "--pdf"]
+                app,
+                ["convert", "adventure", file_path, "--pdf", "--output", str(output)],
             )
 
             # Verify success and PDF compilation called
-            assert result.exit_code == 0
-            mock_compile_pdf.assert_called_once()
+            assert result.exit_code == 0, result.output
+            mock_compile_pdf.assert_called_once_with(output, False)
+            output.unlink()
 
         finally:
             Path(file_path).unlink()

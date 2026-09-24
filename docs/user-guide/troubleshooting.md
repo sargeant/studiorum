@@ -12,8 +12,8 @@ Common issues you might encounter when using studiorum and how to resolve them. 
 Before diving into specific issues, try these quick diagnostic steps:
 
 ```bash
-# Check system status
-studiorum health check
+# Check configuration, data sources and cache
+studiorum doctor
 
 # Verify installation
 studiorum --version
@@ -594,10 +594,10 @@ sudo chown -R $USER ~/.studiorum/
    studiorum config init
    ```
 
-3. **Use schema validation**:
+3. **Check the configuration**:
 
    ```bash
-   studiorum config validate ~/.studiorum/config.yaml
+   studiorum -c ~/.studiorum/config.yaml doctor
    ```
 
 ### Path Issues
@@ -701,12 +701,10 @@ Run monthly with cron:
 
 ### Health Checks
 
-Monitor studiorum health:
+Check the configuration, data sources and cache in one go:
 
 ```bash
-# Quick health check
-studiorum health check
-
-# Detailed system check
-studiorum health check --detailed --fix-issues
+studiorum doctor
 ```
+
+It exits with status 1 if any check fails.
