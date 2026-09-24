@@ -26,6 +26,22 @@ from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.fixture(autouse=True, scope="session")
+def _isolated_disk_cache(tmp_path_factory: pytest.TempPathFactory) -> Any:
+    """Keep the diskcache out of the user's cache directory during tests.
+
+    Set through the environment so CLI subprocesses inherit it too.
+    """
+    from studiorum.core.cache import CacheManager
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv(
+            "STUDIORUM_CACHE_DIR", str(tmp_path_factory.mktemp("studiorum-cache"))
+        )
+        yield
+        CacheManager.reset()
+
+
 @pytest.fixture(autouse=True)
 def _reset_global_state() -> None:
     """Give every test fresh containers, registries, caches and config.

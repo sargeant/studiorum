@@ -1,19 +1,24 @@
 """Unified caching system for improved performance, using diskcache."""
 
+import os
 from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 from diskcache import Cache
+from platformdirs import user_cache_dir
 
-# Default cache directory and settings
-CACHE_DIR = Path.cwd() / ".cache"
 CACHE_SETTINGS: dict[str, Any] = {
     "size_limit": 100 * 1024 * 1024,  # 100MB
     "eviction_policy": "least-recently-used",
     "timeout": 1,  # Timeout for db connection
 }
+
+
+def cache_dir() -> Path:
+    """Return $STUDIORUM_CACHE_DIR if set, else the platform's user cache directory."""
+    return Path(os.environ.get("STUDIORUM_CACHE_DIR") or user_cache_dir("studiorum"))
 
 
 class CacheManager:
@@ -30,8 +35,9 @@ class CacheManager:
     def get_instance(cls) -> Cache:
         """Get the singleton cache instance, creating it if necessary."""
         if cls._instance is None:
-            CACHE_DIR.mkdir(exist_ok=True)
-            cls._instance = Cache(str(CACHE_DIR), **CACHE_SETTINGS)
+            directory = cache_dir()
+            directory.mkdir(parents=True, exist_ok=True)
+            cls._instance = Cache(str(directory), **CACHE_SETTINGS)
         return cls._instance
 
     @classmethod
@@ -84,8 +90,6 @@ def cached(
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
-        cache = get_cache()
-
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Generate cache key
             if key_func:
@@ -98,6 +102,7 @@ def cached(
             expire = ttl.total_seconds() if ttl else None
 
             # Use the memoize pattern manually
+            cache = get_cache()
             result = cache.get(key)
             if result is None:
                 result = func(*args, **kwargs)

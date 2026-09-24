@@ -1,8 +1,10 @@
 """Tests for CLI system."""
 
+from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app  # type: ignore
@@ -161,10 +163,21 @@ class TestCacheSystem:
 
     def test_cache_creation(self) -> None:
         """Test that the cache directory is created."""
-        from studiorum.core.cache import CACHE_DIR, get_cache
+        from studiorum.core.cache import cache_dir, get_cache
 
         get_cache()
-        assert CACHE_DIR.exists()
+        assert cache_dir().exists()
+
+    def test_cache_dir_defaults_to_user_cache(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Without an override the cache lives in the user cache, not the cwd."""
+        from platformdirs import user_cache_dir
+
+        from studiorum.core.cache import cache_dir
+
+        monkeypatch.delenv("STUDIORUM_CACHE_DIR", raising=False)
+        assert cache_dir() == Path(user_cache_dir("studiorum"))
 
     def test_cache_set_get(self) -> None:
         """Test basic cache operations."""
