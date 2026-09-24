@@ -52,6 +52,7 @@ Content tools return only entries that 5etools marks as part of the 2014 SRD or 
 | `search_spells` | Spells by name, level, school, class list, ritual or concentration |
 | `search_creatures` | Creatures by name, challenge rating range and creature type |
 | `search_items` | Items by name, rarity, attunement, or magic items only |
+| `search_content` | Entries of any type `get_content` reads, by name: deities, feats, races, backgrounds and the rest |
 | `search_rules` | Actions, conditions, statuses, variant rules and senses whose name or text has the words asked for |
 | `get_content` | One entry in full, such as a statblock, a spell, a class or a class feature, as Markdown |
 | `list_publications` | The books and adventures loaded, oldest first |
@@ -62,11 +63,11 @@ Content tools return only entries that 5etools marks as part of the 2014 SRD or 
 | `rate_encounter` | How hard a group of creatures is for a party |
 | `suggest_creatures` | Creatures that make an encounter of a given difficulty |
 
-The search tools return short summaries (name, source, level or challenge rating, and so on) with the number of matches, up to a `limit` of 100. If a name isn't found, the error suggests the closest names. When the SRD filter leaves matches out, `hidden_by_srd` says how many. Searches leave out an entry when a later book reprints it and the reprint is also a match, so you see the XPHB Fireball and not the PHB one. Pass `latest_only=false` to see both.
+The search tools return short summaries (name, source, level or challenge rating, and so on) with the number of matches, up to a `limit` of 100. If a name isn't found, the error suggests the closest names. Each result says whether the call kept to the SRD (`srd_only`) and, when the SRD filter left matches out, how many (`hidden_by_srd`). Pass `offset` with `limit` to page through a long list. An unknown class or creature type, or `cr_min` above `cr_max`, is an error that lists what's valid. Searches leave out an entry when a later book reprints it and the reprint is also a match, so you see the XPHB Fireball and not the PHB one. Pass `latest_only=false` to see both.
 
 `search_rules` matches every word of the query against a rule's name and text, name matches first, with a short snippet of the text around the match. It finds rules that aren't where you'd expect: in the 2024 rules, grappling is part of the Unarmed Strike variant rule.
 
-`get_content` returns an entry as Markdown: a creature as a statblock, and spells, items, classes and subclasses in their own layouts, with tags reduced to their text. Pass `format="json"` for the 5etools data instead. `references` lists what the entry's text links to, such as the items a creature carries, for further `get_content` calls. A class lists its features with their 5etools uids, such as `Spell Mastery|Wizard|XPHB|18`; pass one as the name with `content_type="classFeature"` (or `subclassFeature`) to read it. Without a `source`, `get_content` returns the latest edition.
+`get_content` returns an entry as Markdown: a creature as a statblock, and spells, items, classes and subclasses in their own layouts, with tags reduced to their text. Pass `format="json"` for the 5etools data instead. `references` lists what the entry's text links to, such as the items a creature carries, for further `get_content` calls. A class lists its features with their 5etools uids, such as `Spell Mastery|Wizard|XPHB|18`; pass one as the name with `content_type="classFeature"` (or `subclassFeature`) to read it. Without a `source`, `get_content` returns the latest edition. Specific magic items such as +3 Plate Armor are built from 5etools' generic variants, as the 5etools site builds them.
 
 `list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
 
@@ -85,7 +86,7 @@ The encounter tools take the party as a list of character levels, such as `[5, 5
 - `2024` (the default): the 2024 Dungeon Master's Guide. Each difficulty (low, moderate, high) has a budget, the most XP the creatures can be worth.
 - `2014`: the 2014 Dungeon Master's Guide. Each difficulty (easy, medium, hard, deadly) has a threshold, the least adjusted XP. The creatures' total XP is multiplied by a factor for how many there are, shifted for parties smaller than three or larger than five.
 
-`calculate_encounter_budget` returns those numbers. `rate_encounter` takes creatures by name, with a count and optionally a source, and returns their XP, the adjusted XP and the difficulty it reaches. `suggest_creatures` returns creatures that, a given `count` at a time, make an encounter of the difficulty asked for, strongest first. It can filter by creature type and by the environments 5etools tags creatures with (forest, underdark, urban and so on). For a mixed group, pick creatures and check them with `rate_encounter`.
+`calculate_encounter_budget` returns those numbers. `rate_encounter` takes creatures by name, with a count and optionally a source, and returns their XP, the adjusted XP and the difficulty it reaches. If it can't find some of the names, the error lists each with its closest matches. `notes` flags a creature that 5etools reprinted under another name, such as the 2014 Goblin, which the 2025 Monster Manual calls Goblin Warrior. `suggest_creatures` returns creatures that, a given `count` at a time, make an encounter of the difficulty asked for, strongest first. It can filter by creature type and by the environments 5etools tags creatures with (forest, underdark, urban and so on). For a mixed group, pick creatures and check them with `rate_encounter`. It leaves out creatures whose XP isn't their challenge rating's, such as Flee, Mortals! minions and retainers; pass `include_minions=true` to see them.
 
 ## Troubleshooting
 
