@@ -3,13 +3,10 @@
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
-
 from studiorum.cli.commands.convert.base import (
     AppendixMixin,
     BaseConvertCommand,
 )
-from studiorum.core.error_types import ConfigurationError, MCPException
 
 
 class TestBaseConvertCommand:
@@ -222,38 +219,6 @@ class TestBaseConvertCommand:
         # Second call should return same instance
         manager2 = command.get_content_reference_manager()
         assert manager1 is manager2
-
-    def test_validate_output_directory_exists(self):
-        """Test output directory validation for existing directory."""
-        command = BaseConvertCommand()
-
-        with patch("pathlib.Path.exists", return_value=True):
-            with patch("pathlib.Path.is_dir", return_value=True):
-                # Should not raise exception
-                command.validate_output_directory(Path("existing_dir"))
-
-    def test_validate_output_directory_not_exists(self):
-        """Test output directory validation creates directory."""
-        command = BaseConvertCommand()
-
-        mock_path = Mock()
-        mock_path.exists.return_value = False
-
-        with patch.object(mock_path, "mkdir") as mock_mkdir:
-            command.validate_output_directory(mock_path)
-            mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
-
-    def test_validate_output_directory_not_directory(self):
-        """Test output directory validation fails for non-directory."""
-        command = BaseConvertCommand()
-
-        with patch("pathlib.Path.exists", return_value=True):
-            with patch("pathlib.Path.is_dir", return_value=False):
-                with pytest.raises(MCPException) as exc_info:
-                    command.validate_output_directory(Path("not_a_dir"))
-
-                assert "not a directory" in str(exc_info.value)
-                assert isinstance(exc_info.value.mcp_error, ConfigurationError)
 
 
 class TestAppendixMixin:
