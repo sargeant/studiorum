@@ -71,6 +71,18 @@ LatestOnly = Annotated[
 ]
 
 
+def as_sources(services: Services, sources: list[str] | None) -> list[str] | None:
+    """Source abbreviations, with any publication id (PS-X) read as its source (PSX)."""
+    if not sources:
+        return sources
+    by_id = {
+        str(getattr(p, "id", "") or "").lower(): p.source.abbreviation
+        for ctype in (ContentType.BOOK, ContentType.ADVENTURE)
+        for p in services.omnidexer.get_all_by_type(ctype)
+    }
+    return [by_id.get(s.lower(), s) for s in sources]
+
+
 def _given(**filters: Any) -> dict[str, Any]:
     """The filters a caller set; the collectors reject criteria with none."""
     return {k: v for k, v in filters.items() if v is not None}
@@ -180,7 +192,7 @@ async def search_spells(
         classes=[spell_class] if spell_class else None,
         ritual=ritual,
         concentration=concentration,
-        sources=sources,
+        sources=as_sources(services, sources),
     )
     found: list[Spell] = (
         SpellCollector(services.omnidexer)
@@ -234,7 +246,7 @@ async def search_creatures(
         min_cr=cr_min,
         max_cr=cr_max,
         creature_types=[creature_type] if creature_type else None,
-        sources=sources,
+        sources=as_sources(services, sources),
     )
     found: list[Creature] = (
         CreatureCollector(services.omnidexer)
@@ -280,7 +292,7 @@ async def search_items(
         rarities=[rarity] if rarity else None,
         magic_only=magic_only or None,
         requires_attunement=requires_attunement,
-        sources=sources,
+        sources=as_sources(services, sources),
     )
     found: list[Item] = (
         ItemCollector(services.omnidexer)

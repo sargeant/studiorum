@@ -213,10 +213,51 @@ async def search_content(
         hidden_by_srd=hidden,
         total=len(kept),
         results=[
-            ContentSummary(name=c.name, source=c.source.abbreviation, srd=c.is_srd)
+            ContentSummary(
+                name=c.name,
+                source=c.source.abbreviation,
+                srd=c.is_srd,
+                uid=content_uid(content_type, c),
+                detail=_detail(content_type, c),
+            )
             for c in kept[offset : offset + limit]
         ],
     )
+
+
+def content_uid(content_type: str, content: BaseContent) -> str | None:
+    """The 5etools uid for types whose name and source don't identify one entry."""
+    raw = content.model_dump(by_alias=True)
+    fields = {
+        "deity": ("name", "pantheon", "source"),
+        "classFeature": ("name", "className", "classSource", "level", "source"),
+        "subclassFeature": (
+            "name",
+            "className",
+            "classSource",
+            "subclassShortName",
+            "subclassSource",
+            "level",
+            "source",
+        ),  # fmt: skip
+        "subclass": ("shortName", "className", "classSource", "source"),
+    }.get(content_type)
+    if fields is None:
+        return None
+    raw["source"] = content.source.abbreviation
+    return "|".join(str(raw.get(f) or "") for f in fields)
+
+
+def _detail(content_type: str, content: BaseContent) -> str | None:
+    raw = content.model_dump(by_alias=True)
+    if content_type == "deity":
+        return raw.get("pantheon")
+    if content_type in ("classFeature", "subclassFeature"):
+        owner = raw.get("subclassShortName") or raw.get("className")
+        return f"Level {raw.get('level')} {owner}" if owner else None
+    if content_type == "subclass":
+        return raw.get("className")
+    return None
 
 
 async def list_publications(
@@ -230,6 +271,7 @@ async def list_publications(
         found += [
             Publication(
                 id=b.id or b.source.abbreviation,
+                source=b.source.abbreviation,
                 name=b.name,
                 kind="book",
                 published=b.published,
@@ -242,6 +284,7 @@ async def list_publications(
         found += [
             Publication(
                 id=a.id or a.source.abbreviation,
+                source=a.source.abbreviation,
                 name=a.name,
                 kind="adventure",
                 published=a.published,

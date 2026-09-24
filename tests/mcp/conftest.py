@@ -35,7 +35,7 @@ ADVENTURE_TEXT = [
                 "type": "section",
                 "name": "Background",
                 "id": "004",
-                "entries": ["Long ago."],
+                "entries": ["Long ago. See {@adventure the side trek|TB-ST}."],
             },
         ],
     },

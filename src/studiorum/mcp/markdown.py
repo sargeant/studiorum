@@ -344,6 +344,14 @@ def references(value: Any) -> list[dict[str, str]]:
             elif tag in _FEATURE_TAGS and parts[0]:
                 uid = "|".join(parts[: _FEATURE_TAGS[tag]])
                 add({"type": tag, "name": uid})
+            elif tag in ("adventure", "book") and len(parts) > 1 and parts[1]:
+                add(
+                    {
+                        "type": "publication",
+                        "name": strip_tags(parts[0]),
+                        "publication": parts[1],
+                    }
+                )
             elif tag == "area" and len(parts) > 1 and parts[1]:
                 add(
                     {
@@ -375,11 +383,34 @@ def references(value: Any) -> list[dict[str, str]]:
                         "source": str(v.get("source", "")),
                     }
                 )
+            # 5etools lists what a creature carries or an item casts by uid
+            for key, kind in (("attachedItems", "item"), ("attachedSpells", "spell")):
+                for uid in _uids(v.get(key)):
+                    name, _, source = uid.partition("|")
+                    add(
+                        {
+                            "type": kind,
+                            "name": name,
+                            "source": source.split("|")[0]
+                            or ("DMG" if kind == "item" else "PHB"),
+                        }
+                    )
             for item in v.values():
                 walk(item)
 
     walk(value)
     return list(found.values())
+
+
+def _uids(value: Any) -> list[str]:
+    """Uids in a list, or in a dict of lists (attachedSpells by frequency)."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [u for v in value for u in _uids(v)]
+    if isinstance(value, dict):
+        return [u for v in value.values() for u in _uids(v)]
+    return []
 
 
 def snippet(text: str, words: list[str], size: int = 240) -> str:

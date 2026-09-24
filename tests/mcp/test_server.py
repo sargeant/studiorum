@@ -148,6 +148,7 @@ async def test_get_content_suggests_names() -> None:
 @pytest.mark.asyncio
 async def test_list_publications() -> None:
     result = await call("list_publications")
+    assert result["publications"][2]["source"] == "TB"
     assert [(p["id"], p["kind"]) for p in result["publications"]] == [
         ("TA", "adventure"),
         ("TB", "book"),
@@ -291,3 +292,17 @@ async def test_search_content_finds_any_type_by_name() -> None:
     assert "Arcane Recovery" in names(features)
     nothing = await call("search_content", content_type="deity", query="annam")
     assert (nothing["total"], nothing["hidden_by_srd"]) == (0, 0)
+
+
+@pytest.mark.asyncio
+async def test_search_content_gives_uids_where_names_repeat() -> None:
+    result = await call(
+        "search_content", content_type="classFeature", query="arcane recovery"
+    )
+    first = result["results"][0]
+    assert (first["detail"], first["uid"]) == (
+        "Level 1 Wizard",
+        "Arcane Recovery|Wizard|PHB|1|SRD",
+    )
+    feature = await call("get_content", content_type="classFeature", name=first["uid"])
+    assert feature["name"] == "Arcane Recovery"

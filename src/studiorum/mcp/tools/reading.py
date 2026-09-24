@@ -48,16 +48,9 @@ async def get_table_of_contents(
     24,000 a page.
     """
     pub = _publication(services, publication)
-    lifted: set[str] = set()
-    if section_id is None:
-        roots = []
-        for chapter in _chapters(pub):
-            # 5etools shows a section nested in a chapter at the chapter's level
-            nested = [n for n in _subsections(chapter) if n.get("type") == "section"]
-            lifted |= {str(n["id"]) for n in nested}
-            roots += [chapter, *nested]
-    else:
-        roots = _subsections(_find(pub, _chapters(pub), section_id)[0])
+    roots = _chapters(pub)
+    if section_id is not None:
+        roots = _subsections(_find(pub, roots, section_id)[0])
     return Contents(
         id=_pub_id(pub),
         name=pub.name,
@@ -70,7 +63,7 @@ async def get_table_of_contents(
                 chars=_chars(n),
                 statblocks=_statblocks(n),
             )
-            for n, d in _walk(roots, depth, lifted)
+            for n, d in _walk(roots, depth)
         ],
     )
 
@@ -234,14 +227,11 @@ def _subsections(node: Node) -> list[Node]:
     return found
 
 
-def _walk(
-    roots: list[Node], depth: int, skip: set[str], level: int = 1
-) -> Iterator[tuple[Node, int]]:
+def _walk(roots: list[Node], depth: int, level: int = 1) -> Iterator[tuple[Node, int]]:
     for node in roots:
         yield node, level
         if level < depth:
-            children = [n for n in _subsections(node) if str(n["id"]) not in skip]
-            yield from _walk(children, depth, skip, level + 1)
+            yield from _walk(_subsections(node), depth, level + 1)
 
 
 def _find(
@@ -312,7 +302,8 @@ def _statblocks(node: Node) -> list[str] | None:
     def only_statblocks(entry: Any) -> bool:
         if isinstance(entry, dict):
             if entry.get("type") == "statblock":
-                names.append(str(entry.get("name", "")))
+                if not str(entry.get("prop", "")).endswith("Fluff"):
+                    names.append(str(entry.get("name", "")))
                 return True
             if entry.get("type") in ("image", "gallery"):
                 return True

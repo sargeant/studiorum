@@ -63,6 +63,9 @@ class Reference(BaseModel):
     section_id: str | None = Field(
         None, description="For a section in this publication"
     )
+    publication: str | None = Field(
+        None, description="For a book or adventure, its id for get_table_of_contents"
+    )
 
 
 class ContentEntry(BaseModel):
@@ -81,6 +84,7 @@ class ContentEntry(BaseModel):
 
 class Publication(BaseModel):
     id: str
+    source: str = Field(description="The source abbreviation its content carries")
     name: str
     kind: Literal["book", "adventure"]
     published: str | None = None
@@ -210,6 +214,10 @@ class ContentSummary(BaseModel):
     name: str
     source: str
     srd: bool
+    uid: str | None = Field(
+        None, description="Pass as get_content's name when the name and source repeat"
+    )
+    detail: str | None = Field(None, description="What tells it apart, e.g. a pantheon")
 
 
 class ContentResults(Filtered):

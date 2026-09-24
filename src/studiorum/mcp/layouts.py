@@ -41,6 +41,7 @@ def to_markdown(content_type: str, data: Raw) -> str:
         "subclass": _subclass,
         "race": _race,
         "vehicle": _vehicle,
+        "deity": _deity,
     }.get(content_type, _generic)
     return "\n\n".join(p for p in layout(data, content_type) if p)
 
@@ -752,3 +753,25 @@ def item_kind(data: Raw) -> str:
     if data.get("type"):
         return item_types.name(str(data["type"]))
     return "Wondrous Item" if data.get("wondrous") else ""
+
+
+def _deity(data: Raw, _: str) -> list[str]:
+    title = strip_tags(str(data.get("title", "")))
+    pantheon = data.get("pantheon", "")
+    lines = [
+        _line("Pantheon", str(pantheon)),
+        _line("Alignment", _alignment(data.get("alignment"))),
+        _line("Domains", ", ".join(str(d) for d in data.get("domains") or [])),
+        _line("Symbol", strip_tags(str(data.get("symbol", "")))),
+        _line("Category", str(data.get("category", ""))),
+        _line("Province", strip_tags(str(data.get("province", "")))),
+        _line("Worshipers", strip_tags(str(data.get("worshipers", "")))),
+        _line("Plane", strip_tags(str(data.get("plane", "")))),
+        _line("Also called", ", ".join(str(n) for n in data.get("altNames") or [])),
+    ]
+    return [
+        _title(data),
+        f"*{title}* · *{_source(data)}*" if title else f"*{_source(data)}*",
+        "\n".join(line for line in lines if line),
+        _entries(data.get("entries")),
+    ]
