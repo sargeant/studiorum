@@ -9,6 +9,8 @@ from studiorum.core.loaders import item_types
 from studiorum.core.models.items import variation_entries
 from studiorum.core.text.parser import feat_category
 from studiorum.core.text.prerequisites import prerequisite_entry
+from studiorum.core.text.stats import speed_text
+from studiorum.core.type_lines import ability_text
 from studiorum.mcp.markdown import render, strip_tags
 
 type Raw = dict[str, Any]
@@ -555,17 +557,17 @@ def _race(data: Raw, _: str) -> list[str]:
     sizes = data.get("size") or []
     size = " or ".join(_SIZES.get(str(x), str(x)) for x in sizes)
     kinds = ", ".join(str(t) for t in data.get("creatureTypes") or []) or "humanoid"
-    speed = data.get("speed")
+    speed = speed_text(data).strip() if data.get("speed") is not None else ""
+    subraces = ", ".join(str(r.get("name", "")) for r in data.get("_subraces") or [])
     return [
         _title(data),
         f"*{' '.join(w for w in (size, kinds) if w)}* · *{_source(data)}*",
         "\n".join(
             line
             for line in (
-                _line(
-                    "Speed", f"{speed} ft." if isinstance(speed, int) else _speed(speed)
-                ),
-                _line("Ability Score Increase", _increases(data.get("ability"))),
+                _line("Speed", strip_tags(speed)),
+                _line("Ability Scores", ability_text(data.get("ability") or [])),
+                _line("Subraces", subraces),
                 _line(
                     "Darkvision",
                     f"{data['darkvision']} ft." if data.get("darkvision") else "",
