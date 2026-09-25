@@ -321,10 +321,16 @@ class EntryRenderer:
             return empty, self.text(item)
         if not isinstance(item, dict):
             return empty, str(item)
-        if env != "description" or item.get("type") == "list" or not item.get("name"):
+        named_block = item.get("type") in ("item", "itemSub", "entries")
+        if (
+            not item.get("name")
+            or item.get("type") == "list"
+            or not (env == "description" or named_block)
+        ):
             return empty, self.entry(item)
         name = item["name"]
-        if item.get("type") in ("item", "itemSub"):
+        if named_block:
+            # A named entries item (a feature in a list) runs in like an item
             if text := item.get("entry", "") or item.get("text", ""):
                 body = self.text(text)
             elif entries := item.get("entries", []):
@@ -336,6 +342,8 @@ class EntryRenderer:
         label = self.text(name)
         if not name.rstrip().endswith((".", ":", ";")):
             label += "."
+        if env != "description":
+            return empty, f"\\textbf{{{label}}} {body}"
         return label, body
 
     def _table(self, entry: dict[str, Any]) -> str:
@@ -756,6 +764,8 @@ def column_spec(col_styles: list[str], count: int, *, stretch: bool = True) -> s
             specs.append("r")
         else:
             specs.append("l")
+    # 5etools gives some tables fewer styles than columns
+    specs += ["l"] * (count - len(specs))
     if stretch and count >= 4:
         fixed = [i for i, spec in enumerate(specs) if spec in ("c", "l", "r")]
         if len(fixed) >= 3:

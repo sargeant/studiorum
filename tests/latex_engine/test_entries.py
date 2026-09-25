@@ -494,3 +494,28 @@ def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
     assert "width=\\textwidth]{l}" in out
     assert out.count("\\FloatBarrier") == 1
     assert out.endswith("\\FloatBarrier")
+
+
+@pytest.mark.parametrize(
+    ("style", "expected"),
+    [
+        ("list-hang-notitle", "\\item[Defensive Field.] Temporary hit points."),
+        ("", "\\item \\textbf{Defensive Field.} Temporary hit points."),
+    ],
+)
+def test_named_entries_in_a_list_run_in_without_a_heading(
+    style: str, expected: str
+) -> None:
+    feature = {
+        "type": "entries",
+        "name": "Defensive Field",
+        "entries": ["Temporary hit points."],
+    }
+    out = render({"type": "list", "style": style, "items": [feature]})
+
+    assert expected in out
+    assert "section" not in out and "paragraph" not in out
+
+
+def test_a_column_spec_covers_every_column() -> None:
+    assert column_spec(["col-2 text-center"] * 3, 4, stretch=False) == "cccl"
