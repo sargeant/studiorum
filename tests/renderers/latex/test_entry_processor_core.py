@@ -240,8 +240,8 @@ class TestRecursiveEntryProcessor:
         assert "header={Test Table}" in result  # Updated format
         assert "{ll}" in result  # Column spec format
         assert "processed_Name & processed_Value \\\\" in result
-        assert "processed_Item 1 & 10 \\\\" in result
-        assert "processed_Item 2 & 20 \\\\" in result
+        assert "processed_Item 1 & processed_10 \\\\" in result
+        assert "processed_Item 2 & processed_20 \\\\" in result
         assert "\\end{DndTable}" in result
 
     def test_process_entry_dict_table_empty_rows(self):

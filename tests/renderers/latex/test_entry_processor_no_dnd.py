@@ -74,7 +74,7 @@ class TestRecursiveEntryProcessorWithoutDNDTemplate:
         assert "\\caption{Test Table}" in result
         assert "\\begin{tabular}{ll}" in result
         assert "Name & Value \\\\ \\hline" in result
-        assert "Item 1 & 10 \\\\" in result
+        assert "processed_Item 1 & processed_10 \\\\" in result
 
     def test_process_basic_table_empty_rows(self):
         """Test basic table processing with empty rows."""
@@ -98,8 +98,8 @@ class TestRecursiveEntryProcessorWithoutDNDTemplate:
         # Should use max columns (3)
         assert "\\begin{tabular}{lll}" in result
         assert "A & B \\\\ \\hline" in result
-        assert "1 \\\\" in result
-        assert "2 & 3 & 4 \\\\" in result
+        assert "processed_1 \\\\" in result
+        assert "processed_2 & processed_3 & processed_4 \\\\" in result
 
     def test_process_basic_table_no_column_labels(self):
         """Test basic table without column labels."""
@@ -110,8 +110,8 @@ class TestRecursiveEntryProcessorWithoutDNDTemplate:
         assert "\\caption{No Headers}" in result
         assert "\\begin{tabular}{ll}" in result
         # Should not have header row
-        assert "A & B \\\\" in result
-        assert "C & D \\\\" in result
+        assert "processed_A & processed_B \\\\" in result
+        assert "processed_C & processed_D \\\\" in result
 
     def test_process_basic_table_no_caption(self):
         """Test basic table without caption."""
