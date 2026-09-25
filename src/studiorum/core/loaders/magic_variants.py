@@ -16,6 +16,9 @@ from collections.abc import Callable
 from typing import Any
 
 from ..logging import get_logger
+from ..models.items import Item
+from ..models.magicvariant import MagicVariant
+from ..text.properties import apply_properties
 
 logger = get_logger(__name__)
 
@@ -33,7 +36,6 @@ _SELF_BLOCKLIST = {
 _DAMAGE_TYPES = {"A": "Acid", "B": "Bludgeoning", "C": "Cold", "F": "Fire", "O": "Force", "L": "Lightning", "N": "Necrotic", "P": "Piercing", "I": "Poison", "Y": "Psychic", "R": "Radiant", "S": "Slashing", "T": "Thunder"}  # fmt: skip
 _CORE_SOURCES = {"PHB", "XPHB", "DMG", "XDMG"}
 _VULN_RESIST_IMMUNE = ("vulnerable", "resist", "immune")
-_TEMPLATE = re.compile(r"\{=([^}/]+)(?:/([a-z]+))?\}")
 _EXPRESSION = re.compile(r"\[\[([^\]]+)]]")
 
 
@@ -55,6 +57,12 @@ def expand(base_items: list[Raw], generic_variants: list[Raw]) -> list[Raw]:
                 continue
             out.append(_specific(base, generic))
     return out
+
+
+def generic_item(variant: MagicVariant) -> Item:
+    """A generic variant ("+1 Weapon") as the item 5etools lists it as."""
+    raw = variant.model_dump(by_alias=True, exclude_none=True)
+    return Item.model_validate(_with_inherited(raw) if "inherits" in raw else raw)
 
 
 def _with_inherited(generic: Raw) -> Raw:
@@ -189,37 +197,6 @@ def _injectable(base: Raw, inherits: Raw) -> Raw:
                 "bonusSavingThrow"):  # fmt: skip
         props[key] = inherits.get(key)
     return props
-
-
-def apply_properties(entries: Any, props: Raw) -> Any:
-    """Fill ``{=baseName/l}``-style templates in every string, as 5etools' applyAllProperties."""
-    if isinstance(entries, str):
-        return _TEMPLATE.sub(lambda m: _fill(m, props), entries)
-    if isinstance(entries, list):
-        return [apply_properties(e, props) for e in entries]
-    if isinstance(entries, dict):
-        return {k: apply_properties(v, props) for k, v in entries.items()}
-    return entries
-
-
-def _fill(match: re.Match[str], props: Raw) -> str:
-    value = props.get(match.group(1))
-    if value is None:
-        logger.debug(f"No value for {match.group(0)}")
-        return match.group(0)
-    text = str(value)
-    # 5etools applies the modifiers in the order written
-    for modifier in match.group(2) or "":
-        match modifier:
-            case "a":
-                text = "an" if text[:1].lower() in "aeiou" else "a"
-            case "l":
-                text = text.lower()
-            case "t":
-                text = text.title()
-            case "u":
-                text = text.upper()
-    return text
 
 
 _OPERATORS: dict[type, Callable[[Any, Any], Any]] = {

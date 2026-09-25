@@ -18,7 +18,9 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
+from studiorum.core.compact import compact_entries
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
+from studiorum.core.loaders.magic_variants import generic_item
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.content_models import (
@@ -27,6 +29,7 @@ from studiorum.core.models.content_models import (
     content_type_of,
 )
 from studiorum.core.models.creatures import ArmorClass, Creature
+from studiorum.core.models.magicvariant import MagicVariant
 from studiorum.renderers.context import Style
 from studiorum.renderers.escape import escape
 from studiorum.renderers.tags import render
@@ -51,7 +54,8 @@ ABILITIES = {
 }
 
 # What a statblock's tag looks up, and the source when it gives none: 5etools'
-# Parser.TAG_TO_PROPS and each tag's defaultSource
+# Parser.TAG_TO_PROPS and each tag's defaultSource. An item may also be a
+# generic variant, which renders as an item.
 STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
     "action": (ContentType.ACTION, "PHB"),
     "background": (ContentType.BACKGROUND, "PHB"),
@@ -317,10 +321,16 @@ class EntryRenderer:
             return empty, self.text(item)
         if not isinstance(item, dict):
             return empty, str(item)
-        if env != "description" or item.get("type") == "list" or not item.get("name"):
+        named_block = item.get("type") in ("item", "itemSub", "entries")
+        if (
+            not item.get("name")
+            or item.get("type") == "list"
+            or not (env == "description" or named_block)
+        ):
             return empty, self.entry(item)
         name = item["name"]
-        if item.get("type") in ("item", "itemSub"):
+        if named_block:
+            # A named entries item (a feature in a list) runs in like an item
             if text := item.get("entry", "") or item.get("text", ""):
                 body = self.text(text)
             elif entries := item.get("entries", []):
@@ -332,6 +342,8 @@ class EntryRenderer:
         label = self.text(name)
         if not name.rstrip().endswith((".", ":", ";")):
             label += "."
+        if env != "description":
+            return empty, f"\\textbf{{{label}}} {body}"
         return label, body
 
     def _table(self, entry: dict[str, Any]) -> str:
@@ -345,20 +357,20 @@ class EntryRenderer:
             count = len(labels)
         elif col_styles:
             count = len(col_styles)
-        elif isinstance(rows[0], list):
-            count = len(rows[0])
         else:
-            count = 2
+            count = len(_row_cells(rows[0])) or 2
         cells = [
             [self.entry(c) if isinstance(c, dict) else self.text(str(c)) for c in row]
-            for row in rows
-            if isinstance(row, list)
+            for row in map(_row_cells, rows)
         ]
+        # "wide" is Studiorum's own, on tables it builds (a class table)
+        wide = bool(entry.get("wide"))
         table = _macros().table(
             escape(caption) if caption else "",
-            column_spec(col_styles, count),
+            column_spec(col_styles, count, stretch=not wide),
             [self.text(str(label)) for label in labels],
             cells,
+            wide,
         )
         return f"% Table: {caption}\n{table}" if caption else str(table)
 
@@ -406,14 +418,22 @@ class EntryRenderer:
         return " ".join(result)
 
     def _options(self, entry: dict[str, Any]) -> str:
+        """5etools' _renderOptions: named options first, by name; a list if hanging."""
         entries = entry.get("entries", [])
         if not entries:
             return ""
-        items = [
-            (None, self.entry(e) if isinstance(e, str | dict) else str(e))
-            for e in entries
+        named = sorted(
+            (e for e in entries if isinstance(e, dict) and e.get("name")),
+            key=lambda e: str(e["name"]).lower(),
+        )
+        entries = named + [
+            e for e in entries if not (isinstance(e, dict) and e.get("name"))
         ]
-        return str(_macros().list_env("itemize", items))
+        if entry.get("style") == "list-hang-notitle":
+            return self._list(
+                {"type": "list", "style": "list-hang-notitle", "items": entries}
+            )
+        return "\n\n".join(self.entries(entries))
 
     def _variant(self, entry: dict[str, Any]) -> str:
         name = entry.get("name", "")
@@ -499,6 +519,9 @@ class EntryRenderer:
             return f"{roll_text} {text}" if roll_text else text
         return roll_text
 
+    def _ingredient(self, entry: dict[str, Any]) -> str:
+        return self.entry(entry.get("entry", ""))
+
     def _statblock(self, entry: dict[str, Any]) -> str:
         """What the statblock points to, looked up as 5etools does."""
         name = entry.get("name", "")
@@ -513,10 +536,13 @@ class EntryRenderer:
         if content_type in FLUFF_TYPES:
             return self._fluff(entry, found)
         inset = entry.get("style", "") == "inset"
-        entries = found.model_dump().get("entries") or []
+        entries = compact_entries(found, self.omnidexer)
         if not entries:
             return self.text(name) if inset else self._heading(self._depth, name)
         body = "\n\n".join(self.entries(entries))
+        # A wide table (a class's) floats; the section around it ends with a barrier
+        if "\\begin{table*}" in body and self.style.book:
+            self._wide_float = True
         if inset:
             return str(_macros().sidebar(self.text(name), body))
         return f"{self._heading(self._depth, name)}\n\n{body}"
@@ -546,17 +572,35 @@ class EntryRenderer:
                 logger.warning(f"Statblocks of '{kind}' are not supported")
             return None
         source = entry.get("source") or (known[1] if known else "")
-        found = (
-            self.omnidexer.find(content_type, name, source)
-            if self.omnidexer is not None
-            else None
-        )
+        found = self._find(content_type, entry, source)
+        if found is None and content_type == ContentType.ITEM:
+            found = self._find(ContentType.MAGICVARIANT, entry, source)
+        if isinstance(found, MagicVariant):
+            found = generic_item(found)
         if found is None:
             logger.warning(
                 f"Could not resolve statblock reference: {prop or tag} '{name}' "
                 f"from {source}"
             )
         return found
+
+    def _find(
+        self, content_type: ContentType, entry: dict[str, Any], source: str
+    ) -> Any:
+        """Content by name and source, or a subclass by its 5etools uid."""
+        if self.omnidexer is None:
+            return None
+        if content_type == ContentType.SUBCLASS and entry.get("shortName"):
+            uid = "|".join(
+                (
+                    entry["shortName"],
+                    entry.get("className", ""),
+                    entry.get("classSource", ""),
+                    source,
+                )
+            )
+            return self.omnidexer.find_uid(content_type, uid)
+        return self.omnidexer.find(content_type, entry.get("name", ""), source)
 
     def _render_model(self, kind: str, content: Any) -> str:
         """A creature, spell or item through its macro, in the text."""
@@ -688,11 +732,19 @@ def _leading_int(key: str) -> int:
     return int(match.group(1)) if match else 999
 
 
-def column_spec(col_styles: list[str], count: int) -> str:
+def _row_cells(row: Any) -> list[Any]:
+    """A table row's cells: a list, or a 5etools ``{"type": "row", "row": [...]}``."""
+    if isinstance(row, dict):
+        return list(row.get("row", []))
+    return list(row) if isinstance(row, list) else [row]
+
+
+def column_spec(col_styles: list[str], count: int, *, stretch: bool = True) -> str:
     """A DndTable column specification from 5etools' Bootstrap colStyles.
 
-    Wide columns (col-8 and up) stretch as X; tables of four or more columns
-    with three or more fixed ones stretch some centred columns too.
+    Wide columns (col-8 and up) stretch as X; with ``stretch``, tables of four
+    or more columns with three or more fixed ones stretch some centred columns
+    too.
     """
     if not col_styles:
         return "l" * count
@@ -720,7 +772,9 @@ def column_spec(col_styles: list[str], count: int) -> str:
             specs.append("r")
         else:
             specs.append("l")
-    if count >= 4:
+    # 5etools gives some tables fewer styles than columns
+    specs += ["l"] * (count - len(specs))
+    if stretch and count >= 4:
         fixed = [i for i, spec in enumerate(specs) if spec in ("c", "l", "r")]
         if len(fixed) >= 3:
             converted = 0
@@ -790,5 +844,6 @@ HANDLERS: dict[str, Callable[[EntryRenderer, dict[str, Any]], str]] = {
     "dice": EntryRenderer._dice,
     "item": EntryRenderer._item,
     "cell": EntryRenderer._cell,
+    "ingredient": EntryRenderer._ingredient,
     "statblock": EntryRenderer._statblock,
 }

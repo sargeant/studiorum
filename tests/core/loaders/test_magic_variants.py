@@ -1,6 +1,6 @@
 """expand builds specific magic items from base items and generic variants."""
 
-from studiorum.core.loaders.magic_variants import apply_properties, expand
+from studiorum.core.loaders.magic_variants import expand
 
 LONGSWORD = {
     "name": "Longsword",
@@ -82,10 +82,3 @@ def test_names_expressions_and_resistances() -> None:
     assert item["value"] == 6000
     # A granted resistance leaves the vulnerabilities
     assert (item["resist"], item["vulnerable"]) == (["fire"], ["cold"])
-
-
-def test_apply_properties_fills_templates_inside_tags() -> None:
-    assert apply_properties(
-        ["{=baseName/a} {@item {=baseName}|PHB}", {"entries": ["{=baseName/at}"]}],
-        {"baseName": "axe"},
-    ) == ["an {@item axe|PHB}", {"entries": ["An"]}]

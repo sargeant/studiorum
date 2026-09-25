@@ -104,6 +104,9 @@ class Item(BaseContent):
         None, description="Item value"
     )
     entries: list[Entry] | None = Field(None, description="Item description")
+    # An item group's variations ("Potion of Resistance"), as uids
+    items: list[str] | None = Field(None, description="Items in this group")
+    items_hidden: bool | None = Field(None, alias="itemsHidden")
 
     # Optional item-specific data
     weapon_data: WeaponData | None = Field(
@@ -359,6 +362,10 @@ class Item(BaseContent):
 
         return rarity_text
 
+    def variation_entries(self) -> list[str | dict[str, Any]]:
+        """An item group's list of items, as 5etools' ``_enhanceItem`` adds it."""
+        return variation_entries(self.items, hidden=bool(self.items_hidden))
+
     def get_value_text(self) -> str:
         """Get formatted value text."""
         if not self.value:
@@ -573,3 +580,15 @@ class Item(BaseContent):
         if type_metadata and "entries" in type_metadata and type_metadata["entries"]:
             return [str(entry) for entry in type_metadata["entries"]]
         return []
+
+
+def variation_entries(
+    items: list[str] | None, *, hidden: bool = False
+) -> list[str | dict[str, Any]]:
+    """The entries 5etools adds to an item group: its items, as a list of tags."""
+    if not items or hidden:
+        return []
+    return [
+        "Multiple variations of this item exist, as listed below:",
+        {"type": "list", "items": [f"{{@item {uid}}}" for uid in items]},
+    ]

@@ -29,7 +29,7 @@ from ..models.content_models import (
 )
 from ..models.fluff import BaseFluff
 from ..validation.error_tracker import ErrorContext, ValidationErrorTracker
-from . import item_types, magic_variants
+from . import item_types, magic_variants, subraces
 from .data_dir import DataSet, read_json
 from .dual_file import merge_metadata_content
 from .merge_copy import resolve_copies
@@ -116,6 +116,7 @@ class Omnidexer:
             )
         item_types.register(raw.get("baseitem", []) + raw.get("itemType", []))
         self._add_specific_variants(raw)
+        self._add_merged_subraces(raw)
 
         by_type: dict[ContentType, list[Raw]] = defaultdict(list)
         for prop, entities in raw.items():
@@ -355,6 +356,17 @@ class Omnidexer:
         for item in magic_variants.expand(raw.get("baseitem", []), generics):
             if (item["name"].lower(), item["source"].lower()) not in have:
                 raw["item"].append(item)
+
+    @staticmethod
+    def _add_merged_subraces(raw: dict[str, list[Raw]]) -> None:
+        """Add the races 5etools makes from subraces, unless a race already has the name."""
+        have = {
+            (str(r.get("name", "")).lower(), str(r.get("source", "")).lower())
+            for r in raw.get("race", [])
+        }
+        for race in subraces.merge(raw.get("race", []), raw.get("subrace", [])):
+            if (race["name"].lower(), str(race["source"]).lower()) not in have:
+                raw["race"].append(race)
 
     def _index_nested(self, content: DeepIndexable, content_type: ContentType) -> None:
         try:

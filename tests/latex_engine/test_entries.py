@@ -8,6 +8,7 @@ import pytest
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Ability, Creature
 from studiorum.core.models.fluff import CreatureFluff
+from studiorum.core.models.magicvariant import MagicVariant
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
@@ -205,8 +206,17 @@ def test_run_in_entries() -> None:
     assert render({"type": "abilityGeneric", "name": "Note", "text": "x"}) == (
         "\\textbf{Note:} x"
     )
-    assert render({"type": "options", "entries": ["a", "b"]}) == (
-        "\\begin{itemize}\n\\item a\n\\item b\n\\end{itemize}"
+    assert render({"type": "options", "entries": ["a", "b"]}) == "a\n\nb"
+    hanging = {
+        "type": "options",
+        "style": "list-hang-notitle",
+        "entries": [
+            {"type": "entries", "name": "Shot", "entries": ["s"]},
+            {"type": "entries", "name": "Arrow", "entries": ["a"]},
+        ],
+    }
+    assert render(hanging) == (
+        "\\begin{description}\n\\item[Arrow.] a\n\\item[Shot.] s\n\\end{description}"
     )
 
 
@@ -402,3 +412,134 @@ def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
 
     assert renderer.entry({**statblock, **skip_root}) == "Savage."
     assert renderer.entry(statblock) == "\\subsection{Orc}\n\nSavage."
+
+
+def test_item_statblocks_fall_back_to_generic_variants() -> None:
+    variant = MagicVariant.model_validate(
+        {
+            "name": "+1 Weapon",
+            "source": "DMG",
+            "type": "GV|DMG",
+            "requires": [{"weapon": True}],
+            "inherits": {
+                "source": "DMG",
+                "rarity": "uncommon",
+                "entries": ["You have a +1 bonus."],
+            },
+        }
+    )
+    lookups = {ContentType.ITEM: None, ContentType.MAGICVARIANT: variant}
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(side_effect=lambda kind, *_: lookups[kind]))
+    )
+    out = renderer.entry({"type": "statblock", "tag": "item", "name": "+1 Weapon"})
+
+    assert "\\dnditemheader{+1 weapon}{generic variant, uncommon}" in out.lower()
+    assert "You have a +1 bonus." in out
+
+
+def test_subclass_statblocks_look_up_their_uid() -> None:
+    find_uid = Mock(return_value=None)
+    EntryRenderer(omnidexer=Mock(find_uid=find_uid)).entry(
+        {
+            "type": "statblock",
+            "tag": "subclass",
+            "source": "AU",
+            "name": "Arcana Domain (Cleric)",
+            "shortName": "Arcana",
+            "className": "Cleric",
+            "classSource": "XPHB",
+        }
+    )
+
+    find_uid.assert_called_once_with(ContentType.SUBCLASS, "Arcana|Cleric|XPHB|AU")
+
+
+def test_an_ingredient_renders_its_entry() -> None:
+    assert render({"type": "ingredient", "entry": "½ cup {@b flour}"}) == (
+        "½ cup \\textbf{flour}"
+    )
+
+
+def test_table_rows_may_be_row_objects() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Armor", "Cost"],
+            "rows": [
+                [{"type": "entries", "entries": ["{@i Light Armor}"]}, ""],
+                {"type": "row", "style": "row-indent-first", "row": ["Padded", 5]},
+            ],
+        }
+    )
+
+    assert "Padded & 5" in out
+
+
+def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
+    fighter = Mock(model_copy=Mock())
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=fighter)), style=Style(book=True)
+    )
+    table = {"type": "table", "colLabels": ["Level"], "rows": [["1st"]], "wide": True}
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(
+            "studiorum.latex_engine.entries.content_type_of",
+            lambda _: ContentType.CLASS,
+        )
+        patch.setattr(
+            "studiorum.latex_engine.entries.compact_entries",
+            lambda *_: [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],
+        )
+        out = renderer.entry(
+            {
+                "type": "section",
+                "name": "Classes",
+                "entries": [{"type": "statblock", "tag": "class", "name": "Fighter"}],
+            }
+        )
+
+    assert "\\begin{table*}[tp]" in out
+    assert "width=\\textwidth]{l}" in out
+    assert out.count("\\FloatBarrier") == 1
+    assert out.endswith("\\FloatBarrier")
+
+
+@pytest.mark.parametrize(
+    ("style", "expected"),
+    [
+        ("list-hang-notitle", "\\item[Defensive Field.] Temporary hit points."),
+        ("", "\\item \\textbf{Defensive Field.} Temporary hit points."),
+    ],
+)
+def test_named_entries_in_a_list_run_in_without_a_heading(
+    style: str, expected: str
+) -> None:
+    feature = {
+        "type": "entries",
+        "name": "Defensive Field",
+        "entries": ["Temporary hit points."],
+    }
+    out = render({"type": "list", "style": style, "items": [feature]})
+
+    assert expected in out
+    assert "section" not in out and "paragraph" not in out
+
+
+def test_a_column_spec_covers_every_column() -> None:
+    assert column_spec(["col-2 text-center"] * 3, 4, stretch=False) == "cccl"
+
+
+def test_a_wide_table_stacks_the_words_of_its_plain_labels() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Level", "Proficiency Bonus", "{@i Rage Damage}"],
+            "rows": [["1st", "+2", "+2"]],
+            "wide": True,
+        }
+    )
+
+    assert (
+        "Level & \\shortstack{Proficiency\\\\Bonus} & \\textit{Rage Damage} \\\\" in out
+    )

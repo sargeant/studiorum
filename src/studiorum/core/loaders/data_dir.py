@@ -3,7 +3,8 @@
 A ``DataDir`` is a 5etools-shaped ``data/`` directory. Its entities live in
 the top-level JSON files and in ``bestiary/``, ``spells/`` and ``class/``,
 whose ``index.json`` and ``fluff-index.json`` manifests list their files (the
-SRD bundle has no manifests, so those directories are globbed instead).
+SRD bundle has no manifests, so those directories are globbed instead), and
+the tables 5etools generates from book and adventure text.
 Adventure and book text lives in ``adventure/`` and ``book/``, one file per
 id, and is read only when an adventure or book is asked for.
 """
@@ -31,6 +32,9 @@ _NOT_ENTITIES = {
     "template.json",
     "sources.json",
 }
+# Generated files 5etools loads as entities: the tables page reads the tables
+# extracted from books and adventures (DataUtil.table.loadJSON)
+_GENERATED = ("gendata-tables.json",)
 _CONTENT_DIRS = {ContentType.ADVENTURE: "adventure", ContentType.BOOK: "book"}
 
 
@@ -54,6 +58,9 @@ class DataDir:
         ]
         for name in _MANIFEST_DIRS:
             files += self._manifest_files(self.root / name)
+        files += [
+            p for name in _GENERATED if (p := self.root / "generated" / name).exists()
+        ]
         return sorted(files, key=lambda p: p.relative_to(self.root).as_posix())
 
     def _manifest_files(self, directory: Path) -> list[Path]:
