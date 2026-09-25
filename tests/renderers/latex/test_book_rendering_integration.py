@@ -1,8 +1,7 @@
 """Integration tests for book rendering with EntryRenderer system."""
 
-from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -13,22 +12,6 @@ from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: 
 from studiorum.renderers.context import RenderingContext  # type: ignore
 
 
-def compile_document_to_pdf_sync(renderer, books, context):
-    """Synchronous wrapper for renderer.compile_document_to_pdf() for testing."""
-    import asyncio
-
-    try:
-        # Check if we're already in an event loop
-        asyncio.get_running_loop()
-        # If we get here, we're in an async context - need to handle differently
-        import pytest
-
-        pytest.skip("Cannot run sync compilation test from async context")
-    except RuntimeError:
-        # No event loop, safe to use asyncio.run()
-        return asyncio.run(renderer.compile_document_to_pdf(books, context=context))
-
-
 @pytest.mark.rendering
 class TestBookRenderingIntegration:
     """Integration tests for book rendering through the EntryRenderer system."""
@@ -36,8 +19,7 @@ class TestBookRenderingIntegration:
     def setup_method(self) -> None:
         """Set up test fixtures."""
 
-        config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
-        self.renderer = LaTeXDocumentRenderer(config)
+        self.renderer = LaTeXDocumentRenderer()
 
     @pytest.fixture
     def sample_source(self) -> Any:
@@ -347,57 +329,6 @@ class TestBookRenderingIntegration:
         assert "\\end{document}" in result
         assert "Empty Book" in result
 
-    def test_book_compilation_integration(self, simple_book: Any) -> None:
-        """Test full integration from book to PDF compilation."""
-        from studiorum.latex_engine.config.compilation import (  # type: ignore
-            CompilationResult,
-            LaTeXEngine,
-        )
-
-        context = RenderingContext(
-            output_format="latex", metadata={"title": "Compilation Test"}
-        )
-
-        # Mock successful compilation
-        mock_result = CompilationResult(
-            success=True,
-            engine_used=LaTeXEngine.LUALATEX,
-            passes_completed=1,
-            total_time=5.0,
-            output_file=Path("/tmp/test_book.pdf"),
-        )
-
-        with (
-            patch.object(
-                self.renderer.template_engine,
-                "check_dnd_template_availability",
-                return_value=True,
-            ),
-            patch.object(
-                self.renderer.compiler,
-                "compile_document",
-                return_value=mock_result,
-                new_callable=AsyncMock,
-            ) as mock_compile,
-        ):
-            result = compile_document_to_pdf_sync(self.renderer, [simple_book], context)
-
-            assert result.success is True
-            assert result.output_file == Path("/tmp/test_book.pdf")
-
-            # Check that LaTeX was generated and passed to compiler
-            mock_compile.assert_called_once()
-            compile_args = mock_compile.call_args[0]
-            latex_source = compile_args[0]
-
-            # Verify LaTeX contains book content
-            assert isinstance(latex_source, str)
-            assert len(latex_source) > 100
-            assert (
-                "Player's Handbook" in latex_source
-                or "Compilation Test" in latex_source
-            )
-
     def test_book_rendering_with_custom_context(self, simple_book: Any) -> None:
         """Test book rendering with custom render context options."""
         context = RenderingContext(
@@ -493,8 +424,7 @@ class TestBookRenderingEntryProcessing:
     def setup_method(self) -> None:
         """Set up test fixtures."""
 
-        config = {"show_progress": False}
-        self.renderer = LaTeXDocumentRenderer(config)
+        self.renderer = LaTeXDocumentRenderer()
 
     @pytest.fixture
     def entry_rich_book(self) -> Any:

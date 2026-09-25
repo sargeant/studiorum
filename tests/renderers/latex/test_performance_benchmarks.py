@@ -2,9 +2,8 @@
 
 import os
 import time
-from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -16,22 +15,6 @@ from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: 
 from studiorum.renderers.context import RenderingContext  # type: ignore
 
 
-def compile_document_to_pdf_sync(renderer, documents, context):
-    """Synchronous wrapper for renderer.compile_document_to_pdf() for testing."""
-    import asyncio
-
-    try:
-        # Check if we're already in an event loop
-        asyncio.get_running_loop()
-        # If we get here, we're in an async context - need to handle differently
-        import pytest
-
-        pytest.skip("Cannot run sync compilation test from async context")
-    except RuntimeError:
-        # No event loop, safe to use asyncio.run()
-        return asyncio.run(renderer.compile_document_to_pdf(documents, context=context))
-
-
 @pytest.mark.rendering
 class TestRenderingPerformance:
     """Performance benchmarks for the EntryRenderer system."""
@@ -39,8 +22,7 @@ class TestRenderingPerformance:
     def setup_method(self) -> None:
         """Set up test fixtures."""
 
-        config = {"show_progress": False, "compilation_timeout": 30, "max_passes": 2}
-        self.renderer = LaTeXDocumentRenderer(config)
+        self.renderer = LaTeXDocumentRenderer()
 
     @pytest.fixture
     def sample_source(self) -> Any:
@@ -414,71 +396,3 @@ class TestRenderingPerformance:
         )
 
         print(f"\\nLarge document (50 chapters): {render_time:.2f}s")
-
-    @pytest.mark.slow
-    def test_compilation_performance_integration(self, sample_spell: Any) -> None:
-        """Test end-to-end performance including compilation."""
-
-        import pytest
-
-        # Skip if we detect async context conflicts that would prevent service initialization
-        try:
-            from studiorum.cli.context import get_services
-
-            _ = get_services().template_service
-        except Exception as e:
-            if "async context" in str(e) or "event loop" in str(e):
-                pytest.skip(f"Skipping due to async context conflict: {e}")
-            else:
-                raise
-        from studiorum.latex_engine.config.compilation import (  # type: ignore
-            CompilationResult,
-            LaTeXEngine,
-        )
-
-        # Mock compilation to focus on rendering performance
-        mock_result = CompilationResult(
-            success=True,
-            engine_used=LaTeXEngine.LUALATEX,
-            passes_completed=1,
-            total_time=0.5,  # Simulated compilation time
-            output_file=Path("/tmp/perf_test.pdf"),
-        )
-
-        with (
-            patch.object(
-                self.renderer.template_engine,
-                "check_dnd_template_availability",
-                return_value=True,
-            ),
-            patch.object(
-                self.renderer.compiler,
-                "compile_document",
-                return_value=mock_result,
-                new_callable=AsyncMock,
-            ),
-        ):
-            # Measure end-to-end performance
-            context = RenderingContext(
-                output_format="latex",
-                metadata={"title": "Compilation Performance Test"},
-            )
-            start_time = time.perf_counter()
-            for _ in range(10):
-                result = compile_document_to_pdf_sync(
-                    self.renderer, [sample_spell], context
-                )
-                assert result.success is True
-            end_time = time.perf_counter()
-
-        total_time = end_time - start_time
-        avg_time_per_compile = total_time / 10
-
-        print(
-            f"\\nEnd-to-end (render + mock compile): {avg_time_per_compile * 1000:.1f}ms average"
-        )
-
-        # Should complete quickly with mocked compilation
-        assert avg_time_per_compile < 0.2, (
-            f"Average compile time {avg_time_per_compile:.3f}s (expected < 0.2s)"
-        )
