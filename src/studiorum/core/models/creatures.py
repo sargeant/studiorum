@@ -254,8 +254,6 @@ class Ability(BaseModel):
     def __str__(self) -> str:
         return self.name
 
-    # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
-
 
 class SpellcasterSpells(BaseModel):
     """Spell list for a specific spell level."""
@@ -522,12 +520,6 @@ class Creature(BaseContent):
     def get_ability_modifier(self, ability_score: int) -> int:
         """Calculate ability modifier from score."""
         return (ability_score - 10) // 2
-
-    def get_ability_text(self, score: int) -> str:
-        """Get formatted ability score with modifier."""
-        modifier = self.get_ability_modifier(score)
-        mod_text = f"+{modifier}" if modifier >= 0 else str(modifier)
-        return f"{score} ({mod_text})"
 
     def get_size_type_alignment(self) -> str:
         """Get formatted size, type, and alignment text with 5etools compatibility."""

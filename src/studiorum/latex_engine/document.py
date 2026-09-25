@@ -14,11 +14,13 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from studiorum.core.config.unified_config import LaTeXConfig
+from studiorum.core.logging import get_logger
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.books import Book
 from studiorum.core.models.chapter import NUMBERED_KINDS, OrdinalType
 from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.document_metadata import DocumentMetadata
+from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.services.appendix_generator import (
     Appendix,
     AppendixFlags,
@@ -29,8 +31,13 @@ from studiorum.renderers.context import RenderingContext
 from .core.template_engine import LaTeXTemplateEngine, environment
 from .entries import EntryRenderer
 
+logger = get_logger(__name__)
+
 # 5etools' table of contents abbreviations (Parser.bookOrdinalToAbv)
 TOC_WORDS = {"chapter": "Ch.", "part": "Part", "episode": "Ep.", "level": "Level"}
+
+# How many times appendix entries' own references are followed
+APPENDIX_ROUNDS = 5
 
 # Chapter titles for supplements, by content type
 CONTENT_TITLES = {
@@ -166,13 +173,45 @@ def appendix_chapters(
     """Appendices of what the document refers to, as the flags ask.
 
     Call it once the rest of the document is rendered, so the tracker holds
-    every reference.
+    every reference. Recursive flags also add what the appendix entries
+    refer to.
     """
     tracker, omnidexer = context.content_tracker, context.omnidexer
     if not flags.has_any_enabled() or tracker is None or omnidexer is None:
         return []
-    appendices = AppendixGenerator(omnidexer).generate_appendices(tracker, flags)
+    generator = AppendixGenerator(omnidexer)
+    appendices = generator.generate_appendices(tracker, flags)
+    if flags.recursive:
+        appendices = _follow_references(appendices, generator, tracker, flags, context)
     return appendices_as_chapters(appendices, context)
+
+
+def _follow_references(
+    appendices: list[Appendix],
+    generator: AppendixGenerator,
+    tracker: ContentTracker,
+    flags: AppendixFlags,
+    context: RenderingContext,
+) -> list[Appendix]:
+    """Render appendix entries into the tracker until they add nothing new."""
+    rendered: set[tuple[str, str]] = set()
+    for _ in range(APPENDIX_ROUNDS):
+        new = [
+            (appendix.kind, item)
+            for appendix in appendices
+            for item in appendix.items
+            if (appendix.kind, item.name.lower()) not in rendered
+        ]
+        if not new:
+            return appendices
+        for kind, item in new:
+            rendered.add((kind, item.name.lower()))
+            render_models(kind, [item], context)
+        appendices = generator.generate_appendices(tracker, flags)
+    logger.warning(
+        f"Appendices still growing after {APPENDIX_ROUNDS} rounds of references"
+    )
+    return appendices
 
 
 def appendices_as_chapters(
@@ -196,11 +235,13 @@ def render_models(
     context: RenderingContext,
     *,
     barriers: bool = False,
+    floating: bool = True,
 ) -> str:
     """Creatures, items or spells through their render macros.
 
     ``barriers`` adds a float barrier every ten items and at the end, for
-    appendices of statblocks.
+    appendices of statblocks. ``floating=False`` sets narrow creature
+    statblocks in the text.
     """
     if kind not in CONTENT_TITLES:
         raise ValueError(f"Cannot render {kind} content in a document")
@@ -209,5 +250,9 @@ def render_models(
     context = replace(context, style=replace(context.style, content_type=content_type))
     template = environment().get_template("_content.tex.j2")
     return template.render(
-        kind=kind, items=items, barriers=barriers, rendering_context=context
+        kind=kind,
+        items=items,
+        barriers=barriers,
+        floating=floating,
+        rendering_context=context,
     ).strip()

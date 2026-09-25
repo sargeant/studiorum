@@ -5,7 +5,9 @@ from unittest.mock import Mock
 
 import pytest
 
+from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Ability, Creature
+from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
@@ -249,6 +251,39 @@ def test_unresolved_statblock_is_a_heading() -> None:
     ) == ("\\section{Nobody}")
 
 
+@pytest.mark.parametrize(
+    ("statblock", "lookup"),
+    [
+        ({"tag": "spell", "name": "Wish"}, (ContentType.SPELL, "Wish", "PHB")),
+        (
+            {"tag": "charoption", "name": "Echo", "source": "VRGR"},
+            (ContentType.CHAROPTION, "Echo", "VRGR"),
+        ),
+        (
+            {"prop": "monsterFluff", "tag": "creature", "name": "Orc", "source": "MM"},
+            (ContentType.CREATURE_FLUFF, "Orc", "MM"),
+        ),
+    ],
+)
+def test_statblocks_look_up_their_prop_or_tag(
+    statblock: dict[str, str], lookup: tuple[object, ...]
+) -> None:
+    find = Mock(return_value=None)
+    EntryRenderer(omnidexer=Mock(find=find)).entry({"type": "statblock", **statblock})
+
+    find.assert_called_once_with(*lookup)
+
+
+def test_statblocks_of_unknown_kinds_are_a_heading() -> None:
+    find = Mock()
+    out = EntryRenderer(omnidexer=Mock(find=find)).entry(
+        {"type": "statblock", "tag": "crochet", "name": "Cube"}
+    )
+
+    assert out == "\\section{Cube}"
+    find.assert_not_called()
+
+
 def test_models_and_dataclasses_render_as_their_dicts() -> None:
     @dataclass
     class Block:
@@ -307,3 +342,63 @@ def test_armour_class_renders_its_sources() -> None:
 
 def test_senses_render_tags() -> None:
     assert creature_senses_text(CREATURE) == "\\textit{darkvision} 60 ft."
+
+
+def _statblock_in_section(creature: Creature) -> str:
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=creature)), style=Style(book=True)
+    )
+    return renderer.entry(
+        {
+            "type": "section",
+            "name": "Knights",
+            "entries": [{"type": "statblock", "tag": "creature", "name": "Knight"}],
+        }
+    )
+
+
+def test_creature_statblocks_sit_in_the_text() -> None:
+    out = _statblock_in_section(CREATURE)
+
+    assert "\\begin{DndMonster}{Knight}" in out
+    assert "FloatBarrier" not in out
+
+
+def test_a_wide_statblock_floats_to_the_end_of_its_section() -> None:
+    legendary = CREATURE.model_copy(
+        update={"legendary": [Ability(name="Charge", entries=["It moves."])]}
+    )
+    out = _statblock_in_section(legendary)
+
+    assert "\\begin{DndMonster}[float*=tp" in out
+    assert out.endswith("\\FloatBarrier")
+
+
+def test_statblocks_take_their_display_name() -> None:
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=CREATURE)))
+    out = renderer.entry(
+        {
+            "type": "statblock",
+            "tag": "creature",
+            "name": "Knight",
+            "displayName": "Sir Knight",
+        }
+    )
+
+    assert "\\begin{DndMonster}{Sir Knight}" in out
+
+
+def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
+    fluff = CreatureFluff.model_validate(
+        {
+            "name": "Orc",
+            "source": "MM",
+            "entries": [{"type": "entries", "name": "Orc", "entries": ["Savage."]}],
+        }
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=fluff)))
+    statblock = {"type": "statblock", "prop": "monsterFluff", "name": "Orc"}
+    skip_root = {"data": {"renderCompact": {"isSkipRootName": True}}}
+
+    assert renderer.entry({**statblock, **skip_root}) == "Savage."
+    assert renderer.entry(statblock) == "\\subsection{Orc}\n\nSavage."

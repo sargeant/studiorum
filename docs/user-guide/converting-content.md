@@ -23,9 +23,10 @@ studiorum convert adventure TEST
 studiorum convert adventure "my-awesome-adventure" \
     --creatures --spells --items --output adventure.tex
 
-# With recursive appendices (creatures include their spells, spells include creatures)
+# Also add what appendix entries refer to (a creature's spells, a spell's creatures);
+# on its own it gives all three appendices
 studiorum convert adventure "my-awesome-adventure" \
-    --creatures --ultimate-appendix --output adventure.tex
+    --ultimate-appendix --output adventure.tex
 ```
 
 ### Creatures

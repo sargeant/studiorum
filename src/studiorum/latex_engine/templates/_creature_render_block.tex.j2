@@ -152,16 +152,17 @@
 <@ endmacro @>
 
 <#--
-  Macro: render_creature(creature)
+  Macro: render_creature(creature, floating=True)
   Purpose: Top-level creature renderer. Sets up wide/narrow DndMonster layout,
            prints core fields (type, basics, ability scores, details), and then
            delegates sections to helper macros. Honors modern statblock save
            placement and wide layout multicols configuration.
-  Inputs:  creature (object with accessors), latex_config if the document
-           has one (for statblock mode).
+  Inputs:  creature (object with accessors); floating=False sets a narrow
+           statblock in the text (wide ones always float). The statblock
+           mode comes from rendering_context.style.
   Requires: rendering_context in the template context.
 --#>
-<@ macro render_creature(creature) @>
+<@ macro render_creature(creature, floating=True) @>
 <#-- Render fluff content before stat block if available --#>
 <@ if rendering_context and rendering_context.fluff @>
 <# render_fluff_for_content(creature.name, rendering_context.fluff, use_comment=False) #>
@@ -201,7 +202,7 @@
 \setlength{\multicolsep}{0pt}
 \setlength{\parskip}{0pt}
 <@ else @>
-\begin{DndMonster}[float=tp]{<# creature.name #>}
+\begin{DndMonster}<@ if floating @>[float=tp]<@ endif @>{<# creature.name #>}
 <@ endif @>
 \noindent \DndMonsterType{<# creature.get_size_type_alignment() #>}
 \DndMonsterBasics[
@@ -211,7 +212,7 @@
     initiative = <@ if creature.get_initiative_modifier() >= 0 @>+<@ endif @><# creature.get_initiative_modifier() #>
 ]
 <#-- Check if using modern statblock format --#>
-<@ set is_modern = latex_config is defined and latex_config.document.statblock in ['2024', 'modern'] @>
+<@ set is_modern = rendering_context.style.statblock == '2024' @>
 \DndMonsterAbilityScores[
     str = <# creature.strength #>,
     dex = <# creature.dexterity #>,

@@ -38,6 +38,10 @@ class AppendixFlags(BaseModel):
     spells: bool = Field(default=False, description="Generate spells appendix")
     items: bool = Field(default=False, description="Generate items appendix")
     creatures: bool = Field(default=False, description="Generate creatures appendix")
+    recursive: bool = Field(
+        default=False,
+        description="Add what appendix entries refer to, as well as the document",
+    )
 
     def has_any_enabled(self) -> bool:
         """Check if any appendix flags are enabled."""

@@ -21,6 +21,11 @@ from pydantic import BaseModel
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
+from studiorum.core.models.content_models import (
+    FLUFF_TYPES,
+    PROP_TYPES,
+    content_type_of,
+)
 from studiorum.core.models.creatures import ArmorClass, Creature
 from studiorum.renderers.context import Style
 from studiorum.renderers.escape import escape
@@ -45,22 +50,42 @@ ABILITIES = {
     "cha": "Charisma",
 }
 
-# statblock tags that can be looked up, and the one their content renders through
-STATBLOCK_TYPES = {
-    "variantrule": ContentType.VARIANTRULE,
-    "action": ContentType.ACTION,
-    "condition": ContentType.CONDITION,
-    "sense": ContentType.SENSE,
-    "hazard": ContentType.HAZARD,
-    "status": ContentType.STATUS,
-    "item": ContentType.ITEM,
-    "creature": ContentType.CREATURE,
-    "reward": ContentType.REWARD,
-    "deity": ContentType.DEITY,
-    "charoption": ContentType.CHAROPTION,
+# What a statblock's tag looks up, and the source when it gives none: 5etools'
+# Parser.TAG_TO_PROPS and each tag's defaultSource
+STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
+    "action": (ContentType.ACTION, "PHB"),
+    "background": (ContentType.BACKGROUND, "PHB"),
+    "charoption": (ContentType.CHAROPTION, "MOT"),
+    "class": (ContentType.CLASS, "PHB"),
+    "condition": (ContentType.CONDITION, "PHB"),
+    "creature": (ContentType.CREATURE, "MM"),
+    "deck": (ContentType.DECK, "DMG"),
+    "deity": (ContentType.DEITY, "PHB"),
+    "disease": (ContentType.DISEASE, "DMG"),
+    "facility": (ContentType.FACILITY, "XDMG"),
+    "feat": (ContentType.FEAT, "PHB"),
+    "hazard": (ContentType.HAZARD, "DMG"),
+    "item": (ContentType.ITEM, "DMG"),
+    "object": (ContentType.OBJECT, "DMG"),
+    "optfeature": (ContentType.OPTIONALFEATURE, "PHB"),
+    "race": (ContentType.RACE, "PHB"),
+    "recipe": (ContentType.RECIPE, "HF"),
+    "reward": (ContentType.REWARD, "DMG"),
+    "sense": (ContentType.SENSE, "PHB"),
+    "spell": (ContentType.SPELL, "PHB"),
+    "status": (ContentType.STATUS, "PHB"),
+    "subclass": (ContentType.SUBCLASS, "PHB"),
+    "table": (ContentType.TABLE, "DMG"),
+    "trap": (ContentType.TRAP, "DMG"),
+    "variantrule": (ContentType.VARIANTRULE, "DMG"),
+    "vehicle": (ContentType.VEHICLE, "GoS"),
 }
 
+# Content that statblocks render through its own macro (render_models)
+MODEL_KINDS = frozenset({"creature", "spell", "item"})
+
 _warned_types: set[str] = set()
+_warned_statblocks: set[str] = set()
 
 
 class EntryError(Exception):
@@ -93,6 +118,7 @@ class EntryRenderer:
         self._context = context
         self._depth = 0
         self._path: list[str] = []
+        self._wide_float = False
 
     @classmethod
     def from_context(cls, context: RenderingContext) -> EntryRenderer:
@@ -208,6 +234,9 @@ class EntryRenderer:
         if entries := entry.get("entries", []):
             with self._deeper():
                 result.extend(self.entries(entries))
+        if name and self._wide_float:
+            result.append("\\FloatBarrier")
+            self._wide_float = False
         return "\n\n".join(result)
 
     def _inset_read_aloud(self, entry: dict[str, Any]) -> str:
@@ -471,28 +500,19 @@ class EntryRenderer:
         return roll_text
 
     def _statblock(self, entry: dict[str, Any]) -> str:
-        tag = entry.get("tag", "")
+        """What the statblock points to, looked up as 5etools does."""
         name = entry.get("name", "")
-        inset = entry.get("style", "") == "inset"
-        content_type = STATBLOCK_TYPES.get(tag)
-        # The lookup for non-inset statblocks has never covered these
-        if not inset and tag in ("reward", "deity", "charoption"):
-            content_type = None
-        found = (
-            self.omnidexer.find(content_type, name, entry.get("source", ""))
-            if self.omnidexer is not None and content_type is not None
-            else None
-        )
+        found = self._statblock_content(entry)
         if found is None:
-            logger.warning(
-                f"Could not resolve statblock reference: {tag} '{name}' "
-                f"from {entry.get('source', '')}"
-            )
             return self._heading(self._depth, name)
-        if inset and tag in ("creature", "item"):
-            if display := entry.get("displayName"):
-                found = found.model_copy(update={"name": display})
-            return self._render_model(tag, found)
+        if display := entry.get("displayName"):
+            found = found.model_copy(update={"name": display})
+        content_type = content_type_of(found)
+        if content_type.value in MODEL_KINDS:
+            return self._render_model(content_type.value, found)
+        if content_type in FLUFF_TYPES:
+            return self._fluff(entry, found)
+        inset = entry.get("style", "") == "inset"
         entries = found.model_dump().get("entries") or []
         if not entries:
             return self.text(name) if inset else self._heading(self._depth, name)
@@ -501,7 +521,45 @@ class EntryRenderer:
             return str(_macros().sidebar(self.text(name), body))
         return f"{self._heading(self._depth, name)}\n\n{body}"
 
-    def _render_model(self, tag: str, content: Any) -> str:
+    def _fluff(self, entry: dict[str, Any], fluff: Any) -> str:
+        """Fluff in the text, as 5etools' getCompactRenderedFluffString."""
+        entries = fluff.model_dump(exclude_none=True).get("entries") or []
+        render_compact = entry.get("data", {}).get("renderCompact", {})
+        if (
+            entries
+            and isinstance(entries[0], dict)
+            and render_compact.get("isSkipRootName")
+        ):
+            entries[0] = {k: v for k, v in entries[0].items() if k != "name"}
+        return "\n\n".join(self.entries(entries))
+
+    def _statblock_content(self, entry: dict[str, Any]) -> Any:
+        """The content a statblock names by its prop, or else its tag."""
+        name = entry.get("name", "")
+        tag, prop = entry.get("tag", ""), entry.get("prop", "")
+        known = STATBLOCK_TAGS.get(tag)
+        content_type = PROP_TYPES.get(prop) if prop else known and known[0]
+        if content_type is None:
+            kind = prop or tag
+            if kind not in _warned_statblocks:
+                _warned_statblocks.add(kind)
+                logger.warning(f"Statblocks of '{kind}' are not supported")
+            return None
+        source = entry.get("source") or (known[1] if known else "")
+        found = (
+            self.omnidexer.find(content_type, name, source)
+            if self.omnidexer is not None
+            else None
+        )
+        if found is None:
+            logger.warning(
+                f"Could not resolve statblock reference: {prop or tag} '{name}' "
+                f"from {source}"
+            )
+        return found
+
+    def _render_model(self, kind: str, content: Any) -> str:
+        """A creature, spell or item through its macro, in the text."""
         from studiorum.renderers.context import RenderingContext
 
         from .document import render_models
@@ -509,7 +567,11 @@ class EntryRenderer:
         context = self._context or RenderingContext(
             content_tracker=self.tracker, omnidexer=self.omnidexer
         )
-        return render_models(tag, [content], context)
+        latex = render_models(kind, [content], context, floating=False)
+        # A wide statblock still floats; its section ends with a float barrier
+        if "[float*" in latex and self.style.book:
+            self._wide_float = True
+        return latex
 
 
 def spellcasting(renderer: EntryRenderer, entry: dict[str, Any]) -> str:

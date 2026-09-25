@@ -352,7 +352,11 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
         context = RenderingContext(
             content_tracker=tracker,
             omnidexer=omnidexer,
-            style=Style(monster_spells=True, images=options.images),
+            style=Style(
+                monster_spells=True,
+                images=options.images,
+                statblock=options.latex.document.statblock_year,
+            ),
             fluff=found_fluff.fluff if found_fluff else {},
             fluff_images=(found_fluff.images if found_fluff else {})
             if with_fluff_images
@@ -595,7 +599,6 @@ def _render_bestiary(
         content_type="creature",
         title=heading,
         metadata=document_metadata(options, heading),
-        latex_config=options.latex,
         rendering_context=context,
         creatures=creatures,
         creatures_by_group=_group_creatures(creatures, sort_mode),

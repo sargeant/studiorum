@@ -249,7 +249,11 @@ def spells(
         context = RenderingContext(
             content_tracker=tracker,
             omnidexer=omnidexer,
-            style=Style(content_type="spell", images=options.images),
+            style=Style(
+                content_type="spell",
+                images=options.images,
+                statblock=options.latex.document.statblock_year,
+            ),
             fluff=found_fluff.fluff if found_fluff else {},
             fluff_images=(found_fluff.images if found_fluff else {})
             if with_fluff_images
@@ -366,7 +370,6 @@ def _render_spellbook(
         content_type="spell",
         title=heading,
         metadata=document_metadata(options, heading),
-        latex_config=options.latex,
         spells=spells,
         spells_by_level={level: by_level[level] for level in sorted(by_level)},
         spell_count=len(spells),

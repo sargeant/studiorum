@@ -223,7 +223,6 @@ ignore = [
 "src/studiorum/core/utils/chapters.py" = ["B904", "SIM102"]
 "src/studiorum/core/validation/error_tracker.py" = ["RET504"]
 "src/studiorum/core/validation/strictness.py" = ["UP042"]
-"src/studiorum/latex_engine/core/template_engine.py" = ["PIE810", "RET504"]
 "tests/build_all_content.py" = ["PTH123", "T201"]
 "tests/cli/commands/test_base_convert_command.py" = ["SIM117"]
 "tests/cli/commands/test_cli_integration_enhanced_features.py" = ["SIM117"]

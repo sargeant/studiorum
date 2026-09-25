@@ -74,6 +74,12 @@ from studiorum.renderers.tags import render
             r"+5 (Animal Handling)",
         ),
         ("{@code a_b}", r"\texttt{a\_b}"),
+        ("{@s gone}", r"\sout{gone}"),
+        ("{@u2 {@b a} & b}", r"\uuline{\textbf{a} \& b}"),
+        ("{@sup 2}", r"\textsuperscript{2}"),
+        ("{@kbd SHIFT}", r"\texttt{SHIFT}"),
+        ("{@color ♦|#ff0000}", r"\textcolor[HTML]{FF0000}{♦}"),
+        ("{@color red|--rgb-name}", "red"),
     ],
 )
 def test_tag(text: str, latex: str) -> None:

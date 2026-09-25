@@ -134,126 +134,6 @@ class TestSpellFormattingMethodsParametrized:
         assert spell.get_area_text() == expected_area_text
 
     @pytest.mark.parametrize(
-        "level,school,damage_types,attack_info,expected_text",
-        [
-            # Regular spell with fire damage and saving throw
-            (
-                3,
-                "V",
-                ["fire"],
-                {"savingThrow": ["dexterity"]},
-                "3rd-level evocation (fire damage, Dexterity saving throw)",
-            ),
-            # Cantrip with force damage and spell attack
-            (
-                0,
-                "V",
-                ["force"],
-                {"spellAttack": ["ranged"]},
-                "Evocation cantrip (force damage, ranged spell attack)",
-            ),
-            # 1st level spell with no damage or attack
-            (1, "E", None, {}, "1st-level enchantment"),
-            # 9th level spell with multiple damage types
-            (
-                9,
-                "N",
-                ["necrotic", "psychic"],
-                {"savingThrow": ["constitution"]},
-                "9th-level necromancy (necrotic, psychic damage, Constitution saving throw)",
-            ),
-        ],
-    )
-    def test_get_enhanced_level_text_parametrized(
-        self,
-        base_spell_data: dict[str, Any],
-        level: int,
-        school: str,
-        damage_types: list[str] | None,
-        attack_info: dict[str, Any],
-        expected_text: str,
-    ) -> None:
-        """Test enhanced level text with various spell configurations."""
-        spell_data = {
-            **base_spell_data,
-            "level": level,
-            "school": school,
-            "damageInflict": damage_types,
-            **attack_info,
-        }
-        spell = Spell.model_validate(spell_data)
-        assert spell.get_enhanced_level_text() == expected_text
-
-    @pytest.mark.parametrize(
-        "components,expected_text",
-        [
-            # V, S, M with material description
-            (
-                {"v": True, "s": True, "m": {"text": "a tiny ball of bat guano"}},
-                "V, S, M (a tiny ball of bat guano)",
-            ),
-            # V, S only
-            ({"v": True, "s": True}, "V, S"),
-            # Only verbal
-            ({"v": True}, "V"),
-            # Only somatic
-            ({"s": True}, "S"),
-            # Only material
-            (
-                {"m": {"text": "a diamond worth 1,000 gp"}},
-                "M (a diamond worth 1,000 gp)",
-            ),
-            # V and M
-            ({"v": True, "m": {"text": "a feather"}}, "V, M (a feather)"),
-        ],
-    )
-    def test_get_enhanced_components_text_parametrized(
-        self,
-        base_spell_data: dict[str, Any],
-        components: dict[str, Any],
-        expected_text: str,
-    ) -> None:
-        """Test enhanced components text with various component combinations."""
-        spell_data = {**base_spell_data, "components": components}
-        spell = Spell.model_validate(spell_data)
-        assert spell.get_enhanced_components_text() == expected_text
-
-    @pytest.mark.parametrize(
-        "duration_config,expected_text",
-        [
-            # Concentration spell
-            (
-                [
-                    {
-                        "type": "timed",
-                        "duration": {"type": "minute", "amount": 1},
-                        "concentration": True,
-                    }
-                ],
-                "Concentration, up to 1 minute",
-            ),
-            # Instantaneous
-            ([{"type": "instant"}], "Instantaneous"),
-            # Timed without concentration
-            ([{"type": "timed", "duration": {"type": "hour", "amount": 8}}], "8 hour"),
-            # Permanent
-            ([{"type": "permanent"}], "Permanent"),
-            # Special duration
-            ([{"type": "special"}], "Special"),
-        ],
-    )
-    def test_get_enhanced_duration_text_parametrized(
-        self,
-        base_spell_data: dict[str, Any],
-        duration_config: list[dict[str, Any]],
-        expected_text: str,
-    ) -> None:
-        """Test enhanced duration text with various duration configurations."""
-        spell_data = {**base_spell_data, "duration": duration_config}
-        spell = Spell.model_validate(spell_data)
-        assert spell.get_enhanced_duration_text() == expected_text
-
-    @pytest.mark.parametrize(
         "spell_name,level,school,components,damage_types,conditions,area_tags,attack_info",
         [
             # Fireball-like spell
@@ -319,8 +199,8 @@ class TestSpellFormattingMethodsParametrized:
         spell = Spell.model_validate(spell_data)
 
         # Verify all formatting methods work without errors
-        level_text = spell.get_enhanced_level_text()
-        components_text = spell.get_enhanced_components_text()
+        level_text = spell.get_level_text()
+        components_text = spell.get_components_text()
         damage_text = spell.get_damage_text()
         condition_text = spell.get_condition_text()
         area_text = spell.get_area_text()

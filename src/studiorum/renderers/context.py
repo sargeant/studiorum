@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from studiorum.core.loaders.omnidexer import Omnidexer
@@ -34,6 +34,7 @@ class Style:
     sidebar: bool = False
     monster_spells: bool = False  # DndMonsterSpells macros, in statblocks only
     images: bool = True
+    statblock: Literal["2014", "2024"] = "2024"  # 2024 puts saves in the ability table
 
     @property
     def headings(self) -> tuple[str, ...]:

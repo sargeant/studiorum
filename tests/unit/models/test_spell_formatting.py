@@ -148,51 +148,6 @@ class TestSpellFormattingMethods:
         multi_spell = Spell.model_validate(multi_area_data)
         assert multi_spell.get_area_text() == "Sphere, Cone"
 
-    def test_get_enhanced_level_text(
-        self, sample_spell_data: dict[str, Any], cantrip_data: dict[str, Any]
-    ) -> None:
-        """Test enhanced level text with school and additional info."""
-        # Regular spell
-        fireball = Spell.model_validate(sample_spell_data)
-        expected = "3rd-level evocation (fire damage, Dexterity saving throw)"
-        assert fireball.get_enhanced_level_text() == expected
-
-        # Cantrip
-        cantrip = Spell.model_validate(cantrip_data)
-        expected_cantrip = "Evocation cantrip (force damage, ranged spell attack)"
-        assert cantrip.get_enhanced_level_text() == expected_cantrip
-
-    def test_get_enhanced_components_text(
-        self, sample_spell_data: dict[str, Any]
-    ) -> None:
-        """Test enhanced components text with material component descriptions."""
-        spell = Spell.model_validate(sample_spell_data)
-        expected = "V, S, M (a tiny ball of bat guano and sulfur)"
-        assert spell.get_enhanced_components_text() == expected
-
-        # Test without material components
-        no_material_data = {**sample_spell_data, "components": {"v": True, "s": True}}
-        no_material_spell = Spell.model_validate(no_material_data)
-        assert no_material_spell.get_enhanced_components_text() == "V, S"
-
-        # Test only verbal
-        verbal_only_data = {**sample_spell_data, "components": {"v": True}}
-        verbal_spell = Spell.model_validate(verbal_only_data)
-        assert verbal_spell.get_enhanced_components_text() == "V"
-
-    def test_get_enhanced_duration_text(
-        self, concentration_spell_data: dict[str, Any]
-    ) -> None:
-        """Test enhanced duration text with concentration indicator."""
-        spell = Spell.model_validate(concentration_spell_data)
-        expected = "Concentration, up to 1 minute"
-        assert spell.get_enhanced_duration_text() == expected
-
-        # Test instantaneous
-        instant_data = {**concentration_spell_data, "duration": [{"type": "instant"}]}
-        instant_spell = Spell.model_validate(instant_data)
-        assert instant_spell.get_enhanced_duration_text() == "Instantaneous"
-
     def test_get_spell_list_classes(self, sample_spell_data: dict[str, Any]) -> None:
         """Test spell list class formatting."""
         # Add spell list data

@@ -101,12 +101,6 @@ class TestCreature:
         assert sample_creature.get_ability_modifier(18) == 4
         assert sample_creature.get_ability_modifier(30) == 10
 
-    def test_ability_text_formatting(self, sample_creature: Any) -> None:
-        """Test ability score text formatting."""
-        assert sample_creature.get_ability_text(18) == "18 (+4)"
-        assert sample_creature.get_ability_text(8) == "8 (-1)"
-        assert sample_creature.get_ability_text(10) == "10 (+0)"
-
     def test_size_type_alignment(self, sample_creature: Any) -> None:
         """Test size/type/alignment formatting."""
         size_type_alignment = sample_creature.get_size_type_alignment()
