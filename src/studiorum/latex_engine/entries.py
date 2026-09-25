@@ -22,6 +22,7 @@ from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.content_models import (
+    FLUFF_TYPES,
     PROP_TYPES,
     content_type_of,
 )
@@ -509,6 +510,8 @@ class EntryRenderer:
         content_type = content_type_of(found)
         if content_type.value in MODEL_KINDS:
             return self._render_model(content_type.value, found)
+        if content_type in FLUFF_TYPES:
+            return self._fluff(entry, found)
         inset = entry.get("style", "") == "inset"
         entries = found.model_dump().get("entries") or []
         if not entries:
@@ -517,6 +520,18 @@ class EntryRenderer:
         if inset:
             return str(_macros().sidebar(self.text(name), body))
         return f"{self._heading(self._depth, name)}\n\n{body}"
+
+    def _fluff(self, entry: dict[str, Any], fluff: Any) -> str:
+        """Fluff in the text, as 5etools' getCompactRenderedFluffString."""
+        entries = fluff.model_dump(exclude_none=True).get("entries") or []
+        render_compact = entry.get("data", {}).get("renderCompact", {})
+        if (
+            entries
+            and isinstance(entries[0], dict)
+            and render_compact.get("isSkipRootName")
+        ):
+            entries[0] = {k: v for k, v in entries[0].items() if k != "name"}
+        return "\n\n".join(self.entries(entries))
 
     def _statblock_content(self, entry: dict[str, Any]) -> Any:
         """The content a statblock names by its prop, or else its tag."""

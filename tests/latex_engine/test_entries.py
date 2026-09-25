@@ -7,6 +7,7 @@ import pytest
 
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Ability, Creature
+from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
@@ -385,3 +386,19 @@ def test_statblocks_take_their_display_name() -> None:
     )
 
     assert "\\begin{DndMonster}{Sir Knight}" in out
+
+
+def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
+    fluff = CreatureFluff.model_validate(
+        {
+            "name": "Orc",
+            "source": "MM",
+            "entries": [{"type": "entries", "name": "Orc", "entries": ["Savage."]}],
+        }
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=fluff)))
+    statblock = {"type": "statblock", "prop": "monsterFluff", "name": "Orc"}
+    skip_root = {"data": {"renderCompact": {"isSkipRootName": True}}}
+
+    assert renderer.entry({**statblock, **skip_root}) == "Savage."
+    assert renderer.entry(statblock) == "\\subsection{Orc}\n\nSavage."
