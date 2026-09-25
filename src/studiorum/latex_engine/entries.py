@@ -298,7 +298,7 @@ class EntryRenderer:
                 and not item.get("name")
             ):
                 # An unnamed block breaks out of the list
-                if run is not None:
+                if run:
                     out.append(str(_macros().list_env(env, run)))
                     run = None
                 out.append(self.entry(item))
@@ -312,7 +312,8 @@ class EntryRenderer:
             if run is None:
                 run = []
             run.append(self._list_item(env, item))
-        if run is not None:
+        # A list environment needs an item
+        if run:
             out.append(str(_macros().list_env(env, run)))
         return "\n".join(out)
 
@@ -365,6 +366,8 @@ class EntryRenderer:
             [self.entry(c) if isinstance(c, dict) else self.text(str(c)) for c in row]
             for row in map(_row_cells, rows)
         ]
+        # Rows can have more cells than the table has labels (MOT's monster lists)
+        count = max(count, *(len(row) for row in cells))
         # "wide" is Studiorum's own, on tables it builds (a class table)
         wide = bool(entry.get("wide"))
         table = _macros().table(
