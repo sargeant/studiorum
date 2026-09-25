@@ -1,285 +1,94 @@
-"""Integration tests for creature spell references in appendix generation."""
+"""AppendixGenerator looks each tracked name up once."""
 
+from types import SimpleNamespace
+from typing import Any
 from unittest.mock import MagicMock
 
-import pytest
-
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGenerator
 
 
-@pytest.mark.integration
-class TestAppendixCreatureSpells:
-    """Test that creature spell references are captured in appendix generation."""
+def _omnidexer(*entries: tuple[str, str, str]) -> Any:
+    """An omnidexer holding (type, name, source) entries."""
+    items = {
+        (kind, name.lower(), source.lower()): SimpleNamespace(name=name, source=source)
+        for kind, name, source in entries
+    }
+    omnidexer = MagicMock(spec=Omnidexer)
+    omnidexer.find.side_effect = lambda ct, name, source=None: items.get(
+        (ct.value, name.lower(), (source or "").lower())
+    )
+    omnidexer.find_all.side_effect = lambda ct, name: [
+        item
+        for (kind, n, _), item in items.items()
+        if kind == ct.value and n == name.lower()
+    ]
+    return omnidexer
 
-    def test_creature_appendix_captures_spell_references(self):
-        """Test that rendering creatures for appendix captures {@spell} references."""
-        # Create mock spells
-        mock_fireball = Spell.model_validate(
-            {
-                "name": "Fireball",
-                "source": {"abbreviation": "PHB"},
-                "level": 3,
-                "school": "V",
-                "time": [{"number": 1, "unit": "action"}],
-                "range": {"type": "point", "distance": {"type": "feet", "amount": 150}},
-                "components": {
-                    "v": True,
-                    "s": True,
-                    "m": "a tiny ball of bat guano and sulfur",
-                },
-                "duration": [{"type": "instant"}],
-                "entries": ["A bright streak flashes from your pointing finger..."],
-            }
-        )
 
-        mock_shield = Spell.model_validate(
-            {
-                "name": "Shield",
-                "source": {"abbreviation": "PHB"},
-                "level": 1,
-                "school": "A",
-                "time": [{"number": 1, "unit": "reaction"}],
-                "range": {"type": "point", "distance": {"type": "self"}},
-                "components": {"v": True, "s": True},
-                "duration": [
-                    {"type": "timed", "duration": {"type": "round", "amount": 1}}
-                ],
-                "entries": ["An invisible barrier of magical force appears..."],
-            }
-        )
+def _generate(omnidexer: Any, *refs: tuple[str, str, str], **flags: bool) -> Any:
+    tracker = ContentTracker()
+    for kind, name, source in refs:
+        tracker.add_content(kind, name, source)
+    return AppendixGenerator(omnidexer).generate_appendices(
+        tracker, AppendixFlags(**flags)
+    )
 
-        # Create mock omnidexer
-        mock_omnidexer = MagicMock(spec=Omnidexer)
-        mock_omnidexer.find.side_effect = lambda content_type, name, source=None: {
-            ("spell", "fireball"): mock_fireball,
-            ("spell", "shield"): mock_shield,
-        }.get((content_type.type_name, name.lower()))
 
-        # Create creature with spell references
-        creature_data = {
-            "name": "Test Wizard",
-            "source": {"abbreviation": "TEST"},
-            "size": ["Medium"],
-            "type": "humanoid",
-            "alignment": ["neutral"],
-            "ac": [12],
-            "hp": {"average": 20},
-            "speed": {"walk": 30},
-            "str": 8,
-            "dex": 14,
-            "con": 10,
-            "int": 16,
-            "wis": 12,
-            "cha": 10,
-            "action": [
-                {
-                    "name": "Spellcasting",
-                    "entries": [
-                        "The wizard casts {@spell fireball|phb} at 3rd level.",
-                        "As a reaction, the wizard can cast {@spell shield|phb}.",
-                    ],
-                }
-            ],
-        }
+def test_a_name_appears_once_from_the_source_its_reference_gave() -> None:
+    omnidexer = _omnidexer(("spell", "Shield", "PHB"), ("spell", "Shield", "XPHB"))
 
-        creature = Creature.model_validate(creature_data)
+    [appendix] = _generate(
+        omnidexer, ("spell", "Shield", ""), ("spell", "Shield", "XPHB"), spells=True
+    )
 
-        # Create ContentTracker and add the creature
-        content_tracker = ContentTracker()
-        content_tracker.add_content("creature", "Test Wizard", "TEST", page="1")
+    assert [(s.name, s.source) for s in appendix.items] == [("Shield", "XPHB")]
 
-        # Create AppendixGenerator and mock the creature collector
-        appendix_generator = AppendixGenerator(mock_omnidexer)
 
-        # Mock the creature collector to return our test creature
-        appendix_generator.creature_collector.collect_by_names = MagicMock()
-        mock_result = MagicMock()
-        mock_result.creatures = [creature]
-        appendix_generator.creature_collector.collect_by_names.return_value = (
-            mock_result
-        )
+def test_a_reference_without_a_source_uses_5etools_default() -> None:
+    omnidexer = _omnidexer(("spell", "Shield", "PHB"), ("spell", "Shield", "XPHB"))
 
-        # AppendixGenerator now returns ContentSection objects with raw data
-        # No need to mock entry_registry as it's no longer used
+    [appendix] = _generate(omnidexer, ("spell", "Shield", ""), spells=True)
 
-        # Generate creature appendix with spell tracking
-        flags = AppendixFlags(creatures=True, spells=False, items=False)
+    assert [s.source for s in appendix.items] == ["PHB"]
 
-        # This should render the creature and capture spell references
-        appendices = appendix_generator.generate_appendices(content_tracker, flags)
 
-        # Verify creature appendix was generated
-        assert len(appendices) == 1
-        creature_appendix = appendices[0]
-        assert creature_appendix.title == "Creatures"
-        assert len(creature_appendix.content_items) == 1
-        assert creature_appendix.content_items[0] == creature
-        assert creature_appendix.chapter_type.value == "appendix"
+def test_a_name_not_in_the_default_source_is_found_by_name() -> None:
+    omnidexer = _omnidexer(("creature", "Frost Giant", "XMM"))
 
-    def test_spells_appendix_includes_creature_referenced_spells(self):
-        """Test complete flow: creature appendix renders with spell tracking, spells appendix includes those spells."""
-        # Create mock spells
-        mock_fireball = Spell.model_validate(
-            {
-                "name": "Fireball",
-                "source": {"abbreviation": "PHB"},
-                "level": 3,
-                "school": "V",
-                "time": [{"number": 1, "unit": "action"}],
-                "range": {"type": "point", "distance": {"type": "feet", "amount": 150}},
-                "components": {
-                    "v": True,
-                    "s": True,
-                    "m": "a tiny ball of bat guano and sulfur",
-                },
-                "duration": [{"type": "instant"}],
-                "entries": ["A bright streak flashes from your pointing finger..."],
-            }
-        )
+    [appendix] = _generate(omnidexer, ("creature", "Frost Giant", ""), creatures=True)
 
-        mock_shield = Spell.model_validate(
-            {
-                "name": "Shield",
-                "source": {"abbreviation": "PHB"},
-                "level": 1,
-                "school": "A",
-                "time": [{"number": 1, "unit": "reaction"}],
-                "range": {"type": "point", "distance": {"type": "self"}},
-                "components": {"v": True, "s": True},
-                "duration": [
-                    {"type": "timed", "duration": {"type": "round", "amount": 1}}
-                ],
-                "entries": ["An invisible barrier of magical force appears..."],
-            }
-        )
+    assert [c.source for c in appendix.items] == ["XMM"]
 
-        # Create mock omnidexer
-        mock_omnidexer = MagicMock(spec=Omnidexer)
-        mock_omnidexer.find.side_effect = lambda content_type, name, source=None: {
-            ("spell", "fireball"): mock_fireball,
-            ("spell", "shield"): mock_shield,
-        }.get((content_type.type_name, name.lower()))
 
-        # Create creature with spell references
-        creature_data = {
-            "name": "Test Wizard",
-            "source": {"abbreviation": "TEST"},
-            "size": ["Medium"],
-            "type": "humanoid",
-            "alignment": ["neutral"],
-            "ac": [12],
-            "hp": {"average": 20},
-            "speed": {"walk": 30},
-            "str": 8,
-            "dex": 14,
-            "con": 10,
-            "int": 16,
-            "wis": 12,
-            "cha": 10,
-            "action": [
-                {
-                    "name": "Spellcasting",
-                    "entries": [
-                        "The wizard casts {@spell fireball|phb} at 3rd level.",
-                        "As a reaction, the wizard can cast {@spell shield|phb}.",
-                    ],
-                }
-            ],
-        }
+def test_appendices_come_creatures_items_spells_each_sorted() -> None:
+    omnidexer = _omnidexer(
+        ("spell", "Web", "PHB"),
+        ("spell", "Blink", "PHB"),
+        ("creature", "Goblin", "MM"),
+        ("item", "Rope", "DMG"),
+    )
 
-        creature = Creature.model_validate(creature_data)
+    appendices = _generate(
+        omnidexer,
+        ("spell", "Web", ""),
+        ("spell", "Blink", ""),
+        ("item", "Rope", ""),
+        ("creature", "Goblin", ""),
+        ("creature", "Nobody", ""),
+        spells=True,
+        items=True,
+        creatures=True,
+    )
 
-        # Create ContentTracker and add the creature (but NO spells initially)
-        content_tracker = ContentTracker()
-        content_tracker.add_content("creature", "Test Wizard", "TEST", page="1")
-
-        # Simulate what would happen during creature rendering - spell references get tracked
-        # This simulates the effect of rendering creature with spell references
-        content_tracker.add_content("spell", "fireball", "PHB", page="1")
-        content_tracker.add_content("spell", "shield", "PHB", page="1")
-
-        # Create AppendixGenerator and mock collectors
-        appendix_generator = AppendixGenerator(mock_omnidexer)
-
-        # Mock the creature collector
-        appendix_generator.creature_collector.collect_by_names = MagicMock()
-        mock_creature_result = MagicMock()
-        mock_creature_result.creatures = [creature]
-        appendix_generator.creature_collector.collect_by_names.return_value = (
-            mock_creature_result
-        )
-
-        # Mock the spell collector
-        appendix_generator.spell_collector.collect_by_names = MagicMock()
-        mock_spell_result = MagicMock()
-        mock_spell_result.spells = [mock_fireball, mock_shield]
-        appendix_generator.spell_collector.collect_by_names.return_value = (
-            mock_spell_result
-        )
-
-        # Mock the entry renderers to simulate actual tag processing
-        def mock_creature_render(creature_obj, context):
-            # Simulate the creature renderer processing {@spell} tags and tracking them
-            if context.content_tracker:
-                # This simulates what would happen when {@spell} tags are processed
-                context.content_tracker.add_content(
-                    "spell", "fireball", "PHB", page="1"
-                )
-                context.content_tracker.add_content("spell", "shield", "PHB", page="1")
-            return "\\section{Test Wizard} Mock creature content with spells"
-
-        def mock_spell_render(spell_obj, context):
-            return f"\\subsubsection{{{spell_obj.name}}} Mock spell content"
-
-        mock_creature_renderer = MagicMock()
-        mock_creature_renderer.render.side_effect = mock_creature_render
-
-        mock_spell_renderer = MagicMock()
-        mock_spell_renderer.render.side_effect = mock_spell_render
-
-        # AppendixGenerator now returns ContentSection objects with raw data
-        # Rendering is handled separately in the document renderer
-
-        # Generate appendices with both creatures and spells enabled
-        flags = AppendixFlags(creatures=True, spells=True, items=False)
-
-        # This should:
-        # 1. Generate creature appendix and capture spell references during rendering
-        # 2. Generate spell appendix including the newly tracked spells
-        appendices = appendix_generator.generate_appendices(content_tracker, flags)
-
-        # Verify both appendices were generated
-        assert len(appendices) == 2
-
-        # Find the appendices by checking content types
-        creature_appendix = None
-        spell_appendix = None
-
-        for app in appendices:
-            if app.title == "Creatures":
-                creature_appendix = app
-            elif app.title == "Spells":
-                spell_appendix = app
-
-        assert creature_appendix is not None, "Creature appendix not found"
-        assert spell_appendix is not None, "Spell appendix not found"
-
-        # Verify creature appendix
-        assert creature_appendix.title == "Creatures"
-        assert len(creature_appendix.content_items) == 1
-
-        # Verify spell appendix includes creature-referenced spells
-        assert spell_appendix.title == "Spells"
-        assert len(spell_appendix.content_items) == 2  # fireball and shield
-
-        # Verify spell collector was called with the tracked spells
-        appendix_generator.spell_collector.collect_by_names.assert_called_once()
-        called_spell_names = (
-            appendix_generator.spell_collector.collect_by_names.call_args[0][0]
-        )
-        assert "fireball" in called_spell_names
-        assert "shield" in called_spell_names
+    assert [(a.title, [i.name for i in a.items]) for a in appendices] == [
+        ("Creatures", ["Goblin"]),
+        ("Magic Items", ["Rope"]),
+        ("Spells", ["Blink", "Web"]),
+    ]
+    assert [a.label for a in appendices] == [
+        "ch:appendix-creatures",
+        "ch:appendix-items",
+        "ch:appendix-spells",
+    ]

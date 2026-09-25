@@ -359,9 +359,7 @@ def _render_itemcompendium(
     template_context = template_engine.create_dnd_template_context(
         content_type="item",
         title=heading,
-        metadata=document_metadata(
-            options, heading, description=f"Collection of {len(items)} items"
-        ),
+        metadata=document_metadata(options, heading),
         latex_config=options.latex,
         items=items,
         items_by_group=_group_items(items, sort_mode),

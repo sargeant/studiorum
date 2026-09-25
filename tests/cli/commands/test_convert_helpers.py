@@ -45,7 +45,7 @@ class TestErrorHandlingPaths:
             Path(file_path).unlink()
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("builtins.open")
     def test_renderer_exception(
         self, mock_builtin_open, mock_engine_factory, mock_omnidexer
@@ -76,9 +76,7 @@ class TestErrorHandlingPaths:
         mock_omnidexer.return_value = mock_omnidexer_instance
 
         # Mock engine to raise exception
-        mock_engine = Mock()
-        mock_engine.render_document.side_effect = Exception("Renderer error")
-        mock_engine_factory.return_value = mock_engine
+        mock_engine_factory.side_effect = Exception("Renderer error")
 
         # Create temporary file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -108,7 +106,7 @@ class TestSpecialCases:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.load_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -150,11 +148,9 @@ class TestSpecialCases:
         )
 
         # Mock LaTeX engine
-        mock_engine = Mock()
-        mock_engine.render_document.return_value = (
+        mock_engine_factory.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()

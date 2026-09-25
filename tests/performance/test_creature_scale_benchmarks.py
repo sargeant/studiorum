@@ -7,7 +7,7 @@ to ensure the creature processing pipeline scales appropriately.
 import gc
 import os
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import psutil
 import pytest
@@ -15,7 +15,6 @@ import pytest
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
-from studiorum.renderers.context import RenderingContext
 
 
 @pytest.mark.performance
@@ -735,80 +734,3 @@ class TestMemoryUsageValidation:
             }
             creatures.append(creature)
         return creatures
-
-
-@pytest.mark.performance
-@pytest.mark.slow
-class TestRenderingPerformanceScale:
-    """Test rendering performance with large creature datasets."""
-
-    def test_rendering_scalability_stress_test(self):
-        """Stress test rendering performance with multiple creatures."""
-        # Create varied creatures for rendering
-        creatures_data = []
-        for i in range(50):  # Reasonable number for rendering tests
-            creature = {
-                "name": f"Render Test Creature {i:03d}",
-                "source": "TEST",
-                "size": [["T", "S", "M", "L", "H"][i % 5]],
-                "type": ["humanoid", "beast", "dragon", "undead"][i % 4],
-                "alignment": [["N"], ["L", "G"], ["C", "E"]][i % 3],
-                "ac": [10 + i % 15],
-                "hp": {"average": 20 + i * 5},
-                "speed": {"walk": 30 + i % 20},
-                "str": 10 + i % 20,
-                "dex": 10 + i % 20,
-                "con": 10 + i % 20,
-                "int": 10 + i % 20,
-                "wis": 10 + i % 20,
-                "cha": 10 + i % 20,
-                "cr": str(i % 20),
-                "trait": [{"name": f"Trait {i}", "entries": [f"Trait description {i}"]}]
-                if i % 3 == 0
-                else None,
-                "action": [
-                    {
-                        "name": f"Attack {i}",
-                        "entries": [
-                            f"Attack description {i} with {{@atk mw}} {{@hit {4 + i % 10}}} to hit."
-                        ],
-                    }
-                ],
-                "legendary": [
-                    {"name": f"Legendary {i}", "entries": [f"Legendary action {i}"]}
-                ]
-                if i % 7 == 0
-                else None,
-            }
-            creatures_data.append(creature)
-
-        creatures = [Creature.model_validate(data) for data in creatures_data if data]
-
-        # Test rendering performance
-        with patch(
-            "studiorum.latex_engine.core.document.LaTeXDocumentRenderer"
-        ) as mock_renderer_class:
-            mock_renderer = Mock()
-            mock_renderer.render_document.return_value = (
-                "\\documentclass{article}\\begin{document}Test\\end{document}"
-            )
-            mock_renderer_class.return_value = mock_renderer
-
-            context = RenderingContext(
-                output_format="latex", metadata={"title": "Scale Test"}
-            )
-
-            start_time = time.perf_counter()
-            result = mock_renderer.render_document(creatures, context)
-            render_time = time.perf_counter() - start_time
-
-            print("\nRendering scalability test:")
-            print(f"  Creatures: {len(creatures)}")
-            print(f"  Render time: {render_time:.4f}s")
-            print(f"  Time per creature: {render_time / len(creatures) * 1000:.2f}ms")
-
-            # Should handle rendering efficiently
-            assert render_time < 10.0, (
-                f"Rendering too slow: {render_time:.4f}s for {len(creatures)} creatures"
-            )
-            assert result is not None

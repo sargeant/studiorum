@@ -1,6 +1,5 @@
 """Shared chapter model for books and adventures."""
 
-from enum import Enum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -9,15 +8,6 @@ from pydantic import BaseModel, Field, field_validator
 OrdinalType = Literal["part", "chapter", "episode", "appendix", "level", "section"]
 
 NUMBERED_KINDS: tuple[OrdinalType, ...] = ("chapter", "part", "episode", "level")
-
-
-class ChapterType(str, Enum):
-    """How the document assembly opens a chapter."""
-
-    INTRODUCTION = "introduction"  # Unnumbered, in the table of contents
-    CHAPTER = "chapter"
-    APPENDIX = "appendix"
-    PART = "part"
 
 
 class Ordinal(BaseModel):

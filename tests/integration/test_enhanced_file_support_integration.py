@@ -157,12 +157,10 @@ class TestEnhancedFileSupportIntegration:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_template:
             # Mock the LaTeX engine properly
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_template.return_value = mock_engine
+            mock_template.return_value = "Mock LaTeX output"
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"

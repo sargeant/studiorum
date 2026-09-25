@@ -552,16 +552,14 @@ class EntryRenderer:
     def _render_model(self, tag: str, content: Any) -> str:
         from studiorum.renderers.context import RenderingContext
 
-        from .core.entry_renderers import CreatureEntryRenderer, ItemEntryRenderer
+        from .document import render_models
 
         context = self._context or RenderingContext(
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=self.tracker,
         )
-        if tag == "creature":
-            return CreatureEntryRenderer().render(content, context)
-        return ItemEntryRenderer().render(content, context)
+        return render_models(tag, [content], context)
 
 
 def spellcasting(renderer: EntryRenderer, entry: dict[str, Any]) -> str:

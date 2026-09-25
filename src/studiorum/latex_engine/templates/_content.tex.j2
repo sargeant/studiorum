@@ -1,0 +1,26 @@
+<#-- Creatures, spells or items (kind says which) through their render macros --#>
+<@ from "_creature_render_block.tex.j2" import render_creature with context @>
+<@ from "_spell_render_block.tex.j2" import render_spell with context @>
+<@ from "_item_render_block.tex.j2" import render_item with context @>
+<@ for item in items @>
+<@ if kind == "creature" @>
+<# render_creature(item) #>
+<@ elif kind == "spell" @>
+<# render_spell(item) #>
+<@ else @>
+<# render_item(item) #>
+<@ endif @>
+
+<#-- Appendices of statblocks clear floats every ten --#>
+<@ if barriers and loop.index % 10 == 0 and not loop.last @>
+\FloatBarrier
+
+<@ endif @>
+<@ if barriers and kind == "creature" and not loop.last @>
+\vspace{1.2em}
+
+<@ endif @>
+<@ endfor @>
+<@ if barriers @>
+\FloatBarrier
+<@ endif @>

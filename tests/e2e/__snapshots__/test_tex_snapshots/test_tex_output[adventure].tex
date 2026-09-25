@@ -64,8 +64,6 @@
 % Enhanced chapter and section styling for books
 % DND-5e-LaTeX-Template provides all styling automatically
 
-% Configure section numbering depth for books
-
 % Studiorum Image Helpers — simple, explicit commands
 % Load required packages locally so templates don't need to manage them.
 \RequirePackage{graphicx}
@@ -206,11 +204,12 @@
 \mainmatter
 
 \setcounter{chapter}{0}
-
-\chapter{The Beginning}\label{ch:the-beginning-1-1}
+\chapter{The Beginning}\label{ch:000}
 
 The party finds themselves in a small village plagued by mysterious events.
+
 Local villagers speak of strange lights emanating from an ancient repository.
+
 \subsection{The Village}
 
 A quiet farming community with a dark secret.
@@ -218,7 +217,9 @@ A quiet farming community with a dark secret.
 The village of Testbrook sits nestled in a peaceful valley, surrounded by rolling hills and ancient oak trees.
 
 This small settlement serves as the starting point for many testing adventures, providing a safe haven for adventurers.
+
 % Table: Notable Village NPCs
+
 \begin{DndTable}[header={Notable Village NPCs}]{lll}
 Name & Role & Personality \\
 Tessa Testkeeper & Tavern Owner & Friendly and welcoming to all travelers \\
@@ -226,25 +227,24 @@ Bob Builder & Village Carpenter & Methodical and precise in his work \\
 Sage Validator & Village Elder & Wise and thorough in decision-making \\
 Quinn Query & Merchant & Always asking questions about new goods \\
 \end{DndTable}
+
 \begin{DndReadAloud}
 As you approach the village, you notice the carefully maintained buildings and well-tended gardens. The sound of hammering from the carpenter's workshop mingles with laughter from the tavern. This is clearly a place where attention to detail is valued.
 \end{DndReadAloud}
 
-\section{The Quest}\label{sec:the-quest-2}
-
-\section{The Journey}\label{sec:the-journey-3}
-
 \setcounter{chapter}{1}
-
-\chapter{The Repository}\label{ch:the-repository-4-2}
+\chapter{The Repository}\label{ch:001}
 
 The ancient repository holds forgotten knowledge and dangerous artifacts.
+
 Strange magical energies permeate the structure.
+
 \subsection{Approaching the Repository}
 
 The Repository of Bugs appears as a crystalline structure that seems to shift and flicker between different architectural styles.
 
 Strange energy patterns dance across its surface, and the air around it hums with barely contained power.
+
 \subsection{Interior Chambers}
 
 The main entrance displays scrolling text in various programming languages.
@@ -252,6 +252,7 @@ The main entrance displays scrolling text in various programming languages.
 Shimmering energy fields test visitors' knowledge and intent.
 
 Glowing crystals show the current stability level of the repository.
+
 \subsection{The Core}
 
 At the heart of the repository lies the Core, a swirling vortex of pure logic and data.

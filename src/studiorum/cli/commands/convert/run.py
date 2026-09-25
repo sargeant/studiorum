@@ -81,7 +81,6 @@ def document_metadata(
     options: ConvertOptions,
     title: str,
     document_type: DocumentType = DocumentType.ADVENTURE,
-    description: str | None = None,
 ) -> DocumentMetadata:
     """Metadata carrying the title and the toc and index choices."""
     return DocumentMetadata(
@@ -89,24 +88,7 @@ def document_metadata(
         document_type=document_type,
         include_toc=options.document.show_toc,
         include_index=options.document.show_index,
-        description=description,
     )
-
-
-def append_appendix(latex: str, sections: list[Any], *, gap_after: str) -> str:
-    """Insert appendix sections before ``\\end{document}``.
-
-    ContentSection has no ``content`` attribute, so the inserted text is always
-    empty and only blank lines are added: these appendices have never rendered.
-    Restructure Roadmap step 10 rebuilds document assembly.
-    """
-    if not sections:
-        return latex
-    text = "\n\n".join(s.content for s in sections if hasattr(s, "content"))
-    if "\\end{document}" not in latex:
-        return f"{latex}\n\n{text}"
-    body, end = latex.rsplit("\\end{document}", 1)
-    return f"{body}\n\n{text}{gap_after}\\end{{document}}{end}"
 
 
 def compile_pdf(latex_path: Path, open_file: bool = False) -> None:

@@ -13,7 +13,7 @@ from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.result import Error, Success
-from studiorum.latex_engine import create_latex_engine
+from studiorum.latex_engine.document import render_document as render_latex
 from studiorum.renderers.context import RenderingContext
 
 from . import options as opt
@@ -179,7 +179,6 @@ def adventure(
             appendix_creatures=appendix_creatures,
             ultimate_appendix=ultimate_appendix,
             creature_level=creature_level,
-            _source_adventure=content_items[0],  # for chapter number lookup
         )
         latex = render_document(content_items, context, "adventure")
         _write_content_lists(
@@ -248,11 +247,10 @@ def rendering_context(
 def render_document(
     content: list[BaseContent], context: RenderingContext, kind: str
 ) -> str:
-    """Render content through the LaTeX engine with a progress spinner."""
-    engine = create_latex_engine()
+    """Render content as a LaTeX document with a progress spinner."""
     with display_manager.progress(f"Rendering {kind}") as _:
         task = display_manager.add_task(f"[green]Rendering {kind}...", total=None)
-        latex = engine.render_document(content, context)
+        latex = render_latex(content, context)
         display_manager.update_task(task, completed=100)
     return latex
 

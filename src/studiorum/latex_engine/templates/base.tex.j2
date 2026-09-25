@@ -42,10 +42,7 @@
 <@ if metadata.subtitle @>
 \subtitle{<# metadata.subtitle | latex_escape #>}
 <@ endif @>
-<@ if metadata.authors @>
-\author{<# metadata.get_author_list() | latex_escape #>}
-<@ endif @>
-\date{<@ if metadata.date @><# metadata.get_formatted_date() | latex_escape #><@ else @>\today<@ endif @>}
+\date{\today}
 <@ endif @>
 <@ endblock @>
 
@@ -100,6 +97,7 @@
 
 <#-- Studiorum image macros --#>
 <@ include '_studiorum_image_macros.tex.j2' @>
+<@ from '_chapters.tex.j2' import chapter_list @>
 
 <#-- Document structure --#>
 \begin{document}
@@ -109,7 +107,7 @@
 \frontmatter
 <@ endif @>
 
-<@ if show_title_page or (metadata and metadata.cover) @>
+<@ if show_title_page @>
 % Title page
 \maketitle
 \thispagestyle{empty}
@@ -136,11 +134,15 @@
 \mainmatter
 <@ endif @>
 
-<#-- Structured content sections --#>
-<@ if sections @>
-<@ for section in sections @>
-<@ include 'section.tex.j2' @>
-<@ endfor @>
+<@ if chapters is defined @>
+<# chapter_list(chapters) #>
+<@ endif @>
+<@ endblock @>
+
+<#-- appendices() runs after the body, so it sees every reference the body tracked --#>
+<@ block appendices @>
+<@ if appendices is defined @>
+<# chapter_list(appendices(), appendix=chapters is defined and chapters | selectattr("opening", "equalto", "appendix") | list | length > 0) #>
 <@ endif @>
 <@ endblock @>
 
@@ -153,13 +155,6 @@
 \printindex
 <@ endif @>
 
-<@ if metadata and metadata.include_bibliography @>
-% Bibliography would go here
-<@ endif @>
-
-<@ if metadata and metadata.include_glossary @>
-% Glossary would go here
-<@ endif @>
 <@ endblock @>
 
 \end{document}

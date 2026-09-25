@@ -19,7 +19,7 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.resolvers.content_resolver import ContentResolver
-from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
+from studiorum.latex_engine.document import render_document
 from studiorum.renderers.context import RenderingContext
 from tests.test_data_helpers import requires_latex_template
 
@@ -159,8 +159,7 @@ This section contains basic text to ensure the DND template is working correctly
         )
 
         # Render document
-        renderer = LaTeXDocumentRenderer()
-        latex_content = renderer.render_document(book.contents, context)
+        latex_content = render_document([book], context)
 
         assert latex_content, "LaTeX content should not be empty"
         assert "\\documentclass" in latex_content, (
@@ -233,8 +232,7 @@ This section contains basic text to ensure the DND template is working correctly
         )
 
         # Render document
-        renderer = LaTeXDocumentRenderer()
-        latex_content = renderer.render_document(adventure.contents, context)
+        latex_content = render_document([adventure], context)
 
         assert latex_content, "LaTeX content should not be empty"
         assert "\\documentclass" in latex_content, (

@@ -61,7 +61,8 @@ from typing import Any
 from studiorum.cli.commands.convert import resolve_content_or_file
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
-from studiorum.latex_engine.core import LaTeXDocumentRenderer
+from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.latex_engine.document import render_document
 from studiorum.renderers.context import RenderingContext
 
 
@@ -181,13 +182,16 @@ class ContentBuilder:
                 metadata={
                     "title": content_name,
                     "include_images": not self.no_images,
-                    "include_toc": True,
+                    "document_metadata": DocumentMetadata(
+                        title=content_name,
+                        document_type=DocumentType.ADVENTURE
+                        if content_type == ContentType.ADVENTURE
+                        else DocumentType.BOOK,
+                    ),
                 },
             )
 
-            # Render document
-            renderer = LaTeXDocumentRenderer()
-            result = renderer.render_document(content_items, context)
+            result = render_document(content_items, context)
 
             if result:
                 # Write output

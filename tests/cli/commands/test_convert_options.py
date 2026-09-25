@@ -12,7 +12,7 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
-from studiorum.cli.commands.convert.run import append_appendix, read_names
+from studiorum.cli.commands.convert.run import read_names
 from studiorum.cli.main import app
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
@@ -124,18 +124,15 @@ def test_pdf_defaults_to_the_config(run, flag: list[str], compiled: bool) -> Non
 
 
 def test_adventure_appendix_flags_default_to_the_config(run) -> None:
-    with patch(
-        "studiorum.cli.commands.convert.adventure.create_latex_engine"
-    ) as create_engine:
-        engine = create_engine.return_value
-        engine.render_document.return_value = "\\documentclass{dndbook}"
+    with patch("studiorum.cli.commands.convert.adventure.render_latex") as render_latex:
+        render_latex.return_value = "\\documentclass{dndbook}"
         result, _ = run(
             ["convert", "adventure", "test", "--no-items"],
             content={"appendix_spells": True, "appendix_items": True},
         )
 
     assert result.exit_code == 0, result.output
-    captured = engine.render_document.call_args.args[1].metadata
+    captured = render_latex.call_args.args[1].metadata
     assert captured["appendix_spells"] is True
     assert captured["appendix_items"] is False
     assert captured["appendix_creatures"] is False
@@ -168,19 +165,3 @@ class TestReadNames:
 
         with pytest.raises(typer.Exit):
             read_names(None, tmp_path / "missing.txt", False, "spell")
-
-
-class TestAppendAppendix:
-    def test_no_sections_leaves_the_document_alone(self) -> None:
-        latex = "\\begin{document}x\\end{document}"
-        assert append_appendix(latex, [], gap_after="\n") == latex
-
-    def test_sections_go_before_end_document(self) -> None:
-        class Section:
-            content = "APPENDIX"
-
-        latex = "\\begin{document}x\\end{document}\n"
-        assert (
-            append_appendix(latex, [Section()], gap_after="\n")
-            == "\\begin{document}x\n\nAPPENDIX\n\\end{document}\n"
-        )
