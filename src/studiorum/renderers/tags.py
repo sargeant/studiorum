@@ -259,6 +259,20 @@ def _fixed(latex: str) -> TagFn:
     return lambda parts, r: latex
 
 
+def _wrap(command: str) -> TagFn:
+    """A style over the whole tag text, as 5etools renders s, u, sup and the rest."""
+    return lambda parts, r: f"\\{command}{{{r.text('|'.join(parts))}}}"
+
+
+def _color(parts: list[str], r: Render) -> str:
+    """Text in a hex colour; 5etools' CSS variable colours render plain."""
+    hex_colour = _part(parts, 1).removeprefix("#")
+    text = r.text(parts[0])
+    if not re.fullmatch(r"[0-9a-fA-F]{6}", hex_colour):
+        return text
+    return f"\\textcolor[HTML]{{{hex_colour.upper()}}}{{{text}}}"
+
+
 def _note(parts: list[str], r: Render) -> str:
     return _italic(r.text(parts[0])) if parts[0] else ""
 
@@ -333,6 +347,18 @@ TAGS: dict[str, TagFn] = {
     "quickref": lambda parts, r: _italic(r.text(display_part("quickref", parts))),
     "area": _area,
     "style": lambda parts, r: escape(parts[0]),
+    "s": _wrap("sout"),
+    "strike": _wrap("sout"),
+    "s2": _wrap("sout"),
+    "strikeDouble": _wrap("sout"),
+    "u": _wrap("uline"),
+    "underline": _wrap("uline"),
+    "u2": _wrap("uuline"),
+    "underlineDouble": _wrap("uuline"),
+    "sup": _wrap("textsuperscript"),
+    "sub": _wrap("textsubscript"),
+    "kbd": _wrap("texttt"),
+    "color": _color,
     "filter": lambda parts, r: r.text(parts[0]),
     "scaledamage": _scaling,
     "scaledice": _scaling,
@@ -342,10 +368,9 @@ TAGS: dict[str, TagFn] = {
 
 # Tags 5etools has that render as their display text
 _PLAIN = {
-    "s", "strike", "s2", "strikeDouble", "u", "underline", "u2",
-    "underlineDouble", "sup", "sub", "kbd", "font", "comic", "comicH1",
+    "font", "comic", "comicH1",
     "comicH2", "comicH3", "comicH4", "comicNote", "tip", "unit", "5etools",
-    "5etoolsImg", "5etoolsAudio", "footnote", "loader", "color", "highlight",
+    "5etoolsImg", "5etoolsAudio", "footnote", "loader", "highlight",
     "help", "boon", "charoption", "creatureFluff", "cult", "facility",
     "itemProperty", "itemMastery", "language", "legroup", "object",
     "optfeature", "psionic", "raceFluff", "crochet", "crochetFluff", "vehicle",
