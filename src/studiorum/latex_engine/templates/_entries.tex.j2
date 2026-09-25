@@ -9,10 +9,18 @@
 \end{<# env #>}
 <@- endmacro @>
 
-<#-- A DndTable; header is the escaped caption, spec the column specification --#>
-<@ macro table(header, spec, labels, rows) @>
-<@ if header @>
+<#-- A DndTable; header is the escaped caption, spec the column specification.
+     A wide table floats across both columns. --#>
+<@ macro table(header, spec, labels, rows, wide=False) @>
+<@ if wide @>
+\begin{table*}[tp]
+<@ endif @>
+<@ if header and wide @>
+\begin{DndTable}[header={<# header | safe #>},width=\textwidth]{<# spec | safe #>}
+<@ elif header @>
 \begin{DndTable}[header={<# header | safe #>}]{<# spec | safe #>}
+<@ elif wide @>
+\begin{DndTable}[width=\textwidth]{<# spec | safe #>}
 <@ else @>
 \begin{DndTable}{<# spec | safe #>}
 <@ endif @>
@@ -23,6 +31,10 @@
 <# row | join(' & ') | safe #> \\
 <@ endfor @>
 \end{DndTable}
+<@- if wide @>
+
+\end{table*}
+<@- endif @>
 <@- endmacro @>
 
 <@ macro read_aloud(body) @>

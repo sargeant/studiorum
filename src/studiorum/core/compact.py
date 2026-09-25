@@ -12,7 +12,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from .class_entries import class_entries, subclass_entries
+from .models.classes import Class
 from .models.recipes import Recipe
+from .models.subclasses import Subclass
 from .models.table import Table, TableGroup
 from .text.properties import apply_properties
 
@@ -105,4 +108,6 @@ _BUILDERS: tuple[
     (Table, _table),
     (TableGroup, _table_group),
     (Recipe, _recipe),
+    (Class, class_entries),
+    (Subclass, subclass_entries),
 )

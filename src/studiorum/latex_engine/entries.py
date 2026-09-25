@@ -355,11 +355,14 @@ class EntryRenderer:
             [self.entry(c) if isinstance(c, dict) else self.text(str(c)) for c in row]
             for row in map(_row_cells, rows)
         ]
+        # "wide" is Studiorum's own, on tables it builds (a class table)
+        wide = bool(entry.get("wide"))
         table = _macros().table(
             escape(caption) if caption else "",
-            column_spec(col_styles, count),
+            column_spec(col_styles, count, stretch=not wide),
             [self.text(str(label)) for label in labels],
             cells,
+            wide,
         )
         return f"% Table: {caption}\n{table}" if caption else str(table)
 
@@ -521,6 +524,9 @@ class EntryRenderer:
         if not entries:
             return self.text(name) if inset else self._heading(self._depth, name)
         body = "\n\n".join(self.entries(entries))
+        # A wide table (a class's) floats; the section around it ends with a barrier
+        if "\\begin{table*}" in body and self.style.book:
+            self._wide_float = True
         if inset:
             return str(_macros().sidebar(self.text(name), body))
         return f"{self._heading(self._depth, name)}\n\n{body}"
@@ -717,11 +723,12 @@ def _row_cells(row: Any) -> list[Any]:
     return list(row) if isinstance(row, list) else [row]
 
 
-def column_spec(col_styles: list[str], count: int) -> str:
+def column_spec(col_styles: list[str], count: int, *, stretch: bool = True) -> str:
     """A DndTable column specification from 5etools' Bootstrap colStyles.
 
-    Wide columns (col-8 and up) stretch as X; tables of four or more columns
-    with three or more fixed ones stretch some centred columns too.
+    Wide columns (col-8 and up) stretch as X; with ``stretch``, tables of four
+    or more columns with three or more fixed ones stretch some centred columns
+    too.
     """
     if not col_styles:
         return "l" * count
@@ -749,7 +756,7 @@ def column_spec(col_styles: list[str], count: int) -> str:
             specs.append("r")
         else:
             specs.append("l")
-    if count >= 4:
+    if stretch and count >= 4:
         fixed = [i for i, spec in enumerate(specs) if spec in ("c", "l", "r")]
         if len(fixed) >= 3:
             converted = 0

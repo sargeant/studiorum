@@ -465,3 +465,32 @@ def test_table_rows_may_be_row_objects() -> None:
     )
 
     assert "Padded & 5" in out
+
+
+def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
+    fighter = Mock(model_copy=Mock())
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=fighter)), style=Style(book=True)
+    )
+    table = {"type": "table", "colLabels": ["Level"], "rows": [["1st"]], "wide": True}
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(
+            "studiorum.latex_engine.entries.content_type_of",
+            lambda _: ContentType.CLASS,
+        )
+        patch.setattr(
+            "studiorum.latex_engine.entries.compact_entries",
+            lambda *_: [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],
+        )
+        out = renderer.entry(
+            {
+                "type": "section",
+                "name": "Classes",
+                "entries": [{"type": "statblock", "tag": "class", "name": "Fighter"}],
+            }
+        )
+
+    assert "\\begin{table*}[tp]" in out
+    assert "width=\\textwidth]{l}" in out
+    assert out.count("\\FloatBarrier") == 1
+    assert out.endswith("\\FloatBarrier")
