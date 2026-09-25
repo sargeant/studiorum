@@ -16,6 +16,8 @@ from collections.abc import Callable
 from typing import Any
 
 from ..logging import get_logger
+from ..models.items import Item
+from ..models.magicvariant import MagicVariant
 
 logger = get_logger(__name__)
 
@@ -55,6 +57,12 @@ def expand(base_items: list[Raw], generic_variants: list[Raw]) -> list[Raw]:
                 continue
             out.append(_specific(base, generic))
     return out
+
+
+def generic_item(variant: MagicVariant) -> Item:
+    """A generic variant ("+1 Weapon") as the item 5etools lists it as."""
+    raw = variant.model_dump(by_alias=True, exclude_none=True)
+    return Item.model_validate(_with_inherited(raw) if "inherits" in raw else raw)
 
 
 def _with_inherited(generic: Raw) -> Raw:

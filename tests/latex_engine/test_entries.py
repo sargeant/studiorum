@@ -8,6 +8,7 @@ import pytest
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Ability, Creature
 from studiorum.core.models.fluff import CreatureFluff
+from studiorum.core.models.magicvariant import MagicVariant
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
@@ -402,3 +403,44 @@ def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
 
     assert renderer.entry({**statblock, **skip_root}) == "Savage."
     assert renderer.entry(statblock) == "\\subsection{Orc}\n\nSavage."
+
+
+def test_item_statblocks_fall_back_to_generic_variants() -> None:
+    variant = MagicVariant.model_validate(
+        {
+            "name": "+1 Weapon",
+            "source": "DMG",
+            "type": "GV|DMG",
+            "requires": [{"weapon": True}],
+            "inherits": {
+                "source": "DMG",
+                "rarity": "uncommon",
+                "entries": ["You have a +1 bonus."],
+            },
+        }
+    )
+    lookups = {ContentType.ITEM: None, ContentType.MAGICVARIANT: variant}
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(side_effect=lambda kind, *_: lookups[kind]))
+    )
+    out = renderer.entry({"type": "statblock", "tag": "item", "name": "+1 Weapon"})
+
+    assert "\\dnditemheader{+1 weapon}{generic variant, uncommon}" in out.lower()
+    assert "You have a +1 bonus." in out
+
+
+def test_subclass_statblocks_look_up_their_uid() -> None:
+    find_uid = Mock(return_value=None)
+    EntryRenderer(omnidexer=Mock(find_uid=find_uid)).entry(
+        {
+            "type": "statblock",
+            "tag": "subclass",
+            "source": "AU",
+            "name": "Arcana Domain (Cleric)",
+            "shortName": "Arcana",
+            "className": "Cleric",
+            "classSource": "XPHB",
+        }
+    )
+
+    find_uid.assert_called_once_with(ContentType.SUBCLASS, "Arcana|Cleric|XPHB|AU")

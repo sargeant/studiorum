@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel
 
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
+from studiorum.core.loaders.magic_variants import generic_item
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.content_models import (
@@ -27,6 +28,7 @@ from studiorum.core.models.content_models import (
     content_type_of,
 )
 from studiorum.core.models.creatures import ArmorClass, Creature
+from studiorum.core.models.magicvariant import MagicVariant
 from studiorum.renderers.context import Style
 from studiorum.renderers.escape import escape
 from studiorum.renderers.tags import render
@@ -51,7 +53,8 @@ ABILITIES = {
 }
 
 # What a statblock's tag looks up, and the source when it gives none: 5etools'
-# Parser.TAG_TO_PROPS and each tag's defaultSource
+# Parser.TAG_TO_PROPS and each tag's defaultSource. An item may also be a
+# generic variant, which renders as an item.
 STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
     "action": (ContentType.ACTION, "PHB"),
     "background": (ContentType.BACKGROUND, "PHB"),
@@ -546,17 +549,35 @@ class EntryRenderer:
                 logger.warning(f"Statblocks of '{kind}' are not supported")
             return None
         source = entry.get("source") or (known[1] if known else "")
-        found = (
-            self.omnidexer.find(content_type, name, source)
-            if self.omnidexer is not None
-            else None
-        )
+        found = self._find(content_type, entry, source)
+        if found is None and content_type == ContentType.ITEM:
+            found = self._find(ContentType.MAGICVARIANT, entry, source)
+        if isinstance(found, MagicVariant):
+            found = generic_item(found)
         if found is None:
             logger.warning(
                 f"Could not resolve statblock reference: {prop or tag} '{name}' "
                 f"from {source}"
             )
         return found
+
+    def _find(
+        self, content_type: ContentType, entry: dict[str, Any], source: str
+    ) -> Any:
+        """Content by name and source, or a subclass by its 5etools uid."""
+        if self.omnidexer is None:
+            return None
+        if content_type == ContentType.SUBCLASS and entry.get("shortName"):
+            uid = "|".join(
+                (
+                    entry["shortName"],
+                    entry.get("className", ""),
+                    entry.get("classSource", ""),
+                    source,
+                )
+            )
+            return self.omnidexer.find_uid(content_type, uid)
+        return self.omnidexer.find(content_type, entry.get("name", ""), source)
 
     def _render_model(self, kind: str, content: Any) -> str:
         """A creature, spell or item through its macro, in the text."""
