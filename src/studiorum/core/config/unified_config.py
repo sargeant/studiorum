@@ -219,6 +219,10 @@ class LaTeXDocumentConfig(BaseModel):
         description="Statblock style (2014/classic for legacy, 2024/modern for updated)",
     )
 
+    @property
+    def statblock_year(self) -> Literal["2014", "2024"]:
+        return "2024" if self.statblock in ("2024", "modern") else "2014"
+
     def class_options(self) -> list[str]:
         """The options for ``\\documentclass``, without duplicates."""
         options = [f"{self.paper_size}paper", self.font_size, f"bg={self.background}"]
@@ -233,7 +237,7 @@ class LaTeXDocumentConfig(BaseModel):
             options.append(f"fonts={self.fonts}")
         if self.no_outline:
             options.append("nooutline")
-        if self.statblock in ("2024", "modern"):
+        if self.statblock_year == "2024":
             options.append("stats=modern")
         options.extend(self.extra_class_options)
         return list(dict.fromkeys(options))

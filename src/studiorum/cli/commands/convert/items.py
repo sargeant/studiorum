@@ -226,7 +226,11 @@ def items(
         )
         context = RenderingContext(
             omnidexer=omnidexer,
-            style=Style(content_type="item", images=options.images),
+            style=Style(
+                content_type="item",
+                images=options.images,
+                statblock=options.latex.document.statblock_year,
+            ),
             fluff=found_fluff.fluff if found_fluff else {},
             fluff_images=(found_fluff.images if found_fluff else {})
             if with_fluff_images
@@ -355,7 +359,6 @@ def _render_itemcompendium(
         content_type="item",
         title=heading,
         metadata=document_metadata(options, heading),
-        latex_config=options.latex,
         items=items,
         items_by_group=_group_items(items, sort_mode),
         item_count=len(items),

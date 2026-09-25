@@ -216,7 +216,11 @@ def rendering_context(
     return RenderingContext(
         content_tracker=tracker,
         omnidexer=get_services().omnidexer,
-        style=Style(book=True, images=options.images),
+        style=Style(
+            book=True,
+            images=options.images,
+            statblock=options.latex.document.statblock_year,
+        ),
         creature_level=creature_level,
     )
 

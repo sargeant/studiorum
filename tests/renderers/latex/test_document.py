@@ -5,10 +5,15 @@ from typing import Any
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.chapter import Chapter
 from studiorum.core.models.content import Source
+from studiorum.core.models.creatures import Creature
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.models.spells import Spell
-from studiorum.latex_engine.document import DocumentChapter, render_document
-from studiorum.renderers.context import RenderingContext
+from studiorum.latex_engine.document import (
+    DocumentChapter,
+    render_document,
+    render_models,
+)
+from studiorum.renderers.context import RenderingContext, Style
 
 
 def _chapter(name: str, kind: str | None = None, identifier: Any = None) -> Chapter:
@@ -139,3 +144,35 @@ def test_counter_reads_numbers_and_letters() -> None:
     assert counter("part", "2") == 1
     assert counter("appendix", "B") == 1
     assert counter("appendix", None) is None
+
+
+def test_the_statblock_style_places_saving_throws() -> None:
+    creature = Creature.model_validate(
+        {
+            "name": "Sentry",
+            "source": "MM",
+            "size": ["M"],
+            "type": "construct",
+            "alignment": ["U"],
+            "ac": [15],
+            "hp": {"average": 30, "formula": "4d8 + 12"},
+            "speed": {"walk": 30},
+            "str": 14,
+            "dex": 10,
+            "con": 16,
+            "int": 3,
+            "wis": 12,
+            "cha": 1,
+            "save": {"con": "+5"},
+            "cr": "2",
+        }
+    )
+
+    def latex(statblock: Any) -> str:
+        context = RenderingContext(style=Style(statblock=statblock))
+        return render_models("creature", [creature], context)
+
+    assert "con save = +5" in latex("2024")
+    assert "saving-throws" not in latex("2024")
+    assert "saving-throws = {Con +5}" in latex("2014")
+    assert "con save" not in latex("2014")
