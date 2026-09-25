@@ -444,3 +444,9 @@ def test_subclass_statblocks_look_up_their_uid() -> None:
     )
 
     find_uid.assert_called_once_with(ContentType.SUBCLASS, "Arcana|Cleric|XPHB|AU")
+
+
+def test_an_ingredient_renders_its_entry() -> None:
+    assert render({"type": "ingredient", "entry": "½ cup {@b flour}"}) == (
+        "½ cup \\textbf{flour}"
+    )

@@ -2,6 +2,7 @@
 
 from studiorum.core.compact import compact_entries
 from studiorum.core.models.feats import Feat
+from studiorum.core.models.recipes import Recipe
 from studiorum.core.models.table import Table, TableGroup
 
 
@@ -48,3 +49,65 @@ def test_other_content_is_its_entries() -> None:
     feat = Feat.model_validate({"name": "Alert", "source": "PHB", "entries": ["Hi."]})
 
     assert compact_entries(feat, None) == ["Hi."]
+
+
+def test_a_recipe_lays_out_servings_ingredients_instructions_and_notes() -> None:
+    recipe = Recipe.model_validate(
+        {
+            "name": "Stew",
+            "source": "HF",
+            "serves": {"min": 4, "max": 6},
+            "ingredients": [
+                {
+                    "type": "ingredient",
+                    "entry": "{=amount1/v} cup flour",
+                    "amount1": 0.25,
+                },
+                "Salt",
+                {
+                    "type": "entries",
+                    "name": "For the sauce",
+                    "entries": [
+                        {
+                            "type": "ingredient",
+                            "entry": "{=amount3/v} egg",
+                            "amount3": 1,
+                        }
+                    ],
+                },
+            ],
+            "instructions": ["Stir."],
+            "noteCook": ["Tasty."],
+        }
+    )
+
+    assert compact_entries(recipe, None) == [
+        "{@b Serves} 4 to 6",
+        {
+            "type": "inset",
+            "name": "Ingredients",
+            "entries": [
+                {
+                    "type": "list",
+                    "items": [
+                        {"type": "ingredient", "entry": "¼ cup flour", "amount1": 0.25},
+                        "Salt",
+                    ],
+                },
+                {
+                    "type": "entries",
+                    "name": "For the sauce",
+                    "entries": [
+                        {
+                            "type": "list",
+                            "items": [
+                                {"type": "ingredient", "entry": "1 egg", "amount3": 1}
+                            ],
+                        }
+                    ],
+                },
+            ],
+        },
+        "Stir.",
+        {"type": "entries", "name": "Cook's Notes", "entries": ["{@i Tasty.}"]},
+    ]

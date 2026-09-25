@@ -12,7 +12,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from .models.recipes import Recipe
 from .models.table import Table, TableGroup
+from .text.properties import apply_properties
 
 if TYPE_CHECKING:
     from .loaders.omnidexer import Omnidexer
@@ -57,9 +59,50 @@ def _table_entry(data: Raw, name: str) -> Raw:
     return entry
 
 
+def _recipe(recipe: Recipe, _: Omnidexer | None) -> list[Any]:
+    """Recipe.getBodyHtml: servings, ingredients and equipment, notes, instructions."""
+    data = recipe.model_dump(by_alias=True, exclude_none=True)
+    out: list[Any] = []
+    if makes := data.get("makes"):
+        out.append(f"{{@b Makes}} {makes}")
+    if serves := data.get("serves"):
+        count = serves.get("min", serves.get("exact"))
+        upper = f" to {serves['max']}" if "min" in serves and "max" in serves else ""
+        note = f" {serves['note']}" if serves.get("note") else ""
+        out.append(f"{{@b Serves}} {count}{upper}{note}")
+    for name, prop in (("Ingredients", "ingredients"), ("Equipment", "equipment")):
+        if items := data.get(prop):
+            out.append(
+                {
+                    "type": "inset",
+                    "name": name,
+                    "entries": _listed(apply_properties(items)),
+                }
+            )
+    out += data.get("instructions", [])
+    if notes := data.get("noteCook"):
+        italic = [f"{{@i {n}}}" if isinstance(n, str) else n for n in notes]
+        out.append({"type": "entries", "name": "Cook's Notes", "entries": italic})
+    return out
+
+
+def _listed(items: list[Any]) -> list[Any]:
+    """Each run of ingredients as a list; named groups keep their names."""
+    out: list[Any] = []
+    for item in items:
+        if isinstance(item, dict) and item.get("type") == "entries":
+            out.append({**item, "entries": _listed(item.get("entries", []))})
+        elif out and isinstance(out[-1], dict) and out[-1].get("type") == "list":
+            out[-1]["items"].append(item)
+        else:
+            out.append({"type": "list", "items": [item]})
+    return out
+
+
 _BUILDERS: tuple[
     tuple[type[Any], Callable[[Any, Omnidexer | None], list[Any]]], ...
 ] = (
     (Table, _table),
     (TableGroup, _table_group),
+    (Recipe, _recipe),
 )

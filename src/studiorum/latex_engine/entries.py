@@ -503,6 +503,9 @@ class EntryRenderer:
             return f"{roll_text} {text}" if roll_text else text
         return roll_text
 
+    def _ingredient(self, entry: dict[str, Any]) -> str:
+        return self.entry(entry.get("entry", ""))
+
     def _statblock(self, entry: dict[str, Any]) -> str:
         """What the statblock points to, looked up as 5etools does."""
         name = entry.get("name", "")
@@ -812,5 +815,6 @@ HANDLERS: dict[str, Callable[[EntryRenderer, dict[str, Any]], str]] = {
     "dice": EntryRenderer._dice,
     "item": EntryRenderer._item,
     "cell": EntryRenderer._cell,
+    "ingredient": EntryRenderer._ingredient,
     "statblock": EntryRenderer._statblock,
 }

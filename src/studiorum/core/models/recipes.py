@@ -2,13 +2,15 @@
 
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .content import BaseContent
 
 
 class RecipeIngredient(BaseModel):
     """Represents an ingredient in a recipe."""
+
+    model_config = ConfigDict(extra="allow")  # amount3 and on
 
     type: Literal["ingredient"] = Field(
         "ingredient", description="Type of ingredient entry"
@@ -101,6 +103,10 @@ class Recipe(BaseContent):
     # Equipment needed
     equipment: list[IngredientEntry] = Field(
         default_factory=list, description="Required tools/equipment"
+    )
+    makes: str | int | None = Field(None, description="What the recipe makes")
+    note_cook: list[Any] | None = Field(
+        None, alias="noteCook", description="Cook's notes"
     )
 
     def get_primary_name(self) -> str:
