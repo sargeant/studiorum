@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .content import BaseContent, Source
 from .entry_types import Entry
@@ -38,6 +38,8 @@ class StartingProficiencies(BaseModel):
 class EquipmentOption(BaseModel):
     """Equipment option choice structure."""
 
+    model_config = ConfigDict(extra="allow")  # 2024 classes key options "A", "B"
+
     a: list[str | dict[str, Any]] | None = Field(None, description="Option A items")
     b: list[str | dict[str, Any]] | None = Field(None, description="Option B items")
     c: list[str | dict[str, Any]] | None = Field(None, description="Option C items")
@@ -62,6 +64,9 @@ class StartingEquipment(BaseModel):
         None,
         alias="goldAlternative",
         description="Gold alternative for buying equipment",
+    )
+    entries: list[Entry] | None = Field(
+        None, description="The equipment as text (2024 classes)"
     )
 
 
