@@ -9,7 +9,7 @@ from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.items import Item
-from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import Fluff, FluffImages, FluffSections, FluffSources, collect_fluff
@@ -225,17 +225,12 @@ def items(
             else None
         )
         context = RenderingContext(
-            output_format="latex",
             omnidexer=omnidexer,
-            metadata={
-                "title": heading,
-                "include_images": options.images,
-                "template": "itemcompendium",
-                "content_type": "item",
-                "fluff": found_fluff.fluff if found_fluff else {},
-                "fluff_images": found_fluff.images if found_fluff else {},
-                "fluff_images_enabled": with_fluff_images,
-            },
+            style=Style(content_type="item", images=options.images),
+            fluff=found_fluff.fluff if found_fluff else {},
+            fluff_images=(found_fluff.images if found_fluff else {})
+            if with_fluff_images
+            else None,
         )
         latex = _render_itemcompendium(found, context, options, heading, result, sort)
         write_document(

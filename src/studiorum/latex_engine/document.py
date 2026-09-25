@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
+from studiorum.core.config.unified_config import LaTeXConfig
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.books import Book
 from studiorum.core.models.chapter import NUMBERED_KINDS, OrdinalType
@@ -83,14 +84,19 @@ class DocumentChapter:
         return None
 
 
-def render_document(content: Sequence[Any], context: RenderingContext) -> str:
+def render_document(
+    content: Sequence[Any],
+    context: RenderingContext,
+    metadata: DocumentMetadata,
+    *,
+    appendices: AppendixFlags | None = None,
+    latex_config: LaTeXConfig | None = None,
+) -> str:
     """The LaTeX document for adventures, books or loose content.
 
-    ``context.metadata["document_metadata"]`` holds the title and the toc and
-    index choices.
+    ``appendices`` says which appendices of referenced content to add.
     """
-    metadata: DocumentMetadata = context.metadata["document_metadata"]
-    context.metadata["document_type"] = metadata.document_type
+    context = replace(context, style=replace(context.style, book=True))
     renderer = EntryRenderer.from_context(context)
     chapters: list[DocumentChapter] = []
     loose: list[Any] = []
@@ -102,14 +108,15 @@ def render_document(content: Sequence[Any], context: RenderingContext) -> str:
     chapters.extend(content_chapters(loose, context))
 
     engine = LaTeXTemplateEngine()
-    if latex_config := context.metadata.get("latex_config"):
+    if latex_config is not None:
         engine.update_latex_config(latex_config)
+    flags = appendices or AppendixFlags()
     return engine.render_dnd_template(
         "book",
         metadata.document_type.value,
         metadata=metadata,
         chapters=chapters,
-        appendices=lambda: appendix_chapters(context),
+        appendices=lambda: appendix_chapters(context, flags),
         show_title_page=True,
         use_frontmatter=True,
     )
@@ -153,23 +160,18 @@ def content_chapters(
     ]
 
 
-def appendix_chapters(context: RenderingContext) -> list[DocumentChapter]:
-    """Appendices of what the document refers to, as its convert flags ask.
+def appendix_chapters(
+    context: RenderingContext, flags: AppendixFlags
+) -> list[DocumentChapter]:
+    """Appendices of what the document refers to, as the flags ask.
 
     Call it once the rest of the document is rendered, so the tracker holds
     every reference.
     """
-    flags = AppendixFlags(
-        spells=context.metadata.get("appendix_spells", False),
-        items=context.metadata.get("appendix_items", False),
-        creatures=context.metadata.get("appendix_creatures", False),
-    )
-    tracker = context.content_tracker
-    if not flags.has_any_enabled() or tracker is None:
+    tracker, omnidexer = context.content_tracker, context.omnidexer
+    if not flags.has_any_enabled() or tracker is None or omnidexer is None:
         return []
-    appendices = AppendixGenerator(context.omnidexer).generate_appendices(
-        tracker, flags
-    )
+    appendices = AppendixGenerator(omnidexer).generate_appendices(tracker, flags)
     return appendices_as_chapters(appendices, context)
 
 
@@ -204,9 +206,7 @@ def render_models(
         raise ValueError(f"Cannot render {kind} content in a document")
     # Spells and items nest their headings deeper; creatures take the document's
     content_type = kind if kind in ("spell", "item") else None
-    context = context.model_copy(
-        update={"metadata": {**context.metadata, "content_type": content_type}}
-    )
+    context = replace(context, style=replace(context.style, content_type=content_type))
     template = environment().get_template("_content.tex.j2")
     return template.render(
         kind=kind, items=items, barriers=barriers, rendering_context=context

@@ -57,10 +57,10 @@
 <# render_higher_level_section(spell) | safe #>
 
 <#-- Render fluff content after spell description if available --#>
-<@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
-<# render_fluff_for_content(spell.name, rendering_context.metadata['fluff']) #>
+<@ if rendering_context and rendering_context.fluff @>
+<# render_fluff_for_content(spell.name, rendering_context.fluff) #>
 <@ endif @>
-<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<@ if rendering_context and rendering_context.fluff_images is not none @>
 <# render_fluff_images(spell.name) #>
 <@ endif @>
 <@ endmacro @>

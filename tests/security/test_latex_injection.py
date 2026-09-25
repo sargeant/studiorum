@@ -103,9 +103,7 @@ class TestTemplateInjectionVulnerabilities:
             }
         )
 
-        result = render_models(
-            "spell", [spell], RenderingContext(output_format="latex")
-        )
+        result = render_models("spell", [spell], RenderingContext())
 
         assert "Fireball\\textbackslash{}newcommand\\{" in result
         assert "\\newcommand" not in result
@@ -134,9 +132,7 @@ class TestTemplateInjectionVulnerabilities:
             }
         )
 
-        result = render_models(
-            "creature", [creature], RenderingContext(output_format="latex")
-        )
+        result = render_models("creature", [creature], RenderingContext())
 
         assert "\\def\\evil" not in result
         assert "DndMonster" in result

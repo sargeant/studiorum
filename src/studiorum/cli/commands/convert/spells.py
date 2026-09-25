@@ -10,7 +10,7 @@ from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.spells import Spell
-from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import Fluff, FluffImages, FluffSections, FluffSources, collect_fluff
@@ -247,18 +247,13 @@ def spells(
 
             tracker = ContentReferenceManager(omnidexer=omnidexer).get_content_tracker()
         context = RenderingContext(
-            output_format="latex",
-            omnidexer=omnidexer,
             content_tracker=tracker,
-            metadata={
-                "title": heading,
-                "include_images": options.images,
-                "template": "spellbook",
-                "content_type": "spell",
-                "fluff": found_fluff.fluff if found_fluff else {},
-                "fluff_images": found_fluff.images if found_fluff else {},
-                "fluff_images_enabled": with_fluff_images,
-            },
+            omnidexer=omnidexer,
+            style=Style(content_type="spell", images=options.images),
+            fluff=found_fluff.fluff if found_fluff else {},
+            fluff_images=(found_fluff.images if found_fluff else {})
+            if with_fluff_images
+            else None,
         )
         latex = _render_spellbook(
             found,
@@ -267,7 +262,7 @@ def spells(
             options,
             heading,
             result,
-            _creature_appendix(context) if tracker else None,
+            _creature_appendix(context, omnidexer, tracker) if tracker else None,
         )
         write_document(
             options, latex, Path("output/spells/spellbook.tex"), "Spellbook generated"
@@ -275,7 +270,7 @@ def spells(
 
 
 def _creature_appendix(
-    context: RenderingContext,
+    context: RenderingContext, omnidexer: Any, tracker: Any
 ) -> Callable[[], list["DocumentChapter"]]:
     """The appendix of creatures the spells name, built once the body is rendered."""
 
@@ -286,8 +281,8 @@ def _creature_appendix(
         )
         from studiorum.latex_engine.document import appendices_as_chapters
 
-        found = AppendixGenerator(context.omnidexer).generate_appendices(
-            context.content_tracker, AppendixFlags(creatures=True)
+        found = AppendixGenerator(omnidexer).generate_appendices(
+            tracker, AppendixFlags(creatures=True)
         )
         return appendices_as_chapters(found, context)
 

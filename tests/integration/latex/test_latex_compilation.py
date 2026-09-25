@@ -19,6 +19,7 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.core.services.appendix_generator import AppendixFlags
 from studiorum.latex_engine.document import render_document
 from studiorum.renderers.context import RenderingContext
 from tests.test_data_helpers import requires_latex_template
@@ -147,19 +148,9 @@ This section contains basic text to ensure the DND template is working correctly
             include_toc=True,
         )
 
-        context = RenderingContext(
-            output_format="latex",
-            omnidexer=omnidexer,
-            content_tracker=content_tracker,
-            metadata={
-                "title": book.name,
-                "document_metadata": document_metadata,
-                "content_tracker": content_tracker,
-            },
-        )
+        context = RenderingContext(omnidexer=omnidexer, content_tracker=content_tracker)
 
-        # Render document
-        latex_content = render_document([book], context)
+        latex_content = render_document([book], context, document_metadata)
 
         assert latex_content, "LaTeX content should not be empty"
         assert "\\documentclass" in latex_content, (
@@ -217,22 +208,14 @@ This section contains basic text to ensure the DND template is working correctly
             include_toc=True,
         )
 
-        context = RenderingContext(
-            output_format="latex",
-            omnidexer=omnidexer,
-            content_tracker=content_tracker,
-            metadata={
-                "title": adventure.name,
-                "document_metadata": document_metadata,
-                "content_tracker": content_tracker,
-                "appendix_spells": True,
-                "appendix_items": True,
-                "appendix_creatures": True,
-            },
-        )
+        context = RenderingContext(omnidexer=omnidexer, content_tracker=content_tracker)
 
-        # Render document
-        latex_content = render_document([adventure], context)
+        latex_content = render_document(
+            [adventure],
+            context,
+            document_metadata,
+            appendices=AppendixFlags(spells=True, items=True, creatures=True),
+        )
 
         assert latex_content, "LaTeX content should not be empty"
         assert "\\documentclass" in latex_content, (

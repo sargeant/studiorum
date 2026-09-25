@@ -128,10 +128,10 @@ def test_adventure_appendix_flags_default_to_the_config(run) -> None:
         )
 
     assert result.exit_code == 0, result.output
-    captured = render_latex.call_args.args[1].metadata
-    assert captured["appendix_spells"] is True
-    assert captured["appendix_items"] is False
-    assert captured["appendix_creatures"] is False
+    flags = render_latex.call_args.kwargs["appendices"]
+    assert flags.spells is True
+    assert flags.items is False
+    assert flags.creatures is False
 
 
 class TestReadNames:

@@ -119,9 +119,11 @@ def bulk(
                         if isinstance(content, Adventure)
                         else DocumentType.BOOK
                     )
-                    metadata = document_metadata(options, content.name, kind)
                     latex = render_document(
-                        [content], rendering_context(options, metadata, None)
+                        [content],
+                        rendering_context(options, None),
+                        document_metadata(options, content.name, kind),
+                        latex_config=options.latex,
                     )
                     output_path = output_dir / f"{result.query}.tex"
                     output_path.write_text(latex, encoding="utf-8")

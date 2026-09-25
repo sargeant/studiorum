@@ -63,7 +63,7 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.latex_engine.document import render_document
-from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.context import RenderingContext, Style
 
 
 class ContentBuilder:
@@ -177,21 +177,16 @@ class ContentBuilder:
             omnidexer = get_services().omnidexer
 
             context = RenderingContext(
-                output_format="latex",
-                omnidexer=omnidexer,
-                metadata={
-                    "title": content_name,
-                    "include_images": not self.no_images,
-                    "document_metadata": DocumentMetadata(
-                        title=content_name,
-                        document_type=DocumentType.ADVENTURE
-                        if content_type == ContentType.ADVENTURE
-                        else DocumentType.BOOK,
-                    ),
-                },
+                omnidexer=omnidexer, style=Style(images=not self.no_images)
+            )
+            metadata = DocumentMetadata(
+                title=content_name,
+                document_type=DocumentType.ADVENTURE
+                if content_type == ContentType.ADVENTURE
+                else DocumentType.BOOK,
             )
 
-            result = render_document(content_items, context)
+            result = render_document(content_items, context, metadata)
 
             if result:
                 # Write output

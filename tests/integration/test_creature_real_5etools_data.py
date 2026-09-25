@@ -705,7 +705,6 @@ class TestCreatureRegressionSuite:
 
                             content_tracker = ContentTracker()
                             rendering_context = RenderingContext(
-                                output_format="latex",
                                 omnidexer=get_services().omnidexer,
                                 content_tracker=content_tracker,
                             )

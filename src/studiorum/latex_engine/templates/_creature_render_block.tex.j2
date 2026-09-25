@@ -162,10 +162,10 @@
 --#>
 <@ macro render_creature(creature) @>
 <#-- Render fluff content before stat block if available --#>
-<@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
-<# render_fluff_for_content(creature.name, rendering_context.metadata['fluff'], use_comment=False) #>
+<@ if rendering_context and rendering_context.fluff @>
+<# render_fluff_for_content(creature.name, rendering_context.fluff, use_comment=False) #>
 <@ endif @>
-<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<@ if rendering_context and rendering_context.fluff_images is not none @>
 <# render_fluff_images(creature.name) #>
 <@ endif @>
 
@@ -218,7 +218,7 @@
     int = <# creature.intelligence #>,
     wis = <# creature.wisdom #>,
     cha = <# creature.charisma #><@ if is_modern @>,
-<@ set creature_level = rendering_context.metadata.get('creature_level', 1) if rendering_context and rendering_context.metadata else 1 @><@ if creature.get_save_value_with_level('str', creature_level) is not none @>    str save = <@ if creature.get_save_value_with_level('str', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('str', creature_level) #>,
+<@ set creature_level = rendering_context.creature_level if rendering_context else 1 @><@ if creature.get_save_value_with_level('str', creature_level) is not none @>    str save = <@ if creature.get_save_value_with_level('str', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('str', creature_level) #>,
 <@ endif @><@ if creature.get_save_value_with_level('dex', creature_level) is not none @>    dex save = <@ if creature.get_save_value_with_level('dex', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('dex', creature_level) #>,
 <@ endif @><@ if creature.get_save_value_with_level('con', creature_level) is not none @>    con save = <@ if creature.get_save_value_with_level('con', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('con', creature_level) #>,
 <@ endif @><@ if creature.get_save_value_with_level('int', creature_level) is not none @>    int save = <@ if creature.get_save_value_with_level('int', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('int', creature_level) #>,

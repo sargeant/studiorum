@@ -44,7 +44,7 @@ def test_without_spells_nothing_is_tracked(run) -> None:
     args = run()
 
     assert args[1].content_tracker is None
-    assert args[5] is None
+    assert args[6] is None
 
 
 def test_with_spells_the_appendix_generator_gets_the_tracker(run) -> None:
@@ -53,7 +53,7 @@ def test_with_spells_the_appendix_generator_gets_the_tracker(run) -> None:
     ) as generator:
         generator.return_value.generate_appendices.return_value = []
         args = run("--spells")
-        assert args[5]() == []
+        assert args[6]() == []
 
     assert isinstance(args[1].content_tracker, ContentTracker)
     tracker, flags = generator.return_value.generate_appendices.call_args.args

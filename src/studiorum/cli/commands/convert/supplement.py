@@ -8,6 +8,7 @@ import typer
 from rich import print as rprint
 
 from studiorum.core.models.document_metadata import DocumentType
+from studiorum.core.services.appendix_generator import AppendixFlags
 
 from . import options as opt
 from .adventure import render_document, rendering_context
@@ -95,9 +96,13 @@ def supplement(
         heading = options.title or (
             f"Supplement: {input_file.stem.replace('-', ' ').title()}"
         )
-        metadata = document_metadata(options, heading, DocumentType.BOOK)
         latex = render_document(
-            content_items, rendering_context(options, metadata, None), "supplement"
+            content_items,
+            rendering_context(options, None),
+            document_metadata(options, heading, DocumentType.BOOK),
+            options,
+            AppendixFlags(),
+            "supplement",
         )
         write_document(
             options,

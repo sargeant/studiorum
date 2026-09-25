@@ -18,20 +18,15 @@ def _chapter(name: str, kind: str | None = None, identifier: Any = None) -> Chap
     )
 
 
-def _render(*chapters: Chapter, **metadata: Any) -> str:
+def _render(*chapters: Chapter) -> str:
     adventure = Adventure(
         name="Test", source=Source(abbreviation="T", name="Test"), contents=chapters
     )
-    context = RenderingContext(
-        output_format="latex",
-        metadata={
-            "document_metadata": DocumentMetadata(
-                title="Test", document_type=DocumentType.ADVENTURE
-            ),
-            **metadata,
-        },
+    return render_document(
+        [adventure],
+        RenderingContext(),
+        DocumentMetadata(title="Test", document_type=DocumentType.ADVENTURE),
     )
-    return render_document([adventure], context)
 
 
 def _body(latex: str) -> list[str]:
@@ -128,12 +123,9 @@ def test_loose_content_gets_a_chapter_per_type() -> None:
             "entries": ["Roll a d20."],
         }
     )
-    context = RenderingContext(
-        output_format="latex",
-        metadata={"document_metadata": DocumentMetadata(title="Loose")},
+    latex = render_document(
+        [spell], RenderingContext(), DocumentMetadata(title="Loose")
     )
-
-    latex = render_document([spell], context)
 
     assert "\\chapter{Spells}\\label{ch:spell}" in latex
     assert "{Blink}" in latex

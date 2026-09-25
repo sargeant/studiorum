@@ -22,7 +22,7 @@
 <@ endif @>
 
 <#-- Render fluff content after item description if available --#>
-<@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
-<# render_fluff_for_content(item.name, rendering_context.metadata['fluff']) #>
+<@ if rendering_context and rendering_context.fluff @>
+<# render_fluff_for_content(item.name, rendering_context.fluff) #>
 <@ endif @>
 <@ endmacro @>

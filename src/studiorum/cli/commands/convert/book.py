@@ -15,6 +15,7 @@ from .adventure import (
     AppendixItems,
     AppendixSpells,
     UltimateAppendix,
+    appendix_flags,
     load_content,
     render_document,
     rendering_context,
@@ -67,18 +68,14 @@ def book(
     with conversion_errors():
         content_items, source_desc = load_content(content_source, ContentType.BOOK)
         name = content_items[0].name
-        metadata = document_metadata(options, options.title or name, DocumentType.BOOK)
-        context = rendering_context(
+        latex = render_document(
+            content_items,
+            rendering_context(options, ContentTracker()),
+            document_metadata(options, options.title or name, DocumentType.BOOK),
             options,
-            metadata,
-            ContentTracker(),
-            title=options.title or f"Book: {name}",
-            appendix_spells=appendix_spells,
-            appendix_items=appendix_items,
-            appendix_creatures=appendix_creatures,
-            ultimate_appendix=ultimate_appendix,
+            appendix_flags(appendix_spells, appendix_items, appendix_creatures),
+            "book",
         )
-        latex = render_document(content_items, context, "book")
         file_name = (
             Path(content_source).with_suffix(".tex").name
             if "file:" in source_desc

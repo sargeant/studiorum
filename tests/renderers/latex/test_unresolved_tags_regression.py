@@ -50,7 +50,7 @@ class TestNoUnresolvedTags:
         }
 
         spell = Spell.model_validate(spell_data)
-        ctx = RenderingContext(output_format="latex")
+        ctx = RenderingContext()
 
         latex = render_models("spell", [spell], ctx)
         assert latex and not _has_unresolved_tags(latex)
@@ -92,7 +92,7 @@ class TestNoUnresolvedTags:
         }
 
         creature = Creature.model_validate(creature_data)
-        ctx = RenderingContext(output_format="latex")
+        ctx = RenderingContext()
 
         latex = render_models("creature", [creature], ctx)
         assert latex and not _has_unresolved_tags(latex)
@@ -127,7 +127,7 @@ class TestNoUnresolvedTags:
             },
         ]
 
-        ctx = RenderingContext(output_format="latex")
+        ctx = RenderingContext()
         for data in items_data:
             item = Item.model_validate(data)
             latex = render_models("item", [item], ctx)

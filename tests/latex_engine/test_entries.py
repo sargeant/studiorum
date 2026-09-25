@@ -6,7 +6,6 @@ from unittest.mock import Mock
 import pytest
 
 from studiorum.core.models.creatures import Ability, Creature
-from studiorum.core.models.document_metadata import DocumentType
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
@@ -68,15 +67,6 @@ def test_section_headings_follow_the_style(style: Style, commands: list[str]) ->
     assert render(tree, style) == "\n\n".join(
         f"\\{command}{{{name}}}" for command, name in zip(commands, "ABC", strict=True)
     )
-
-
-def test_style_from_metadata() -> None:
-    style = Style.from_metadata(
-        {"document_type": DocumentType.ADVENTURE, "template": "bestiary"}
-    )
-    assert style.book
-    assert style.monster_spells
-    assert not Style.from_metadata({"include_images": False}).images
 
 
 def test_lists() -> None:
