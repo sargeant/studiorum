@@ -47,29 +47,3 @@ class Object(BaseContent):
     alt_art: list[dict[str, Any]] = Field(
         default_factory=list, alias="altArt", description="Alternative artwork"
     )
-
-    def get_primary_size(self) -> str:
-        """Get the primary size category."""
-        return self.size[0] if self.size else "Medium"
-
-    def has_actions(self) -> bool:
-        """Check if the object has any actions."""
-        return len(self.action_entries) > 0
-
-    def is_destructible(self) -> bool:
-        """Check if the object can be destroyed (has HP)."""
-        return self.hp is not None and isinstance(self.hp, int) and self.hp > 0
-
-    def is_siege_weapon(self) -> bool:
-        """Check if this is a siege weapon."""
-        return self.object_type == "SW"
-
-    def is_generic_object(self) -> bool:
-        """Check if this is a generic object."""
-        return self.object_type == "G"
-
-    def get_damage_threshold(self) -> int | None:
-        """Get damage threshold if specified in entries."""
-        # Objects often have damage threshold mentioned in their description
-        # This would need to be parsed from the entries text
-        return None  # Placeholder for now

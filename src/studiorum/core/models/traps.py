@@ -36,23 +36,3 @@ class Trap(BaseContent):
     # Optional properties
     simple: bool = Field(False, description="Whether this is a simple trap")
     complex: bool = Field(False, description="Whether this is a complex trap")
-
-    def get_tier_rating(self, tier: int) -> TrapRating | None:
-        """Get the rating for a specific character tier."""
-        for rating in self.rating:
-            if rating.tier == tier:
-                return rating
-        return None
-
-    def get_threat_level(self, tier: int = 1) -> str:
-        """Get the threat level for a specific tier (defaults to tier 1)."""
-        rating = self.get_tier_rating(tier)
-        return rating.threat if rating else "unknown"
-
-    def is_mechanical(self) -> bool:
-        """Check if this is a mechanical trap."""
-        return self.trap_haz_type == "MECH"
-
-    def is_magical(self) -> bool:
-        """Check if this is a magical trap."""
-        return self.trap_haz_type == "MAG"
