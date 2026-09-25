@@ -9,7 +9,7 @@ from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.creatures import Creature
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 from . import options as opt
 from .fluff import (

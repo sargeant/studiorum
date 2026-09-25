@@ -14,7 +14,7 @@ from studiorum.core.models.document_metadata import DocumentMetadata
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.result import Error, Success
 from studiorum.latex_engine import create_latex_engine
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 from . import options as opt
 from .options import ConvertOptions, option

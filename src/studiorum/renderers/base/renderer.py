@@ -6,7 +6,7 @@ from pathlib import Path
 from studiorum.core.models.content import BaseContent
 from studiorum.core.types import RendererConfig
 
-from ..core.interfaces import RenderingContext
+from ..context import RenderingContext
 
 
 class RenderingError(Exception):

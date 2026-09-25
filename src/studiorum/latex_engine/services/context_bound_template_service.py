@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.latex_engine.services.protocols import TemplateServiceProtocol
-    from studiorum.renderers.core.interfaces import RenderingContext
+    from studiorum.renderers.context import RenderingContext
 
 
 class ContextBoundTemplateService:
@@ -51,7 +51,7 @@ class ContextBoundTemplateService:
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
-            from studiorum.renderers.core.interfaces import RenderingContext
+            from studiorum.renderers.context import RenderingContext
 
             entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             rendering_context = RenderingContext(
@@ -128,7 +128,7 @@ class ContextBoundTemplateService:
         Returns:
             RenderingContext with bound ContentTracker and service dependencies
         """
-        from studiorum.renderers.core.interfaces import RenderingContext
+        from studiorum.renderers.context import RenderingContext
 
         return RenderingContext(
             output_format=output_format,

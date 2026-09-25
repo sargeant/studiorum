@@ -19,7 +19,7 @@ from studiorum.core.logging import get_logger
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.services.content_list_writer import ContentListWriter
 from studiorum.latex_engine.services.template_service import TemplateService
-from studiorum.renderers.core.tag_resolver import TagResolver
+from studiorum.renderers.tags import TagResolver
 
 logger = get_logger(__name__)
 
@@ -65,15 +65,13 @@ class Services:
 
     @cached_property
     def tag_resolver(self) -> TagResolver:
-        return TagResolver(omnidexer=self.omnidexer)
+        return TagResolver()
 
     @cached_property
     def template_service(self) -> TemplateService:
-        from studiorum.core.text.text_extractor import TextExtractor
         from studiorum.latex_engine.formatters.latex_formatter import LaTeXFormatter
 
         return TemplateService(
-            text_extractor=TextExtractor(),
             latex_formatter=LaTeXFormatter(),
             tag_resolver=self.tag_resolver,
             omnidexer=self.omnidexer,

@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from pathlib import Path
 
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 from .config.compilation import CompilationResult, LaTeXEngine
 from .core.document import LaTeXDocumentRenderer

@@ -15,7 +15,7 @@ from studiorum.latex_engine.core.document_structure import (
     DocumentStructureBuilder,
     SectionLevel,
 )
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 @pytest.mark.rendering

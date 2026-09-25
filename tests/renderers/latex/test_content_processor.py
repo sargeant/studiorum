@@ -16,7 +16,7 @@ from studiorum.latex_engine.core.content_processor import (  # type: ignore
     ItemProcessor,
     SpellProcessor,
 )
-from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from studiorum.renderers.context import RenderingContext  # type: ignore
 
 
 @pytest.mark.rendering

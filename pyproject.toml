@@ -43,7 +43,6 @@ dependencies = [
     "rich>=14.0.0,<15.0.0",
     "pyyaml>=6.0.0,<7.0.0",
     "jinja2>=3.0.0,<4.0.0",
-    "lark>=1.2.2,<2.0.0",
     "diskcache>=5.6.3,<6.0.0",
     "platformdirs>=4.0.0,<5.0.0",
     "pillow>=11.3.0",
@@ -221,9 +220,6 @@ ignore = [
 "src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
 "src/studiorum/core/services/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
 "src/studiorum/core/sources/github.py" = ["B904"]
-"src/studiorum/core/text/tag_parser.py" = ["B904", "PTH123"]
-"src/studiorum/core/text/tag_types.py" = ["UP042"]
-"src/studiorum/core/text/text_extractor.py" = ["PERF401", "SIM102"]
 "src/studiorum/core/utils/chapters.py" = ["B904", "SIM102"]
 "src/studiorum/core/validation/error_tracker.py" = ["RET504"]
 "src/studiorum/core/validation/strictness.py" = ["UP042"]
@@ -235,13 +231,9 @@ ignore = [
 "src/studiorum/latex_engine/core/document.py" = ["RET504", "SIM102"]
 "src/studiorum/latex_engine/core/document_structure.py" = ["B007", "PERF102", "RET504", "SIM102"]
 "src/studiorum/latex_engine/core/entry_processor.py" = ["RET504", "SIM103"]
-"src/studiorum/latex_engine/core/tag_renderer.py" = ["B007", "PERF102", "RET504"]
 "src/studiorum/latex_engine/core/template_engine.py" = ["PIE810", "RET504"]
 "src/studiorum/latex_engine/utils/error_parser.py" = ["PIE810"]
 "src/studiorum/latex_engine/utils/progress_tracker.py" = ["E722", "SIM102", "T201"]
-"src/studiorum/renderers/core/enhancers.py" = ["RET504", "SIM103"]
-"src/studiorum/renderers/core/handlers.py" = ["RET504", "SIM102"]
-"src/studiorum/renderers/core/interfaces.py" = ["UP042"]
 "tests/build_all_content.py" = ["PTH123", "T201"]
 "tests/cli/commands/test_base_convert_command.py" = ["SIM117"]
 "tests/cli/commands/test_cli_integration_enhanced_features.py" = ["SIM117"]
@@ -269,11 +261,9 @@ ignore = [
 "tests/performance/test_creature_real_data_benchmarks.py" = ["E722", "PERF401", "S110", "T201"]
 "tests/performance/test_creature_scale_benchmarks.py" = ["B007", "T201"]
 "tests/performance/test_enhanced_file_performance.py" = ["B007", "PERF401"]
-"tests/performance/test_tag_system_benchmark.py" = ["PERF401"]
 "tests/property_based/test_content_stateful.py" = ["PERF401", "SIM118"]
 "tests/property_based/test_creature_properties.py" = ["B007", "S110"]
 "tests/property_based/test_spell_properties.py" = ["SIM102"]
-"tests/renderers/core/test_real_data_integration.py" = ["PTH123"]
 "tests/renderers/latex/test_compiler.py" = ["SIM103"]
 "tests/renderers/latex/test_content_placeholder_regression.py" = ["B007"]
 "tests/renderers/latex/test_dnd_template.py" = ["B007", "PERF102", "RET503"]
@@ -414,7 +404,6 @@ layers = [
 ignore_imports = [
     "studiorum.cli.commands.mcp -> studiorum.mcp.server",
     "studiorum.latex_engine.utils.progress_tracker -> studiorum.cli.display_manager",
-    "studiorum.renderers.core.interfaces -> studiorum.latex_engine.core.tag_renderer",
 ]
 
 [[tool.importlinter.contracts]]
@@ -423,7 +412,6 @@ name = "core sub-packages are acyclic"
 type = "acyclic_siblings"
 ancestors = ["studiorum.core"]
 ignore_imports = [
-    "studiorum.core.base_context -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.models.content",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",
@@ -439,5 +427,4 @@ ignore_imports = [
     "studiorum.core.resolvers.content_resolver -> studiorum.core.loaders.omnidexer",
     "studiorum.core.resolvers.content_resolver -> studiorum.core.services.item_collector",
     "studiorum.core.resolvers.content_resolver -> studiorum.core.services.spell_collector",
-    "studiorum.core.text.tag_types -> studiorum.core.models.content",
 ]

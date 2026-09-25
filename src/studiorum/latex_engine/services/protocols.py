@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from studiorum.core.references.content_tracker import ContentTracker
-    from studiorum.renderers.core.interfaces import RenderingContext
+    from studiorum.renderers.context import RenderingContext
 
 
 @runtime_checkable

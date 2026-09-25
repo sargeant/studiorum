@@ -7,7 +7,7 @@ from studiorum.core.entry_registry import ValidationMode, get_registry
 from studiorum.core.error_types import create_processing_error
 from studiorum.core.logging import get_logger
 from studiorum.core.result import Error
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 from ..utils.unicode_mappings import (
     get_latex_special_chars,

@@ -195,7 +195,7 @@ class TestCreatureLaTeXRendering:
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
-            from studiorum.renderers.core.interfaces import RenderingContext
+            from studiorum.renderers.context import RenderingContext
 
             entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             content_tracker = ContentTracker()
@@ -231,7 +231,7 @@ class TestCreatureLaTeXRendering:
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
-            from studiorum.renderers.core.interfaces import RenderingContext
+            from studiorum.renderers.context import RenderingContext
 
             entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             content_tracker = ContentTracker()
@@ -301,9 +301,7 @@ class TestCreatureLaTeXRendering:
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
-            patch(
-                "studiorum.renderers.core.interfaces.RenderingContext"
-            ) as mock_context_class,
+            patch("studiorum.renderers.context.RenderingContext") as mock_context_class,
         ):
             mock_processor = Mock()
             mock_processor.process_entries.side_effect = lambda entries: [
@@ -422,7 +420,7 @@ class TestCreatureLaTeXRendering:
             from studiorum.latex_engine.core.entry_processor import (
                 RecursiveEntryProcessor,
             )
-            from studiorum.renderers.core.interfaces import RenderingContext
+            from studiorum.renderers.context import RenderingContext
 
             entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             content_tracker = ContentTracker()

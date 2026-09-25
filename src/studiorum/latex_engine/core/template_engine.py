@@ -569,7 +569,7 @@ class LaTeXTemplateEngine:
         # Provide a default RenderingContext when not explicitly supplied
         if "rendering_context" not in kwargs and "rendering_context" not in context:
             try:
-                from studiorum.renderers.core.interfaces import RenderingContext as RC
+                from studiorum.renderers.context import RenderingContext as RC
 
                 tmpl_service = context.get("template_service")
                 context["rendering_context"] = RC(

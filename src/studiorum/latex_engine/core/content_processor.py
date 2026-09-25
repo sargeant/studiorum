@@ -13,7 +13,7 @@ from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 class ContentProcessor(ABC):

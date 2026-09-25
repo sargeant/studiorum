@@ -21,7 +21,7 @@ from studiorum.core.models.document_metadata import DocumentMetadata, DocumentTy
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.resolvers.content_resolver import ContentResolver
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 from tests.test_data_helpers import requires_latex_template
 
 

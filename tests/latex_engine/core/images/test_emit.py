@@ -8,7 +8,7 @@ from PIL import Image
 
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 from studiorum.latex_engine.core.images.resolve import ImageResolver
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 
 def context(include_images: bool = True) -> RenderingContext:

@@ -16,7 +16,7 @@ from studiorum.core.models.document_metadata import (
 from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGenerator
 from studiorum.core.types import LaTeXConfig
 from studiorum.renderers.base import DocumentRenderer, RenderingError
-from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.context import RenderingContext
 
 from ..config.compilation import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler

@@ -13,7 +13,7 @@ from studiorum.core.models.chapter import Chapter  # type: ignore
 from studiorum.core.models.content import Source  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
-from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from studiorum.renderers.context import RenderingContext  # type: ignore
 
 
 def compile_document_to_pdf_sync(renderer, documents, context):

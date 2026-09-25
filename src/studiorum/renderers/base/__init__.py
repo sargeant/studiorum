@@ -1,6 +1,6 @@
 """Base renderer interfaces and abstract classes."""
 
-from ..core.interfaces import RenderingContext
+from ..context import RenderingContext
 from .content import ContentRenderer
 from .document import DocumentRenderer
 from .renderer import BaseRenderer, RenderingError
