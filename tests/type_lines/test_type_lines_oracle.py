@@ -16,6 +16,10 @@ from typing import Any
 import orjson
 import pytest
 
+from studiorum.core.compact import compact_entries
+from studiorum.core.loaders.data_dir import DataDir, DataSet
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content_models import PROP_TYPES
 from studiorum.core.text.prerequisites import prerequisite_entry
 
 FIVETOOLS = Path(
@@ -61,3 +65,37 @@ def test_every_prerequisite_matches_5etools(oracle: dict[str, Any]) -> None:
     assert not different, (
         f"{len(different)} of {len(cases)} differ, e.g. {different[:3]}"
     )
+
+
+@pytest.fixture(scope="module")
+def omnidexer() -> Omnidexer:
+    loaded = Omnidexer(DataSet((DataDir(FIVETOOLS / "data"),)))
+    loaded.load_all_data()
+    return loaded
+
+
+def _differences(
+    oracle: dict[str, Any], omnidexer: Omnidexer, prop: str
+) -> tuple[int, list[tuple[str, Any, Any]]]:
+    content_type = PROP_TYPES[prop]
+    cases = oracle["compact"][prop]
+    different = []
+    for case in cases:
+        found = [
+            f
+            for f in omnidexer.find_all(content_type, case["name"])
+            if f.source.abbreviation == case["source"]
+        ]
+        ours = [compact_entries(f, omnidexer) for f in found]
+        if case["entries"] not in ours:
+            different.append((case["name"], case["entries"], ours))
+    return len(cases), different
+
+
+@pytest.mark.parametrize("prop", ["trap", "hazard"])
+def test_type_lines_match_5etools(
+    oracle: dict[str, Any], omnidexer: Omnidexer, prop: str
+) -> None:
+    count, different = _differences(oracle, omnidexer, prop)
+    assert count
+    assert not different, f"{len(different)} of {count} differ, e.g. {different[:2]}"

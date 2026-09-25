@@ -2,8 +2,9 @@
 // oracle for core/text/prerequisites.py and the type lines in core/compact.py.
 //
 // Usage: node lines.mjs <5etools root> > result.json
-// Prints {"prerequisites": [...]}: every prerequisite in the data, in the
-// classic and one styles.
+// Prints {"prerequisites": [...], "compact": {...}}: every prerequisite in the
+// data in the classic and one styles, and for each type what 5etools shows in
+// classic style, assembled as the list of entries core/compact.py builds.
 import fs from "fs";
 import path from "path";
 
@@ -43,4 +44,25 @@ for (const [prop, file] of Object.entries(FILES)) {
 	}
 }
 
-process.stdout.write(JSON.stringify({prerequisites}));
+const STYLE = {styleHint: "classic"};
+const italic = text => text ? [`{@i ${text}}`] : [];
+
+const BUILDERS = {
+	trap: ["trapshazards.json", ent => {
+		const meta = Renderer.trap.getTrapRenderableEntriesMeta(ent, STYLE);
+		const entries = ent.entries || [];
+		const body = Renderer.trap.TRAP_TYPES_CLASSIC.includes(ent.trapHazType)
+			? [...(meta.entriesHeader || []), ...entries]
+			: [...entries, ...(meta.entriesAttributes || [])];
+		return [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...body];
+	}],
+	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
+};
+
+const compact = {};
+for (const [prop, [file, build]] of Object.entries(BUILDERS)) {
+	compact[prop] = ((await load(file))[prop] || [])
+		.map(ent => ({name: ent.name, source: ent.source, entries: build(MiscUtil.copyFast(ent))}));
+}
+
+process.stdout.write(JSON.stringify({prerequisites, compact}));

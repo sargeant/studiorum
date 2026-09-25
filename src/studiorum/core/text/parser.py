@@ -1,10 +1,11 @@
-"""5etools' abbreviations in full, ported from ``Parser`` in ``js/parser.js``."""
+"""5etools' abbreviations in full, ported from ``Parser`` in ``js/parser.js``
+and a few ``Renderer`` helpers that only format text."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from .strings import ordinal
+from .strings import join_conjunct, ordinal
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 ABILITY_NAMES = {
@@ -175,3 +176,46 @@ def feat_category(category: str) -> str:
     """A feat's category as ``Renderer.feat.getJoinedCategoryPrerequisites`` names it."""
     full = FEAT_CATEGORIES.get(category, category)
     return full if category in ("FS:P", "FS:R") else f"{full} Feat"
+
+
+_END_TYPES = {"dispel": "dispelled", "trigger": "triggered", "discharge": "discharged"}
+
+
+def duration_entry(durations: list[Any], *, style: str = "classic") -> str:
+    """``Renderer.generic.getRenderableDurationEntriesMeta``: "Up to 1 minute"."""
+    status = "" if style == "classic" else "|XPHB"
+    sub_or = False
+    parts = []
+    for duration in durations:
+        condition = f" ({duration['condition']})" if duration.get("condition") else ""
+        concentration = duration.get("concentration")
+        match duration.get("type"):
+            case "special" if concentration:
+                parts.append(f"{{@status Concentration{status}}}")
+            case "special":
+                parts.append(f"Special{condition}")
+            case "instant":
+                parts.append(f"Instantaneous{condition}")
+            case "timed":
+                amount = duration["duration"]["amount"]
+                unit = duration["duration"]["type"]
+                up_to = duration["duration"].get("upTo")
+                prefix = (
+                    f"{{@status Concentration{status}}}, u"
+                    if concentration
+                    else "U"
+                    if up_to
+                    else ""
+                )
+                prefix += "p to " if concentration or up_to else ""
+                parts.append(
+                    f"{prefix}{amount} {unit if amount == 1 else unit + 's'}{condition}"
+                )
+            case "permanent" if duration.get("ends"):
+                ends = [_END_TYPES.get(e, str(e)) for e in duration["ends"]]
+                sub_or = sub_or or len(ends) > 1
+                parts.append(f"Until {join_conjunct(ends, ', ', ' or ')}{condition}")
+            case "permanent":
+                parts.append(f"Permanent{condition}")
+    joined = join_conjunct(parts, "; " if sub_or else ", ", " or ")
+    return joined + (" (see below)" if len(durations) > 1 else "")

@@ -15,9 +15,12 @@ from typing import TYPE_CHECKING, Any
 from .class_entries import class_entries, subclass_entries
 from .models.classes import Class
 from .models.recipes import Recipe
+from .models.rule_types import Hazard
 from .models.subclasses import Subclass
 from .models.table import Table, TableGroup
+from .models.traps import Trap
 from .text.properties import apply_properties
+from .type_lines import hazard_entries, trap_entries
 
 if TYPE_CHECKING:
     from .loaders.omnidexer import Omnidexer
@@ -110,4 +113,6 @@ _BUILDERS: tuple[
     (Recipe, _recipe),
     (Class, class_entries),
     (Subclass, subclass_entries),
+    (Trap, trap_entries),
+    (Hazard, hazard_entries),
 )
