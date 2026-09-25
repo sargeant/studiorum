@@ -145,3 +145,18 @@ def number_to_text(number: int) -> str:
 def article(word: str) -> str:
     """``Parser.getArticle``."""
     return "an" if re.match(r"^[aeiou]", word, re.IGNORECASE) else "a"
+
+
+_PLURAL_ES = re.compile(r"(s|x|z|ch|sh)$", re.IGNORECASE)
+_PLURAL_IES = re.compile(r"[bcdfghjklmnpqrstvwxyz]y$", re.IGNORECASE)
+
+
+def to_plural(word: str) -> str:
+    """``StrUtil.toPlural`` for regular words, keeping the word's case."""
+    if _PLURAL_ES.search(word):
+        plural = f"{word}es"
+    elif _PLURAL_IES.search(word):
+        plural = f"{word[:-1]}ies"
+    else:
+        plural = f"{word}s"
+    return plural.upper() if word.isupper() and len(word) > 1 else plural

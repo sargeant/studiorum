@@ -62,6 +62,16 @@ const BUILDERS = {
 		return [...italic(joined), ...(repeatable ? [repeatable] : []), ...Renderer.feat.getFeatRendereableEntriesMeta(ent).entryMain.entries];
 	}],
 	deity: ["deities.json", ent => [...Renderer.deity.getDeityRenderableEntriesMeta(ent).entriesAttributes, ...(ent.entries || [])]],
+	optionalfeature: ["optionalfeatures.json", ent => [
+		...italic(Renderer.utils.prerequisite.getEntry(ent.prerequisite, STYLE)),
+		...[Renderer.optionalfeature.getCostEntry(ent)].filter(Boolean),
+		...(ent.entries || []),
+		Renderer.optionalfeature.getTypeEntry(ent),
+	]],
+	facility: ["bastions.json", ent => {
+		const meta = Renderer.facility.getFacilityRenderableEntriesMeta(ent);
+		return [...(meta.entryLevel ? [meta.entryLevel] : []), ...meta.entriesDescription];
+	}],
 	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
 };
 

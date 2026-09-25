@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 from .text.parser import (
     ABILITY_NAMES,
+    OPT_FEATURE_TYPES,
     TRAP_HAZARD_TYPES,
     TRAP_INITIATIVES,
     alignment_abv_to_full,
@@ -22,7 +23,7 @@ from .text.parser import (
     tier_to_full_level,
 )
 from .text.prerequisites import prerequisite_entry
-from .text.strings import join_conjunct, title_case
+from .text.strings import common_prefix, join_conjunct, title_case, to_plural
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -271,3 +272,115 @@ def deity_heading(content: BaseModel, name: str) -> str:
     """5etools names a deity with its title: "Paladine, the Valiant Warrior"."""
     title = raw(content).get("title")
     return f"{name}, {title_case(title)}" if title else name
+
+
+def optional_feature_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.optionalfeature``: prerequisite and cost, entries, then its type."""
+    data = raw(content)
+    prerequisite = prerequisite_entry(data.get("prerequisite"), style=STYLE)
+    return [
+        *([f"{{@i {prerequisite}}}"] if prerequisite else []),
+        *_cost(data.get("consumes") or {}),
+        *(data.get("entries") or []),
+        f"{{@note Type: {_feature_type(data.get('featureType') or [])}}}",
+    ]
+
+
+def _cost(consumes: Raw) -> list[str]:
+    """``getCostEntry``: "Cost: 2 Sorcery Points"."""
+    if not consumes.get("name"):
+        return []
+    words = [w for w in consumes["name"].split(" ") if w]
+    most = consumes.get("amountMax", consumes.get("amount"))
+    if most is not None and most != 1:
+        words[-1] = to_plural(words[-1])
+    unit = " ".join(words)
+    if consumes.get("amountMin") is not None and consumes.get("amountMax") is not None:
+        return [
+            f"{{@i Cost: {consumes['amountMin']}\u2013{consumes['amountMax']} {unit}}}"
+        ]
+    return [f"{{@i Cost: {consumes.get('amount', 1)} {unit}}}"]
+
+
+def _feature_type(types: list[str]) -> str:
+    """``getTypeText``: "Fighting Style; Fighter/Paladin"."""
+    names = [OPT_FEATURE_TYPES.get(t, t) for t in types]
+    prefix = common_prefix(names) if len(names) > 1 else ""
+    rest = "/".join(n[len(prefix) :] for n in names)
+    return " ".join(t for t in (prefix.strip(), rest) if t)
+
+
+_SPACE_SQUARES = {"cramped": 4, "roomy": 16, "vast": 36}
+_SPACE_COST_DAYS = {"cramped": (500, 20), "roomy": (1000, 45), "vast": (3000, 125)}
+_SPACES = ("cramped", "roomy", "vast")
+
+
+def facility_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.facility``: level, prerequisite, space, hirelings, orders, entries."""
+    data = raw(content)
+    items: list[Raw] = []
+    if data.get("prerequisite"):
+        # 5etools writes a facility's prerequisite in the 2024 style
+        text = prerequisite_entry(data["prerequisite"], style="one", skip_prefix=True)
+        items.append({"type": "item", "name": "Prerequisite:", "entry": text})
+    elif data.get("facilityType") != "basic":
+        items.append({"type": "item", "name": "Prerequisite:", "entry": "None"})
+    basic = data.get("facilityType") == "basic"
+    if space := join_conjunct(
+        [_space(s, basic=basic) for s in data.get("space") or []], ", ", " or "
+    ):
+        items.append({"type": "item", "name": "Space:", "entry": space})
+    if hirelings := _hirelings(data.get("hirelings") or []):
+        items.append({"type": "item", "name": "Hirelings:", "entry": hirelings})
+    if orders := data.get("orders"):
+        text = join_conjunct([title_case(o) for o in orders], ", ", " or ")
+        name = "Order:" if len(orders) == 1 else "Orders:"
+        items.append({"type": "item", "name": name, "entry": text})
+    level = (
+        [f"{{@i Level {data['level']} Bastion Facility}}"] if data.get("level") else []
+    )
+    listed = (
+        [{"type": "list", "style": "list-hang-notitle", "items": items}]
+        if items
+        else []
+    )
+    return [*level, *listed, *(data.get("entries") or [])]
+
+
+def _space(space: str, *, basic: bool) -> str:
+    squares = _SPACE_SQUARES.get(space)
+    parts = [f"{{@tip {squares} sq|{squares} squares}}"] if squares else []
+    if basic and space in _SPACE_COST_DAYS:
+        cost, days = _SPACE_COST_DAYS[space]
+        text = f"{cost} GP, {days} days"
+        tip = f"{cost} GP and {days} days to add"
+        index = _SPACES.index(space)
+        if index:
+            smaller = _SPACES[index - 1]
+            less_cost, less_days = _SPACE_COST_DAYS[smaller]
+            tip += (
+                f", or, {cost - less_cost} GP and {days - less_days} days to expand "
+                f"from a {title_case(smaller)} facility"
+            )
+        parts.append(f"{{@tip {text}|{tip}}}")
+    if not parts:
+        return title_case(space)
+    # 5etools joins a note that starts with a space with a space
+    return f"{title_case(space)}  {{@style [{'; '.join(parts)}]|muted;small}}"
+
+
+def _hirelings(hirelings: list[Raw]) -> str:
+    parts = []
+    for hire in hirelings:
+        space = (
+            f" {{@style ({title_case(hire['space'])})|muted}}"
+            if hire.get("space")
+            else ""
+        )
+        if hire.get("exact") is not None:
+            parts.append(f"{hire['exact']}{space}")
+        elif hire.get("min") is not None and hire.get("max") is not None:
+            parts.append(f"{hire['min']}\u2013{hire['max']}{space}")
+        elif hire.get("min") is not None:
+            parts.append(f"{hire['min']}+ (see below{';' if space else ''}{space})")
+    return join_conjunct(parts, ", ", " or ")

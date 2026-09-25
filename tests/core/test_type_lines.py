@@ -2,7 +2,9 @@
 
 from studiorum.core.compact import compact_entries, compact_heading
 from studiorum.core.models.deities import Deity
+from studiorum.core.models.facilities import Facility
 from studiorum.core.models.feats import Feat
+from studiorum.core.models.optional_features import OptionalFeature
 from studiorum.core.models.rule_types import Hazard
 from studiorum.core.models.traps import Trap
 
@@ -118,3 +120,61 @@ def test_a_deity_has_labelled_lines_in_order_and_its_title_in_the_heading() -> N
         "{@b Symbol:} Silver triangle",
     ]
     assert compact_heading(deity, "Paladine") == "Paladine, The Valiant Warrior"
+
+
+def test_an_optional_feature_has_its_cost_and_type() -> None:
+    feature = OptionalFeature.model_validate(
+        {
+            "name": "Twinned Spell",
+            "source": "PHB",
+            "featureType": ["MM"],
+            "consumes": {"name": "Sorcery Point", "amountMin": 1, "amountMax": 9},
+            "entries": ["A second target."],
+        }
+    )
+
+    assert compact_entries(feature, None) == [
+        "{@i Cost: 1–9 Sorcery Points}",
+        "A second target.",
+        "{@note Type: Metamagic}",
+    ]
+
+
+def test_a_facility_lists_its_prerequisite_space_hirelings_and_orders() -> None:
+    facility = Facility.model_validate(
+        {
+            "name": "Arcane Study",
+            "source": "XDMG",
+            "facilityType": "special",
+            "level": 5,
+            "prerequisite": [{"spellcastingFocus": ["arcane"]}],
+            "space": ["roomy"],
+            "hirelings": [{"exact": 1}],
+            "orders": ["craft"],
+            "entries": ["Books."],
+        }
+    )
+
+    assert compact_entries(facility, None) == [
+        "{@i Level 5 Bastion Facility}",
+        {
+            "type": "list",
+            "style": "list-hang-notitle",
+            "items": [
+                {
+                    "type": "item",
+                    "name": "Prerequisite:",
+                    "entry": "Ability to use an {@item Arcane Focus|XPHB} as a "
+                    "{@variantrule Spellcasting Focus|XPHB}",
+                },
+                {
+                    "type": "item",
+                    "name": "Space:",
+                    "entry": "Roomy  {@style [{@tip 16 sq|16 squares}]|muted;small}",
+                },
+                {"type": "item", "name": "Hirelings:", "entry": "1"},
+                {"type": "item", "name": "Order:", "entry": "Craft"},
+            ],
+        },
+        "Books.",
+    ]

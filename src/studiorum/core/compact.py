@@ -15,7 +15,9 @@ from typing import TYPE_CHECKING, Any
 from .class_entries import class_entries, subclass_entries
 from .models.classes import Class
 from .models.deities import Deity
+from .models.facilities import Facility
 from .models.feats import Feat
+from .models.optional_features import OptionalFeature
 from .models.recipes import Recipe
 from .models.rule_types import Hazard
 from .models.subclasses import Subclass
@@ -25,8 +27,10 @@ from .text.properties import apply_properties
 from .type_lines import (
     deity_entries,
     deity_heading,
+    facility_entries,
     feat_entries,
     hazard_entries,
+    optional_feature_entries,
     trap_entries,
 )
 
@@ -130,4 +134,6 @@ _BUILDERS: tuple[
     (Hazard, hazard_entries),
     (Feat, feat_entries),
     (Deity, deity_entries),
+    (OptionalFeature, optional_feature_entries),
+    (Facility, facility_entries),
 )
