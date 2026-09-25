@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
+from studiorum.core.compact import compact_entries
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.loaders.magic_variants import generic_item
 from studiorum.core.logging import get_logger
@@ -516,7 +517,7 @@ class EntryRenderer:
         if content_type in FLUFF_TYPES:
             return self._fluff(entry, found)
         inset = entry.get("style", "") == "inset"
-        entries = found.model_dump().get("entries") or []
+        entries = compact_entries(found, self.omnidexer)
         if not entries:
             return self.text(name) if inset else self._heading(self._depth, name)
         body = "\n\n".join(self.entries(entries))
