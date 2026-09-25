@@ -34,7 +34,7 @@ def test_chapters_pair_with_sections_by_position() -> None:
         {
             "name": "Intro",
             "entries": ["Hello."],
-            "ordinal": {"type": "section", "identifier": "001"},
+            "id": "001",
         },
         {
             "name": "Lore",
@@ -65,7 +65,7 @@ def test_no_text_leaves_empty_chapters() -> None:
     assert [c["entries"] for c in merged["contents"]] == [[], [], []]
 
 
-def test_books_take_their_chapters_from_the_text() -> None:
+def test_books_pair_their_contents_with_the_text() -> None:
     book = {
         "name": "B",
         "id": "B",
@@ -73,9 +73,17 @@ def test_books_take_their_chapters_from_the_text() -> None:
         "author": "Someone",
         "published": "2020-01-01",
         "group": "setting",
-        "contents": [{"name": "Ignored header"}],
+        "contents": [
+            {"name": "One", "ordinal": {"type": "chapter", "identifier": 1}},
+            {"name": "Extra"},
+        ],
     }
-    text = {"data": [_section("One", "First.", page=3), _section("Two", "Second.")]}
+    text = {
+        "data": [
+            _section("Chapter 1: One", "First.", id="000"),
+            {"type": "entries", "name": "Extra", "entries": ["More."]},
+        ]
+    }
 
     merged = merge_metadata_content(book, text)
 
@@ -86,7 +94,15 @@ def test_books_take_their_chapters_from_the_text() -> None:
         "published": "2020-01-01",
         "group": "setting",
         "contents": [
-            {"name": "One", "entries": ["First."], "page": 3},
-            {"name": "Two", "entries": ["Second."]},
+            {
+                "name": "One",
+                "ordinal": {"type": "chapter", "identifier": 1},
+                "entries": ["First."],
+                "id": "000",
+            },
+            {
+                "name": "Extra",
+                "entries": [{"type": "entries", "name": "Extra", "entries": ["More."]}],
+            },
         ],
     }

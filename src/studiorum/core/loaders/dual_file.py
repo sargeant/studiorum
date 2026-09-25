@@ -19,13 +19,27 @@ def merge_metadata_content(
     sections = (content or {}).get("data")
     if not isinstance(sections, list):
         return _metadata_only(metadata)
+    contents = _chapters(metadata, sections)
     if _is_book(metadata):
-        return _merge_book(metadata, sections)
+        book: dict[str, Any] = {
+            "name": metadata.get("name", "Unknown Book"),
+            "source": metadata.get("source", "Unknown"),
+            "id": metadata.get("id", "unknown"),
+        }
+        book.update({k: metadata[k] for k in _BOOK_KEYS if k in metadata})
+        return {**book, "contents": contents}
+    return {**metadata, "contents": contents}
 
+
+def _chapters(metadata: dict[str, Any], sections: list[Any]) -> list[dict[str, Any]]:
+    """Each table of contents entry with its section's entries and id.
+
+    5etools pairs contents[i] with data[i]; when the counts differ the text's
+    own names are used.
+    """
     chapters = [c for c in metadata.get("contents", []) if isinstance(c, dict)]
     if len(chapters) != len(sections):
         chapters = [{} for _ in sections]
-    # 5etools pairs contents[i] with data[i]; the text's own name is the fallback
     merged_contents = []
     for chapter, section in zip(chapters, sections, strict=True):
         if not isinstance(section, dict):
@@ -38,10 +52,9 @@ def merge_metadata_content(
             else [section]
         )
         if "id" in section:
-            merged["ordinal"] = {"type": "section", "identifier": section["id"]}
+            merged["id"] = section["id"]
         merged_contents.append(merged)
-
-    return {**metadata, "contents": merged_contents}
+    return merged_contents
 
 
 def _metadata_only(metadata: dict[str, Any]) -> dict[str, Any]:
@@ -58,27 +71,3 @@ def _is_book(metadata: dict[str, Any]) -> bool:
     if "level" in metadata or "storyline" in metadata:
         return False
     return bool(metadata.get("contents")) and "author" in metadata
-
-
-def _merge_book(metadata: dict[str, Any], sections: list[Any]) -> dict[str, Any]:
-    """Books take their chapters straight from the content file's sections."""
-    book: dict[str, Any] = {
-        "name": metadata.get("name", "Unknown Book"),
-        "source": metadata.get("source", "Unknown"),
-        "id": metadata.get("id", "unknown"),
-    }
-    book.update({k: metadata[k] for k in _BOOK_KEYS if k in metadata})
-    chapters = []
-    for section in sections:
-        if isinstance(section, dict) and section.get("type") == "section":
-            chapter: dict[str, Any] = {
-                "name": section.get("name", "Unnamed Chapter"),
-                "entries": section.get("entries", []),
-            }
-            if "id" in section:
-                chapter["ordinal"] = {"type": "section", "identifier": section["id"]}
-            if "page" in section:
-                chapter["page"] = section["page"]
-            chapters.append(chapter)
-    book["contents"] = chapters
-    return book

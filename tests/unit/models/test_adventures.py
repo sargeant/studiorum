@@ -191,8 +191,7 @@ class TestAdventure:
         assert adventure.source.abbreviation == "UNK"  # Default source
         assert len(adventure.contents) == 2
         assert adventure.contents[0].name == "Chapter 1: The Beginning"
-        assert adventure.contents[0].ordinal is not None
-        assert adventure.contents[0].ordinal["identifier"] == "ch1"
+        assert adventure.contents[0].id == "ch1"
         assert len(adventure.contents[0].entries) == 2
 
     def test_adventure_from_metadata_only_structure(self) -> None:

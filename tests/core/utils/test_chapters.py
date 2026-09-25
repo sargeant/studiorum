@@ -5,8 +5,9 @@ import pytest
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.chapter import Chapter
 from studiorum.core.utils.chapters import (
-    extract_chapter_number,
+    chapter_number,
     filter_adventure_chapters,
+    numbered_kind,
     parse_chapter_spec,
 )
 
@@ -49,48 +50,36 @@ class TestParseChapterSpec:
             parse_chapter_spec("")
 
 
-class TestExtractChapterNumber:
-    """Tests for chapter number extraction."""
+def _ch(name: str, kind: str | None = None, identifier: object = None) -> Chapter:
+    ordinal = {"type": kind, "identifier": identifier} if kind else None
+    return Chapter(name=name, ordinal=ordinal, entries=[name])
 
-    def test_extract_from_ordinal_chapter(self):
-        chapter = Chapter(
-            name="Chapter 5: Title",
-            ordinal={"type": "chapter", "identifier": "5"},
-            entries=[],
-        )
-        assert extract_chapter_number(chapter) == 5
 
-    def test_extract_from_name_standard(self):
-        chapter = Chapter(name="Chapter 5: Title", entries=[])
-        assert extract_chapter_number(chapter) == 5
+def _adventure(*chapters: Chapter) -> Adventure:
+    from studiorum.core.models.content import Source
 
-    def test_extract_from_name_ch_with_dot(self):
-        chapter = Chapter(name="Ch. 5: Title", entries=[])
-        assert extract_chapter_number(chapter) == 5
+    return Adventure(
+        name="Test Adventure",
+        source=Source(abbreviation="TEST", name="Test Source"),
+        contents=list(chapters),
+    )
 
-    def test_extract_from_name_ch_without_dot(self):
-        chapter = Chapter(name="Ch 5: Title", entries=[])
-        assert extract_chapter_number(chapter) == 5
 
-    def test_extract_case_insensitive(self):
-        chapter = Chapter(name="CHAPTER 5: Title", entries=[])
-        assert extract_chapter_number(chapter) == 5
+class TestNumberedKind:
+    def test_the_kind_used_most(self):
+        chapters = [_ch("Orrery", "chapter", 1)] + [
+            _ch(f"Episode {i}", "episode", i) for i in (1, 2)
+        ]
+        assert numbered_kind(chapters) == "episode"
 
-    def test_extract_introduction(self):
-        chapter = Chapter(name="Introduction", entries=[])
-        assert extract_chapter_number(chapter) is None
+    def test_appendices_are_not_numbered(self):
+        assert numbered_kind([_ch("Intro"), _ch("Lore", "appendix", "A")]) is None
 
-    def test_extract_appendix(self):
-        chapter = Chapter(name="Appendix A: Creatures", entries=[])
-        assert extract_chapter_number(chapter) is None
-
-    def test_ordinal_section_ignored(self):
-        chapter = Chapter(
-            name="Introduction",
-            ordinal={"type": "section", "identifier": "000"},
-            entries=[],
-        )
-        assert extract_chapter_number(chapter) is None
+    def test_chapter_number_reads_identifiers(self):
+        assert chapter_number(_ch("A", "part", 2), "part") == 2
+        assert chapter_number(_ch("A", "part", "3"), "part") == 3
+        assert chapter_number(_ch("A", "part", 2), "chapter") is None
+        assert chapter_number(_ch("A"), "chapter") is None
 
 
 class TestFilterAdventureChapters:
@@ -98,41 +87,29 @@ class TestFilterAdventureChapters:
 
     @pytest.fixture
     def mock_adventure(self):
-        from studiorum.core.models.content import Source
-
-        chapters = [
-            Chapter(name="Introduction", entries=["intro"]),
-            Chapter(name="Chapter 1: First", entries=["ch1"]),
-            Chapter(name="Chapter 2: Second", entries=["ch2"]),
-            Chapter(name="Chapter 5: Fifth", entries=["ch5"]),
-            Chapter(name="Appendix A: Creatures", entries=["appa"]),
-        ]
-        return Adventure(
-            name="Test Adventure",
-            source=Source(abbreviation="TEST", name="Test Source"),
-            contents=chapters,
+        return _adventure(
+            _ch("Introduction"),
+            _ch("First", "chapter", 1),
+            _ch("Second", "chapter", 2),
+            _ch("Fifth", "chapter", 5),
+            _ch("Creatures", "appendix", "A"),
         )
 
     def test_filter_single_chapter(self, mock_adventure):
         filtered, warnings = filter_adventure_chapters(mock_adventure, [5])
-        assert len(filtered.contents) == 1
-        assert filtered.contents[0].name == "Chapter 5: Fifth"
+        assert [c.name for c in filtered.contents] == ["Fifth"]
         assert not warnings
 
     def test_filter_multiple_chapters(self, mock_adventure):
         filtered, warnings = filter_adventure_chapters(mock_adventure, [1, 2])
-        assert len(filtered.contents) == 2
-        assert filtered.contents[0].name == "Chapter 1: First"
-        assert filtered.contents[1].name == "Chapter 2: Second"
+        assert [c.name for c in filtered.contents] == ["First", "Second"]
         assert not warnings
 
     def test_filter_with_introduction(self, mock_adventure):
-        filtered, warnings = filter_adventure_chapters(
+        filtered, _ = filter_adventure_chapters(
             mock_adventure, [5], include_introduction=True
         )
-        assert len(filtered.contents) == 2
-        assert filtered.contents[0].name == "Introduction"
-        assert filtered.contents[1].name == "Chapter 5: Fifth"
+        assert [c.name for c in filtered.contents] == ["Introduction", "Fifth"]
 
     def test_filter_missing_chapters_warns(self, mock_adventure):
         filtered, warnings = filter_adventure_chapters(mock_adventure, [1, 3, 5])
@@ -144,94 +121,53 @@ class TestFilterAdventureChapters:
         with pytest.raises(ValueError, match="No chapters found matching"):
             filter_adventure_chapters(mock_adventure, [99])
 
-    def test_chapter_number_map_stored(self, mock_adventure):
-        filtered, _ = filter_adventure_chapters(mock_adventure, [1, 5])
-
-        chapter_map = filtered.metadata.custom_fields["chapter_number_map"]
-        assert chapter_map == {0: 1, 1: 5}
+    def test_filtered_chapters_keep_their_ordinals(self, mock_adventure):
+        filtered, _ = filter_adventure_chapters(mock_adventure, [5])
+        assert filtered.contents[0].label == "Chapter 5"
 
     def test_preserves_content(self, mock_adventure):
         filtered, _ = filter_adventure_chapters(mock_adventure, [1])
-        assert filtered.contents[0].entries == ["ch1"]
+        assert filtered.contents[0].entries == ["First"]
 
     def test_chapter_order_by_index(self, mock_adventure):
         filtered, _ = filter_adventure_chapters(mock_adventure, [5, 1])
-        assert filtered.contents[0].name == "Chapter 1: First"
-        assert filtered.contents[1].name == "Chapter 5: Fifth"
+        assert [c.name for c in filtered.contents] == ["First", "Fifth"]
 
-    def test_creates_metadata_if_missing(self):
-        from studiorum.core.models.content import Source
-
-        adventure_no_metadata = Adventure(
-            name="Test",
-            source=Source(abbreviation="TEST", name="Test Source"),
-            contents=[Chapter(name="Chapter 1: Test", entries=["test"])],
+    def test_episodes_are_numbered_when_most_common(self):
+        adventure = _adventure(
+            _ch("Orrery", "chapter", 1),
+            _ch("Right Place", "episode", 1),
+            _ch("Fun in Phandalin", "episode", 2),
+            _ch("Credits"),
         )
-        filtered, _ = filter_adventure_chapters(adventure_no_metadata, [1])
-
-        assert filtered.metadata is not None
-        assert "chapter_number_map" in filtered.metadata.custom_fields
+        filtered, _ = filter_adventure_chapters(adventure, [2])
+        assert [c.name for c in filtered.contents] == ["Fun in Phandalin"]
 
 
 class TestPositionalChapterFallback:
-    """Tests for positional numbering fallback on anthology adventures."""
+    """Adventures with no numbered chapters are numbered by position."""
 
     @pytest.fixture
     def anthology_adventure(self):
-        """Adventure whose chapters have no detectable chapter numbers."""
-        from studiorum.core.models.content import Source
-
-        chapters = [
-            Chapter(name="Introduction", entries=["intro"]),
-            Chapter(name="First Story", entries=["story1"]),
-            Chapter(name="Second Story", entries=["story2"]),
-            Chapter(name="Third Story", entries=["story3"]),
-            Chapter(name="Fourth Story", entries=["story4"]),
-        ]
-        return Adventure(
-            name="Test Anthology",
-            source=Source(abbreviation="TEST", name="Test"),
-            contents=chapters,
+        return _adventure(
+            _ch("First Story"),
+            _ch("Second Story"),
+            _ch("Third Story"),
+            _ch("Creatures", "appendix", "A"),
         )
 
     def test_positional_fallback_selects_nth_chapter(self, anthology_adventure):
-        filtered, warnings = filter_adventure_chapters(anthology_adventure, [4])
-        assert len(filtered.contents) == 1
-        assert filtered.contents[0].name == "Fourth Story"
+        filtered, warnings = filter_adventure_chapters(anthology_adventure, [2])
+        assert [c.name for c in filtered.contents] == ["Second Story"]
         assert any("positional numbering" in w for w in warnings)
-
-    def test_positional_fallback_skips_introduction(self, anthology_adventure):
-        # Position 1 maps to the first non-introduction chapter, not the intro
-        filtered, _ = filter_adventure_chapters(anthology_adventure, [1])
-        assert filtered.contents[0].name == "First Story"
-
-    def test_positional_fallback_with_introduction_flag(self, anthology_adventure):
-        filtered, _ = filter_adventure_chapters(
-            anthology_adventure, [4], include_introduction=True
-        )
-        assert [c.name for c in filtered.contents] == [
-            "Introduction",
-            "Fourth Story",
-        ]
 
     def test_positional_fallback_out_of_range_raises(self, anthology_adventure):
         with pytest.raises(ValueError, match="No chapters found matching"):
             filter_adventure_chapters(anthology_adventure, [99])
 
     def test_positional_fallback_not_used_for_numbered_mix(self):
-        """If any chapter has a real number, fallback must not engage."""
-        from studiorum.core.models.content import Source
-
-        adventure = Adventure(
-            name="Mixed",
-            source=Source(abbreviation="TEST", name="Test"),
-            contents=[
-                Chapter(name="Foreword", entries=["fw"]),
-                Chapter(name="Chapter 1: Real", entries=["c1"]),
-                Chapter(name="Side Story", entries=["ss"]),
-            ],
+        adventure = _adventure(
+            _ch("Foreword"), _ch("Real", "chapter", 1), _ch("Side Story")
         )
-        # Position 2 would point at "Side Story" under positional rules,
-        # but with a real Chapter 1 present we keep strict numbered semantics.
         with pytest.raises(ValueError, match="No chapters found matching"):
             filter_adventure_chapters(adventure, [2])

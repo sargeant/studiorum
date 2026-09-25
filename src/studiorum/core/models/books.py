@@ -222,8 +222,8 @@ class Book(BaseContent):
 
             # Create parser for this chapter
             chapter_name = chapter.name
-            if chapter.get_chapter_number():
-                chapter_name = f"{chapter.get_chapter_number()}: {chapter.name}"
+            if chapter.label:
+                chapter_name = f"{chapter.label}: {chapter.name}"
 
             parser = EntryParser(
                 source=self.source, parent_name=f"{self.name} > {chapter_name}"

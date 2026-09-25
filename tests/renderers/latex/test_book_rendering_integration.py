@@ -500,7 +500,7 @@ class TestBookRenderingEntryProcessing:
         assert len(result) > 200
 
         # Should contain chapter and section structure
-        assert "\\chapter{Rich Content Chapter}" in result
+        assert "\\chapter*{Rich Content Chapter}" in result
         assert "\\subsection{Nested Section}" in result
         # Note: Text content currently shows as placeholder until entry processing is fully implemented
 

@@ -10,13 +10,13 @@
       "level": {"start": 1, "end": 5},
       "contents": [
         {
-          "name": "Chapter 1: The Beginning",
+          "name": "The Beginning",
           "ordinal": {"type": "chapter", "identifier": 1},
           "headers": ["The Village", "The Quest", "The Journey"],
           "entries": []
         },
         {
-          "name": "Chapter 2: The Repository",
+          "name": "The Repository",
           "ordinal": {"type": "chapter", "identifier": 2},
           "headers": ["Approaching the Repository", "Interior Chambers", "The Core"],
           "entries": []
