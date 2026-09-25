@@ -632,3 +632,10 @@ def _choose_from(choose: Raw, fixed: list[str]) -> str:
         names = join_conjunct([ABILITY_NAMES[a] for a in choices], ", ", " or ")
         parts.append(f"{names} {amount}")
     return "Choose " + " ".join(parts)
+
+
+def background_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.generic``: the prerequisite, then entries."""
+    data = raw(content)
+    prerequisite = prerequisite_entry(data.get("prerequisite"), style=STYLE)
+    return [*([prerequisite] if prerequisite else []), *(data.get("entries") or [])]

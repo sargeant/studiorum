@@ -85,6 +85,10 @@ const BUILDERS = {
 			...(ent.actionEntries || []),
 		];
 	}],
+	background: ["backgrounds.json", ent => {
+		const prerequisite = Renderer.utils.prerequisite.getEntry(ent.prerequisite, STYLE);
+		return [...(prerequisite ? [prerequisite] : []), ...(ent.entries || [])];
+	}],
 	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
 };
 

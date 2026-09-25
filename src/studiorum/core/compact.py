@@ -13,6 +13,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from .class_entries import class_entries, subclass_entries
+from .models.backgrounds import Background
 from .models.classes import Class
 from .models.deities import Deity
 from .models.facilities import Facility
@@ -27,6 +28,7 @@ from .models.table import Table, TableGroup
 from .models.traps import Trap
 from .text.properties import apply_properties
 from .type_lines import (
+    background_entries,
     deity_entries,
     deity_heading,
     facility_entries,
@@ -142,4 +144,5 @@ _BUILDERS: tuple[
     (Facility, facility_entries),
     (Object, object_entries),
     (Race, race_entries),
+    (Background, background_entries),
 )

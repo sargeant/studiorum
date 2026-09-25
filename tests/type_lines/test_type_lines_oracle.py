@@ -92,22 +92,25 @@ def _differences(
     return len(cases), different
 
 
-@pytest.mark.parametrize(
-    "prop",
-    [
-        "trap",
-        "hazard",
-        "feat",
-        "deity",
-        "optionalfeature",
-        "facility",
-        "object",
-        "race",
-    ],
-)
+# Every type the oracle builds
+PROPS = [
+    "trap",
+    "hazard",
+    "feat",
+    "deity",
+    "optionalfeature",
+    "facility",
+    "object",
+    "race",
+    "background",
+]
+
+
+@pytest.mark.parametrize("prop", PROPS)
 def test_type_lines_match_5etools(
     oracle: dict[str, Any], omnidexer: Omnidexer, prop: str
 ) -> None:
     count, different = _differences(oracle, omnidexer, prop)
+    assert sorted(oracle["compact"]) == sorted(PROPS)
     assert count
     assert not different, f"{len(different)} of {count} differ, e.g. {different[:2]}"

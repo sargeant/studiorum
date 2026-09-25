@@ -1,6 +1,7 @@
 """The lines 5etools shows around an entity's entries; lines.mjs checks all of them."""
 
 from studiorum.core.compact import compact_entries, compact_heading
+from studiorum.core.models.backgrounds import Background
 from studiorum.core.models.deities import Deity
 from studiorum.core.models.facilities import Facility
 from studiorum.core.models.feats import Feat
@@ -237,4 +238,20 @@ def test_a_race_lists_its_attributes_before_its_entries() -> None:
             ],
         },
         {"type": "entries", "name": "Spider Climb", "entries": ["Up."]},
+    ]
+
+
+def test_a_background_puts_its_prerequisite_first() -> None:
+    background = Background.model_validate(
+        {
+            "name": "Knight of Solamnia",
+            "source": "DSotDQ",
+            "prerequisite": [{"campaign": ["Dragonlance"]}],
+            "entries": ["You are a knight."],
+        }
+    )
+
+    assert compact_entries(background, None) == [
+        "Prerequisite: Dragonlance Campaign",
+        "You are a knight.",
     ]
