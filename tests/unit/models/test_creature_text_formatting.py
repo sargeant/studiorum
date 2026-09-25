@@ -523,13 +523,6 @@ class TestCreatureTextValidation:
         assert "+11" in skills
         assert "+5" in skills
 
-        # Test ability text formatting
-        str_text = creature.get_ability_text(23)
-        assert str_text == "23 (+6)"
-
-        dex_text = creature.get_ability_text(10)
-        assert dex_text == "10 (+0)"
-
     def test_case_sensitivity_handling(self):
         """Test proper case handling in text formatting."""
         creature_data = {

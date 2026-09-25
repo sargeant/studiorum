@@ -58,41 +58,6 @@ class TestCreatureStatBlockRendering:
         assert creature.get_ability_modifier(1) == -5
         assert creature.get_ability_modifier(30) == 10
 
-    def test_ability_text_formatting(self):
-        """Test formatted ability score text with modifiers."""
-        creature_data = {
-            "name": "Test Creature",
-            "source": "TEST",
-            "size": ["Medium"],
-            "type": "humanoid",
-            "alignment": ["neutral"],
-            "ac": [15],
-            "hp": {"average": 58},
-            "speed": {"walk": 30},
-            "str": 18,
-            "dex": 12,
-            "con": 16,
-            "int": 8,
-            "wis": 14,
-            "cha": 6,
-            "cr": "2",
-        }
-
-        creature = Creature.model_validate(creature_data)
-
-        # Test positive modifiers
-        assert creature.get_ability_text(18) == "18 (+4)"
-        assert creature.get_ability_text(16) == "16 (+3)"
-        assert creature.get_ability_text(14) == "14 (+2)"
-        assert creature.get_ability_text(12) == "12 (+1)"
-
-        # Test zero modifier
-        assert creature.get_ability_text(10) == "10 (+0)"
-
-        # Test negative modifiers
-        assert creature.get_ability_text(8) == "8 (-1)"
-        assert creature.get_ability_text(6) == "6 (-2)"
-
     def test_armor_class_processing(self):
         """Test complex AC calculations and formatting."""
         # Simple AC

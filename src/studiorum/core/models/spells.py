@@ -541,36 +541,6 @@ class Spell(BaseContent):
             self.basic_rules_2024 or self.srd52
         )
 
-    def get_enhanced_level_text(self) -> str:
-        """Get enhanced level text with additional information."""
-        base_level = self.get_level_text()
-
-        # Add damage and attack info
-        additional_info = []
-        damage_text = self.get_damage_text()
-        if damage_text:
-            additional_info.append(f"{damage_text} damage")
-
-        attack_text = self.get_spell_attack_text()
-        if attack_text:
-            additional_info.append(attack_text)
-
-        if additional_info:
-            return f"{base_level} ({', '.join(additional_info)})"
-        return base_level
-
-    def get_enhanced_components_text(self) -> str:
-        """Get enhanced components text (same as current implementation)."""
-        return self.get_components_text()
-
-    def get_enhanced_duration_text(self) -> str:
-        """Get enhanced duration text (same as current implementation)."""
-        return self.get_duration_text()
-
-    # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
-
-    # Legacy method get_higher_level_text removed - access .higher_level directly and use RecursiveEntryProcessor
-
     def get_spell_list_classes(self) -> str:
         """Get formatted list of classes that can cast this spell."""
         if not self.classes or not self.classes.fromClassList:
