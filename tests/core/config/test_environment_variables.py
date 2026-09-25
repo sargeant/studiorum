@@ -143,9 +143,6 @@ class TestEnvironmentVariables:
             "STUDIORUM_RENDERING__LATEX__ENGINE__PRIMARY_ENGINE": "xelatex",
             "STUDIORUM_RENDERING__LATEX__ENGINE__FALLBACK_ENGINES": '["lualatex", "pdflatex"]',
             "STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT": "600",
-            "STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "5",
-            "STUDIORUM_RENDERING__LATEX__ENGINE__SHOW_PROGRESS": "false",
-            "STUDIORUM_RENDERING__LATEX__ENGINE__KEEP_TEMP_FILES": "true",
         }
         self._set_env_vars(env_vars)
 
@@ -157,9 +154,6 @@ class TestEnvironmentVariables:
             "pdflatex",
         ]
         assert config.rendering.latex.engine.timeout == 600
-        assert config.rendering.latex.engine.max_passes == 5
-        assert config.rendering.latex.engine.show_progress is False
-        assert config.rendering.latex.engine.keep_temp_files is True
 
     def test_rendering_latex_document_config_environment_variables(self) -> None:
         """Test STUDIORUM_RENDERING__LATEX__DOCUMENT__* environment variables."""
@@ -268,16 +262,16 @@ class TestEnvironmentVariables:
     def test_type_conversion_integer(self) -> None:
         """Test integer type conversion from environment variables."""
         env_vars = {
-            "STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "5",
+            "STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT": "450",
             "STUDIORUM_PROCESSING__MAX_WORKERS": "12",
         }
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
 
-        assert config.rendering.latex.engine.max_passes == 5
+        assert config.rendering.latex.engine.timeout == 450
         assert config.processing.max_workers == 12
-        assert isinstance(config.rendering.latex.engine.max_passes, int)
+        assert isinstance(config.rendering.latex.engine.timeout, int)
         assert isinstance(config.processing.max_workers, int)
 
     def test_type_conversion_path(self) -> None:
@@ -319,7 +313,7 @@ class TestEnvironmentVariables:
 
     def test_invalid_type_conversion_integer(self) -> None:
         """Test that invalid integer values raise validation errors."""
-        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "not_a_number"}
+        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT": "not_a_number"}
         self._set_env_vars(env_vars)
 
         with pytest.raises(ValidationError):
@@ -336,20 +330,20 @@ class TestEnvironmentVariables:
     def test_constraint_validation(self) -> None:
         """Test that constraint validation works with environment variables."""
         # Test zero passes (should fail)
-        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "0"}
+        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT": "0"}
         self._set_env_vars(env_vars)
 
         with pytest.raises(ValidationError):
             ApplicationConfig()
 
         # Clean up and test a valid count
-        os.environ.pop("STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES")
-        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "4"}
+        os.environ.pop("STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT")
+        env_vars = {"STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT": "400"}
         self._set_env_vars(env_vars)
 
         # Should not raise
         config = ApplicationConfig()
-        assert config.rendering.latex.engine.max_passes == 4
+        assert config.rendering.latex.engine.timeout == 400
 
     def test_range_constraint_validation(self) -> None:
         """Test that range constraints work with environment variables."""
@@ -417,14 +411,14 @@ class TestEnvironmentVariables:
         # Test mixed case - Pydantic should handle this based on case_sensitive=False
         env_vars = {
             "studiorum_image__include_images": "true",  # lowercase
-            "STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "6",  # uppercase
+            "STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT": "360",  # uppercase
         }
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
 
         assert config.image.include_images is True
-        assert config.rendering.latex.engine.max_passes == 6
+        assert config.rendering.latex.engine.timeout == 360
 
     def test_environment_variable_precedence_over_defaults(self) -> None:
         """Test that environment variables override default values."""
@@ -482,7 +476,7 @@ class TestEnvironmentVariables:
             # Logging
             "STUDIORUM_LOGGING__LEVEL": "DEBUG",
             # LaTeX engine
-            "STUDIORUM_RENDERING__LATEX__ENGINE__MAX_PASSES": "4",
+            "STUDIORUM_RENDERING__LATEX__ENGINE__TIMEOUT": "400",
             # Paths (use relative paths to avoid permission issues)
             "STUDIORUM_DATA__DIRS": '["test_data"]',
             "STUDIORUM_PATHS__OUTPUT_PATH": "test_output",
@@ -502,7 +496,7 @@ class TestEnvironmentVariables:
 
         # Verify all sections are configured correctly
         assert config.logging.level == "DEBUG"
-        assert config.rendering.latex.engine.max_passes == 4
+        assert config.rendering.latex.engine.timeout == 400
         assert config.data.dirs == [Path("test_data")]
         assert config.paths.output_path == Path("test_output")
         assert config.processing.max_workers == 8

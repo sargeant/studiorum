@@ -27,9 +27,6 @@ class LaTeXConfig(TypedDict, total=False):
     output_format: str
     debug: bool
     strict_mode: bool
-    compiler: str
-    passes: int
-    extra_args: list[str]
     paper_size: str
     font_size: str
     document_class: str
@@ -40,13 +37,6 @@ class LaTeXConfig(TypedDict, total=False):
     enable_hyperlinks: bool
     enable_cross_refs: bool
     auto_page_refs: bool
-    # Compilation-specific options
-    latex_engine: str
-    compilation_timeout: int
-    max_passes: int
-    show_progress: bool
-    keep_temp_files: bool
-    output_dir: str
 
 
 # Content Processing Types
@@ -170,16 +160,6 @@ class ExportResult(TypedDict):
     output_path: str | None
     error_message: str | None
     stats: ProcessingStats
-
-
-class CompilationResult(TypedDict):
-    """Result of a compilation operation."""
-
-    success: bool
-    output_files: list[str]
-    log_content: str
-    errors: list[str]
-    warnings: list[str]
 
 
 # Creature-specific Types
