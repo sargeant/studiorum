@@ -234,7 +234,9 @@ class Item(BaseContent):
         )
 
     def get_type_text(self) -> str:
-        """Get formatted item type text."""
+        """The item's type, such as "light armor", or "" if it has none."""
+        if self.type is None:
+            return ""
         if isinstance(self.type, ItemType):
             return self.type.value
 
@@ -288,6 +290,10 @@ class Item(BaseContent):
             return type_mappings.get(abbreviation, type_str)
         # Handle simple "M" or "INS" format
         return type_mappings.get(type_str, type_str)
+
+    def get_kind_text(self) -> str:
+        """The type, else the category (wondrous item, staff), else "other"."""
+        return (self.get_type_text() or self.get_category_text() or "other").lower()
 
     def get_category_text(self) -> str:
         """Get item category text (Staff, Wand, etc.)."""

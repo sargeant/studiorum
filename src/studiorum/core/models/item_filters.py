@@ -253,32 +253,21 @@ class ItemFilterCriteria(BaseModel):
             if attr != "item_names"
         )
 
-    def matches_item_type(self, item_type: str | ItemType) -> bool:
-        """Check if an item type matches the filter criteria.
+    def matches_item_type(self, kind: str) -> bool:
+        """Whether an item's kind (``Item.get_kind_text()``) is one asked for.
 
-        Args:
-            item_type: The item type to check
-
-        Returns:
-            True if the item type matches the criteria
+        A filter matches the kind or its last word, so "armor" matches
+        "light armor" and "weapon" matches "ranged weapon".
         """
         if self.item_types is None:
-            return True  # No type filtering
-
-        # Convert to string for comparison
-        type_str = (
-            item_type.value if isinstance(item_type, ItemType) else str(item_type)
-        )
-        type_str = type_str.lower()
-
+            return True
+        kind = kind.lower()
         for filter_type in self.item_types:
-            if isinstance(filter_type, ItemType):
-                if filter_type.value == type_str:
-                    return True
-            elif isinstance(filter_type, str):
-                if filter_type == type_str:
-                    return True
-
+            wanted = (
+                filter_type.value if isinstance(filter_type, ItemType) else filter_type
+            ).lower()
+            if kind == wanted or kind.endswith(f" {wanted}"):
+                return True
         return False
 
     def matches_rarity(self, rarity: str | ItemRarity | None) -> bool:
@@ -338,7 +327,7 @@ class ItemCollectionResult(BaseModel):
         self.total_count += 1
 
         # Track by type
-        item_type = item.get_type_text()
+        item_type = item.get_kind_text()
         self.by_type[item_type] = self.by_type.get(item_type, 0) + 1
 
         # Track by rarity

@@ -450,6 +450,9 @@ class TestEnhancedFileSupportIntegration:
                 def get_type_text(self):
                     return self.type
 
+                def get_kind_text(self):
+                    return self.type
+
                 def get_rarity_text(self):
                     return self.rarity
 

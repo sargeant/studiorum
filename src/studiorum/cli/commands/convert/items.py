@@ -317,7 +317,7 @@ def _sort_items(
     """Sort by the sort mode, then by name."""
     rank = {rarity: i for i, rarity in enumerate(RARITY_ORDER)}
     keys: dict[ItemSortMode, Any] = {
-        ItemSortMode.TYPE: lambda i: i.get_type_text().lower(),
+        ItemSortMode.TYPE: lambda i: i.get_kind_text().lower(),
         ItemSortMode.RARITY: lambda i: rank.get(i.get_rarity_text().lower(), 99),
         ItemSortMode.VALUE: lambda i: collector._get_item_value_in_gp(i) or 0.0,
         ItemSortMode.NAME: lambda i: "",
@@ -331,7 +331,7 @@ def _group_items(items: list[Item], sort_mode: ItemSortMode) -> dict[str, list[I
     groups: dict[str, list[Item]] = {}
     if sort_mode == ItemSortMode.TYPE:
         for item in items:
-            groups.setdefault(item.get_type_text(), []).append(item)
+            groups.setdefault(item.get_kind_text(), []).append(item)
         return dict(sorted(groups.items()))
     if sort_mode == ItemSortMode.RARITY:
         for item in items:
