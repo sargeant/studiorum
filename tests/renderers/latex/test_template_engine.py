@@ -22,83 +22,12 @@ class TestLaTeXTemplateEngine:
         """Test engine initialization with default configuration."""
         engine: Any = LaTeXTemplateEngine()
 
-        assert engine.config == {}
-        assert engine.debug is False
         # Path should now be absolute and point to the templates directory
         assert engine.templates_dir.name == "templates"
         assert str(engine.templates_dir).endswith(
             "src/studiorum/latex_engine/templates"
         )
         assert engine.env is not None
-
-    def test_create_template_context(self) -> None:
-        """Test template context creation."""
-        config = {"debug": True}
-        engine: Any = LaTeXTemplateEngine(config)
-
-        context = engine.create_template_context(
-            title="Test Document", author="Test Author"
-        )
-
-        assert context["config"] == config
-        assert context["debug"] is True
-        assert context["title"] == "Test Document"
-        assert context["author"] == "Test Author"
-
-    def test_template_exists(self) -> None:
-        """Test template existence check."""
-        engine: Any = LaTeXTemplateEngine()
-
-        # Test with existing template
-        base_template = engine.templates_dir / "base.tex.j2"
-        if base_template.exists():
-            assert engine.template_exists("base") is True
-            assert engine.template_exists("base.tex.j2") is True
-
-        # Test with non-existing template
-        assert engine.template_exists("nonexistent") is False
-
-    def test_get_template_path(self) -> None:
-        """Test template path resolution."""
-        engine: Any = LaTeXTemplateEngine()
-
-        # Test without extension
-        path = engine.get_template_path("base")
-        assert path.name == "base.tex.j2"
-        assert path.parent == engine.templates_dir
-
-        # Test with extension
-        path = engine.get_template_path("base.tex.j2")
-        assert path.name == "base.tex.j2"
-        assert path.parent == engine.templates_dir
-
-    def test_list_templates(self) -> None:
-        """Test template listing."""
-        engine: Any = LaTeXTemplateEngine()
-
-        templates = engine.list_templates()
-        assert isinstance(templates, list)
-
-        # Check if our created templates are in the list
-        expected_templates = ["base", "book", "article", "supplement", "reference"]
-        for template in expected_templates:
-            if engine.template_exists(template):
-                assert template in templates
-
-    def test_validate_template_valid(self) -> None:
-        """Test template validation with valid template."""
-        engine: Any = LaTeXTemplateEngine()
-
-        # Test with existing template
-        if engine.template_exists("base"):
-            assert engine.validate_template("base") is True
-
-    def test_validate_template_invalid(self) -> None:
-        """Test template validation with invalid template."""
-        engine: Any = LaTeXTemplateEngine()
-
-        # Test with non-existing template
-        assert engine.validate_template("nonexistent") is False
 
     def test_template_caching_removed(self) -> None:
         """Test that template caching has been removed."""

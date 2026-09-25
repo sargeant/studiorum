@@ -23,9 +23,7 @@ from studiorum.core.config.unified_config import (
     LaTeXDocumentConfig,
     get_app_config,
 )
-from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Ability, Spellcasting
-from studiorum.core.types import LaTeXConfig as LaTeXConfigDict
 from studiorum.latex_engine.entries import (
     EntryRenderer,
     creature_ac_text,
@@ -159,24 +157,13 @@ class LaTeXTemplateEngine:
     See ``environment()`` for how printed values are escaped.
     """
 
-    def __init__(self, config: LaTeXConfigDict | None = None):
-        """Initialize template engine.
-
-        Args:
-            config: Configuration options
-        """
-        self.config = config or {}
+    def __init__(self) -> None:
         self.templates_dir = TEMPLATES_DIR
-        self.debug = self.config.get("debug", False)
-
         # Start from the loaded configuration; convert commands pass their own
         self.latex_config = get_app_config().rendering.latex
 
         # Initialize the environment
         self.update_latex_config(None)
-
-        # Logger
-        self._logger = get_logger(__name__)
 
     def update_latex_config(self, latex_config: LaTeXConfig | None) -> None:
         """Update the LaTeX configuration.
@@ -212,8 +199,7 @@ class LaTeXTemplateEngine:
             template = self._get_template(template_name)
 
             # Render template with a context that includes required defaults
-            merged_context = self.create_template_context(**context)
-            rendered = template.render(merged_context)
+            rendered = template.render(context)
 
             # Post-process rendered output if needed
             return self._post_process_output(rendered)
@@ -246,77 +232,6 @@ class LaTeXTemplateEngine:
         content = re.sub(r"\n\n\n+", "\n\n", content)
         return check_output(content.strip())
 
-    def validate_template(self, template_name: str) -> bool:
-        """Validate template syntax without rendering.
-
-        Args:
-            template_name: Name of template to validate
-
-        Returns:
-            True if template is valid, False otherwise
-        """
-        try:
-            if not template_name.endswith(".tex.j2"):
-                template_name += ".tex.j2"
-            self._get_template(template_name)
-            return True
-        except Exception:
-            return False
-
-    def list_templates(self) -> list[str]:
-        """List all available templates.
-
-        Returns:
-            List of template names (without .tex.j2 extension)
-        """
-        templates = []
-        for template_file in self.templates_dir.glob("*.tex.j2"):
-            # Remove .tex.j2 extension to get template name
-            template_name = template_file.name.replace(".tex.j2", "")
-            templates.append(template_name)
-        return sorted(templates)
-
-    def get_template_path(self, template_name: str) -> Path:
-        """Get full path to template file.
-
-        Args:
-            template_name: Name of template
-
-        Returns:
-            Path to template file
-        """
-        if not template_name.endswith(".tex.j2"):
-            template_name += ".tex.j2"
-        return self.templates_dir / template_name
-
-    def template_exists(self, template_name: str) -> bool:
-        """Check if template exists.
-
-        Args:
-            template_name: Name of template to check
-
-        Returns:
-            True if template exists, False otherwise
-        """
-        return self.get_template_path(template_name).exists()
-
-    def create_template_context(self, **kwargs: Any) -> dict[str, Any]:
-        """Create template context with common variables.
-
-        Args:
-            **kwargs: Additional context variables
-
-        Returns:
-            Template context dictionary
-        """
-        context: dict[str, Any] = {
-            "config": self.config,
-            "debug": self.debug,
-        }
-
-        context.update(kwargs)
-        return context
-
     def create_dnd_template_context(
         self, content_type: str = "book", **kwargs: Any
     ) -> dict[str, Any]:
@@ -335,14 +250,12 @@ class LaTeXTemplateEngine:
         )
 
         # Document-level settings only some documents set
-        context = self.create_template_context(
-            **{
-                "title": None,
-                "show_title_page": False,
-                "use_frontmatter": False,
-                **kwargs,
-            }
-        )
+        context: dict[str, Any] = {
+            "title": None,
+            "show_title_page": False,
+            "use_frontmatter": False,
+            **kwargs,
+        }
 
         # Add DND-specific configuration
         context.update(
