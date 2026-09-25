@@ -450,3 +450,18 @@ def test_an_ingredient_renders_its_entry() -> None:
     assert render({"type": "ingredient", "entry": "½ cup {@b flour}"}) == (
         "½ cup \\textbf{flour}"
     )
+
+
+def test_table_rows_may_be_row_objects() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Armor", "Cost"],
+            "rows": [
+                [{"type": "entries", "entries": ["{@i Light Armor}"]}, ""],
+                {"type": "row", "style": "row-indent-first", "row": ["Padded", 5]},
+            ],
+        }
+    )
+
+    assert "Padded & 5" in out

@@ -349,14 +349,11 @@ class EntryRenderer:
             count = len(labels)
         elif col_styles:
             count = len(col_styles)
-        elif isinstance(rows[0], list):
-            count = len(rows[0])
         else:
-            count = 2
+            count = len(_row_cells(rows[0])) or 2
         cells = [
             [self.entry(c) if isinstance(c, dict) else self.text(str(c)) for c in row]
-            for row in rows
-            if isinstance(row, list)
+            for row in map(_row_cells, rows)
         ]
         table = _macros().table(
             escape(caption) if caption else "",
@@ -711,6 +708,13 @@ def _spell_level(
 def _leading_int(key: str) -> int:
     match = re.match(r"(\d+)", str(key))
     return int(match.group(1)) if match else 999
+
+
+def _row_cells(row: Any) -> list[Any]:
+    """A table row's cells: a list, or a 5etools ``{"type": "row", "row": [...]}``."""
+    if isinstance(row, dict):
+        return list(row.get("row", []))
+    return list(row) if isinstance(row, list) else [row]
 
 
 def column_spec(col_styles: list[str], count: int) -> str:
