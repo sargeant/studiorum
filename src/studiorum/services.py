@@ -69,10 +69,7 @@ class Services:
 
     @cached_property
     def template_service(self) -> TemplateService:
-        from studiorum.latex_engine.formatters.latex_formatter import LaTeXFormatter
-
         return TemplateService(
-            latex_formatter=LaTeXFormatter(),
             tag_resolver=self.tag_resolver,
             omnidexer=self.omnidexer,
         )

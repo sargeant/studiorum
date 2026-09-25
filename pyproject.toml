@@ -178,7 +178,6 @@ ignore = [
 "src/studiorum/cli/main.py" = ["B904", "PTH123"]
 "src/studiorum/core/config/data_sources.py" = ["SIM102", "UP042"]
 "src/studiorum/core/error_types.py" = ["UP042"]
-"src/studiorum/core/latex_utils.py" = ["B007", "RET504", "SIM110"]
 "src/studiorum/core/loaders/content_merger.py" = ["PTH123"]
 "src/studiorum/core/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
 "src/studiorum/core/loaders/data_source_manager.py" = ["B007", "PERF102", "SIM102", "SIM118"]

@@ -3,7 +3,6 @@
 import pytest
 
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.formatters.latex_formatter import LaTeXFormatter
 from studiorum.latex_engine.services.context_bound_template_service import (
     ContextBoundTemplateService,
 )
@@ -118,9 +117,8 @@ class TestContextFlowValidation:
 
     def test_context_flows_through_bound_service(self, content_tracker):
         """Test that context flows correctly through bound service operations."""
-        # Create real services for integration testing
-        latex_formatter = LaTeXFormatter()
 
+        # Create real services for integration testing
         # Create a minimal mock for dependencies
         class MockTagResolver:
             def process_text(self, text, context):
@@ -137,7 +135,6 @@ class TestContextFlowValidation:
                 "MockService",
                 (),
                 {
-                    "latex_formatter": latex_formatter,
                     "tag_resolver": MockTagResolver(),
                     "omnidexer": MockOmnidexer(),
                     "render_entry_description": lambda self, entry, tracker: (
