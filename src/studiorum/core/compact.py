@@ -18,6 +18,7 @@ from .models.classes import Class
 from .models.deities import Deity
 from .models.facilities import Facility
 from .models.feats import Feat
+from .models.languages import Language
 from .models.objects import Object
 from .models.optional_features import OptionalFeature
 from .models.races import Race
@@ -26,6 +27,7 @@ from .models.rule_types import Hazard
 from .models.subclasses import Subclass
 from .models.table import Table, TableGroup
 from .models.traps import Trap
+from .models.vehicles import VehicleUpgrade
 from .text.properties import apply_properties
 from .type_lines import (
     background_entries,
@@ -34,10 +36,12 @@ from .type_lines import (
     facility_entries,
     feat_entries,
     hazard_entries,
+    language_entries,
     object_entries,
     optional_feature_entries,
     race_entries,
     trap_entries,
+    vehicle_upgrade_entries,
 )
 
 if TYPE_CHECKING:
@@ -145,4 +149,6 @@ _BUILDERS: tuple[
     (Object, object_entries),
     (Race, race_entries),
     (Background, background_entries),
+    (VehicleUpgrade, vehicle_upgrade_entries),
+    (Language, language_entries),
 )

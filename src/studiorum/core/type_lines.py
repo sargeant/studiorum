@@ -18,6 +18,7 @@ from .text.parser import (
     OPT_FEATURE_TYPES,
     TRAP_HAZARD_TYPES,
     TRAP_INITIATIVES,
+    VEHICLE_UPGRADE_TYPES,
     alignment_abv_to_full,
     duration_entry,
     feat_category,
@@ -639,3 +640,41 @@ def background_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
     data = raw(content)
     prerequisite = prerequisite_entry(data.get("prerequisite"), style=STYLE)
     return [*([prerequisite] if prerequisite else []), *(data.get("entries") or [])]
+
+
+def vehicle_upgrade_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.vehicleUpgrade``: its types and prerequisite, then entries."""
+    data = raw(content)
+    # 5etools joins the types as an array: with a bare comma
+    types = ",".join(
+        VEHICLE_UPGRADE_TYPES.get(t, str(t)) for t in data.get("upgradeType") or []
+    )
+    prerequisite = prerequisite_entry(data.get("prerequisite"), style=STYLE)
+    summary = ", ".join(t for t in (types, prerequisite) if t)
+    # No upgrade in the data has a cost, so 5etools' cost line isn't ported
+    return [*([f"{{@i {summary}}}"] if summary else []), *(data.get("entries") or [])]
+
+
+def language_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.language``: its kind, speakers, origin and script, then entries."""
+    data = raw(content)
+    lines = [
+        f"{{@b {label}:}} {value}"
+        for label, value in (
+            ("Typical Speakers", ", ".join(data.get("typicalSpeakers") or [])),
+            ("Origin", data.get("origin")),
+            ("Script", data.get("script")),
+        )
+        if value
+    ]
+    entries = list(data.get("entries") or [])
+    if dialects := data.get("dialects"):
+        entries.append(
+            "This language is a family which includes the following dialects: "
+            f"{', '.join(sorted(dialects, key=str.lower))}. Creatures that speak "
+            "different dialects of the same language can communicate with one another."
+        )
+    if not entries and not lines:
+        entries = ["{@i No information available.}"]
+    kind = [f"{{@i {title_case(data['type'])} language}}"] if data.get("type") else []
+    return [*kind, *lines, *entries]

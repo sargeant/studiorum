@@ -70,6 +70,7 @@ STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
     "feat": (ContentType.FEAT, "PHB"),
     "hazard": (ContentType.HAZARD, "DMG"),
     "item": (ContentType.ITEM, "DMG"),
+    "language": (ContentType.LANGUAGE, "PHB"),
     "object": (ContentType.OBJECT, "DMG"),
     "optfeature": (ContentType.OPTIONALFEATURE, "PHB"),
     "race": (ContentType.RACE, "PHB"),
@@ -83,6 +84,7 @@ STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
     "trap": (ContentType.TRAP, "DMG"),
     "variantrule": (ContentType.VARIANTRULE, "DMG"),
     "vehicle": (ContentType.VEHICLE, "GoS"),
+    "vehupgrade": (ContentType.VEHICLE_UPGRADE, "GoS"),
 }
 
 # Content that statblocks render through its own macro (render_models)

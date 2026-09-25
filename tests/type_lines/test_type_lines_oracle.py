@@ -103,6 +103,8 @@ PROPS = [
     "object",
     "race",
     "background",
+    "vehicleUpgrade",
+    "language",
 ]
 
 

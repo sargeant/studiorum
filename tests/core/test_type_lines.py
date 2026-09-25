@@ -5,11 +5,13 @@ from studiorum.core.models.backgrounds import Background
 from studiorum.core.models.deities import Deity
 from studiorum.core.models.facilities import Facility
 from studiorum.core.models.feats import Feat
+from studiorum.core.models.languages import Language
 from studiorum.core.models.objects import Object
 from studiorum.core.models.optional_features import OptionalFeature
 from studiorum.core.models.races import Race
 from studiorum.core.models.rule_types import Hazard
 from studiorum.core.models.traps import Trap
+from studiorum.core.models.vehicles import VehicleUpgrade
 
 
 def test_a_simple_trap_has_its_subtitle_then_entries_then_parts() -> None:
@@ -254,4 +256,38 @@ def test_a_background_puts_its_prerequisite_first() -> None:
     assert compact_entries(background, None) == [
         "Prerequisite: Dragonlance Campaign",
         "You are a knight.",
+    ]
+
+
+def test_a_vehicle_upgrade_names_its_type() -> None:
+    upgrade = VehicleUpgrade.model_validate(
+        {
+            "name": "Flamethrower",
+            "source": "BGDIA",
+            "upgradeType": ["IWM:W"],
+            "entries": ["Fire."],
+        }
+    )
+
+    assert compact_entries(upgrade, None) == [
+        "{@i Infernal War Machine Variant, Weapon}",
+        "Fire.",
+    ]
+
+
+def test_a_language_has_its_kind_speakers_and_script() -> None:
+    language = Language.model_validate(
+        {
+            "name": "Elvish",
+            "source": "PHB",
+            "type": "standard",
+            "typicalSpeakers": ["Elves"],
+            "script": "Elvish",
+        }
+    )
+
+    assert compact_entries(language, None) == [
+        "{@i Standard language}",
+        "{@b Typical Speakers:} Elves",
+        "{@b Script:} Elvish",
     ]

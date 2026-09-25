@@ -89,6 +89,17 @@ const BUILDERS = {
 		const prerequisite = Renderer.utils.prerequisite.getEntry(ent.prerequisite, STYLE);
 		return [...(prerequisite ? [prerequisite] : []), ...(ent.entries || [])];
 	}],
+	vehicleUpgrade: ["vehicles.json", ent => {
+		const meta = Renderer.vehicleUpgrade.getVehicleUpgradeRenderableEntriesMeta(ent, STYLE);
+		return [...(meta.entrySummary ? [meta.entrySummary] : []), ...(meta.entryCost ? [meta.entryCost] : []), ...(ent.entries || [])];
+	}],
+	language: ["languages.json", ent => {
+		const meta = Renderer.language.getLanguageRenderableEntriesMeta(ent);
+		return [
+			...[meta.entryType, meta.entryTypicalSpeakers, meta.entryOrigin, meta.entryScript].filter(Boolean),
+			...(meta.entriesContent || []),
+		];
+	}],
 	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
 };
 
