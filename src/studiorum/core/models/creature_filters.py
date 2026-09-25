@@ -439,8 +439,11 @@ class CreatureCollectionResult(BaseModel):
         self.total_count += 1
         self.matched_count += 1
 
-        # Track by CR
-        cr_str = str(getattr(creature, "cr", "unknown"))
+        # Track by CR; a creature with a lair CR counts under its own
+        cr = getattr(creature, "cr", None)
+        if isinstance(cr, dict):
+            cr = cr.get("cr")
+        cr_str = str(cr) if cr is not None else "unknown"
         self.by_cr[cr_str] = self.by_cr.get(cr_str, 0) + 1
 
         # Track by type

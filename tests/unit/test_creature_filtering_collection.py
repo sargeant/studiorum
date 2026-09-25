@@ -810,3 +810,15 @@ class TestCreatureFilteringIntegration:
 
         # Should complete filtering operations quickly
         assert total_time < 1.0, f"Filtering too slow: {total_time:.4f}s"
+
+
+def test_cr_summary_counts_a_lair_creature_under_its_own_cr() -> None:
+    from types import SimpleNamespace
+
+    from studiorum.core.models.creature_filters import CreatureCollectionResult
+
+    result = CreatureCollectionResult()
+    for cr in ("1/4", {"cr": "21", "lair": "22"}, "21"):
+        result.add_creature(SimpleNamespace(cr=cr, name="x", type="t", source=None))
+
+    assert result.get_cr_summary() == "CR 1/4: 1, CR 21: 2"
