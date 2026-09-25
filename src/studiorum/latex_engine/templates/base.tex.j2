@@ -2,26 +2,13 @@
 % This template provides the foundation for all D&D-style documents with structured content
 
 <#-- Build document class line with options --#>
-\documentclass[<# class_options | join(', ') #>]{<# document_class | default('dndbook') #>}
+\documentclass[<# class_options | join(', ') #>]{<# document_class #>}
 
 <#-- Document configuration --#>
 <@ block document_packages @>
 % DND-5e-LaTeX-Template provides most styling automatically
 % Only include additional packages if needed
 
-<@ if use_custom_fonts @>
-% Custom font configuration (only if not using template defaults)
-\usepackage{fontspec}
-<@ if main_font @>
-\setmainfont{<# main_font #>}
-<@ endif @>
-<@ if sans_font @>
-\setsansfont{<# sans_font #>}
-<@ endif @>
-<@ if mono_font @>
-\setmonofont{<# mono_font #>}
-<@ endif @>
-<@ endif @>
 
 % Additional packages for enhanced functionality
 \usepackage{graphicx}
@@ -38,9 +25,9 @@
 <#-- Document metadata --#>
 <@ block document_metadata @>
 <@ if metadata @>
-\title{<# metadata.title | latex_escape #>}
+\title{<# metadata.title #>}
 <@ if metadata.subtitle @>
-\subtitle{<# metadata.subtitle | latex_escape #>}
+\subtitle{<# metadata.subtitle #>}
 <@ endif @>
 \date{\today}
 <@ endif @>
@@ -75,24 +62,12 @@
     bookmarksopen=true,
     bookmarksnumbered=true,
     <@ if title @>
-    pdftitle={<# title | latex_escape #>},
+    pdftitle={<# title #>},
     <@ endif @>
-    <@ if author @>
-    pdfauthor={<# author | latex_escape #>},
-    <@ endif @>
-    <@ if subject @>
-    pdfsubject={<# subject | latex_escape #>},
-    <@ else @>
     pdfsubject={D&D 5e Content},
-    <@ endif @>
-    pdfkeywords={D&D, 5e, RPG, tabletop, <# keywords | default('') | latex_escape #>}
+    pdfkeywords={D&D, 5e, RPG, tabletop, }
 }
 
-<@ if enable_line_numbers @>
-% Line numbers for debugging (optional)
-\usepackage{lineno}
-\linenumbers
-<@ endif @>
 <@ endblock @>
 
 <#-- Studiorum image macros --#>

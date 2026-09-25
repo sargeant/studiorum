@@ -91,8 +91,7 @@
 % Standard floating figure
 % Usage: \StudiorumImageFloat[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFloat}{ s o m m o }{%%
-  
-\begin{figure}[htbp]
+  \begin{figure}[htbp]
     \centering
     \IfNoValueTF{#2}{%%
       \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -103,16 +102,14 @@
       \caption{#4}%%
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
-  \end{figure}
-%%
+  \end{figure}%%
 }
 
 % Wide (two-column spanning when applicable)
 % Usage: \StudiorumImageWide[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageWide}{ s o m m o }{%%
   \ifdim\columnwidth=\textwidth
-    
-\begin{figure}[htbp]
+    \begin{figure}[htbp]
       \centering
       \IfNoValueTF{#2}{%%
         \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -123,11 +120,9 @@
         \caption{#4}%%
         \IfNoValueF{#5}{\label{#5}}%%
       }%%
-    \end{figure}
-%%
+    \end{figure}%%
   \else
-    
-\begin{figure*}[tp]
+    \begin{figure*}[tp]
       \centering
       \IfNoValueTF{#2}{%%
         \includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -138,8 +133,7 @@
         \caption{#4}%%
         \IfNoValueF{#5}{\label{#5}}%%
       }%%
-    \end{figure*}
-%%
+    \end{figure*}%%
   \fi
 }
 
@@ -147,8 +141,7 @@
 % Usage: \StudiorumImageFullpage[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFullpage}{ s o m m o }{%%
   \clearpage
-  
-\begin{figure}[p]
+  \begin{figure}[p]
     \centering
     \IfNoValueTF{#2}{%%
       \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{#3}%%
@@ -160,7 +153,6 @@
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
   \end{figure}
-
   \clearpage
 }
 
@@ -168,8 +160,7 @@
 % Usage: \StudiorumImageFullpageBleed{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFullpageBleed}{ s o m m o }{%%
   \clearpage
-  
-\begin{figure}[p]
+  \begin{figure}[p]
     \centering
     \includegraphics[width=\paperwidth,height=\paperheight]{#3}%%
     \IfBooleanF{#1}{%%
@@ -177,7 +168,6 @@
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
   \end{figure}
-
   \clearpage
 }
 
@@ -196,7 +186,7 @@
 \begin{DndComment}{About This Bestiary}
 This bestiary contains 3 creatures from SRD.
 
-\textbf{Challenge Ratings:} CR 1/4: 1, CR 17: 1, CR {'cr': '21', 'lair': '22'}: 1
+\textbf{Challenge Ratings:} CR 1/4: 1, CR 17: 1, CR \{'cr': '21', 'lair': '22'\}: 1
 
 \textbf{Creature Types:} Dragon: 1, Humanoid (Goblinoid): 1, Undead: 1
 \end{DndComment}
@@ -262,7 +252,6 @@ Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) 
 
 \begin{DndMonster}[float*=tp,width=\textwidth + 8pt, toptitle=0pt, top=1pt]{Adult Red Dragon}
 \vspace*{-1.8\baselineskip}
-
 \begin{multicols}{2}
 \raggedcolumns
 \begingroup
@@ -339,7 +328,6 @@ The dragon beats its wings. Each creature within 10 feet of the dragon must succ
 
 \endgroup
 \end{multicols}
-
 \end{DndMonster}
 
 \vspace{2em}
@@ -354,7 +342,6 @@ The dragon beats its wings. Each creature within 10 feet of the dragon must succ
 
 \begin{DndMonster}[float*=tp,width=\textwidth + 8pt, toptitle=0pt, top=1pt]{Lich}
 \vspace*{-1.8\baselineskip}
-
 \begin{multicols}{2}
 \raggedcolumns
 \begingroup
@@ -439,7 +426,6 @@ Each non-undead creature within 20 feet of the lich must make a DC 18 Constituti
 
 \endgroup
 \end{multicols}
-
 \end{DndMonster}
 
 \FloatBarrier

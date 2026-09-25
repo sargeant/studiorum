@@ -63,14 +63,14 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 <@ for group_name, creature_list in creatures_by_group.items() @>
 
 <#-- Group header --#>
-\section{<# group_name | latex_escape #>}
+\section{<# group_name #>}
 
 \vspace{0.5em}
 
 <#-- Creatures in this group --#>
 <@ for creature in creature_list @>
 <@ if show_creature_table_of_contents @>
-\addcontentsline{toc}{subsection}{<# creature.name | latex_escape #>}
+\addcontentsline{toc}{subsection}{<# creature.name #>}
 <@ endif @>
 
 <#-- Use shared creature rendering macro for consistency --#>
@@ -100,7 +100,7 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 
 <@ for creature in creatures @>
 <@ if show_creature_table_of_contents @>
-\addcontentsline{toc}{subsection}{<# creature.name | latex_escape #>}
+\addcontentsline{toc}{subsection}{<# creature.name #>}
 <@ endif @>
 
 <#-- Use shared creature rendering macro for consistency --#>

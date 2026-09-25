@@ -4,9 +4,9 @@
 <@ for image in images @>
     \begin{subfigure}{0.48\linewidth}
         \centering
-        \StudiorumImageInlineNoCaption{<# image.path #>}
+        \StudiorumImageInlineNoCaption{<# image.path | safe #>}
 <@ if image.caption @>
-        \caption{<# image.caption #>}
+        \caption{<# image.caption | safe #>}
 <@ endif @>
     \end{subfigure}
 <@ if not loop.last @>
@@ -15,6 +15,6 @@
 <@ endif @>
 <@ endfor @>
 <@ if caption @>
-    \caption{<# caption #>}
+    \caption{<# caption | safe #>}
 <@ endif @>
 \end{figure}

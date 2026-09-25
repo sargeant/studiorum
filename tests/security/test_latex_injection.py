@@ -9,7 +9,7 @@ import time
 
 from hypothesis import given, strategies as st
 
-from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.document import render_models
 from studiorum.renderers.context import RenderingContext
 from studiorum.renderers.escape import escape
@@ -51,40 +51,17 @@ class TestLaTeXEscaping:
 class TestTemplateInjectionVulnerabilities:
     """Test template rendering for injection vulnerabilities."""
 
-    def setup_method(self):
-        """Set up test template engine."""
+    def test_template_variables_are_escaped_by_default(self):
+        result = (
+            environment()
+            .from_string("\\section{<# title #>}\n<# content #>")
+            .render(
+                title="Test\\newcommand{\\evil}{PWNED}", content="\\input{/etc/passwd}"
+            )
+        )
 
-        self.engine = LaTeXTemplateEngine()
-
-    def test_template_variable_injection(self):
-        """Test that template variables are vulnerable without escaping."""
-        # Create a test template that doesn't use escaping
-        test_template_content = """
-\\section{<# title #>}
-<# content #>
-        """.strip()
-
-        # Write test template
-        template_path = self.engine.get_template_path("test_injection")
-        template_path.write_text(test_template_content)
-
-        try:
-            # Test with malicious content
-            malicious_content = {
-                "title": "Test\\newcommand{\\evil}{PWNED}",
-                "content": "\\input{/etc/passwd}",
-            }
-
-            result = self.engine.render_template("test_injection", malicious_content)
-
-            # This should contain the raw injection attempts (demonstrating vulnerability)
-            assert "\\newcommand" in result
-            assert "\\input{/etc/passwd}" in result
-
-        finally:
-            # Clean up test template
-            if template_path.exists():
-                template_path.unlink()
+        assert _COMMAND.search(result) is None, result
+        assert "\\input" not in result
 
     def test_spell_name_cannot_inject(self):
         from studiorum.core.models.spells import Spell
@@ -139,68 +116,14 @@ class TestTemplateInjectionVulnerabilities:
 
 
 class TestSecureTemplatePatterns:
-    """Test secure template usage patterns."""
-
-    def setup_method(self):
-        """Set up test template engine."""
-
-        self.engine = LaTeXTemplateEngine()
-
-    def test_secure_variable_usage(self):
-        """Test that latex_escape filter prevents injection."""
-        # Create a secure test template
-        secure_template_content = """
-\\section{<# title | latex_escape #>}
-<# content | latex_escape #>
-        """.strip()
-
-        template_path = self.engine.get_template_path("test_secure")
-        template_path.write_text(secure_template_content)
-
-        try:
-            # Test with malicious content
-            malicious_content = {
-                "title": "Test\\newcommand{\\evil}{PWNED}",
-                "content": "\\input{/etc/passwd}",
-            }
-
-            result = self.engine.render_template("test_secure", malicious_content)
-
-            # Verify that dangerous commands are neutralized by escaping their arguments
-            # Commands themselves may remain but their arguments are escaped
-            assert "\\{" in result and "\\}" in result, "Braces should be escaped"
-            # Verify content doesn't match original (meaning it was modified)
-            assert malicious_content["title"] not in result
-            assert malicious_content["content"] not in result
-
-        finally:
-            # Clean up test template
-            if template_path.exists():
-                template_path.unlink()
+    """Only content marked safe reaches LaTeX unescaped."""
 
     def test_safe_content_handling(self):
-        """Test that trusted content can be marked as safe."""
-        safe_template_content = """
-\\section{<# title | latex_escape #>}
-<# trusted_latex | safe #>
-        """.strip()
+        result = (
+            environment()
+            .from_string("\\section{<# title #>}\n<# trusted_latex | safe #>")
+            .render(title="Test{With}Special", trusted_latex="\\textbf{Trusted}")
+        )
 
-        template_path = self.engine.get_template_path("test_safe")
-        template_path.write_text(safe_template_content)
-
-        try:
-            content = {
-                "title": "Test{With}Special",
-                "trusted_latex": "\\textbf{This is trusted LaTeX}",
-            }
-
-            result = self.engine.render_template("test_safe", content)
-
-            # Title should be escaped
-            assert "Test\\{With\\}Special" in result
-            # Trusted content should pass through
-            assert "\\textbf{This is trusted LaTeX}" in result
-
-        finally:
-            if template_path.exists():
-                template_path.unlink()
+        assert "Test\\{With\\}Special" in result
+        assert "\\textbf{Trusted}" in result

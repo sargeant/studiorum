@@ -91,8 +91,7 @@
 % Standard floating figure
 % Usage: \StudiorumImageFloat[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFloat}{ s o m m o }{%%
-  
-\begin{figure}[htbp]
+  \begin{figure}[htbp]
     \centering
     \IfNoValueTF{#2}{%%
       \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -103,16 +102,14 @@
       \caption{#4}%%
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
-  \end{figure}
-%%
+  \end{figure}%%
 }
 
 % Wide (two-column spanning when applicable)
 % Usage: \StudiorumImageWide[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageWide}{ s o m m o }{%%
   \ifdim\columnwidth=\textwidth
-    
-\begin{figure}[htbp]
+    \begin{figure}[htbp]
       \centering
       \IfNoValueTF{#2}{%%
         \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -123,11 +120,9 @@
         \caption{#4}%%
         \IfNoValueF{#5}{\label{#5}}%%
       }%%
-    \end{figure}
-%%
+    \end{figure}%%
   \else
-    
-\begin{figure*}[tp]
+    \begin{figure*}[tp]
       \centering
       \IfNoValueTF{#2}{%%
         \includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -138,8 +133,7 @@
         \caption{#4}%%
         \IfNoValueF{#5}{\label{#5}}%%
       }%%
-    \end{figure*}
-%%
+    \end{figure*}%%
   \fi
 }
 
@@ -147,8 +141,7 @@
 % Usage: \StudiorumImageFullpage[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFullpage}{ s o m m o }{%%
   \clearpage
-  
-\begin{figure}[p]
+  \begin{figure}[p]
     \centering
     \IfNoValueTF{#2}{%%
       \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{#3}%%
@@ -160,7 +153,6 @@
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
   \end{figure}
-
   \clearpage
 }
 
@@ -168,8 +160,7 @@
 % Usage: \StudiorumImageFullpageBleed{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFullpageBleed}{ s o m m o }{%%
   \clearpage
-  
-\begin{figure}[p]
+  \begin{figure}[p]
     \centering
     \includegraphics[width=\paperwidth,height=\paperheight]{#3}%%
     \IfBooleanF{#1}{%%
@@ -177,7 +168,6 @@
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
   \end{figure}
-
   \clearpage
 }
 
@@ -219,7 +209,6 @@ The village of Testbrook sits nestled in a peaceful valley, surrounded by rollin
 This small settlement serves as the starting point for many testing adventures, providing a safe haven for adventurers.
 
 % Table: Notable Village NPCs
-
 \begin{DndTable}[header={Notable Village NPCs}]{lll}
 Name & Role & Personality \\
 Tessa Testkeeper & Tavern Owner & Friendly and welcoming to all travelers \\

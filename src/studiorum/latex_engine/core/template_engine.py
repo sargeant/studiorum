@@ -10,11 +10,13 @@ import jinja2
 from jinja2 import (
     Environment,
     FileSystemLoader,
+    StrictUndefined,
     Template,
     Undefined,
     pass_context,
 )
 from jinja2.runtime import Context
+from markupsafe import Markup
 
 from studiorum.core.config.unified_config import (
     LaTeXConfig,
@@ -58,53 +60,72 @@ def _class_for_content_type(
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
 
-def _latex_escape(value: Any) -> str:
-    """Escape a value as LaTeX text."""
-    return escape(value if isinstance(value, str) else str(value))
+# An HTML entity in the output means Jinja escaped a string as HTML: it does
+# that when a Markup value meets a plain string in ~, join or format
+_HTML_ESCAPED = re.compile(r"(?<!\\)&(?:amp|lt|gt|quot|#34|#39);")
 
 
-def _safe_processed_name(obj: Any) -> str:
+def as_latex(text: str) -> Markup:
+    """Mark text as LaTeX, so templates print it as it is."""
+    # Markup marks LaTeX here: nothing this environment renders is HTML
+    return Markup(text)  # nosec B704
+
+
+def _finalize(value: Any) -> Any:
+    """Escape anything printed that is not already LaTeX (Markup) as text.
+
+    None is an error rather than the word "None".
+    """
+    if value is None:
+        raise ValueError("A template printed None; test for it or give a default")
+    if hasattr(value, "__html__"):
+        return value
+    return as_latex(escape(value if isinstance(value, str) else str(value)))
+
+
+def _safe_processed_name(obj: Any) -> Markup:
     """An ability's name with its tags rendered, or any object's name."""
     if isinstance(obj, Ability | Spellcasting):
-        return render(obj.name) if obj.name else ""
-    if hasattr(obj, "get_processed_name"):
-        try:
-            return obj.get_processed_name()
-        except (AttributeError, TypeError, ValueError):
-            # Method exists but failed - continue to fallback
-            pass
-
-    # Fallback to name attribute for dicts or objects
+        return as_latex(render(obj.name) if obj.name else "")
     if isinstance(obj, dict):
-        return obj.get("name", "Unknown")
+        return as_latex(escape(obj.get("name", "Unknown")))
     if hasattr(obj, "name"):
-        return obj.name
-    return str(obj)
+        return as_latex(escape(obj.name))
+    return as_latex(escape(str(obj)))
 
 
 @pass_context
-def _entries(context: Context, value: Any) -> str:
+def _entries(context: Context, value: Any) -> Markup:
     """LaTeX for entries, rendered with the template's rendering_context."""
     if isinstance(value, Undefined):
-        return ""
+        return Markup("")
     rendering_context = context.get("rendering_context")
     if rendering_context is None:
-        return EntryRenderer().render(value)
-    return EntryRenderer.from_context(rendering_context).render(value)
+        return as_latex(EntryRenderer().render(value))
+    return as_latex(EntryRenderer.from_context(rendering_context).render(value))
+
+
+def _latex(render_text: Callable[[Any], str | None]) -> Callable[[Any], Markup]:
+    """A filter that returns LaTeX, marked so it is not escaped again."""
+    return lambda value: as_latex(render_text(value) or "")
 
 
 @cache
 def environment() -> Environment:
     """The Jinja environment for every template, with LaTeX-friendly delimiters.
 
-    Autoescape is off: templates escape plain text with the latex_escape filter.
+    Autoescape is on, with ``_finalize`` escaping as LaTeX what is printed:
+    macro output, ``| safe`` values and the LaTeX filters pass through, and
+    everything else is plain text. Undefined variables are errors.
     """
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         trim_blocks=True,
         lstrip_blocks=True,
         keep_trailing_newline=True,
-        autoescape=False,  # nosec B701
+        autoescape=True,
+        finalize=_finalize,
+        undefined=StrictUndefined,
         block_start_string="<@",
         block_end_string="@>",
         variable_start_string="<#",
@@ -113,34 +134,29 @@ def environment() -> Environment:
         comment_end_string="--#>",
     )
     filters: dict[str, Callable[..., Any]] = {
-        "latex_escape": _latex_escape,
         "safe_processed_name": _safe_processed_name,
-        "processed_ac_text": creature_ac_text,
-        "processed_senses": creature_senses_text,
+        "processed_ac_text": _latex(creature_ac_text),
+        "processed_senses": _latex(creature_senses_text),
         "entries": _entries,
     }
     env.filters.update(filters)
     return env
 
 
+def check_output(latex: str) -> str:
+    """The rendered LaTeX, or an error if Jinja escaped any of it as HTML."""
+    if match := _HTML_ESCAPED.search(latex):
+        start = max(match.start() - 60, 0)
+        raise ValueError(
+            f"Template output was escaped as HTML near: {latex[start : match.end()]!r}"
+        )
+    return latex
+
+
 class LaTeXTemplateEngine:
-    """Jinja2-based template engine for LaTeX document generation.
+    """Renders templates with the document class and options from the config.
 
-    Provides template loading, caching, and rendering with LaTeX-specific
-    escaping and filters. Supports template inheritance and uses DND-5e-LaTeX-Template
-    document classes.
-
-    Security Note:
-        HTML autoescape is disabled as it's inappropriate for LaTeX output.
-        LaTeX has different special characters than HTML ({, }, $, &, %, #, ^, _, ~, \\)
-        and requires custom escaping logic.
-
-        IMPORTANT: All user-provided content must be escaped using the latex_escape
-        filter to prevent LaTeX injection attacks. Template developers should:
-        - Use {{ variable | latex_escape }} for all user input
-        - Mark trusted content as safe: {{ trusted_content | safe }}
-        - Validate input before template rendering
-        - Never allow user control of template structure
+    See ``environment()`` for how printed values are escaped.
     """
 
     def __init__(self, config: LaTeXConfigDict | None = None):
@@ -225,25 +241,10 @@ class LaTeXTemplateEngine:
         return self.env.get_template(template_name)
 
     def _post_process_output(self, content: str) -> str:
-        """Post-process rendered template output.
-
-        Args:
-            content: Rendered template content
-
-        Returns:
-            Post-processed content
-        """
-        # Remove excessive blank lines
+        """Collapse runs of blank lines, and check nothing was escaped as HTML."""
         content = re.sub(r"\n\s*\n\s*\n", "\n\n", content)
-
-        # Ensure proper spacing around LaTeX environments
-        content = re.sub(r"\\begin\{([^}]+)\}", r"\n\\begin{\1}", content)
-        content = re.sub(r"\\end\{([^}]+)\}", r"\\end{\1}\n", content)
-
-        # Clean up any remaining triple newlines
         content = re.sub(r"\n\n\n+", "\n\n", content)
-
-        return content.strip()
+        return check_output(content.strip())
 
     def validate_template(self, template_name: str) -> bool:
         """Validate template syntax without rendering.
@@ -333,8 +334,15 @@ class LaTeXTemplateEngine:
             doc_config, content_type
         )
 
-        # Create base context
-        context = self.create_template_context(**kwargs)
+        # Document-level settings only some documents set
+        context = self.create_template_context(
+            **{
+                "title": None,
+                "show_title_page": False,
+                "use_frontmatter": False,
+                **kwargs,
+            }
+        )
 
         # Add DND-specific configuration
         context.update(

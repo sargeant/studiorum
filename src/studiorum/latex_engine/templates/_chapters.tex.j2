@@ -14,18 +14,18 @@
 \addtocontents{toc}{\protect\def\protect\tocchapapp{<# chapter.toc_word #>}}
 <@ endif @>
 <@ if chapter.opening == "unnumbered" @>
-\chapter*{<# chapter.title | latex_escape #>}
-\addcontentsline{toc}{chapter}{<# chapter.title | latex_escape #>}
-\label{<# chapter.label #>}
+\chapter*{<# chapter.title #>}
+\addcontentsline{toc}{chapter}{<# chapter.title #>}
+\label{<# chapter.label | safe #>}
 <@ else @>
 <@ if chapter.counter is not none @>
 \setcounter{chapter}{<# chapter.counter #>}
 <@ endif @>
-\chapter{<# chapter.title | latex_escape #>}\label{<# chapter.label #>}
+\chapter{<# chapter.title #>}\label{<# chapter.label | safe #>}
 <@ endif @>
 <@ if chapter.body @>
 
-<# chapter.body #>
+<# chapter.body | safe #>
 <@ endif @>
 
 <@ endfor @>

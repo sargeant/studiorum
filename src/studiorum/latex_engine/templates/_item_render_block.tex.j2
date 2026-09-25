@@ -6,14 +6,14 @@
 <@ macro render_item(item) @>
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_item_metadata_line() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() #>}
 <@ else @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_type_text() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_type_text() #>}
 <@ endif @>
 
 % Item statistics for weapons, armor, etc.
 <@ if item.get_value_text() @>
-\textit{<# item.get_value_text() | latex_escape #>}
+\textit{<# item.get_value_text() #>}
 <@ endif @>
 
 % Item description

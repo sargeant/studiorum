@@ -13,7 +13,7 @@
 <@ if spell.subschools @>
   <@ set level_text = level_text ~ " (" ~ spell.subschools|join(", ") ~ ")" @>
 <@ endif @>
-\textit{<# level_text | latex_escape #>}
+\textit{<# level_text #>}
 <@ endmacro @>
 
 <@ macro render_higher_level_section(spell) @>
@@ -31,21 +31,21 @@
   <@ set cost = none @>
 <@ endif @>
 <@ if cost @>
-  <# components | latex_escape #> (<# cost[0] #> <# cost[1] #>)
+  <# components #> (<# cost[0] #> <# cost[1] #>)
 <@ else @>
-  <# components | latex_escape #>
+  <# components #>
 <@ endif @>
 <@ endmacro @>
 
 
 <@ macro render_spell(spell) @>
 \DndSpellHeader%
-  {<# spell.name | latex_escape #>}
+  {<# spell.name #>}
   {<# render_spell_header(spell) | safe #>}
-  {<# spell.get_casting_time_text() | latex_escape #>}
-  {<# spell.get_range_text() | latex_escape #>}
+  {<# spell.get_casting_time_text() #>}
+  {<# spell.get_range_text() #>}
   {<# render_spell_components(spell) | safe #>}
-  {<# spell.get_duration_text() | latex_escape #>}
+  {<# spell.get_duration_text() #>}
 
 <@ if (spell is defined and spell is not string and spell.entries is defined and spell.entries) or (spell is sequence and spell is not string) @>
 \noindent

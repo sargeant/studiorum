@@ -157,7 +157,8 @@
            prints core fields (type, basics, ability scores, details), and then
            delegates sections to helper macros. Honors modern statblock save
            placement and wide layout multicols configuration.
-  Inputs:  creature (object with accessors), latex_config (for statblock mode).
+  Inputs:  creature (object with accessors), latex_config if the document
+           has one (for statblock mode).
   Requires: rendering_context in the template context.
 --#>
 <@ macro render_creature(creature) @>
@@ -190,7 +191,7 @@
 
 <#-- Render using DndMonster environment with proper float placement --#>
 <@ if needs_full_width @>
-\begin{DndMonster}[float*=tp,width=\textwidth + 8pt, toptitle=0pt, top=1pt]{<# creature.name | latex_escape #>}
+\begin{DndMonster}[float*=tp,width=\textwidth + 8pt, toptitle=0pt, top=1pt]{<# creature.name #>}
 \vspace*{-1.8\baselineskip}
 \begin{multicols}{2}
 \raggedcolumns
@@ -200,17 +201,17 @@
 \setlength{\multicolsep}{0pt}
 \setlength{\parskip}{0pt}
 <@ else @>
-\begin{DndMonster}[float=tp]{<# creature.name | latex_escape #>}
+\begin{DndMonster}[float=tp]{<# creature.name #>}
 <@ endif @>
-\noindent \DndMonsterType{<# creature.get_size_type_alignment() | latex_escape #>}
+\noindent \DndMonsterType{<# creature.get_size_type_alignment() #>}
 \DndMonsterBasics[
     armor-class = {<# creature | processed_ac_text | safe #>},
-    hit-points = {<# creature.get_hp_text() | latex_escape #>},
-    speed = {<# creature.get_speed_text() | latex_escape #>},
+    hit-points = {<# creature.get_hp_text() #>},
+    speed = {<# creature.get_speed_text() #>},
     initiative = <@ if creature.get_initiative_modifier() >= 0 @>+<@ endif @><# creature.get_initiative_modifier() #>
 ]
 <#-- Check if using modern statblock format --#>
-<@ set is_modern = latex_config and latex_config.document and latex_config.document.statblock in ['2024', 'modern'] @>
+<@ set is_modern = latex_config is defined and latex_config.document.statblock in ['2024', 'modern'] @>
 \DndMonsterAbilityScores[
     str = <# creature.strength #>,
     dex = <# creature.dexterity #>,
@@ -231,22 +232,22 @@
 <@ if (not is_modern and creature.get_formatted_saving_throws()) or creature.get_formatted_skills() or creature.get_formatted_resistances() or creature.get_formatted_immunities() or creature.get_formatted_vulnerabilities() or creature.get_formatted_condition_immunities() or creature.get_formatted_senses() or creature.get_formatted_languages() @>
 \DndMonsterDetails[
 <#-- Only include saving-throws in classic format --#>
-<@ if not is_modern and creature.get_formatted_saving_throws() @>    saving-throws = {<# creature.get_formatted_saving_throws() | latex_escape #>},
+<@ if not is_modern and creature.get_formatted_saving_throws() @>    saving-throws = {<# creature.get_formatted_saving_throws() #>},
 <@ endif @>
-<@ if creature.get_formatted_skills() @>    skills = {<# creature.get_formatted_skills() | latex_escape #>},
+<@ if creature.get_formatted_skills() @>    skills = {<# creature.get_formatted_skills() #>},
 <@ endif @>
-<@ if creature.get_formatted_resistances() @>    damage-resistances = {<# creature.get_formatted_resistances() | latex_escape #>},
+<@ if creature.get_formatted_resistances() @>    damage-resistances = {<# creature.get_formatted_resistances() #>},
 <@ endif @>
-<@ if creature.get_formatted_immunities() @>    damage-immunities = {<# creature.get_formatted_immunities() | latex_escape #>},
+<@ if creature.get_formatted_immunities() @>    damage-immunities = {<# creature.get_formatted_immunities() #>},
 <@ endif @>
-<@ if creature.get_formatted_vulnerabilities() @>    damage-vulnerabilities = {<# creature.get_formatted_vulnerabilities() | latex_escape #>},
+<@ if creature.get_formatted_vulnerabilities() @>    damage-vulnerabilities = {<# creature.get_formatted_vulnerabilities() #>},
 <@ endif @>
-<@ if creature.get_formatted_condition_immunities() @>    condition-immunities = {<# creature.get_formatted_condition_immunities() | latex_escape #>},
+<@ if creature.get_formatted_condition_immunities() @>    condition-immunities = {<# creature.get_formatted_condition_immunities() #>},
 <@ endif @>
 <@ if creature.get_formatted_senses() @>    senses = {<# creature | processed_senses | safe #>},
 <@ endif @>
-<@ if creature.get_formatted_languages() @>    languages = {<# creature.get_formatted_languages() | latex_escape #>},
-<@ endif @>    challenge = {<# creature.get_enhanced_cr_text() | latex_escape #>}
+<@ if creature.get_formatted_languages() @>    languages = {<# creature.get_formatted_languages() #>},
+<@ endif @>    challenge = {<# creature.get_enhanced_cr_text() #>}
 ]
 <@ endif @>
 
@@ -297,7 +298,7 @@
 <@ set _source_abbrev = _source | attr('abbreviation') | default(None, true) @>
 <@ if _source_abbrev @>
 \vspace{2pt}
-\noindent\hfill{\scriptsize\textcolor{gray}{<# _source_abbrev | latex_escape #>}}
+\noindent\hfill{\scriptsize\textcolor{gray}{<# _source_abbrev #>}}
 <@ endif @>
 
 <@ if needs_full_width @>
