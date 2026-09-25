@@ -31,6 +31,7 @@ def _data_dir(root: Path) -> DataDir:
     _write(root / "adventure-example.json", {"adventure": []})
     _write(root / "adventure" / "adventure-cos.json", {"data": []})
     _write(root / "generated" / "gendata-tables.json", {"table": []})
+    _write(root / "generated" / "gendata-spell-source-lookup.json", {})
     return DataDir(root)
 
 
@@ -44,6 +45,7 @@ def test_entity_files_follow_the_manifests(tmp_path: Path) -> None:
         "bestiary/bestiary-mm.json",
         "bestiary/legendarygroups.json",
         "class/class-wizard.json",
+        "generated/gendata-tables.json",
         "items.json",
         "spells/fluff-spells-phb.json",
         "spells/spells-phb.json",
