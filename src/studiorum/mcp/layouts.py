@@ -7,6 +7,8 @@ from typing import Any
 from studiorum.core import encounter
 from studiorum.core.loaders import item_types
 from studiorum.core.models.items import variation_entries
+from studiorum.core.text.parser import feat_category
+from studiorum.core.text.prerequisites import prerequisite_entry
 from studiorum.mcp.markdown import render, strip_tags
 
 type Raw = dict[str, Any]
@@ -497,105 +499,31 @@ def _subclass(data: Raw, _: str) -> list[str]:
     ]
 
 
-_FEAT_CATEGORIES = {"G": "General", "O": "Origin", "EB": "Epic Boon", "FS": "Fighting Style", "D": "Dragonmark", "DG": "Divine Gift"}  # fmt: skip
-
-
 def _generic(data: Raw, content_type: str) -> list[str]:
     kind = content_type
     if data.get("level") and (data.get("className") or data.get("subclassShortName")):
         owner = data.get("subclassShortName") or data.get("className")
         kind = f"Level {data['level']} {owner} feature"
-    category = str(data.get("category", "")).split(":")[0]
-    if content_type == "feat" and category in _FEAT_CATEGORIES:
-        kind = f"{_FEAT_CATEGORIES[category]} feat"
+    if content_type == "feat" and data.get("category"):
+        kind = feat_category(str(data["category"]))
     return [
         _title(data),
         f"*{kind}* · *{_source(data)}*",
         "\n".join(
             line
             for line in (
-                _line("Prerequisite", _prerequisites(data.get("prerequisite"))),
+                _line(
+                    "Prerequisite",
+                    strip_tags(
+                        prerequisite_entry(data.get("prerequisite"), skip_prefix=True)
+                    ),
+                ),
                 _line("Ability Score Increase", _increases(data.get("ability"))),
             )
             if line
         ),
         _entries(data.get("entries") or data.get("entry")),
     ]
-
-
-def _name_of(ref: Any) -> str:
-    """A uid such as "alert|xphb" or {"name": ...} as a display name."""
-    if isinstance(ref, dict):
-        return strip_tags(str(ref.get("displayEntry") or ref.get("name", "")))
-    parts = str(ref).split("|")
-    return _title_case(parts[2] if len(parts) > 2 and parts[2] else parts[0])
-
-
-def _title_case(text: str) -> str:
-    small = {"a", "an", "and", "as", "at", "for", "in", "of", "on", "or", "the", "to"}
-    words = text.split()
-    return " ".join(
-        w if i and w in small else w[:1].upper() + w[1:] for i, w in enumerate(words)
-    )
-
-
-def _prerequisites(options: Any) -> str:
-    """5etools' prerequisite list: each item is one way to qualify."""
-    if not isinstance(options, list):
-        return ""
-    return " or ".join(t for t in (_prerequisite(o) for o in options) if t)
-
-
-def _prerequisite(req: Any) -> str:
-    if not isinstance(req, dict):
-        return ""
-    parts = []
-    for key, value in req.items():
-        match key:
-            case "level":
-                if isinstance(value, dict):
-                    cls = (value.get("class") or {}).get("name", "")
-                    parts.append(f"Level {value.get('level')} {cls}".strip())
-                else:
-                    parts.append(f"Level {value}")
-            case "ability":
-                parts.append(
-                    " or ".join(
-                        f"{_ABILITY_NAMES.get(a, a)} {n}"
-                        for option in value
-                        for a, n in option.items()
-                    )
-                )
-            case (
-                "race" | "background" | "feat" | "optionalfeature" | "feature" | "item"
-            ):
-                parts.append(" or ".join(_name_of(v) for v in value))
-            case "spell":
-                parts.append(
-                    " or ".join(
-                        strip_tags(str(v.get("entry", "")))
-                        if isinstance(v, dict)
-                        else _title_case(str(v).split("#")[0].split("|")[0])
-                        + (" cantrip" if "#c" in str(v) else "")
-                        for v in value
-                    )
-                )
-            case "proficiency":
-                for prof in value:
-                    parts += [f"Proficiency with {v} {k}" for k, v in prof.items()]
-            case "pact":
-                parts.append(f"Pact of the {value}")
-            case "campaign":
-                parts.append(" or ".join(f"{c} campaign" for c in value))
-            case "spellcasting" | "spellcastingFeature":
-                parts.append("The ability to cast at least one spell")
-            case "spellcasting2020":
-                parts.append("Spellcasting or Pact Magic feature")
-            case "other":
-                parts.append(strip_tags(str(value)))
-            case "otherSummary":
-                parts.append(strip_tags(str(value.get("entrySummary", ""))))
-    return ", ".join(p for p in parts if p)
 
 
 def _increases(options: Any) -> str:
