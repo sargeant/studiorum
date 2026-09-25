@@ -353,15 +353,6 @@ class Item(BaseContent):
 
         return rarity_text
 
-    def get_weight_text(self) -> str:
-        """Get formatted weight text."""
-        if self.weight is None:
-            return ""
-
-        if self.weight == 1:
-            return "1 lb."
-        return f"{self.weight} lbs."
-
     def get_value_text(self) -> str:
         """Get formatted value text."""
         if not self.value:
@@ -399,56 +390,6 @@ class Item(BaseContent):
         return str(self.value)
 
     # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
-
-    @staticmethod
-    def _extract_simple_text_from_entries(entries: list[Any]) -> str:
-        """Extract simple text from entries without processing."""
-        if not entries:
-            return ""
-
-        text_parts = []
-
-        def extract_text_recursive(entry: Any) -> None:
-            if isinstance(entry, str):
-                text_parts.append(entry)
-            elif hasattr(entry, "model_dump"):
-                # For Pydantic models, get the dict representation
-                entry_data = entry.model_dump()
-                extract_text_recursive(entry_data)
-            elif isinstance(entry, dict):
-                # Handle dict entries
-                # Always include name if present (for entries with names)
-                if "name" in entry:
-                    text_parts.append(str(entry["name"]))
-
-                # Always include "by" if present (for quote attributions)
-                if "by" in entry:
-                    text_parts.append(str(entry["by"]))
-
-                if "text" in entry:
-                    text_parts.append(str(entry["text"]))
-                elif "entries" in entry:
-                    # Recursively process nested entries
-                    for nested_entry in entry["entries"]:
-                        extract_text_recursive(nested_entry)
-                else:
-                    # Try to extract any string values from the dict (excluding name and by which we already handled)
-                    for key, value in entry.items():
-                        if key not in ("name", "by") and isinstance(value, str):
-                            text_parts.append(value)
-                        elif isinstance(value, list):
-                            for item in value:
-                                extract_text_recursive(item)
-            elif isinstance(entry, list):
-                for item in entry:
-                    extract_text_recursive(item)
-            else:
-                text_parts.append(str(entry))
-
-        for entry in entries:
-            extract_text_recursive(entry)
-
-        return " ".join(text_parts)
 
     def get_item_metadata_line(self) -> str:
         """Get formatted metadata line (category, type, rarity, attunement)."""

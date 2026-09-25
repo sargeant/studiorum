@@ -116,9 +116,7 @@ class TestLaTeXTemplateEngine:
         engine: Any = LaTeXTemplateEngine()
 
         required_templates = [
-            "spell_entry",
-            "creature_entry",
-            "item_entry",
+            "_content",
             "base",
             "book",
         ]

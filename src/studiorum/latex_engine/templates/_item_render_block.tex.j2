@@ -1,5 +1,4 @@
-% Shared item rendering block for use in both itemcompendium and item_entry templates
-% This macro can be included by both templates to ensure consistent rendering
+% Item rendering block for appendices, supplements and inset statblocks (_content.tex.j2)
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 <@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
@@ -20,8 +19,6 @@
 % Item description
 <@ if item.entries @>
 <# smart_render_entry(item) #>
-<@ elif description_text is defined and description_text @>
-<# description_text | latex_escape #>
 <@ endif @>
 
 <#-- Render fluff content after item description if available --#>

@@ -567,65 +567,6 @@ class Spell(BaseContent):
         """Get enhanced duration text (same as current implementation)."""
         return self.get_duration_text()
 
-    @staticmethod
-    def _extract_simple_text_from_entries(
-        entries: list[Any], skip_section_names: bool = False
-    ) -> str:
-        """Extract simple text from entries without processing.
-
-        Args:
-            entries: List of entry objects to extract text from
-            skip_section_names: If True, don't include names from "entries" type objects
-        """
-        if not entries:
-            return ""
-
-        text_parts = []
-
-        def extract_text_recursive(entry: Any) -> None:
-            if isinstance(entry, str):
-                text_parts.append(entry)
-            elif hasattr(entry, "model_dump"):
-                # For Pydantic models, get the dict representation
-                entry_data = entry.model_dump()
-                extract_text_recursive(entry_data)
-            elif isinstance(entry, dict):
-                # Handle dict entries
-                # Include name if present, unless we're skipping section names for "entries" type
-                if "name" in entry and not (
-                    skip_section_names and entry.get("type") == "entries"
-                ):
-                    text_parts.append(str(entry["name"]))
-
-                # Always include "by" if present (for quote attributions)
-                if "by" in entry:
-                    text_parts.append(str(entry["by"]))
-
-                if "text" in entry:
-                    text_parts.append(str(entry["text"]))
-                elif "entries" in entry:
-                    # Recursively process nested entries
-                    for nested_entry in entry["entries"]:
-                        extract_text_recursive(nested_entry)
-                else:
-                    # Try to extract any string values from the dict (excluding name and by which we already handled)
-                    for key, value in entry.items():
-                        if key not in ("name", "by") and isinstance(value, str):
-                            text_parts.append(value)
-                        elif isinstance(value, list):
-                            for item in value:
-                                extract_text_recursive(item)
-            elif isinstance(entry, list):
-                for item in entry:
-                    extract_text_recursive(item)
-            else:
-                text_parts.append(str(entry))
-
-        for entry in entries:
-            extract_text_recursive(entry)
-
-        return " ".join(text_parts)
-
     # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
     # Legacy method get_higher_level_text removed - access .higher_level directly and use RecursiveEntryProcessor

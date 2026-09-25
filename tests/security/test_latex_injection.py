@@ -10,6 +10,8 @@ import time
 from hypothesis import given, strategies as st
 
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+from studiorum.latex_engine.document import render_models
+from studiorum.renderers.context import RenderingContext
 from studiorum.renderers.escape import escape
 
 _COMMAND = re.compile(r"\\(newcommand|def|input|immediate|write18|end|begin)\b")
@@ -84,133 +86,57 @@ class TestTemplateInjectionVulnerabilities:
             if template_path.exists():
                 template_path.unlink()
 
-    def test_spell_template_vulnerabilities(self):
-        """Test current spell template for injection vulnerabilities."""
+    def test_spell_name_cannot_inject(self):
+        from studiorum.core.models.spells import Spell
 
-        # Create a proper mock spell with all required methods
-        class MockSpell:
-            def __init__(self):
-                self.name = "Fireball\\newcommand{\\evil}{PWNED}"
+        spell = Spell.model_validate(
+            {
+                "name": "Fireball\\newcommand{\\evil}{PWNED}",
+                "source": "PHB",
+                "level": 3,
+                "school": "V",
+                "time": [{"number": 1, "unit": "action"}],
+                "range": {"type": "point", "distance": {"type": "feet", "amount": 150}},
+                "components": {"v": True, "s": True},
+                "duration": [{"type": "instant"}],
+                "entries": ["Test\\input{/etc/passwd}"],
+            }
+        )
 
-            def get_level_text(self):
-                return "3rd-level"
-
-            def get_casting_time_text(self):
-                return "1 action"
-
-            def get_range_text(self):
-                return "150 feet"
-
-            def get_components_text(self):
-                return "V, S, M"
-
-            def get_duration_text(self):
-                return "Instantaneous"
-
-            def get_description_text(self, context=None):
-                return "Test\\input{/etc/passwd}"
-
-            def get_higher_level_text(self, context=None):
-                return None
-
-        # Test with a malicious spell name
-        from studiorum.core.references.content_tracker import ContentTracker
-
-        test_context = {
-            "spell": MockSpell(),
-            "level_text": "3rd-level",
-            "casting_time": "1 action",
-            "range_text": "150 feet",
-            "components_text": "V, S, M",
-            "duration_text": "Instantaneous",
-            "description_text": "Test\\input{/etc/passwd}",
-            "higher_level_text": None,
-            "content_tracker": ContentTracker(),
-        }
-
-        # This will demonstrate the vulnerability in current templates
-        result = self.engine.render_template("spell_entry", test_context)
+        result = render_models(
+            "spell", [spell], RenderingContext(output_format="latex")
+        )
 
         assert "Fireball\\textbackslash{}newcommand\\{" in result
         assert "\\newcommand" not in result
+        assert "\\input" not in result
 
-    def test_creature_template_vulnerabilities(self):
-        """Test current creature template for injection vulnerabilities."""
+    def test_creature_name_cannot_inject(self):
+        from studiorum.core.models.creatures import Creature
 
-        # Create a proper mock creature with all required methods and attributes
-        class MockCreature:
-            def __init__(self):
-                self.name = "Dragon\\def\\evil{PWNED}"
-                self.ac = "19 (Natural Armor)"
-                self.senses = None
-                self.strength = 27
-                self.dexterity = 10
-                self.constitution = 19
-                self.intelligence = 16
-                self.wisdom = 13
-                self.charisma = 21
+        creature = Creature.model_validate(
+            {
+                "name": "Dragon\\def\\evil{PWNED}",
+                "source": "TST",
+                "size": ["L"],
+                "type": "dragon",
+                "alignment": ["C", "E"],
+                "ac": [19],
+                "hp": {"average": 256, "formula": "27d12 + 108"},
+                "speed": {"walk": 40},
+                "str": 27,
+                "dex": 10,
+                "con": 19,
+                "int": 16,
+                "wis": 13,
+                "cha": 21,
+                "cr": "17",
+            }
+        )
 
-                # Add mock source for testing source abbreviation
-                class MockSource:
-                    def __init__(self):
-                        self.abbreviation = "TST"
-
-                self.source = MockSource()
-
-                # Add empty lists for optional attributes
-                self.trait = []
-                self.action = []
-                self.legendary = []
-                self.reaction = []
-                self.bonus = []
-
-            def requires_full_width_layout(self):
-                return False
-
-            def get_size_type_alignment(self):
-                return "Large dragon, chaotic evil"
-
-            def get_hp_text(self):
-                return "256 (27d12 + 108)"
-
-            def get_speed_text(self):
-                return "40 ft., climb 40 ft., fly 80 ft."
-
-            def get_formatted_saving_throws(self):
-                return ""
-
-            def get_formatted_skills(self):
-                return ""
-
-            def get_formatted_resistances(self):
-                return ""
-
-            def get_formatted_immunities(self):
-                return ""
-
-            def get_formatted_vulnerabilities(self):
-                return ""
-
-            def get_formatted_condition_immunities(self):
-                return ""
-
-            def get_formatted_senses(self):
-                return ""
-
-            def get_formatted_languages(self):
-                return ""
-
-            def get_enhanced_cr_text(self):
-                return "17 (18,000 XP)"
-
-            def get_initiative_modifier(self):
-                return 0  # DEX modifier of 0 for testing
-
-        test_context = {
-            "creature": MockCreature(),
-        }
-
-        result = self.engine.render_template("creature_entry", test_context)
+        result = render_models(
+            "creature", [creature], RenderingContext(output_format="latex")
+        )
 
         assert "\\def\\evil" not in result
         assert "DndMonster" in result
