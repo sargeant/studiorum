@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Ability, Creature
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
@@ -247,6 +248,39 @@ def test_unresolved_statblock_is_a_heading() -> None:
     assert renderer.entry(
         {"type": "statblock", "tag": "creature", "name": "Nobody"}
     ) == ("\\section{Nobody}")
+
+
+@pytest.mark.parametrize(
+    ("statblock", "lookup"),
+    [
+        ({"tag": "spell", "name": "Wish"}, (ContentType.SPELL, "Wish", "PHB")),
+        (
+            {"tag": "charoption", "name": "Echo", "source": "VRGR"},
+            (ContentType.CHAROPTION, "Echo", "VRGR"),
+        ),
+        (
+            {"prop": "monsterFluff", "tag": "creature", "name": "Orc", "source": "MM"},
+            (ContentType.CREATURE_FLUFF, "Orc", "MM"),
+        ),
+    ],
+)
+def test_statblocks_look_up_their_prop_or_tag(
+    statblock: dict[str, str], lookup: tuple[object, ...]
+) -> None:
+    find = Mock(return_value=None)
+    EntryRenderer(omnidexer=Mock(find=find)).entry({"type": "statblock", **statblock})
+
+    find.assert_called_once_with(*lookup)
+
+
+def test_statblocks_of_unknown_kinds_are_a_heading() -> None:
+    find = Mock()
+    out = EntryRenderer(omnidexer=Mock(find=find)).entry(
+        {"type": "statblock", "tag": "crochet", "name": "Cube"}
+    )
+
+    assert out == "\\section{Cube}"
+    find.assert_not_called()
 
 
 def test_models_and_dataclasses_render_as_their_dicts() -> None:
