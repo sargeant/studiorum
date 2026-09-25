@@ -12,8 +12,7 @@ import re
 from typing import Any
 
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature, Spellcasting
-from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
-from studiorum.renderers.context import RenderingContext
+from studiorum.latex_engine.entries import EntryRenderer
 
 
 def process_markup(
@@ -22,20 +21,8 @@ def process_markup(
     omnidexer: Any = None,
     source_name: Any = "unknown",
 ) -> str:
-    """Render one string of 5etools markup through the entry processor."""
-    context = RenderingContext(
-        output_format="latex",
-        debug_mode=False,
-        omnidexer=omnidexer,
-        tag_resolver=tag_resolver,
-        metadata={
-            "source_name": source_name,
-            "tag_resolver": tag_resolver,
-            "content_type": "creature",
-        },
-    )
-    processor = RecursiveEntryProcessor(use_dnd_template=True)
-    return "\n".join(processor.process_entries([text], context))
+    """Render one string of 5etools markup."""
+    return EntryRenderer().text(text)
 
 
 def _resolve_or_raw(text: str, tag_resolver: Any) -> str:

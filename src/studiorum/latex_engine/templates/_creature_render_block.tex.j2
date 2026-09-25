@@ -16,7 +16,7 @@
   Purpose: Render a spellcasting block as a DndMonsterAction heading,
            followed by structured content via smart_render_entry with
            renderHeader=False (header already printed by the action line).
-  Requires: engine-injected entry_processor and rendering_context.
+  Requires: rendering_context in the template context.
 --#>
 <@ macro render_spellcasting_block(spellcasting) @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
@@ -29,7 +29,7 @@
     'will': spellcasting.will,
     'daily': spellcasting.daily,
     'renderHeader': False
-}, entry_processor, rendering_context) #>
+}) #>
 
 <@ endmacro @>
 
@@ -42,9 +42,9 @@
 <@ macro render_named_entry(entry) @>
 \DndMonsterAction{<# entry | safe_processed_name | safe #>}
 <@ if entry.entries is defined and entry.entries @>
-<# smart_render_entry(entry.entries, entry_processor, rendering_context) #>
+<# smart_render_entry(entry.entries) #>
 <@ else @>
-<# smart_render_entry(entry, entry_processor, rendering_context) #>
+<# smart_render_entry(entry) #>
 <@ endif @>
 
 <@ endmacro @>
@@ -83,7 +83,7 @@
 <@ set header_entries = creature.get_legendary_actions_header() @>
 <@ if header_entries @>
 <@ for header_entry in header_entries @>
-<# smart_render_entry(header_entry, entry_processor, rendering_context) #>
+<# smart_render_entry(header_entry) #>
 
 <@ endfor @>
 <@ endif @>
@@ -107,7 +107,7 @@
 <@ set custom_header = creature.get_section_header(section_name) @>
 <@ if custom_header @>
 <@ for header_entry in custom_header @>
-<# smart_render_entry(header_entry, entry_processor, rendering_context) #>
+<# smart_render_entry(header_entry) #>
 
 <@ endfor @>
 <@ endif @>
@@ -135,16 +135,16 @@
 \DndMonsterSection{Lair Actions}
 <@ for lair_action in lair_actions @>
 <@ if lair_action is string @>
-<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
+<# smart_render_entry(lair_action) #>
 
 <@ else @>
 <@ if lair_action | safe_processed_name @>
 \DndMonsterAction{<# lair_action | safe_processed_name | safe #>}
 <@ endif @>
 <@ if lair_action.entries is defined and lair_action.entries @>
-<# smart_render_entry(lair_action.entries, entry_processor, rendering_context) #>
+<# smart_render_entry(lair_action.entries) #>
 <@ else @>
-<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
+<# smart_render_entry(lair_action) #>
 <@ endif @>
 
 <@ endif @>
@@ -153,15 +153,15 @@
 <@ endmacro @>
 
 <#--
-  Macro: render_creature(creature, template_service, content_tracker, latex_config)
+  Macro: render_creature(creature)
   Purpose: Top-level creature renderer. Sets up wide/narrow DndMonster layout,
            prints core fields (type, basics, ability scores, details), and then
            delegates sections to helper macros. Honors modern statblock save
            placement and wide layout multicols configuration.
   Inputs:  creature (object with accessors), latex_config (for statblock mode).
-  Requires: engine-injected entry_processor and rendering_context.
+  Requires: rendering_context in the template context.
 --#>
-<@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
+<@ macro render_creature(creature) @>
 <#-- Render fluff content before stat block if available --#>
 <@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
 <# render_fluff_for_content(creature.name, rendering_context.metadata['fluff'], use_comment=False) #>

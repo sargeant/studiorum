@@ -1,14 +1,6 @@
 % Shared helper macros for entry rendering
 
-<@ macro smart_render_entry(entry, entry_processor, rendering_context) @>
-<@ if entry is sequence and entry is not string and not (entry is mapping) @>
-<# '\n\n'.join(entry_processor.process_entries(entry, rendering_context)) | safe #>
-<@ else @>
-<# '\n\n'.join(
-    entry_processor.process_entries(
-        entry.entries if entry is defined and entry is not string and entry.entries is defined and entry.entries else [entry],
-        rendering_context
-    )
-) | safe #>
-<@ endif @>
+<#-- A list of entries, a thing with entries, or one entry, as LaTeX --#>
+<@ macro smart_render_entry(entry) @>
+<# entry | entries #>
 <@ endmacro @>

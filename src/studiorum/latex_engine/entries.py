@@ -1,0 +1,748 @@
+"""5etools entries to LaTeX.
+
+``EntryRenderer`` walks an entry tree with one function per entry type. Strings
+go through the tag renderer; environments (lists, tables, insets, quotes, the
+monster spell block) are macros in ``_entries.tex.j2``. A failure raises
+``EntryError`` naming where in the tree it happened.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import re
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass, replace
+from functools import cache
+from typing import TYPE_CHECKING, Any
+
+from pydantic import BaseModel
+
+from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
+from studiorum.core.logging import get_logger
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.document_metadata import DocumentType
+from studiorum.renderers.escape import escape
+from studiorum.renderers.tags import render
+
+from .core.images import emit
+from .core.images.resolve import ImageResolver
+
+if TYPE_CHECKING:
+    from studiorum.core.loaders.omnidexer import Omnidexer
+    from studiorum.core.references.content_tracker import ContentTracker
+    from studiorum.renderers.context import RenderingContext
+
+logger = get_logger(__name__)
+
+# Sectioning commands by nesting depth; the last repeats below it
+SPELL_HEADINGS = ("subsubsection", "paragraph", "subparagraph")
+ITEM_HEADINGS = ("subsubsection", "subparagraph", "subparagraph")
+SIDEBAR_HEADINGS = ("subsubsection", "paragraph", "subparagraph")
+# Books and adventures: the document already opens each chapter
+BOOK_HEADINGS = ("section", "subsection", "subsection", "subsubsection", "paragraph")
+ARTICLE_HEADINGS = (
+    "section",
+    "subsection",
+    "subsubsection",
+    "paragraph",
+    "subparagraph",
+)
+
+ABILITIES = {
+    "str": "Strength",
+    "dex": "Dexterity",
+    "con": "Constitution",
+    "int": "Intelligence",
+    "wis": "Wisdom",
+    "cha": "Charisma",
+}
+
+# statblock tags that can be looked up, and the one their content renders through
+STATBLOCK_TYPES = {
+    "variantrule": ContentType.VARIANTRULE,
+    "action": ContentType.ACTION,
+    "condition": ContentType.CONDITION,
+    "sense": ContentType.SENSE,
+    "hazard": ContentType.HAZARD,
+    "status": ContentType.STATUS,
+    "item": ContentType.ITEM,
+    "creature": ContentType.CREATURE,
+    "reward": ContentType.REWARD,
+    "deity": ContentType.DEITY,
+    "charoption": ContentType.CHAROPTION,
+}
+
+_warned_types: set[str] = set()
+
+
+class EntryError(Exception):
+    """An entry that could not be rendered, with its place in the tree."""
+
+
+@dataclass(frozen=True)
+class Style:
+    """How the surrounding document shapes entries."""
+
+    content_type: str | None = None  # "spell" and "item" nest headings deeper
+    book: bool = False  # a book or adventure, whose chapters the document opens
+    sidebar: bool = False
+    monster_spells: bool = False  # DndMonsterSpells macros, in statblocks only
+    images: bool = True
+
+    @property
+    def headings(self) -> tuple[str, ...]:
+        if self.content_type == "spell":
+            return SPELL_HEADINGS
+        if self.content_type == "item":
+            return ITEM_HEADINGS
+        if self.sidebar:
+            return SIDEBAR_HEADINGS
+        return BOOK_HEADINGS if self.book else ARTICLE_HEADINGS
+
+    @classmethod
+    def from_metadata(cls, metadata: dict[str, Any]) -> Style:
+        content_type = metadata.get("content_type")
+        return cls(
+            content_type=content_type,
+            book=metadata.get("document_type")
+            in (DocumentType.BOOK, DocumentType.ADVENTURE),
+            sidebar=bool(metadata.get("in_sidebar", False)),
+            monster_spells=metadata.get("template") == "bestiary"
+            or content_type == "creature",
+            images=bool(metadata.get("include_images", True)),
+        )
+
+
+@cache
+def _macros() -> Any:
+    from .core.template_engine import environment
+
+    return environment().get_template("_entries.tex.j2").module
+
+
+class EntryRenderer:
+    """Renders 5etools entries to LaTeX for one document."""
+
+    def __init__(
+        self,
+        tracker: ContentTracker | None = None,
+        omnidexer: Omnidexer | None = None,
+        style: Style | None = None,
+        images: ImageResolver | None = None,
+        context: RenderingContext | None = None,
+    ) -> None:
+        self.tracker = tracker
+        self.omnidexer = omnidexer
+        self.style = style or Style()
+        self._images = images
+        # Statblocks render creatures and items through their templates
+        self._context = context
+        self._depth = 0
+        self._path: list[str] = []
+
+    @classmethod
+    def from_context(cls, context: RenderingContext) -> EntryRenderer:
+        return cls(
+            tracker=context.content_tracker,
+            omnidexer=context.omnidexer,
+            style=Style.from_metadata(context.metadata),
+            context=context,
+        )
+
+    def render(self, value: Any) -> str:
+        """LaTeX for an entry, a list of them, or anything with ``entries``."""
+        if isinstance(value, str | dict):
+            inner = value.get("entries") if isinstance(value, dict) else None
+        elif isinstance(value, list | tuple):
+            return "\n\n".join(self.entries(list(value)))
+        else:
+            inner = getattr(value, "entries", None)
+        return "\n\n".join(self.entries(inner if inner else [value]))
+
+    def entries(self, entries: list[Any]) -> list[str]:
+        """LaTeX for each entry in a list."""
+        return [self.entry(entry) for entry in entries]
+
+    def entry(self, entry: Any) -> str:
+        """LaTeX for one entry: a string, a dict or a model of one."""
+        if isinstance(entry, str):
+            return self.text(entry)
+        if isinstance(entry, BaseModel):
+            entry = entry.model_dump(exclude_none=True)
+        elif dataclasses.is_dataclass(entry) and not isinstance(entry, type):
+            entry = dataclasses.asdict(entry)
+        if isinstance(entry, int | float):
+            return str(entry)
+        if not isinstance(entry, dict):
+            raise EntryError(
+                f"Cannot render a {type(entry).__name__} as an entry{self._where()}"
+            )
+        entry_type = entry.get("type", "")
+        self._path.append(str(entry.get("name") or entry_type or "entry"))
+        try:
+            return self._dispatch(entry_type)(self, entry)
+        except EntryError:
+            raise
+        except Exception as e:
+            raise EntryError(
+                f"Cannot render {entry_type or 'an'} entry{self._where()}: {e}"
+            ) from e
+        finally:
+            self._path.pop()
+
+    def text(self, text: str) -> str:
+        """A 5etools string with its tags rendered and the rest escaped."""
+        if not text:
+            return escape(text)
+        return render(text, self.tracker)
+
+    def _where(self) -> str:
+        return f" at {' › '.join(self._path)}" if self._path else ""
+
+    def _dispatch(
+        self, entry_type: str
+    ) -> Callable[[EntryRenderer, dict[str, Any]], str]:
+        handler = HANDLERS.get(entry_type)
+        if handler is not None:
+            return handler
+        if entry_type and entry_type not in KNOWN_ENTRY_TYPES | _warned_types:
+            _warned_types.add(entry_type)
+            logger.warning(f"Unknown entry type '{entry_type}', rendered generically")
+        return EntryRenderer._generic
+
+    @contextmanager
+    def _deeper(self) -> Iterator[None]:
+        self._depth += 1
+        try:
+            yield
+        finally:
+            self._depth -= 1
+
+    @contextmanager
+    def _styled(self, **changes: Any) -> Iterator[None]:
+        style = self.style
+        self.style = replace(style, **changes)
+        try:
+            yield
+        finally:
+            self.style = style
+
+    def _heading(self, depth: int, name: str) -> str:
+        headings = self.style.headings
+        command = headings[min(depth, len(headings) - 1)]
+        return f"\\{command}{{{self.text(name)}}}"
+
+    def _image_resolver(self) -> ImageResolver:
+        if self._images is None:
+            from studiorum.core.config.unified_config import get_app_config
+
+            self._images = ImageResolver.from_config(get_app_config().image)
+        return self._images
+
+    # Entry types, in the order 5etools' renderer lists them
+
+    def _section(self, entry: dict[str, Any]) -> str:
+        return self._named_block(entry, self._depth)
+
+    def _entries(self, entry: dict[str, Any]) -> str:
+        return self._named_block(entry, self._depth + 1)
+
+    def _named_block(self, entry: dict[str, Any], heading_depth: int) -> str:
+        result = []
+        if name := entry.get("name", ""):
+            result.append(self._heading(heading_depth, name))
+        if entries := entry.get("entries", []):
+            with self._deeper():
+                result.extend(self.entries(entries))
+        return "\n\n".join(result)
+
+    def _inset_read_aloud(self, entry: dict[str, Any]) -> str:
+        with self._styled(sidebar=True):
+            body = "\n\n".join(self.entries(entry.get("entries", [])))
+        return str(_macros().read_aloud(body))
+
+    def _inset(self, entry: dict[str, Any]) -> str:
+        with self._styled(sidebar=True):
+            body = "\n\n".join(self.entries(entry.get("entries", [])))
+        name = entry.get("name", "")
+        return str(_macros().sidebar(escape(name) if name else "", body))
+
+    def _image(self, entry: dict[str, Any]) -> str:
+        return emit.image(entry, self.style.images, self._image_resolver(), self.text)
+
+    def _gallery(self, entry: dict[str, Any]) -> str:
+        return emit.gallery(entry, self.style.images, self._image_resolver(), self.text)
+
+    def _list(self, entry: dict[str, Any]) -> str:
+        items = entry.get("items", [])
+        if not items:
+            return ""
+        style = entry.get("style", "unordered")
+        if style == "ordered":
+            env = "enumerate"
+        elif style in ("list-hang-notitle", "list-hang", "list-hang-subtrait"):
+            env = "description"
+        else:
+            env = "itemize"
+
+        # Credits: a list followed by named blocks, with no list around them
+        is_credits = (
+            env == "description"
+            and len(items) > 1
+            and isinstance(items[0], dict)
+            and items[0].get("type") == "list"
+            and all(
+                isinstance(item, dict) and item.get("type") == "entries"
+                for item in items[1:]
+            )
+        )
+        out: list[str] = []
+        run: list[tuple[str | None, str]] | None = None if is_credits else []
+        for i, item in enumerate(items):
+            if is_credits and i == 0:
+                out.append(self.entry(item))
+                continue
+            if (
+                env == "description"
+                and isinstance(item, dict)
+                and item.get("type") == "entries"
+                and not item.get("name")
+            ):
+                # An unnamed block breaks out of the list
+                if run is not None:
+                    out.append(str(_macros().list_env(env, run)))
+                    run = None
+                out.append(self.entry(item))
+                if any(
+                    isinstance(rest, str)
+                    or (isinstance(rest, dict) and rest.get("type") != "entries")
+                    for rest in items[i + 1 :]
+                ):
+                    run = []
+                continue
+            if run is None:
+                run = []
+            run.append(self._list_item(env, item))
+        if run is not None:
+            out.append(str(_macros().list_env(env, run)))
+        return "\n".join(out)
+
+    def _list_item(self, env: str, item: Any) -> tuple[str | None, str]:
+        """An item's label (None for none, '' for an empty one) and body."""
+        empty = "" if env == "description" else None
+        if isinstance(item, str):
+            return empty, self.text(item)
+        if not isinstance(item, dict):
+            return empty, str(item)
+        if env != "description" or item.get("type") == "list" or not item.get("name"):
+            return empty, self.entry(item)
+        name = item["name"]
+        if item.get("type") in ("item", "itemSub"):
+            if text := item.get("entry", "") or item.get("text", ""):
+                body = self.text(text)
+            elif entries := item.get("entries", []):
+                body = "\n\n".join(self.entries(entries))
+            else:
+                body = ""
+        else:
+            body = self.entry(item)
+        label = self.text(name)
+        if not name.rstrip().endswith((".", ":", ";")):
+            label += "."
+        return label, body
+
+    def _table(self, entry: dict[str, Any]) -> str:
+        caption = entry.get("caption", "")
+        labels = entry.get("colLabels", [])
+        col_styles = entry.get("colStyles", [])
+        rows = entry.get("rows", [])
+        if not rows:
+            return f"% Empty table: {caption}" if caption else "% Empty table"
+        if labels:
+            count = len(labels)
+        elif col_styles:
+            count = len(col_styles)
+        elif isinstance(rows[0], list):
+            count = len(rows[0])
+        else:
+            count = 2
+        cells = [
+            [self.entry(c) if isinstance(c, dict) else self.text(str(c)) for c in row]
+            for row in rows
+            if isinstance(row, list)
+        ]
+        table = _macros().table(
+            escape(caption) if caption else "",
+            column_spec(col_styles, count),
+            [self.text(str(label)) for label in labels],
+            cells,
+        )
+        return f"% Table: {caption}\n{table}" if caption else str(table)
+
+    def _quote(self, entry: dict[str, Any]) -> str:
+        body = "\n\n".join(self.entries(entry.get("entries", [])))
+        by = entry.get("by", "")
+        return str(_macros().quote(body, escape(by) if by else ""))
+
+    def _generic(self, entry: dict[str, Any]) -> str:
+        name = entry.get("name", "")
+        entries = entry.get("entries", [])
+        content = entry.get("content", "")
+        text = entry.get("text", "")
+        result = []
+        if name:
+            result.append(self._heading(self._depth + 1, name))
+        if entries:
+            with self._deeper():
+                result.extend(self.entries(entries))
+        elif content:
+            result.append(self.text(content))
+        elif text:
+            result.append(self.text(text))
+        # A name with text gets the text twice
+        if name and text and not entries and not content:
+            result.append(self.text(text))
+        return "\n\n".join(result)
+
+    def _actions(self, entry: dict[str, Any]) -> str:
+        return self._run_in(entry, "\\textbf{{{}.}}")
+
+    def _attack(self, entry: dict[str, Any]) -> str:
+        return self._run_in(entry, "\\textit{{{}.}}")
+
+    def _variant_sub(self, entry: dict[str, Any]) -> str:
+        return self._run_in(entry, "\\textit{{{}:}}")
+
+    def _run_in(self, entry: dict[str, Any], label: str) -> str:
+        """The name as a run-in label, then the entries on the same line."""
+        result = []
+        if name := entry.get("name", ""):
+            result.append(label.format(escape(name)))
+        if entries := entry.get("entries", []):
+            result.extend(self.entries(entries))
+        return " ".join(result)
+
+    def _options(self, entry: dict[str, Any]) -> str:
+        entries = entry.get("entries", [])
+        if not entries:
+            return ""
+        items = [
+            (None, self.entry(e) if isinstance(e, str | dict) else str(e))
+            for e in entries
+        ]
+        return str(_macros().list_env("itemize", items))
+
+    def _variant(self, entry: dict[str, Any]) -> str:
+        name = entry.get("name", "")
+        result = [
+            f"\\textbf{{Variant: {escape(name)}}}" if name else "\\textbf{Variant:}"
+        ]
+        if entries := entry.get("entries", []):
+            result.extend(self.entries(entries))
+        return "\n\n".join(result)
+
+    def _ability_dc(self, entry: dict[str, Any]) -> str:
+        return self._ability(entry, "Save DC", "8 + proficiency bonus + {} modifier")
+
+    def _ability_attack_mod(self, entry: dict[str, Any]) -> str:
+        return self._ability(entry, "Attack Bonus", "proficiency bonus + {} modifier")
+
+    def _ability(self, entry: dict[str, Any], default: str, formula: str) -> str:
+        attributes = entry.get("attributes", [])
+        ability = (
+            ABILITIES.get(attributes[0], attributes[0].capitalize())
+            if attributes
+            else "ability"
+        )
+        name = escape(entry.get("name", default))
+        return f"\\textbf{{{name}:}} {formula.format(ability)}"
+
+    def _ability_generic(self, entry: dict[str, Any]) -> str:
+        result = []
+        if name := entry.get("name", ""):
+            result.append(f"\\textbf{{{escape(name)}:}}")
+        if text := entry.get("text", ""):
+            result.append(self.text(text))
+        return " ".join(result)
+
+    def _spellcasting(self, entry: dict[str, Any]) -> str:
+        return spellcasting(self, entry)
+
+    def _bonus(self, entry: dict[str, Any]) -> str:
+        value = entry.get("value", 0)
+        return f"+{value}" if value >= 0 else str(value)
+
+    def _bonus_speed(self, entry: dict[str, Any]) -> str:
+        value = entry.get("value", 0)
+        return f"+{value} ft." if value >= 0 else f"{value} ft."
+
+    def _dice(self, entry: dict[str, Any]) -> str:
+        rolls = []
+        for roll in entry.get("toRoll", []):
+            dice = f"{roll.get('number', 1)}d{roll.get('faces', 6)}"
+            modifier = roll.get("modifier", 0)
+            if modifier > 0:
+                dice += f"+{modifier}"
+            elif modifier < 0:
+                dice += str(modifier)
+            rolls.append(dice)
+        return ", ".join(rolls)
+
+    def _item(self, entry: dict[str, Any]) -> str:
+        result = []
+        if name := entry.get("name", ""):
+            label = self.text(name)
+            punctuated = name.rstrip().endswith((".", ":", ";"))
+            result.append(
+                f"\\textbf{{{label}}}" if punctuated else f"\\textbf{{{label}.}}"
+            )
+        if text := entry.get("entry", "") or entry.get("text", ""):
+            result.append(self.text(text))
+        elif entries := entry.get("entries", []):
+            result.extend(self.entries(entries))
+        return " ".join(result)
+
+    def _cell(self, entry: dict[str, Any]) -> str:
+        roll = entry.get("roll", {})
+        roll_text = ""
+        if roll:
+            if "exact" in roll:
+                roll_text = str(roll["exact"])
+            elif "min" in roll and "max" in roll:
+                low, high = roll["min"], roll["max"]
+                roll_text = str(low) if low == high else f"{low}–{high}"
+        if content := entry.get("entry", ""):
+            text = self.text(content)
+            return f"{roll_text} {text}" if roll_text else text
+        return roll_text
+
+    def _statblock(self, entry: dict[str, Any]) -> str:
+        tag = entry.get("tag", "")
+        name = entry.get("name", "")
+        inset = entry.get("style", "") == "inset"
+        content_type = STATBLOCK_TYPES.get(tag)
+        # The lookup for non-inset statblocks has never covered these
+        if not inset and tag in ("reward", "deity", "charoption"):
+            content_type = None
+        found = (
+            self.omnidexer.find(content_type, name, entry.get("source", ""))
+            if self.omnidexer is not None and content_type is not None
+            else None
+        )
+        if found is None:
+            logger.warning(
+                f"Could not resolve statblock reference: {tag} '{name}' "
+                f"from {entry.get('source', '')}"
+            )
+            return self._heading(self._depth, name)
+        if inset and tag in ("creature", "item"):
+            if display := entry.get("displayName"):
+                found = found.model_copy(update={"name": display})
+            return self._render_model(tag, found)
+        entries = found.model_dump().get("entries") or []
+        if not entries:
+            return self.text(name) if inset else self._heading(self._depth, name)
+        body = "\n\n".join(self.entries(entries))
+        if inset:
+            return str(_macros().sidebar(self.text(name), body))
+        return f"{self._heading(self._depth, name)}\n\n{body}"
+
+    def _render_model(self, tag: str, content: Any) -> str:
+        from studiorum.renderers.context import RenderingContext
+
+        from .core.entry_renderers import CreatureEntryRenderer, ItemEntryRenderer
+
+        context = self._context or RenderingContext(
+            output_format="latex",
+            omnidexer=self.omnidexer,
+            content_tracker=self.tracker,
+        )
+        if tag == "creature":
+            return CreatureEntryRenderer().render(content, context)
+        return ItemEntryRenderer().render(content, context)
+
+
+def spellcasting(renderer: EntryRenderer, entry: dict[str, Any]) -> str:
+    """A creature's spellcasting: header, spells by level or frequency, footer.
+
+    Levels whose spells render with formatting (spell tags are italic) get a
+    bold label; the rest use DndMonsterSpells macros in statblocks.
+    """
+    macros = renderer.style.monster_spells
+    result: list[str] = []
+    name = entry.get("name", "Spellcasting")
+    if entry.get("renderHeader", True) and name:
+        result.append(f"\\textbf{{{escape(name)}.}}")
+    result.extend(renderer.entries(entry.get("headerEntries") or []))
+
+    # Each line and whether it is a DndMonsterSpells macro
+    lines: list[tuple[str, bool]] = []
+
+    def formatted(spells: list[str]) -> bool:
+        return any("\\textit{" in s for s in spells)
+
+    if will := entry.get("will", []):
+        spells = renderer.entries(will)
+        if formatted(spells) or not macros:
+            lines.append(("\\textbf{At will:} " + ", ".join(spells), False))
+        else:
+            lines.append((f"  \\DndInnateSpellLevel{{{', '.join(spells)}}}", True))
+    if daily := entry.get("daily", {}):
+        for freq in sorted(daily, key=_leading_int):
+            spells = renderer.entries(daily.get(freq, []))
+            count = re.match(r"(\d+)", str(freq).strip())
+            if formatted(spells):
+                lines.append(
+                    (f"\\textbf{{{escape(str(freq))}:}} " + ", ".join(spells), False)
+                )
+            elif not count:
+                lines.append(
+                    (f"  \\textbf{{{escape(str(freq))}:}} {', '.join(spells)}", False)
+                )
+            elif macros:
+                lines.append(
+                    (
+                        f"  \\DndInnateSpellLevel[{count.group(1)}]{{{', '.join(spells)}}}",
+                        True,
+                    )
+                )
+            else:
+                lines.append(
+                    (f"\\textbf{{{count.group(1)}/day:}} " + ", ".join(spells), False)
+                )
+    if constant := entry.get("constant", []):
+        lines.append(
+            ("  \\textbf{Constant:} " + ", ".join(renderer.entries(constant)), False)
+        )
+    levels = entry.get("spells") or {}
+    for level, data in sorted(
+        levels.items(), key=lambda x: int(x[0]) if str(x[0]).isdigit() else 999
+    ):
+        if isinstance(data, dict):
+            spell_list, slots = data.get("spells", []), data.get("slots")
+        else:
+            spell_list, slots = (
+                getattr(data, "spells", []),
+                getattr(data, "slots", None),
+            )
+        if not spell_list:
+            continue
+        lines.append(
+            _spell_level(renderer.entries(spell_list), str(level), slots, macros)
+        )
+
+    if any(is_macro for _, is_macro in lines):
+        first = next(i for i, (_, is_macro) in enumerate(lines) if is_macro)
+        result.extend(line for line, _ in lines[:first])
+        result.append(
+            str(_macros().monster_spells([line for line, _ in lines[first:]]))
+        )
+    else:
+        result.extend(line for line, _ in lines)
+    result.extend(renderer.entries(entry.get("footerEntries") or []))
+    return "\n".join(result)
+
+
+def _spell_level(
+    spells: list[str], level: str, slots: Any, macros: bool
+) -> tuple[str, bool]:
+    text = ", ".join(spells)
+    if any("\\textit{" in s for s in spells):
+        if level == "0":
+            header = "\\textbf{Cantrips (at will):}"
+        else:
+            suffix = {"1": "st", "2": "nd", "3": "rd"}.get(level, "th")
+            slot_text = f" ({slots} slots)" if slots else ""
+            header = f"\\textbf{{{level}{suffix} level{slot_text}:}}"
+        return f"{header} {text}", False
+    if level == "0":
+        if macros:
+            return f"  \\DndMonsterSpellLevel{{{text}}}", True
+        return "\\textbf{Cantrips (at will):} " + text, False
+    if not level.isdigit():
+        return f"  {text}", False
+    suffix = {"1": "st", "2": "nd", "3": "rd"}.get(level, "th")
+    if slots is not None:
+        if macros:
+            return f"  \\DndMonsterSpellLevel[{level}][{slots}]{{{text}}}", True
+        return f"\\textbf{{{level}{suffix} level ({slots} slots):}} " + text, False
+    if macros:
+        return f"  \\DndMonsterSpellLevel[{level}]{{{text}}}", True
+    return f"\\textbf{{{level}{suffix} level:}} " + text, False
+
+
+def _leading_int(key: str) -> int:
+    match = re.match(r"(\d+)", str(key))
+    return int(match.group(1)) if match else 999
+
+
+def column_spec(col_styles: list[str], count: int) -> str:
+    """A DndTable column specification from 5etools' Bootstrap colStyles.
+
+    Wide columns (col-8 and up) stretch as X; tables of four or more columns
+    with three or more fixed ones stretch some centred columns too.
+    """
+    if not col_styles:
+        return "l" * count
+    specs = []
+    for style in col_styles:
+        width = None
+        alignment = "l"
+        for cls in style.split():
+            if cls.startswith("col-"):
+                try:
+                    width = int(cls.split("-")[1])
+                except (IndexError, ValueError):
+                    continue
+            elif cls == "text-center":
+                alignment = "c"
+            elif cls == "text-right":
+                alignment = "r"
+        if width is None:
+            specs.append("l")
+        elif width >= 8:
+            specs.append("X")
+        elif width <= 2 and alignment == "c":
+            specs.append("c")
+        elif alignment == "r":
+            specs.append("r")
+        else:
+            specs.append("l")
+    if count >= 4:
+        fixed = [i for i, spec in enumerate(specs) if spec in ("c", "l", "r")]
+        if len(fixed) >= 3:
+            converted = 0
+            for i in reversed(fixed[1:]):
+                if specs[i] == "c" and converted < len(fixed) - 2:
+                    specs[i] = "X"
+                    converted += 1
+    return "".join(specs)
+
+
+HANDLERS: dict[str, Callable[[EntryRenderer, dict[str, Any]], str]] = {
+    "section": EntryRenderer._section,
+    "entries": EntryRenderer._entries,
+    "insetReadaloud": EntryRenderer._inset_read_aloud,
+    "inset": EntryRenderer._inset,
+    "image": EntryRenderer._image,
+    "gallery": EntryRenderer._gallery,
+    "list": EntryRenderer._list,
+    "table": EntryRenderer._table,
+    "quote": EntryRenderer._quote,
+    "actions": EntryRenderer._actions,
+    "attack": EntryRenderer._attack,
+    "options": EntryRenderer._options,
+    "variant": EntryRenderer._variant,
+    "variantSub": EntryRenderer._variant_sub,
+    "abilityDc": EntryRenderer._ability_dc,
+    "abilityAttackMod": EntryRenderer._ability_attack_mod,
+    "abilityGeneric": EntryRenderer._ability_generic,
+    "spellcasting": EntryRenderer._spellcasting,
+    "bonus": EntryRenderer._bonus,
+    "bonusSpeed": EntryRenderer._bonus_speed,
+    "dice": EntryRenderer._dice,
+    "item": EntryRenderer._item,
+    "cell": EntryRenderer._cell,
+    "statblock": EntryRenderer._statblock,
+}

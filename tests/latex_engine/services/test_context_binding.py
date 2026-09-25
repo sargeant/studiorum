@@ -115,44 +115,6 @@ class TestContextFlowValidation:
         """Create a ContentTracker for testing."""
         return ContentTracker()
 
-    def test_context_flows_through_bound_service(self, content_tracker):
-        """Test that context flows correctly through bound service operations."""
-
-        # Create real services for integration testing
-        # Create a minimal mock for dependencies
-        class MockTagResolver:
-            def process_text(self, text, context):
-                # Verify context contains our tracker
-                assert context.content_tracker is content_tracker
-                return f"processed:{text}"
-
-        class MockOmnidexer:
-            pass
-
-        # Create template service with real components
-        template_service = ContextBoundTemplateService(
-            base_service=type(
-                "MockService",
-                (),
-                {
-                    "tag_resolver": MockTagResolver(),
-                    "omnidexer": MockOmnidexer(),
-                    "render_entry_description": lambda self, entry, tracker: (
-                        f"rendered:{entry}"
-                    ),
-                },
-            )(),
-            content_tracker=content_tracker,
-        )
-
-        # Test that context flows correctly
-        test_entry = {"name": "Test Entry"}
-
-        result_description = template_service.render_entry(test_entry)
-
-        assert "processed:" in result_description
-        assert "Test Entry" in result_description
-
 
 class TestPerformanceValidation:
     """Test that context binding doesn't impact performance."""

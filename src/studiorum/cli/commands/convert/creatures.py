@@ -576,7 +576,6 @@ def _render_bestiary(
     sort_mode: CreatureSortMode,
 ) -> str:
     """Render creatures using the bestiary template with grouping."""
-    from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
     from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
     heading = context.metadata["title"]
@@ -590,7 +589,6 @@ def _render_bestiary(
         ),
         latex_config=options.latex,
         rendering_context=context,
-        entry_processor=RecursiveEntryProcessor(use_dnd_template=True),
         creatures=creatures,
         creatures_by_group=_group_creatures(creatures, sort_mode),
         creature_count=len(creatures),

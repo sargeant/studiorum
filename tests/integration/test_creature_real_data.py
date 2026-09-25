@@ -316,38 +316,25 @@ class TestCreatureRealDataIntegration:
         orc = Creature.model_validate(real_orc_data)
 
         # Test markup processing in actions
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
-        ) as mock_processor_class:
-            mock_processor = Mock()
-            mock_processor.process_entries.return_value = [
-                "Melee Weapon Attack: +5 to hit, reach 5 ft., one target.",
-                "Hit: 1d12 + 3 slashing damage.",
-            ]
-            mock_processor_class.return_value = mock_processor
+        greataxe_action = orc.action[0]
+        from studiorum.cli.context import get_services
+        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.latex_engine.entries import EntryRenderer
+        from studiorum.renderers.context import RenderingContext
 
-            greataxe_action = orc.action[0]
-            from studiorum.cli.context import get_services
-            from studiorum.core.references.content_tracker import ContentTracker
-            from studiorum.latex_engine.core.entry_processor import (
-                RecursiveEntryProcessor,
-            )
-            from studiorum.renderers.context import RenderingContext
+        content_tracker = ContentTracker()
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_services().omnidexer,
+            content_tracker=content_tracker,
+        )
+        processed_entries = EntryRenderer.from_context(rendering_context).entries(
+            greataxe_action.entries
+        )
+        processed_desc = "\n\n".join(processed_entries)
 
-            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
-            content_tracker = ContentTracker()
-            rendering_context = RenderingContext(
-                output_format="latex",
-                omnidexer=get_services().omnidexer,
-                content_tracker=content_tracker,
-            )
-            processed_entries = entry_processor.process_entries(
-                greataxe_action.entries, rendering_context
-            )
-            processed_desc = "\n\n".join(processed_entries)
-
-            assert "Melee Weapon Attack" in processed_desc
-            assert "+5 to hit" in processed_desc
+        assert "Melee Weapon Attack" in processed_desc
+        assert "+5 to hit" in processed_desc
 
     def test_real_data_edge_cases(self):
         """Test edge cases found in real 5etools data."""

@@ -17,6 +17,7 @@ from studiorum.renderers.base import DocumentRenderer, RenderingError
 from studiorum.renderers.context import RenderingContext
 from studiorum.renderers.escape import escape
 
+from ..entries import EntryRenderer
 from .document_structure import DocumentStructureBuilder
 from .entry_renderers import EntryRendererRegistry
 from .template_engine import LaTeXTemplateEngine
@@ -514,112 +515,25 @@ This content type is not yet fully supported by the rendering system.
         return False
 
     def _render_adventure_entry(self, content: Any, context: RenderingContext) -> str:
-        """Render a raw adventure entry using RecursiveEntryProcessor.
-
-        Args:
-            content: Raw adventure entry (string, dict, or Chapter)
-            context: Rendering context
-
-        Returns:
-            Rendered LaTeX content
-        """
-        # Import here to avoid circular imports
-        from .entry_processor import RecursiveEntryProcessor
-
-        # Use DND template for adventure entries
-        processor = RecursiveEntryProcessor(use_dnd_template=True)
-
-        if isinstance(content, str):
-            # Process string content with tags
-            tag_resolver = context.tag_resolver
-            if tag_resolver:
-                result = tag_resolver.process_text(content, context)
-                return str(result)
-            return escape(content)
-        if isinstance(content, dict):
-            # Process dict entry - use same approach as book rendering
-            try:
-                logger.debug(
-                    f"Processing adventure dict entry: {content.get('type', 'no-type')} named '{content.get('name', 'unnamed')}'"
-                )
-                result = processor.process_entry_dict(content, context)
-                logger.debug(
-                    f"Adventure entry result: {result[:100] if result else 'None/empty'}"
-                )
-                return result if result else ""
-            except Exception as e:
-                logger.error(
-                    f"Failed to render adventure entry {content.get('name', 'unnamed')}: {e}"
-                )
-                logger.debug(f"Entry content: {content}")
-                import traceback
-
-                logger.debug(f"Traceback: {traceback.format_exc()}")
-                return ""
-        elif hasattr(content, "entries"):
-            # Process Chapter object - render its entries
-            try:
-                chapter_name = getattr(content, "name", "Unnamed Chapter")
-                logger.debug(f"Processing adventure chapter: {chapter_name}")
-                processed_entries = processor.process_entries(content.entries, context)
-
-                # Add chapter header if chapter has a name
-                result = []
-                if chapter_name:
-                    # Use section command for chapter titles
-                    section_cmd = (
-                        "chapter"  # Always use chapter for top-level adventure chapters
-                    )
-                    escaped_name = escape(chapter_name)
-                    result.append(f"\\{section_cmd}{{{escaped_name}}}")
-
-                # Add the processed entries
-                result.extend(processed_entries)
-
-                logger.debug(
-                    f"Adventure chapter result: {len(result)} parts, first 100 chars: {str(result[0])[:100] if result else 'None'}"
-                )
-                return "\n\n".join(result)
-            except Exception as e:
-                chapter_name = getattr(content, "name", "unnamed")
-                logger.error(f"Failed to render adventure chapter {chapter_name}: {e}")
-                import traceback
-
-                logger.debug(f"Traceback: {traceback.format_exc()}")
-                return ""
-        else:
+        """Render a raw adventure entry: a string, a dict or a chapter."""
+        renderer = EntryRenderer.from_context(context)
+        if isinstance(content, str | dict):
+            return renderer.entry(content)
+        if not hasattr(content, "entries"):
             return ""
+        result = []
+        if chapter_name := getattr(content, "name", "Unnamed Chapter"):
+            result.append(f"\\chapter{{{escape(chapter_name)}}}")
+        result.extend(renderer.entries(content.entries))
+        return "\n\n".join(result)
 
     def _render_book_entry(self, content: Any, context: RenderingContext) -> str:
-        """Render a raw book entry using RecursiveEntryProcessor.
-
-        Args:
-            content: Raw book entry (string, dict, or Section)
-            context: Rendering context
-
-        Returns:
-            Rendered LaTeX content
-        """
-        # Import here to avoid circular imports
-        from .entry_processor import RecursiveEntryProcessor
-
-        # Use DND template for book entries
-        processor = RecursiveEntryProcessor(use_dnd_template=True)
-
-        if isinstance(content, str):
-            # Process string content with tags
-            tag_resolver = context.tag_resolver
-            if tag_resolver:
-                result = tag_resolver.process_text(content, context)
-                return str(result)
-            return escape(content)
-        if isinstance(content, dict):
-            # Process dict entry
-            return processor.process_entry_dict(content, context)
+        """Render a raw book entry: a string, a dict or a section."""
+        renderer = EntryRenderer.from_context(context)
+        if isinstance(content, str | dict):
+            return renderer.entry(content)
         if hasattr(content, "entries"):
-            # Process Section object - render its entries
-            processed_entries = processor.process_entries(content.entries, context)
-            return "\n\n".join(processed_entries)
+            return "\n\n".join(renderer.entries(content.entries))
         return str(content)
 
     def _append_appendices(self, document: str, context: RenderingContext) -> str:

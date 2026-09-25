@@ -46,44 +46,14 @@ class ContextBoundTemplateService:
         Returns:
             Rendered entry text suitable for LaTeX templates
         """
-        try:
-            # Use modern RecursiveEntryProcessor instead of deprecated render_entry_description
-            from studiorum.latex_engine.core.entry_processor import (
-                RecursiveEntryProcessor,
-            )
-            from studiorum.renderers.context import RenderingContext
+        from studiorum.latex_engine.entries import EntryRenderer
 
-            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
-            rendering_context = RenderingContext(
-                output_format="latex",
-                omnidexer=self._service.omnidexer,
-                content_tracker=self._tracker,
-                tag_resolver=self._service.tag_resolver,
-                debug_mode=False,
-            )
-            processed_entries = entry_processor.process_entries(
-                entry if isinstance(entry, list) else [entry], rendering_context
-            )
-            return "\n\n".join(processed_entries)
-        except Exception:
-            # Fallback to simple text extraction when processor fails
-            if isinstance(entry, list):
-                text_parts = []
-                for item in entry:
-                    if isinstance(item, str):
-                        text_parts.append(item)
-                    elif isinstance(item, dict):
-                        # Extract text from dict entries
-                        text = item.get("text", item.get("content", str(item)))
-                        text_parts.append(text)
-                    else:
-                        text_parts.append(str(item))
-                return "\n\n".join(text_parts)
-            if isinstance(entry, str):
-                return entry
-            if isinstance(entry, dict):
-                return entry.get("text", entry.get("content", str(entry)))
-            return str(entry)
+        renderer = EntryRenderer(
+            tracker=self._tracker, omnidexer=self._service.omnidexer
+        )
+        return "\n\n".join(
+            renderer.entries(entry if isinstance(entry, list) else [entry])
+        )
 
     def render_entries(self, entries: list[Any]) -> str:
         """Render multiple entries efficiently with bound context.

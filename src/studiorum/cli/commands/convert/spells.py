@@ -343,7 +343,6 @@ def _render_spellbook(
     result: Any,
 ) -> str:
     """Render spells using the spellbook template."""
-    from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
     from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
     template_engine = LaTeXTemplateEngine()
@@ -363,7 +362,6 @@ def _render_spellbook(
         show_spell_table_of_contents=options.document.show_toc,
         ordinal=_ordinal_number,
         rendering_context=context,
-        entry_processor=RecursiveEntryProcessor(use_dnd_template=True),
     )
     with display_manager.progress("Rendering spellbook") as _:
         task = display_manager.add_task("[green]Rendering spellbook...", total=None)

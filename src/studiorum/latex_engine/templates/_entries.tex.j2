@@ -1,0 +1,57 @@
+<#-- Environments for 5etools entries (entries.py fills them in with LaTeX) --#>
+
+<#-- One list environment; label none is a plain \item, '' an empty label --#>
+<@ macro list_env(env, items) @>
+\begin{<# env #>}
+<@ for label, body in items @>
+\item<@ if label is none @> <@ elif label @>[<# label #>] <@ else @>[\mbox{}] <@ endif @><# body #>
+<@ endfor @>
+\end{<# env #>}
+<@- endmacro @>
+
+<#-- A DndTable; header is the escaped caption, spec the column specification --#>
+<@ macro table(header, spec, labels, rows) @>
+<@ if header @>
+\begin{DndTable}[header={<# header #>}]{<# spec #>}
+<@ else @>
+\begin{DndTable}{<# spec #>}
+<@ endif @>
+<@ if labels @>
+<# labels | join(' & ') #> \\
+<@ endif @>
+<@ for row in rows @>
+<# row | join(' & ') #> \\
+<@ endfor @>
+\end{DndTable}
+<@- endmacro @>
+
+<@ macro read_aloud(body) @>
+\begin{DndReadAloud}
+<# body #>
+\end{DndReadAloud}
+<@- endmacro @>
+
+<@ macro sidebar(title, body) @>
+\begin{DndSidebar}{<# title #>}
+<# body #>
+\end{DndSidebar}
+<@- endmacro @>
+
+<@ macro quote(body, by) @>
+\begin{quotation}
+\em
+<# body #>
+<@ if by @>
+
+\hfill --- <# by #>
+<@ endif @>
+\end{quotation}
+<@- endmacro @>
+
+<@ macro monster_spells(lines) @>
+\begin{DndMonsterSpells}
+<@ for line in lines @>
+<# line #>
+<@ endfor @>
+\end{DndMonsterSpells}
+<@- endmacro @>

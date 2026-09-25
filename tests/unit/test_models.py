@@ -666,18 +666,17 @@ class TestAbility:
         ability: Any = Ability(name="List Ability", entries=entries)
         # Test list entries using modern RecursiveEntryProcessor
         from studiorum.cli.context import get_services
-        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.latex_engine.entries import EntryRenderer
         from studiorum.renderers.context import RenderingContext
 
-        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
             omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
-        processed_entries = entry_processor.process_entries(
-            ability.entries, rendering_context
+        processed_entries = EntryRenderer.from_context(rendering_context).entries(
+            ability.entries
         )
         result = "\n\n".join(processed_entries)
         assert "Simple string item" in result  # LaTeX format: \item Simple string item
@@ -699,18 +698,17 @@ class TestAbility:
         # Test nested entries using modern RecursiveEntryProcessor
         from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
-        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.latex_engine.entries import EntryRenderer
         from studiorum.renderers.context import RenderingContext
 
-        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
             output_format="latex",
             omnidexer=get_services().omnidexer,
             content_tracker=content_tracker,
         )
-        processed_entries = entry_processor.process_entries(
-            ability.entries, rendering_context
+        processed_entries = EntryRenderer.from_context(rendering_context).entries(
+            ability.entries
         )
         result = "\n\n".join(processed_entries)
         # Note: {"text": "..."} entries are not rendering properly in current implementation

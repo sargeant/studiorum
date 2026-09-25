@@ -226,7 +226,6 @@ ignore = [
 "src/studiorum/latex_engine/core/dnd_template.py" = ["PERF401"]
 "src/studiorum/latex_engine/core/document.py" = ["RET504", "SIM102"]
 "src/studiorum/latex_engine/core/document_structure.py" = ["B007", "PERF102", "RET504", "SIM102"]
-"src/studiorum/latex_engine/core/entry_processor.py" = ["RET504", "SIM103"]
 "src/studiorum/latex_engine/core/template_engine.py" = ["PIE810", "RET504"]
 "tests/build_all_content.py" = ["PTH123", "T201"]
 "tests/cli/commands/test_base_convert_command.py" = ["SIM117"]

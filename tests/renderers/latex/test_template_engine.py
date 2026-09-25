@@ -1,6 +1,5 @@
 """Tests for the Jinja2-based LaTeX template engine."""
 
-from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
@@ -27,18 +26,6 @@ class TestLaTeXTemplateEngine:
             "src/studiorum/latex_engine/templates"
         )
         assert engine.env is not None
-
-    def test_init_custom_config(self) -> None:
-        """Test engine initialization with custom configuration."""
-        config = {
-            "templates_dir": "custom/templates",
-            "debug": True,
-        }
-        engine: Any = LaTeXTemplateEngine(config)
-
-        assert engine.config == config
-        assert engine.debug is True
-        assert engine.templates_dir == Path("custom/templates")
 
     def test_latex_escape_filter(self) -> None:
         """Test LaTeX escaping filter."""

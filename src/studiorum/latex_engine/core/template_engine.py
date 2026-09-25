@@ -1,11 +1,20 @@
 """Jinja2-based LaTeX template engine for 5e-style documents."""
 
 import re
+from collections.abc import Callable
+from functools import cache
 from pathlib import Path
 from typing import Any
 
 import jinja2
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
+    Template,
+    Undefined,
+    pass_context,
+)
+from jinja2.runtime import Context
 
 from studiorum.core.config.unified_config import (
     LaTeXConfig,
@@ -64,6 +73,87 @@ def _class_for_content_type(
     return document_class, options
 
 
+TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+
+
+def _latex_escape(value: Any) -> str:
+    """Escape a value as LaTeX text."""
+    return escape(value if isinstance(value, str) else str(value))
+
+
+def _processed_ac_text(creature: Any) -> str:
+    """Creature AC with tags in armour sources resolved."""
+    return model_text.creature_ac_text(creature, _active_tag_resolver())
+
+
+def _processed_senses(creature: Any) -> str | None:
+    """Creature senses with tags resolved."""
+    return model_text.creature_senses_text(creature, _active_tag_resolver())
+
+
+def _safe_processed_name(obj: Any) -> str:
+    """Safely get processed name from object or dict."""
+    if isinstance(obj, (Ability, Spellcasting)):
+        omnidexer, tag_resolver = _active_omnidexer_and_tag_resolver()
+        return model_text.ability_name_text(obj, omnidexer, tag_resolver)
+    if hasattr(obj, "get_processed_name"):
+        try:
+            return obj.get_processed_name()
+        except (AttributeError, TypeError, ValueError):
+            # Method exists but failed - continue to fallback
+            pass
+
+    # Fallback to name attribute for dicts or objects
+    if isinstance(obj, dict):
+        return obj.get("name", "Unknown")
+    if hasattr(obj, "name"):
+        return obj.name
+    return str(obj)
+
+
+@pass_context
+def _entries(context: Context, value: Any) -> str:
+    """LaTeX for entries, rendered with the template's rendering_context."""
+    from studiorum.latex_engine.entries import EntryRenderer
+
+    if isinstance(value, Undefined):
+        return ""
+    rendering_context = context.get("rendering_context")
+    if rendering_context is None:
+        return EntryRenderer().render(value)
+    return EntryRenderer.from_context(rendering_context).render(value)
+
+
+@cache
+def environment() -> Environment:
+    """The Jinja environment for every template, with LaTeX-friendly delimiters.
+
+    Autoescape is off: templates escape plain text with the latex_escape filter.
+    """
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATES_DIR)),
+        trim_blocks=True,
+        lstrip_blocks=True,
+        keep_trailing_newline=True,
+        autoescape=False,  # nosec B701
+        block_start_string="<@",
+        block_end_string="@>",
+        variable_start_string="<#",
+        variable_end_string="#>",
+        comment_start_string="<#--",
+        comment_end_string="--#>",
+    )
+    filters: dict[str, Callable[..., Any]] = {
+        "latex_escape": _latex_escape,
+        "safe_processed_name": _safe_processed_name,
+        "processed_ac_text": _processed_ac_text,
+        "processed_senses": _processed_senses,
+        "entries": _entries,
+    }
+    env.filters.update(filters)
+    return env
+
+
 class LaTeXTemplateEngine:
     """Jinja2-based template engine for LaTeX document generation.
 
@@ -91,13 +181,7 @@ class LaTeXTemplateEngine:
             config: Configuration options
         """
         self.config = config or {}
-        # Get templates directory from config or use default relative to this module
-        templates_dir = self.config.get("templates_dir")
-        if templates_dir:
-            self.templates_dir = Path(str(templates_dir))
-        else:
-            # Use absolute path relative to latex_engine module's location
-            self.templates_dir = Path(__file__).parent.parent / "templates"
+        self.templates_dir = TEMPLATES_DIR
         self.debug = self.config.get("debug", False)
 
         # Start from the loaded configuration; convert commands pass their own
@@ -121,74 +205,7 @@ class LaTeXTemplateEngine:
         # Initialize DND template manager
         self.dnd_manager = DNDTemplateManager()
 
-        # Create templates directory if it doesn't exist
-        self.templates_dir.mkdir(parents=True, exist_ok=True)
-
-        # Initialize Jinja2 environment
-        self.env = Environment(
-            loader=FileSystemLoader(str(self.templates_dir)),
-            trim_blocks=True,
-            lstrip_blocks=True,
-            keep_trailing_newline=True,
-            # Disable HTML autoescape - inappropriate for LaTeX output
-            # LaTeX has different special characters than HTML and requires custom escaping
-            # Security: All user input must be properly escaped using latex_escape filter
-            autoescape=False,  # nosec B701
-            # Use different delimiters to avoid conflicts with LaTeX
-            block_start_string="<@",
-            block_end_string="@>",
-            variable_start_string="<#",
-            variable_end_string="#>",
-            comment_start_string="<#--",
-            comment_end_string="--#>",
-        )
-
-        # Add LaTeX-specific filters
-        self._add_latex_filters()
-
-        # Template cache
-
-    def _add_latex_filters(self) -> None:
-        """Add LaTeX-specific filters to Jinja2 environment."""
-
-        def latex_escape(value: str) -> str:
-            """Escape LaTeX special characters and Unicode characters."""
-            if not isinstance(value, str):
-                value = str(value)
-            return escape(value)
-
-        def processed_ac_text(creature: Any) -> str:
-            """Creature AC with tags in armour sources resolved."""
-            return model_text.creature_ac_text(creature, _active_tag_resolver())
-
-        def processed_senses(creature: Any) -> str | None:
-            """Creature senses with tags resolved."""
-            return model_text.creature_senses_text(creature, _active_tag_resolver())
-
-        def safe_processed_name(obj: Any) -> str:
-            """Safely get processed name from object or dict."""
-            if isinstance(obj, (Ability, Spellcasting)):
-                omnidexer, tag_resolver = _active_omnidexer_and_tag_resolver()
-                return model_text.ability_name_text(obj, omnidexer, tag_resolver)
-            if hasattr(obj, "get_processed_name"):
-                try:
-                    return obj.get_processed_name()
-                except (AttributeError, TypeError, ValueError):
-                    # Method exists but failed - continue to fallback
-                    pass
-
-            # Fallback to name attribute for dicts or objects
-            if isinstance(obj, dict):
-                return obj.get("name", "Unknown")
-            if hasattr(obj, "name"):
-                return obj.name
-            return str(obj)
-
-        # Register filters
-        self.env.filters["latex_escape"] = latex_escape
-        self.env.filters["safe_processed_name"] = safe_processed_name
-        self.env.filters["processed_ac_text"] = processed_ac_text
-        self.env.filters["processed_senses"] = processed_senses
+        self.env = environment()
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.
@@ -338,21 +355,6 @@ class LaTeXTemplateEngine:
             from ...core.references.content_tracker import ContentTracker
 
             context["content_tracker"] = ContentTracker()
-
-        # Ensure entry processor is available for templates that rely on it
-        if "entry_processor" not in kwargs and "entry_processor" not in context:
-            try:
-                from ..core.entry_processor import RecursiveEntryProcessor
-
-                context["entry_processor"] = RecursiveEntryProcessor(
-                    use_dnd_template=True
-                )
-            except Exception:
-                # Non-fatal: log and continue; missing processor will surface at render
-                self._logger.debug(
-                    "Failed to initialize entry_processor default in template context",
-                    exc_info=True,
-                )
 
         # Provide a default RenderingContext when not explicitly supplied
         if "rendering_context" not in kwargs and "rendering_context" not in context:

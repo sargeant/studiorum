@@ -66,11 +66,6 @@ class SpellEntryRenderer(BaseEntryRenderer):
         else:
             template_service = active_template_service()
 
-        # Get entry processor for structured content handling
-        from .entry_processor import RecursiveEntryProcessor
-
-        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
-
         # Ensure sectioning depth for spells uses paragraph at depth 1
         # by marking the rendering context with content_type="spell".
         try:
@@ -100,7 +95,6 @@ class SpellEntryRenderer(BaseEntryRenderer):
             "higher_level_text": higher_level_text,
             "rendering_context": rendering_context,
             "template_service": template_service,
-            "entry_processor": entry_processor,
             "content_tracker": context.content_tracker or ContentTracker(),
         }
 
@@ -124,11 +118,6 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         else:
             template_service = active_template_service()
 
-        # Get entry processor for structured content handling
-        from .entry_processor import RecursiveEntryProcessor
-
-        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
-
         # Provide both the creature object and preprocessed fields for compatibility
         return {
             "creature": content,
@@ -151,7 +140,6 @@ class CreatureEntryRenderer(BaseEntryRenderer):
             },
             "rendering_context": context,
             "template_service": template_service,
-            "entry_processor": entry_processor,
             "content_tracker": context.content_tracker or ContentTracker(),
         }
 
@@ -174,11 +162,6 @@ class ItemEntryRenderer(BaseEntryRenderer):
             template_service = context.template_service
         else:
             template_service = active_template_service()
-
-        # Get entry processor for structured content handling
-        from .entry_processor import RecursiveEntryProcessor
-
-        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
 
         # Ensure sectioning depth for items uses subparagraph for named subentries
         # by marking the rendering context with content_type="item".
@@ -216,7 +199,6 @@ class ItemEntryRenderer(BaseEntryRenderer):
             "description_text": description_text,
             "rendering_context": rendering_context,
             "template_service": template_service,
-            "entry_processor": entry_processor,
             "content_tracker": context.content_tracker or ContentTracker(),
         }
 
