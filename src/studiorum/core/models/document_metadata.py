@@ -162,9 +162,9 @@ class DocumentMetadata(BaseModel):
         return f"{', '.join(author_names)}, and {self.authors[-1]}"
 
     def get_formatted_date(self) -> str:
-        """Get formatted date for LaTeX."""
+        """The date as text, or an empty string if there is none."""
         if not self.date:
-            return r"\today"
+            return ""
 
         if isinstance(self.date, datetime):
             return self.date.strftime("%B %d, %Y")

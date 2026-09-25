@@ -45,7 +45,7 @@
 <@ if metadata.authors @>
 \author{<# metadata.get_author_list() | latex_escape #>}
 <@ endif @>
-\date{<# metadata.get_formatted_date() | latex_escape #>}
+\date{<@ if metadata.date @><# metadata.get_formatted_date() | latex_escape #><@ else @>\today<@ endif @>}
 <@ endif @>
 <@ endblock @>
 

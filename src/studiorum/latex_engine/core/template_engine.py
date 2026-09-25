@@ -12,13 +12,11 @@ from studiorum.core.config.unified_config import (
     LaTeXDocumentConfig,
     get_app_config,
 )
-from studiorum.core.latex_utils import (
-    contains_dangerous_latex,
-    escape_latex_text,
-)
+from studiorum.core.latex_utils import contains_dangerous_latex
 from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Ability, Spellcasting
 from studiorum.core.types import LaTeXConfig as LaTeXConfigDict
+from studiorum.renderers.escape import escape
 
 from ..services.template_service import active_template_service
 from . import model_text
@@ -158,7 +156,7 @@ class LaTeXTemplateEngine:
             """Escape LaTeX special characters and Unicode characters."""
             if not isinstance(value, str):
                 value = str(value)
-            return escape_latex_text(value)
+            return escape(value)
 
         def latex_newlines(value: str) -> str:
             """Convert newlines to LaTeX line breaks."""
@@ -205,7 +203,9 @@ class LaTeXTemplateEngine:
                     "Potentially dangerous LaTeX content detected: %s",
                     value[:100] + "..." if len(value) > 100 else value,
                 )
-                return f"% SECURITY WARNING: Dangerous content detected\n{escape_latex_text(value)}"
+                return (
+                    f"% SECURITY WARNING: Dangerous content detected\n{escape(value)}"
+                )
 
             return value
 

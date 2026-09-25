@@ -4,7 +4,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from studiorum.core.latex_utils import escape_latex_text
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import BaseContent
 from studiorum.core.models.content_models import content_type_of
@@ -17,6 +16,7 @@ from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGe
 from studiorum.core.types import LaTeXConfig
 from studiorum.renderers.base import DocumentRenderer, RenderingError
 from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.escape import escape
 
 from ..config.compilation import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
@@ -208,11 +208,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
                             placeholder_pattern = "% Content: String Entry (str)"
                         elif isinstance(item, dict):
                             item_name = item.get("name", "Unknown")
-                            escaped_name = self._escape_latex(item_name)
+                            escaped_name = escape(item_name)
                             placeholder_pattern = f"% Content: {escaped_name} (dict)"
                         else:
                             item_name = getattr(item, "name", "Unknown")
-                            escaped_name = self._escape_latex(item_name)
+                            escaped_name = escape(item_name)
                             item_class = item.__class__.__name__
                             placeholder_pattern = (
                                 f"% Content: {escaped_name} ({item_class})"
@@ -436,8 +436,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         else:
             content_source = "Unknown"
 
-        escaped_name = self._escape_latex(content_name)
-        source_text = self._escape_latex(content_source)
+        escaped_name = escape(content_name)
+        source_text = escape(content_source)
 
         return f"""
 \\subsection{{{escaped_name}}}
@@ -445,17 +445,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
 This content type is not yet fully supported by the rendering system.
 """
-
-    def _escape_latex(self, text: str) -> str:
-        """Escape LaTeX special characters.
-
-        Args:
-            text: Text to escape
-
-        Returns:
-            LaTeX-safe text
-        """
-        return escape_latex_text(text)
 
     def _is_book_entry(self, content: Any, context: RenderingContext) -> bool:
         """Check if content is a raw book entry that should be processed recursively.
@@ -556,7 +545,7 @@ This content type is not yet fully supported by the rendering system.
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)
-            return self._escape_latex(content)
+            return escape(content)
         if isinstance(content, dict):
             # Process dict entry - use same approach as book rendering
             try:
@@ -591,7 +580,7 @@ This content type is not yet fully supported by the rendering system.
                     section_cmd = (
                         "chapter"  # Always use chapter for top-level adventure chapters
                     )
-                    escaped_name = self._escape_latex(chapter_name)
+                    escaped_name = escape(chapter_name)
                     result.append(f"\\{section_cmd}{{{escaped_name}}}")
 
                 # Add the processed entries
@@ -633,7 +622,7 @@ This content type is not yet fully supported by the rendering system.
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)
-            return self._escape_latex(content)
+            return escape(content)
         if isinstance(content, dict):
             # Process dict entry
             return processor.process_entry_dict(content, context)

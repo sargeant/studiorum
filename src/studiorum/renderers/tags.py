@@ -13,7 +13,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from studiorum.core.latex_utils import escape_latex_text
 from studiorum.core.logging import get_logger
 from studiorum.core.text.tags import (
     display_part,
@@ -23,6 +22,7 @@ from studiorum.core.text.tags import (
     split_by_tags,
     split_tag,
 )
+from studiorum.renderers.escape import escape, escape_url
 
 if TYPE_CHECKING:
     from studiorum.core.references.content_tracker import ContentTracker
@@ -62,7 +62,7 @@ def render(text: str, tracker: ContentTracker | None = None) -> str:
             fn = TAGS.get(tag)
             out.append(fn(parts, context) if fn else _plain_tag(tag, parts, context))
         else:
-            out.append(escape_latex_text(part))
+            out.append(escape(part))
     return "".join(out)
 
 
@@ -154,13 +154,13 @@ def _format(style: Callable[[str], str], bold: bool = False) -> TagFn:
 
 
 def _roll(parts: list[str], r: Render) -> str:
-    return escape_latex_text(_part(parts, 1) or parts[0].replace(";", "/"))
+    return escape(_part(parts, 1) or parts[0].replace(";", "/"))
 
 
 def _bonus(parts: list[str], r: Render) -> str:
     number = _int(parts[0])
     shown = _part(parts, 1) or (f"{number:+d}" if number is not None else parts[0])
-    return escape_latex_text(shown)
+    return escape(shown)
 
 
 def _ability(parts: list[str], r: Render) -> str:
@@ -182,7 +182,7 @@ def _modifier(parts: list[str], r: Render) -> str:
 def _chance(parts: list[str], r: Render) -> str:
     if not parts[0]:
         return "[Chance]"
-    return escape_latex_text(_part(parts, 1) or f"{parts[0]} percent")
+    return escape(_part(parts, 1) or f"{parts[0]} percent")
 
 
 def _recharge(parts: list[str], r: Render) -> str:
@@ -243,7 +243,7 @@ def _act_save(parts: list[str], r: Render) -> str:
     if not parts[0]:
         return _italic("Saving Throw:")
     ability = _ABILITIES.get(parts[0].lower(), parts[0].title())
-    return _italic(escape_latex_text(f"{ability} Saving Throw:"))
+    return _italic(escape(f"{ability} Saving Throw:"))
 
 
 def _act_save_fail(parts: list[str], r: Render) -> str:
@@ -253,13 +253,13 @@ def _act_save_fail(parts: list[str], r: Render) -> str:
     if n is not None:
         word = _ORDINALS[n - 1] if 1 <= n <= 10 else f"{n}th"
         return _italic(f"{word} Failure:")
-    return _italic(escape_latex_text(f"{parts[0]} Failure:"))
+    return _italic(escape(f"{parts[0]} Failure:"))
 
 
 def _act_save_fail_by(parts: list[str], r: Render) -> str:
     if not parts[0]:
         return _italic("Failure:")
-    return _italic(escape_latex_text(f"Failure by {parts[0]} or More:"))
+    return _italic(escape(f"Failure by {parts[0]} or More:"))
 
 
 def _fixed(latex: str) -> TagFn:
@@ -273,9 +273,8 @@ def _note(parts: list[str], r: Render) -> str:
 def _link(parts: list[str], r: Render) -> str:
     title, url = parts[0], _part(parts, 1)
     if not (title and url):
-        return escape_latex_text(title)
-    url = url.replace("#", "\\#").replace("%", "\\%").replace("&", "\\&")
-    return f"\\href{{{url}}}{{{escape_latex_text(title)}}}"
+        return escape(title)
+    return f"\\href{{{escape_url(url)}}}{{{escape(title)}}}"
 
 
 def _area(parts: list[str], r: Render) -> str:
@@ -286,7 +285,7 @@ def _area(parts: list[str], r: Render) -> str:
 
 
 def _scaling(parts: list[str], r: Render) -> str:
-    return escape_latex_text(_part(parts, 4) or _part(parts, 2))
+    return escape(_part(parts, 4) or _part(parts, 2))
 
 
 def _default(text: str) -> TagFn:
@@ -294,7 +293,7 @@ def _default(text: str) -> TagFn:
 
 
 def _or(fallback: str) -> TagFn:
-    return lambda parts, r: escape_latex_text(parts[0]) if parts[0] else fallback
+    return lambda parts, r: escape(parts[0]) if parts[0] else fallback
 
 
 TAGS: dict[str, TagFn] = {
@@ -340,12 +339,12 @@ TAGS: dict[str, TagFn] = {
     "link": _link,
     "quickref": lambda parts, r: _italic(r.text(display_part("quickref", parts))),
     "area": _area,
-    "style": lambda parts, r: escape_latex_text(parts[0]),
+    "style": lambda parts, r: escape(parts[0]),
     "filter": lambda parts, r: r.text(parts[0]),
     "scaledamage": _scaling,
     "scaledice": _scaling,
     "card": lambda parts, r: r.text(display_part("card", parts)),
-    "homebrew": lambda parts, r: _italic(escape_latex_text(parts[0])),
+    "homebrew": lambda parts, r: _italic(escape(parts[0])),
 }
 
 # Tags 5etools has that render as their display text

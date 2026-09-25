@@ -16,6 +16,7 @@ from studiorum.latex_engine.core.document_structure import (
     SectionLevel,
 )
 from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.escape import escape
 
 
 @pytest.mark.rendering
@@ -183,7 +184,7 @@ class TestContentPlaceholderRegression:
                     document += "% Content: String Entry (str)\n"
                 elif isinstance(item, dict):
                     name = item.get("name", "Unknown")
-                    escaped_name = self.renderer._escape_latex(name)
+                    escaped_name = escape(name)
                     document += f"% Content: {escaped_name} (dict)\n"
 
         # Mock render_content_item to return the actual content

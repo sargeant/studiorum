@@ -44,7 +44,7 @@ class TestLaTeXTemplateEngine:
         """Test LaTeX escaping filter."""
         engine: Any = LaTeXTemplateEngine()
 
-        # Test basic escaping - using centralized escape_latex_text function
+        # The filter is renderers.escape.escape; tests/renderers/test_escape.py has the cases
         assert engine.env.filters["latex_escape"]("Hello & World") == "Hello \\& World"
         assert engine.env.filters["latex_escape"]("50% off") == "50\\% off"
         assert engine.env.filters["latex_escape"]("Cost: $5") == "Cost: \\$5"
@@ -54,8 +54,9 @@ class TestLaTeXTemplateEngine:
         assert engine.env.filters["latex_escape"]("file_name") == "file\\_name"
         assert engine.env.filters["latex_escape"]("{hello}") == "\\{hello\\}"
         assert engine.env.filters["latex_escape"]("~home") == "\\textasciitilde{}home"
-        # Backslash escaping removed - backslashes pass through unchanged
-        assert engine.env.filters["latex_escape"]("path\\to\\file") == "path\\to\\file"
+        assert (
+            engine.env.filters["latex_escape"]("path\\to") == "path\\textbackslash{}to"
+        )
 
         # Test non-string input
         assert engine.env.filters["latex_escape"](123) == "123"
@@ -84,7 +85,7 @@ class TestLaTeXTemplateEngine:
         )
 
     def test_dnd_ability_modifier_filter(self) -> None:
-        """Test D&D ability modifier filter."""
+        """Test 5e ability modifier filter."""
         engine: Any = LaTeXTemplateEngine()
         filter_func = engine.env.filters["dnd_ability_modifier"]
 
@@ -107,7 +108,7 @@ class TestLaTeXTemplateEngine:
         assert filter_func(None) == "None"
 
     def test_dnd_challenge_rating_filter(self) -> None:
-        """Test D&D challenge rating filter."""
+        """Test 5e challenge rating filter."""
         engine: Any = LaTeXTemplateEngine()
         filter_func = engine.env.filters["dnd_challenge_rating"]
 
@@ -132,7 +133,7 @@ class TestLaTeXTemplateEngine:
         assert filter_func("invalid") == "invalid"
 
     def test_dnd_spell_level_filter(self) -> None:
-        """Test D&D spell level filter."""
+        """Test 5e spell level filter."""
         engine: Any = LaTeXTemplateEngine()
         filter_func = engine.env.filters["dnd_spell_level"]
 

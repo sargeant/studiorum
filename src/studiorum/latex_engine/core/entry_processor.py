@@ -8,12 +8,8 @@ from studiorum.core.error_types import create_processing_error
 from studiorum.core.logging import get_logger
 from studiorum.core.result import Error
 from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.escape import escape
 
-from ..utils.unicode_mappings import (
-    get_latex_special_chars,
-    get_unicode_to_latex_mappings,
-    get_unmapped_unicode_chars,
-)
 from .images import emit
 from .images.resolve import ImageResolver
 
@@ -415,11 +411,11 @@ class RecursiveEntryProcessor:
 
         if self.use_dnd_template:
             if name:
-                return f"\\begin{{DndSidebar}}{{{self._escape_latex(name)}}}\n{content}\n\\end{{DndSidebar}}"
+                return f"\\begin{{DndSidebar}}{{{escape(name)}}}\n{content}\n\\end{{DndSidebar}}"
             return f"\\begin{{DndSidebar}}{{}}\n{content}\n\\end{{DndSidebar}}"
         result = []
         if name:
-            result.append(f"\\textbf{{{self._escape_latex(name)}}}")
+            result.append(f"\\textbf{{{escape(name)}}}")
         result.append(f"\\begin{{quotation}}\n{content}\n\\end{{quotation}}")
         return "\n\n".join(result)
 
@@ -630,7 +626,7 @@ class RecursiveEntryProcessor:
             # Use correct DndTable syntax: \begin{DndTable}[header=Name]{column_spec}
             # Only include header parameter if caption exists
             if caption:
-                header_text = self._escape_latex(caption)
+                header_text = escape(caption)
                 result.append(
                     f"\\begin{{DndTable}}[header={{{header_text}}}]{{{col_spec}}}"
                 )
@@ -700,15 +696,13 @@ class RecursiveEntryProcessor:
         result.append("\\begin{table}[ht]")
         result.append("\\centering")
         if caption:
-            result.append(f"\\caption{{{self._escape_latex(caption)}}}")
+            result.append(f"\\caption{{{escape(caption)}}}")
         result.append(f"\\begin{{tabular}}{{{col_spec}}}")
         result.append("\\hline")
 
         # Header row
         if col_labels:
-            header_row = " & ".join(
-                [self._escape_latex(str(label)) for label in col_labels]
-            )
+            header_row = " & ".join([escape(str(label)) for label in col_labels])
             result.append(f"{header_row} \\\\ \\hline")
 
         # Data rows
@@ -826,7 +820,7 @@ class RecursiveEntryProcessor:
         result.append("\\em")
         result.append(content)
         if by:
-            result.append(f"\n\\hfill --- {self._escape_latex(by)}")
+            result.append(f"\n\\hfill --- {escape(by)}")
         result.append("\\end{quotation}")
 
         return "\n".join(result)
@@ -1006,14 +1000,14 @@ class RecursiveEntryProcessor:
             Text with tags processed
         """
         if not text or not context.tag_resolver:
-            return self._escape_latex(text)
+            return escape(text)
 
         # Preprocess attack abbreviations (2024 5e format)
         text = self._preprocess_attack_abbreviations(text)
 
         # Skip obvious non-tag content to avoid parser warnings
         if not self._is_valid_tag_input(text):
-            return self._escape_latex(text)
+            return escape(text)
 
         # Use tag resolver directly from context field
         tag_resolver = context.tag_resolver
@@ -1054,47 +1048,6 @@ class RecursiveEntryProcessor:
         # Default to parsing for other content
         return True
 
-    def _escape_latex(self, text: str) -> str:
-        """Escape LaTeX special characters and Unicode characters.
-
-        This method handles both LaTeX special characters and Unicode characters
-        that need conversion to LaTeX equivalents. It uses comprehensive mappings
-        based on PyLaTeX best practices.
-
-        Args:
-            text: Text to escape
-
-        Returns:
-            LaTeX-safe text with proper character escaping
-        """
-        if not text:
-            return ""
-
-        # Get character mappings from the unicode_mappings module
-        latex_special_chars = get_latex_special_chars()
-        unicode_to_latex = get_unicode_to_latex_mappings()
-
-        result = text
-
-        # Apply LaTeX special character escaping first
-        # Order matters: backslash must be escaped first to avoid double-escaping
-        for char, replacement in latex_special_chars.items():
-            result = result.replace(char, replacement)
-
-        # Then apply Unicode character replacements
-        for char, replacement in unicode_to_latex.items():
-            result = result.replace(char, replacement)
-
-        # Log any unmapped Unicode characters for debugging
-        unmapped_chars = get_unmapped_unicode_chars(result)
-        if unmapped_chars:
-            logger.debug(
-                "Found unmapped Unicode characters in text: %s",
-                ", ".join(f"'{char}' (U+{ord(char):04X})" for char in unmapped_chars),
-            )
-
-        return result
-
     def _process_actions(
         self, actions: dict[str, Any], context: RenderingContext
     ) -> str:
@@ -1112,7 +1065,7 @@ class RecursiveEntryProcessor:
 
         result = []
         if name:
-            result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
+            result.append(f"\\textbf{{{escape(name)}.}}")
 
         if entries:
             processed_entries = self.process_entries(entries, context)
@@ -1135,7 +1088,7 @@ class RecursiveEntryProcessor:
 
         result = []
         if name:
-            result.append(f"\\textit{{{self._escape_latex(name)}.}}")
+            result.append(f"\\textit{{{escape(name)}.}}")
 
         if entries:
             processed_entries = self.process_entries(entries, context)
@@ -1193,7 +1146,7 @@ class RecursiveEntryProcessor:
 
         # Create variant header
         if name:
-            result.append(f"\\textbf{{Variant: {self._escape_latex(name)}}}")
+            result.append(f"\\textbf{{Variant: {escape(name)}}}")
         else:
             result.append("\\textbf{Variant:}")
 
@@ -1221,7 +1174,7 @@ class RecursiveEntryProcessor:
         result = []
 
         if name:
-            result.append(f"\\textit{{{self._escape_latex(name)}:}}")
+            result.append(f"\\textit{{{escape(name)}:}}")
 
         if entries:
             processed_entries = self.process_entries(entries, context)
@@ -1254,7 +1207,7 @@ class RecursiveEntryProcessor:
             "cha": "Charisma",
         }
 
-        result = [f"\\textbf{{{self._escape_latex(name)}:}}"]
+        result = [f"\\textbf{{{escape(name)}:}}"]
 
         if attributes:
             # Use first attribute for DC calculation
@@ -1291,7 +1244,7 @@ class RecursiveEntryProcessor:
             "cha": "Charisma",
         }
 
-        result = [f"\\textbf{{{self._escape_latex(name)}:}}"]
+        result = [f"\\textbf{{{escape(name)}:}}"]
 
         if attributes:
             # Use first attribute for attack bonus calculation
@@ -1320,7 +1273,7 @@ class RecursiveEntryProcessor:
 
         result = []
         if name:
-            result.append(f"\\textbf{{{self._escape_latex(name)}:}}")
+            result.append(f"\\textbf{{{escape(name)}:}}")
 
         if text:
             result.append(self._process_text_with_tags(text, context))
@@ -1346,7 +1299,7 @@ class RecursiveEntryProcessor:
 
         # Add header (unless suppressed by caller)
         if render_header and name:
-            result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
+            result.append(f"\\textbf{{{escape(name)}.}}")
 
         # Header text before spells block
         if header_entries:
@@ -1414,7 +1367,7 @@ class RecursiveEntryProcessor:
                         if any("\\textit{" in s for s in processed):
                             # Fallback to plain text label
                             # Keep original frequency label
-                            label = self._escape_latex(str(freq))
+                            label = escape(str(freq))
                             result.append(
                                 f"\\textbf{{{label}:}} " + ", ".join(processed)
                             )
@@ -1435,7 +1388,7 @@ class RecursiveEntryProcessor:
                                         f"\\textbf{{{n}/day:}} " + ", ".join(processed)
                                     )
                             else:
-                                label = self._escape_latex(str(freq))
+                                label = escape(str(freq))
                                 result.append(
                                     f"  \\textbf{{{label}:}} {', '.join(processed)}"
                                 )
