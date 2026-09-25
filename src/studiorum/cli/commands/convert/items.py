@@ -9,7 +9,7 @@ from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.items import Item
-from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import Fluff, FluffImages, FluffSections, FluffSources, collect_fluff
@@ -225,17 +225,12 @@ def items(
             else None
         )
         context = RenderingContext(
-            output_format="latex",
             omnidexer=omnidexer,
-            metadata={
-                "title": heading,
-                "include_images": options.images,
-                "template": "itemcompendium",
-                "content_type": "item",
-                "fluff": found_fluff.fluff if found_fluff else {},
-                "fluff_images": found_fluff.images if found_fluff else {},
-                "fluff_images_enabled": with_fluff_images,
-            },
+            style=Style(content_type="item", images=options.images),
+            fluff=found_fluff.fluff if found_fluff else {},
+            fluff_images=(found_fluff.images if found_fluff else {})
+            if with_fluff_images
+            else None,
         )
         latex = _render_itemcompendium(found, context, options, heading, result, sort)
         write_document(
@@ -317,7 +312,7 @@ def _sort_items(
     """Sort by the sort mode, then by name."""
     rank = {rarity: i for i, rarity in enumerate(RARITY_ORDER)}
     keys: dict[ItemSortMode, Any] = {
-        ItemSortMode.TYPE: lambda i: i.get_type_text().lower(),
+        ItemSortMode.TYPE: lambda i: i.get_kind_text().lower(),
         ItemSortMode.RARITY: lambda i: rank.get(i.get_rarity_text().lower(), 99),
         ItemSortMode.VALUE: lambda i: collector._get_item_value_in_gp(i) or 0.0,
         ItemSortMode.NAME: lambda i: "",
@@ -331,7 +326,7 @@ def _group_items(items: list[Item], sort_mode: ItemSortMode) -> dict[str, list[I
     groups: dict[str, list[Item]] = {}
     if sort_mode == ItemSortMode.TYPE:
         for item in items:
-            groups.setdefault(item.get_type_text(), []).append(item)
+            groups.setdefault(item.get_kind_text(), []).append(item)
         return dict(sorted(groups.items()))
     if sort_mode == ItemSortMode.RARITY:
         for item in items:
@@ -359,9 +354,7 @@ def _render_itemcompendium(
     template_context = template_engine.create_dnd_template_context(
         content_type="item",
         title=heading,
-        metadata=document_metadata(
-            options, heading, description=f"Collection of {len(items)} items"
-        ),
+        metadata=document_metadata(options, heading),
         latex_config=options.latex,
         items=items,
         items_by_group=_group_items(items, sort_mode),

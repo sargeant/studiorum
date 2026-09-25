@@ -1,4 +1,4 @@
 <#-- One image (emit.py): Wide for maps, Inline otherwise; no caption without a title.
      The caption arrives as LaTeX, with tags resolved and text escaped --#>
 <@ set command = 'StudiorumImageWide' if placement == 'wide' else 'StudiorumImageInline' @>
-\<# command #><@ if not caption @>*<@ endif @>{<# path #>}{<# caption #>}<@ if label @>[<# label #>]<@ endif @>
+\<# command #><@ if not caption @>*<@ endif @>{<# path | safe #>}{<# caption | safe #>}<@ if label @>[<# label | safe #>]<@ endif @>

@@ -12,7 +12,7 @@ import dataclasses
 import re
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from functools import cache
 from typing import TYPE_CHECKING, Any
 
@@ -22,7 +22,7 @@ from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import ArmorClass, Creature
-from studiorum.core.models.document_metadata import DocumentType
+from studiorum.renderers.context import Style
 from studiorum.renderers.escape import escape
 from studiorum.renderers.tags import render
 
@@ -35,20 +35,6 @@ if TYPE_CHECKING:
     from studiorum.renderers.context import RenderingContext
 
 logger = get_logger(__name__)
-
-# Sectioning commands by nesting depth; the last repeats below it
-SPELL_HEADINGS = ("subsubsection", "paragraph", "subparagraph")
-ITEM_HEADINGS = ("subsubsection", "subparagraph", "subparagraph")
-SIDEBAR_HEADINGS = ("subsubsection", "paragraph", "subparagraph")
-# Books and adventures: the document already opens each chapter
-BOOK_HEADINGS = ("section", "subsection", "subsection", "subsubsection", "paragraph")
-ARTICLE_HEADINGS = (
-    "section",
-    "subsection",
-    "subsubsection",
-    "paragraph",
-    "subparagraph",
-)
 
 ABILITIES = {
     "str": "Strength",
@@ -79,40 +65,6 @@ _warned_types: set[str] = set()
 
 class EntryError(Exception):
     """An entry that could not be rendered, with its place in the tree."""
-
-
-@dataclass(frozen=True)
-class Style:
-    """How the surrounding document shapes entries."""
-
-    content_type: str | None = None  # "spell" and "item" nest headings deeper
-    book: bool = False  # a book or adventure, whose chapters the document opens
-    sidebar: bool = False
-    monster_spells: bool = False  # DndMonsterSpells macros, in statblocks only
-    images: bool = True
-
-    @property
-    def headings(self) -> tuple[str, ...]:
-        if self.content_type == "spell":
-            return SPELL_HEADINGS
-        if self.content_type == "item":
-            return ITEM_HEADINGS
-        if self.sidebar:
-            return SIDEBAR_HEADINGS
-        return BOOK_HEADINGS if self.book else ARTICLE_HEADINGS
-
-    @classmethod
-    def from_metadata(cls, metadata: dict[str, Any]) -> Style:
-        content_type = metadata.get("content_type")
-        return cls(
-            content_type=content_type,
-            book=metadata.get("document_type")
-            in (DocumentType.BOOK, DocumentType.ADVENTURE),
-            sidebar=bool(metadata.get("in_sidebar", False)),
-            monster_spells=metadata.get("template") == "bestiary"
-            or content_type == "creature",
-            images=bool(metadata.get("include_images", True)),
-        )
 
 
 @cache
@@ -147,7 +99,7 @@ class EntryRenderer:
         return cls(
             tracker=context.content_tracker,
             omnidexer=context.omnidexer,
-            style=Style.from_metadata(context.metadata),
+            style=context.style,
             context=context,
         )
 
@@ -552,16 +504,12 @@ class EntryRenderer:
     def _render_model(self, tag: str, content: Any) -> str:
         from studiorum.renderers.context import RenderingContext
 
-        from .core.entry_renderers import CreatureEntryRenderer, ItemEntryRenderer
+        from .document import render_models
 
         context = self._context or RenderingContext(
-            output_format="latex",
-            omnidexer=self.omnidexer,
-            content_tracker=self.tracker,
+            content_tracker=self.tracker, omnidexer=self.omnidexer
         )
-        if tag == "creature":
-            return CreatureEntryRenderer().render(content, context)
-        return ItemEntryRenderer().render(content, context)
+        return render_models(tag, [content], context)
 
 
 def spellcasting(renderer: EntryRenderer, entry: dict[str, Any]) -> str:

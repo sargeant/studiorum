@@ -200,10 +200,10 @@ def _pub_id(pub: Adventure | Book) -> str:
 
 
 def _chapters(pub: Adventure | Book) -> list[Node]:
-    """Chapters as 5etools sections; the merge keeps each one's id in its ordinal."""
+    """Chapters as 5etools sections, with the id of each one's section."""
     return [
         {
-            "id": str((c.ordinal or {}).get("identifier", f"ch{i}")),
+            "id": c.id or f"ch{i}",
             "name": c.name,
             "entries": c.entries,
         }

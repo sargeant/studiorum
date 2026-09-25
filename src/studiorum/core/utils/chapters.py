@@ -1,45 +1,31 @@
 """Chapter filtering utilities for adventures and books."""
 
-import re
+from collections import Counter
 
-from studiorum.core.models.adventures import Adventure, AdventureMetadata
-from studiorum.core.models.chapter import Chapter, ChapterType
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.chapter import NUMBERED_KINDS, Chapter, OrdinalType
 
 
-def extract_chapter_number(chapter: Chapter) -> int | None:
-    """Extract chapter number from Chapter object.
+def numbered_kind(chapters: list[Chapter]) -> OrdinalType | None:
+    """The numbered ordinal type the chapters use most, such as OoW's episodes."""
+    counts: Counter[OrdinalType] = Counter(
+        c.ordinal.type
+        for c in chapters
+        if c.ordinal is not None and c.ordinal.type in NUMBERED_KINDS
+    )
+    if not counts:
+        return None
+    return max(NUMBERED_KINDS, key=counts.__getitem__)
 
-    Uses structured ordinal field first, falls back to name regex.
 
-    Args:
-        chapter: Chapter object from Adventure
-
-    Returns:
-        Chapter number or None if not a numbered chapter
-
-    Examples:
-        >>> ch = Chapter(name="Chapter 5: Title", ordinal=None, entries=[])
-        >>> extract_chapter_number(ch)
-        5
-        >>> ch = Chapter(name="Introduction", ordinal=None, entries=[])
-        >>> extract_chapter_number(ch)
-        None
-    """
-    if chapter.ordinal and isinstance(chapter.ordinal, dict):
-        if chapter.ordinal.get("type") == "chapter":
-            identifier = chapter.ordinal.get("identifier")
-            if identifier:
-                try:
-                    return int(identifier)
-                except (ValueError, TypeError):
-                    pass
-
-    pattern = r"(?:Chapter|Ch\.?)\s*(\d+):"
-    match = re.search(pattern, chapter.name, re.IGNORECASE)
-    if match:
-        return int(match.group(1))
-
-    return None
+def chapter_number(chapter: Chapter, kind: OrdinalType | None) -> int | None:
+    """The chapter's number if its ordinal is of ``kind``."""
+    if chapter.ordinal is None or chapter.ordinal.type != kind:
+        return None
+    identifier = chapter.ordinal.identifier
+    if isinstance(identifier, int):
+        return identifier
+    return int(identifier) if identifier and identifier.isdigit() else None
 
 
 def parse_chapter_spec(spec: str) -> list[int]:
@@ -102,97 +88,48 @@ def filter_adventure_chapters(
     chapter_numbers: list[int],
     include_introduction: bool = False,
 ) -> tuple[Adventure, list[str]]:
-    """Filter adventure to only specified chapters.
+    """The adventure with only the chosen chapters, and any warnings.
 
-    Returns data + warnings (no printing); caller handles display.
-
-    When the adventure has zero detectably-numbered chapters (e.g. anthology
-    adventures with named-only sections), falls back to positional numbering
-    (1..N) over the non-introduction chapters in document order. A warning is
-    emitted so the caller can surface the fallback to the user.
-
-    Args:
-        adventure: Full adventure object
-        chapter_numbers: Sorted list of chapter numbers to include
-        include_introduction: If True, include introduction chapters
-
-    Returns:
-        Tuple of (filtered_adventure, warnings)
+    Numbers match the identifiers of the numbered kind the adventure uses
+    most (chapters, parts, episodes or levels). The introduction is the
+    unnumbered chapters before the first numbered one. An adventure with no
+    numbered chapters is numbered by position, with a warning.
 
     Raises:
-        ValueError: If no matching chapters found
+        ValueError: If no chapter matches
     """
-    chapter_map: dict[int, tuple[int, int]] = {}
-    introduction_indices: list[int] = []
+    contents = adventure.contents
+    kind = numbered_kind(contents)
+    chapter_map: dict[int, int] = {}
+    for idx, chapter in enumerate(contents):
+        number = chapter_number(chapter, kind)
+        if number is not None:
+            chapter_map.setdefault(number, idx)
+    first = next((i for i, c in enumerate(contents) if c.ordinal is not None), 0)
+    introduction_indices = list(range(first))
 
-    for idx, chapter in enumerate(adventure.contents):
-        chapter_num = extract_chapter_number(chapter)
-        if chapter_num is not None:
-            chapter_map[chapter_num] = (idx, chapter_num)
-        else:
-            chapter_type = chapter.get_chapter_type()
-            if chapter_type == ChapterType.INTRODUCTION:
-                introduction_indices.append(idx)
+    warnings = []
+    if not chapter_map and contents:
+        chapter_map = {i + 1: i for i in range(len(contents))}
+        introduction_indices = []
+        warnings.append(
+            "No numbered chapters detected; falling back to positional numbering "
+            f"(1..{len(contents)}) based on chapter order."
+        )
 
-    positional_warning: str | None = None
-    if not chapter_map and adventure.contents:
-        positional_indices = [
-            idx
-            for idx in range(len(adventure.contents))
-            if idx not in introduction_indices
-        ]
-        for position, original_idx in enumerate(positional_indices, start=1):
-            chapter_map[position] = (original_idx, position)
-        if chapter_map:
-            positional_warning = (
-                "No numbered chapters detected; falling back to positional numbering "
-                f"(1..{len(positional_indices)}) based on chapter order."
-            )
-
-    filtered_data: list[tuple[int, Chapter, int | None]] = []
-    missing_chapters = []
-
-    for num in chapter_numbers:
-        if num in chapter_map:
-            idx, original_num = chapter_map[num]
-            filtered_data.append((idx, adventure.contents[idx], original_num))
-        else:
-            missing_chapters.append(num)
-
+    indices = {chapter_map[n] for n in chapter_numbers if n in chapter_map}
+    missing = [n for n in chapter_numbers if n not in chapter_map]
     if include_introduction:
-        for idx in introduction_indices:
-            filtered_data.insert(0, (idx, adventure.contents[idx], None))
-
-    if not filtered_data:
-        available = sorted(chapter_map.keys())
+        indices.update(introduction_indices)
+    available = sorted(chapter_map)
+    if not indices:
         raise ValueError(
             f"No chapters found matching: {chapter_numbers}. "
             f"Available numbered chapters: {available}"
         )
+    if missing:
+        warnings.append(f"Chapters not found: {missing}. Available: {available}")
 
-    warnings = []
-    if positional_warning:
-        warnings.append(positional_warning)
-    if missing_chapters:
-        available = sorted(chapter_map.keys())
-        warnings.append(
-            f"Chapters not found: {missing_chapters}. Available: {available}"
-        )
-
-    filtered_data.sort(key=lambda x: x[0])
-
-    filtered_adventure = adventure.model_copy(deep=True)
-    filtered_adventure.contents = [chapter for _, chapter, _ in filtered_data]
-
-    chapter_number_map: dict[int, int] = {}
-    for new_idx, item in enumerate(filtered_data):
-        chapter_num_value: int | None = item[2]
-        if chapter_num_value is not None:
-            chapter_number_map[new_idx] = chapter_num_value
-
-    if not filtered_adventure.metadata:
-        filtered_adventure.metadata = AdventureMetadata()
-
-    filtered_adventure.metadata.custom_fields["chapter_number_map"] = chapter_number_map
-
-    return filtered_adventure, warnings
+    filtered = adventure.model_copy(deep=True)
+    filtered.contents = [filtered.contents[i] for i in sorted(indices)]
+    return filtered, warnings

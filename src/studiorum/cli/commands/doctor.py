@@ -1,6 +1,9 @@
-"""studiorum doctor: check the configuration, data sources and cache."""
+"""studiorum doctor: check the configuration, data sources, cache and LaTeX."""
 
 import os
+
+# kpsewhich is found on PATH through studiorum.core.security
+import subprocess  # nosec B404
 from pathlib import Path
 
 import typer
@@ -10,19 +13,25 @@ from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.cache import CacheManager
 from studiorum.core.config.unified_config import get_default_config_path
+from studiorum.core.security import ExecutableNotFoundError, get_latex_utility
 
 OK, WARN, FAIL = "✅", "⚠️", "❌"
 Check = tuple[str, str, str]
 
 
 def doctor(ctx: typer.Context) -> None:
-    """Check the configuration, data sources and cache, and exit 1 on a failure.
+    """Check the configuration, data sources, cache and LaTeX; exit 1 on a failure.
 
     The data check lists the configured data directories and homebrew
-    without loading them.
+    without loading them. LaTeX problems are warnings: .tex files still build.
     """
     console = display_manager.console
-    checks = [*_config_checks(ctx), *_data_checks(), *_cache_checks()]
+    checks = [
+        *_config_checks(ctx),
+        *_data_checks(),
+        *_cache_checks(),
+        *_latex_checks(),
+    ]
 
     table = Table(title="studiorum doctor")
     table.add_column("Check", style="cyan")
@@ -82,3 +91,27 @@ def _cache_checks() -> list[Check]:
     if usage > 90:
         return [("Cache", WARN, f"{details}; run studiorum cache clear")]
     return [("Cache", OK, details)]
+
+
+def _latex_checks() -> list[Check]:
+    """Whether TeX can find the DND 5e LaTeX template's dndbook class."""
+    try:
+        kpsewhich = get_latex_utility("kpsewhich")
+    except ExecutableNotFoundError:
+        return [("LaTeX", WARN, "kpsewhich not found; install TeX to build PDFs")]
+    found = subprocess.run(  # nosec B603
+        [kpsewhich, "dndbook.cls"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    ).stdout.strip()
+    if not found:
+        return [
+            (
+                "LaTeX",
+                WARN,
+                "dndbook.cls not found; install the DND 5e LaTeX template to build PDFs",
+            )
+        ]
+    return [("LaTeX", OK, f"dndbook.cls at {found}")]

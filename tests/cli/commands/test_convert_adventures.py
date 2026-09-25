@@ -36,7 +36,7 @@ class TestConvertAdventureCommand:
         }
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     def test_convert_adventure_with_file_path(
         self,
@@ -50,11 +50,9 @@ class TestConvertAdventureCommand:
         mock_omnidexer.return_value = mock_omnidexer_instance
 
         # Mock LaTeX engine
-        mock_engine = Mock()
-        mock_engine.render_document.return_value = (
+        mock_engine_factory.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -86,7 +84,7 @@ class TestConvertAdventureCommand:
     @patch(
         "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
-    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_abbreviation(
@@ -139,11 +137,9 @@ class TestConvertAdventureCommand:
         # and will find the mock_adventure through get_all_by_type
 
         # Mock LaTeX engine
-        mock_engine = Mock()
-        mock_engine.render_document.return_value = (
+        mock_engine_factory.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -216,7 +212,7 @@ class TestConvertAdventureCommand:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.load_omnidexer")
-    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_convert_adventure_with_pdf_compilation(
@@ -236,11 +232,9 @@ class TestConvertAdventureCommand:
         )
 
         # Mock LaTeX engine
-        mock_engine = Mock()
-        mock_engine.render_document.return_value = (
+        mock_engine_factory.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()

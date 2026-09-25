@@ -204,11 +204,7 @@ class ItemCollector:
             True if the item matches all criteria
         """
         # Type filtering
-        if (
-            criteria.item_types
-            and item.type is not None
-            and not criteria.matches_item_type(item.type)
-        ):
+        if criteria.item_types and not criteria.matches_item_type(item.get_kind_text()):
             return False
 
         # Rarity filtering
@@ -559,7 +555,7 @@ class ItemCollector:
         types = set()
         for item in all_items:
             if isinstance(item, Item):
-                types.add(item.get_type_text().lower())
+                types.add(item.get_kind_text().lower())
 
         return sorted(types)
 
@@ -608,7 +604,7 @@ class ItemCollector:
         for item in all_items:
             if isinstance(item, Item):
                 # Count by type
-                item_type_str = item.get_type_text()
+                item_type_str = item.get_kind_text()
                 stats["by_type"][item_type_str] = (
                     stats["by_type"].get(item_type_str, 0) + 1
                 )

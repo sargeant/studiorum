@@ -88,8 +88,7 @@
 % Standard floating figure
 % Usage: \StudiorumImageFloat[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFloat}{ s o m m o }{%%
-  
-\begin{figure}[htbp]
+  \begin{figure}[htbp]
     \centering
     \IfNoValueTF{#2}{%%
       \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -100,16 +99,14 @@
       \caption{#4}%%
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
-  \end{figure}
-%%
+  \end{figure}%%
 }
 
 % Wide (two-column spanning when applicable)
 % Usage: \StudiorumImageWide[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageWide}{ s o m m o }{%%
   \ifdim\columnwidth=\textwidth
-    
-\begin{figure}[htbp]
+    \begin{figure}[htbp]
       \centering
       \IfNoValueTF{#2}{%%
         \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -120,11 +117,9 @@
         \caption{#4}%%
         \IfNoValueF{#5}{\label{#5}}%%
       }%%
-    \end{figure}
-%%
+    \end{figure}%%
   \else
-    
-\begin{figure*}[tp]
+    \begin{figure*}[tp]
       \centering
       \IfNoValueTF{#2}{%%
         \includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{#3}%%
@@ -135,8 +130,7 @@
         \caption{#4}%%
         \IfNoValueF{#5}{\label{#5}}%%
       }%%
-    \end{figure*}
-%%
+    \end{figure*}%%
   \fi
 }
 
@@ -144,8 +138,7 @@
 % Usage: \StudiorumImageFullpage[<width fraction>]{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFullpage}{ s o m m o }{%%
   \clearpage
-  
-\begin{figure}[p]
+  \begin{figure}[p]
     \centering
     \IfNoValueTF{#2}{%%
       \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{#3}%%
@@ -157,7 +150,6 @@
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
   \end{figure}
-
   \clearpage
 }
 
@@ -165,8 +157,7 @@
 % Usage: \StudiorumImageFullpageBleed{file}{caption}[label]
 \NewDocumentCommand{\StudiorumImageFullpageBleed}{ s o m m o }{%%
   \clearpage
-  
-\begin{figure}[p]
+  \begin{figure}[p]
     \centering
     \includegraphics[width=\paperwidth,height=\paperheight]{#3}%%
     \IfBooleanF{#1}{%%
@@ -174,7 +165,6 @@
       \IfNoValueF{#5}{\label{#5}}%%
     }%%
   \end{figure}
-
   \clearpage
 }
 
@@ -189,41 +179,6 @@
 
 \tableofcontents
 \clearpage
-
-\section{None}
-
-\vspace{0.5em}
-
-\addcontentsline{toc}{subsection}{Amulet of Health}
-
-% Item header with name and metadata
-\DndItemHeader{Amulet of Health}{Wondrous item, None, rare (requires attunement)}
-
-% Item statistics for weapons, armor, etc.
-
-% Item properties integrated into description
-
-% Item description
-Your Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution score is already 19 or higher without it.
-
-\vspace{0.8em}
-\addcontentsline{toc}{subsection}{Bag of Holding}
-
-% Item header with name and metadata
-\DndItemHeader{Bag of Holding}{Wondrous item, None, uncommon}
-
-% Item statistics for weapons, armor, etc.
-
-% Item properties integrated into description
-
-% Item description
-This bag has an interior space considerably larger than its outside dimensions, roughly 2 feet in diameter at the mouth and 4 feet deep. The bag can hold up to 500 pounds, not exceeding a volume of 64 cubic feet. The bag weighs 15 pounds, regardless of its contents. Retrieving an item from the bag requires an action.
-
-If the bag is overloaded, pierced, or torn, it ruptures and is destroyed, and its contents are scattered in the Astral Plane. If the bag is turned inside out, its contents spill forth, unharmed, but the bag must be put right before it can be used again. Breathing creatures inside the bag can survive up to a number of minutes equal to 10 divided by the number of creatures (minimum 1 minute), after which time they begin to suffocate.
-
-Placing a bag of holding inside an extradimensional space created by a \textit{Heward's handy haversack}, \textit{portable hole}, or similar item instantly destroys both items and opens a gate to the Astral Plane. The gate originates where the one item was placed inside the other. Any creature within 10 feet of the gate is sucked through it to a random location on the Astral Plane. The gate then closes. The gate is one-way only and can't be reopened.
-
-\vspace{1.5em}
 
 \section{Melee Weapon}
 
@@ -240,5 +195,40 @@ Placing a bag of holding inside an extradimensional space created by a \textit{H
 % Item properties integrated into description
 
 % Item description
+
+\vspace{1.5em}
+
+\section{Wondrous Item}
+
+\vspace{0.5em}
+
+\addcontentsline{toc}{subsection}{Amulet of Health}
+
+% Item header with name and metadata
+\DndItemHeader{Amulet of Health}{Wondrous item, rare (requires attunement)}
+
+% Item statistics for weapons, armor, etc.
+
+% Item properties integrated into description
+
+% Item description
+Your Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution score is already 19 or higher without it.
+
+\vspace{0.8em}
+\addcontentsline{toc}{subsection}{Bag of Holding}
+
+% Item header with name and metadata
+\DndItemHeader{Bag of Holding}{Wondrous item, uncommon}
+
+% Item statistics for weapons, armor, etc.
+
+% Item properties integrated into description
+
+% Item description
+This bag has an interior space considerably larger than its outside dimensions, roughly 2 feet in diameter at the mouth and 4 feet deep. The bag can hold up to 500 pounds, not exceeding a volume of 64 cubic feet. The bag weighs 15 pounds, regardless of its contents. Retrieving an item from the bag requires an action.
+
+If the bag is overloaded, pierced, or torn, it ruptures and is destroyed, and its contents are scattered in the Astral Plane. If the bag is turned inside out, its contents spill forth, unharmed, but the bag must be put right before it can be used again. Breathing creatures inside the bag can survive up to a number of minutes equal to 10 divided by the number of creatures (minimum 1 minute), after which time they begin to suffocate.
+
+Placing a bag of holding inside an extradimensional space created by a \textit{Heward's handy haversack}, \textit{portable hole}, or similar item instantly destroys both items and opens a gate to the Astral Plane. The gate originates where the one item was placed inside the other. Any creature within 10 feet of the gate is sucked through it to a random location on the Astral Plane. The gate then closes. The gate is one-way only and can't be reopened.
 
 \end{document}

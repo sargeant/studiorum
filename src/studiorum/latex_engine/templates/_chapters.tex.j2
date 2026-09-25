@@ -1,0 +1,32 @@
+<#-- Chapters opened from their 5etools ordinals (document.py's DocumentChapter) --#>
+
+<#-- \appendix comes before the first appendix; pass appendix=true if it already has --#>
+<@ macro chapter_list(chapters, appendix=false) @>
+<@ set state = namespace(word="Chapter", appendix=appendix) @>
+<@ for chapter in chapters @>
+<@ if chapter.opening == "appendix" and not state.appendix @>
+<@ set state.appendix = true @>
+\appendix
+<@ endif @>
+<@ if chapter.opening == "numbered" and chapter.word != state.word @>
+<@ set state.word = chapter.word @>
+\renewcommand{\chaptername}{<# chapter.word #>}
+\addtocontents{toc}{\protect\def\protect\tocchapapp{<# chapter.toc_word #>}}
+<@ endif @>
+<@ if chapter.opening == "unnumbered" @>
+\chapter*{<# chapter.title #>}
+\addcontentsline{toc}{chapter}{<# chapter.title #>}
+\label{<# chapter.label | safe #>}
+<@ else @>
+<@ if chapter.counter is not none @>
+\setcounter{chapter}{<# chapter.counter #>}
+<@ endif @>
+\chapter{<# chapter.title #>}\label{<# chapter.label | safe #>}
+<@ endif @>
+<@ if chapter.body @>
+
+<# chapter.body | safe #>
+<@ endif @>
+
+<@ endfor @>
+<@ endmacro @>

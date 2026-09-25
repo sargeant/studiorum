@@ -4,9 +4,13 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+from jinja2 import UndefinedError
+from markupsafe import Markup
 
 from studiorum.latex_engine.core.template_engine import (
-    LaTeXTemplateEngine,  # type: ignore
+    LaTeXTemplateEngine,
+    check_output,
+    environment,
 )
 
 
@@ -26,28 +30,6 @@ class TestLaTeXTemplateEngine:
             "src/studiorum/latex_engine/templates"
         )
         assert engine.env is not None
-
-    def test_latex_escape_filter(self) -> None:
-        """Test LaTeX escaping filter."""
-        engine: Any = LaTeXTemplateEngine()
-
-        # The filter is renderers.escape.escape; tests/renderers/test_escape.py has the cases
-        assert engine.env.filters["latex_escape"]("Hello & World") == "Hello \\& World"
-        assert engine.env.filters["latex_escape"]("50% off") == "50\\% off"
-        assert engine.env.filters["latex_escape"]("Cost: $5") == "Cost: \\$5"
-        assert engine.env.filters["latex_escape"]("Section #1") == "Section \\#1"
-        # The centralized implementation produces final LaTeX output directly
-        assert engine.env.filters["latex_escape"]("x^2") == "x\\textasciicircum{}2"
-        assert engine.env.filters["latex_escape"]("file_name") == "file\\_name"
-        assert engine.env.filters["latex_escape"]("{hello}") == "\\{hello\\}"
-        assert engine.env.filters["latex_escape"]("~home") == "\\textasciitilde{}home"
-        assert (
-            engine.env.filters["latex_escape"]("path\\to") == "path\\textbackslash{}to"
-        )
-
-        # Test non-string input
-        assert engine.env.filters["latex_escape"](123) == "123"
-        assert engine.env.filters["latex_escape"](None) == "None"
 
     def test_create_template_context(self) -> None:
         """Test template context creation."""
@@ -171,171 +153,43 @@ class TestLaTeXTemplateEngine:
 
 
 @pytest.mark.rendering
-class TestTemplateRendering:
-    """Test cases for template rendering with real templates."""
+class TestAutoescape:
+    """Printed values are LaTeX-escaped unless they are already LaTeX."""
 
-    def setup_method(self) -> None:
-        """Set up test fixtures."""
+    def render(self, source: str, **context: Any) -> str:
+        return environment().from_string(source).render(**context)
 
-        self.engine = LaTeXTemplateEngine()
+    def test_plain_text_is_escaped(self) -> None:
+        assert self.render("<# t #>", t="Tom & Jerry's 50%") == "Tom \\& Jerry's 50\\%"
 
-    def test_render_simple_template(self) -> None:
-        """Test rendering a simple template."""
-        # Create a temporary template for testing
-        template_path = self.engine.templates_dir / "test_simple.tex.j2"
-        template_content = """
-% Simple test template
-\\documentclass{article}
-\\title{<# title | latex_escape #>}
-\\author{<# author | latex_escape #>}
-\\begin{document}
-\\maketitle
-<# content #>
-\\end{document}
-"""
+    def test_numbers_print_as_text(self) -> None:
+        assert self.render("<# n #>", n=-3) == "-3"
 
-        try:
-            template_path.write_text(template_content)
+    def test_safe_values_and_macros_are_not_escaped_again(self) -> None:
+        source = (
+            "<@ macro b(x) @>\\textbf{<# x #>}<@ endmacro @><# b(t) #> <# s | safe #>"
+        )
+        assert (
+            self.render(source, t="A&B", s="\\emph{x}") == "\\textbf{A\\&B} \\emph{x}"
+        )
 
-            context = {
-                "title": "Test & Document",
-                "author": "Test Author",
-                "content": "This is test content.",
-            }
+    def test_the_entries_filter_returns_latex(self) -> None:
+        assert self.render("<# e | entries #>", e=["{@b bold} & more"]) == (
+            "\\textbf{bold} \\& more"
+        )
 
-            result = self.engine.render_template("test_simple", context)
+    def test_none_is_an_error(self) -> None:
+        with pytest.raises(ValueError, match="printed None"):
+            self.render("<# x #>", x=None)
 
-            # Check that template was rendered correctly
-            assert "\\title{Test \\& Document}" in result
-            assert "\\author{Test Author}" in result
-            assert "This is test content." in result
-            assert "\\documentclass{article}" in result
+    def test_undefined_is_an_error(self) -> None:
+        with pytest.raises(UndefinedError):
+            self.render("<# missing #>")
 
-        finally:
-            # Clean up
-            if template_path.exists():
-                template_path.unlink()
-
-    def test_render_template_with_conditionals(self) -> None:
-        """Test rendering template with conditional blocks."""
-        template_path = self.engine.templates_dir / "test_conditionals.tex.j2"
-        template_content = """
-\\documentclass{article}
-\\begin{document}
-<@ if show_title @>
-\\title{<# title | latex_escape #>}
-<@ endif @>
-<@ if show_author @>
-\\author{<# author | latex_escape #>}
-<@ endif @>
-\\end{document}
-"""
-
-        try:
-            template_path.write_text(template_content)
-
-            # Test with both conditions true
-            context = {
-                "show_title": True,
-                "show_author": True,
-                "title": "Test Title",
-                "author": "Test Author",
-            }
-
-            result = self.engine.render_template("test_conditionals", context)
-            assert "\\title{Test Title}" in result
-            assert "\\author{Test Author}" in result
-
-            # Test with one condition false
-            context["show_author"] = False
-            result = self.engine.render_template("test_conditionals", context)
-            assert "\\title{Test Title}" in result
-            assert "\\author{Test Author}" not in result
-
-        finally:
-            # Clean up
-            if template_path.exists():
-                template_path.unlink()
-
-    def test_render_template_with_loops(self) -> None:
-        """Test rendering template with loop constructs."""
-        template_path = self.engine.templates_dir / "test_loops.tex.j2"
-        template_content = """
-\\documentclass{article}
-\\begin{document}
-<@ for item in items @>
-\\section{<# item.name | latex_escape #>}
-<# item.description #>
-<@ endfor @>
-\\end{document}
-"""
-
-        try:
-            template_path.write_text(template_content)
-
-            context = {
-                "items": [
-                    {"name": "Item 1", "description": "Description 1"},
-                    {"name": "Item & 2", "description": "Description 2"},
-                ]
-            }
-
-            result = self.engine.render_template("test_loops", context)
-            assert "\\section{Item 1}" in result
-            assert "Description 1" in result
-            assert "\\section{Item \\& 2}" in result
-            assert "Description 2" in result
-
-        finally:
-            # Clean up
-            if template_path.exists():
-                template_path.unlink()
-
-    def test_render_template_inheritance(self) -> None:
-        """Test template inheritance functionality."""
-        # Create base template
-        base_template_path = self.engine.templates_dir / "test_base.tex.j2"
-        base_template_content = """
-\\documentclass{article}
-\\begin{document}
-<@ block header @>
-Default header
-<@ endblock @>
-<@ block content @>
-Default content
-<@ endblock @>
-\\end{document}
-"""
-
-        # Create child template
-        child_template_path = self.engine.templates_dir / "test_child.tex.j2"
-        child_template_content = """
-<@ extends "test_base.tex.j2" @>
-<@ block header @>
-Custom header: <# title | latex_escape #>
-<@ endblock @>
-<@ block content @>
-Custom content: <# content #>
-<@ endblock @>
-"""
-
-        try:
-            base_template_path.write_text(base_template_content)
-            child_template_path.write_text(child_template_content)
-
-            context = {"title": "Test Title", "content": "Test content"}
-
-            result = self.engine.render_template("test_child", context)
-            assert "Custom header: Test Title" in result
-            assert "Custom content: Test content" in result
-            assert "Default header" not in result
-            assert "Default content" not in result
-
-        finally:
-            # Clean up
-            for path in [base_template_path, child_template_path]:
-                if path.exists():
-                    path.unlink()
+    def test_html_escaping_is_caught(self) -> None:
+        mixed = self.render("<# m ~ t #>", m=Markup("\\x"), t=" & y")
+        with pytest.raises(ValueError, match="escaped as HTML"):
+            check_output(mixed)
 
 
 if __name__ == "__main__":

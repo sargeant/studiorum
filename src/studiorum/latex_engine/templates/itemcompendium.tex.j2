@@ -50,7 +50,7 @@
 <@ if group_name == "All Items" @>
 \section{Items}
 <@ else @>
-\section{<# group_name | title | latex_escape #>}
+\section{<# group_name | title #>}
 <@ endif @>
 
 \vspace{0.5em}
@@ -58,19 +58,19 @@
 <#-- Items in this group --#>
 <@ for item in item_list @>
 <@ if show_item_table_of_contents @>
-\addcontentsline{toc}{subsection}{<# item.name | latex_escape #>}
+\addcontentsline{toc}{subsection}{<# item.name #>}
 <@ endif @>
 
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_item_metadata_line() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() #>}
 <@ else @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_type_text() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_type_text() #>}
 <@ endif @>
 
 % Item statistics for weapons, armor, etc.
 <@ if item.get_value_text() @>
-\textit{<# item.get_value_text() | latex_escape #>}
+\textit{<# item.get_value_text() #>}
 
 <@ endif @>
 
@@ -82,7 +82,7 @@
 <@ endif @>
 
 <#-- Render fluff images if available --#>
-<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<@ if rendering_context and rendering_context.fluff_images is not none @>
 <# render_fluff_images(item.name) #>
 <@ endif @>
 
@@ -102,19 +102,19 @@
 
 <@ for item in items @>
 <@ if show_item_table_of_contents @>
-\addcontentsline{toc}{subsection}{<# item.name | latex_escape #>}
+\addcontentsline{toc}{subsection}{<# item.name #>}
 <@ endif @>
 
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_item_metadata_line() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() #>}
 <@ else @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_type_text() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_type_text() #>}
 <@ endif @>
 
 % Item statistics for weapons, armor, etc.
 <@ if item.get_value_text() @>
-\textit{<# item.get_value_text() | latex_escape #>}
+\textit{<# item.get_value_text() #>}
 
 <@ endif @>
 
@@ -126,7 +126,7 @@
 <@ endif @>
 
 <#-- Render fluff images if available --#>
-<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<@ if rendering_context and rendering_context.fluff_images is not none @>
 <# render_fluff_images(item.name) #>
 <@ endif @>
 

@@ -339,7 +339,7 @@ class TestAdventureConversion:
 
             # Check for DND-specific environments - not all content has read-aloud blocks
             assert "\\chapter{" in content, "Missing chapter structure"
-            assert "\\section{" in content, "Missing section structure"
+            assert "\\subsection{" in content, "Missing section structure"
 
             # Check for proper LaTeX escaping (focus on content, not LaTeX syntax)
             lines_with_problematic_chars = []

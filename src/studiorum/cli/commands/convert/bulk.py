@@ -8,10 +8,11 @@ from rich import print as rprint
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
+from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.document_metadata import DocumentType
 from studiorum.core.resolvers import ContentResolver
-from studiorum.latex_engine import create_latex_engine
+from studiorum.latex_engine.document import render_document
 
 from . import options as opt
 from .adventure import rendering_context
@@ -113,11 +114,16 @@ def bulk(
                 if content is None:
                     continue
                 try:
-                    metadata = document_metadata(
-                        options, content.name, DocumentType.BOOK
+                    kind = (
+                        DocumentType.ADVENTURE
+                        if isinstance(content, Adventure)
+                        else DocumentType.BOOK
                     )
-                    latex = create_latex_engine().render_document(
-                        [content], rendering_context(options, metadata, None)
+                    latex = render_document(
+                        [content],
+                        rendering_context(options, None),
+                        document_metadata(options, content.name, kind),
+                        latex_config=options.latex,
                     )
                     output_path = output_dir / f"{result.query}.tex"
                     output_path.write_text(latex, encoding="utf-8")

@@ -32,13 +32,4 @@
 % Enhanced chapter and section styling for books
 % DND-5e-LaTeX-Template provides all styling automatically
 
-% Configure section numbering depth for books
-<@ if metadata and metadata.numbering_depth and not numbered_sections @>
-\setcounter{secnumdepth}{<# metadata.numbering_depth #>}
-<@ endif @>
-<@ endblock @>
-
-<#-- Book content is handled by the modern structured content system in base.tex.j2 --#>
-<@ block document_body @>
-<#-- Books use chapters which are rendered via the structured content system --#>
 <@ endblock @>

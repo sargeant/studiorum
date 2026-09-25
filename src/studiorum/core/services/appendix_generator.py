@@ -1,24 +1,35 @@
-"""Appendix generation service for creating appendices from ContentTracker data."""
+"""Appendices of the creatures, items and spells a document refers to."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from dataclasses import dataclass
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
-from studiorum.core.models.chapter import ChapterType
-from studiorum.core.models.document_metadata import ContentSection, SectionLevel
+from studiorum.core.models.content import ContentType
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.creature_collector import CreatureCollector
-from studiorum.core.services.item_collector import ItemCollector
-from studiorum.core.services.spell_collector import SpellCollector
 
 logger = get_logger(__name__)
 
-if TYPE_CHECKING:
-    pass
+# Each appendix's title and label, and the source 5etools gives its tag by default
+APPENDICES = {
+    "creature": ("Creatures", "ch:appendix-creatures", "MM"),
+    "item": ("Magic Items", "ch:appendix-items", "DMG"),
+    "spell": ("Spells", "ch:appendix-spells", "PHB"),
+}
+
+
+@dataclass(frozen=True)
+class Appendix:
+    """An appendix of the creatures, items or spells a document refers to."""
+
+    title: str
+    label: str
+    kind: str  # "creature", "item" or "spell"
+    items: list[Any]
 
 
 class AppendixFlags(BaseModel):
@@ -34,205 +45,49 @@ class AppendixFlags(BaseModel):
 
 
 class AppendixGenerator:
-    """Generates appendices from ContentTracker data using collector services."""
+    """Builds appendices from the references a ContentTracker holds."""
 
     def __init__(self, omnidexer: Omnidexer):
-        """Initialize the appendix generator with required services.
-
-        Args:
-            omnidexer: The omnidexer for content lookup
-        """
         self.omnidexer = omnidexer
-        self.spell_collector = SpellCollector(omnidexer)
-        self.item_collector = ItemCollector(omnidexer)
-        self.creature_collector = CreatureCollector(omnidexer)
 
     def generate_appendices(
         self, content_tracker: ContentTracker, flags: AppendixFlags
-    ) -> list[ContentSection]:
-        """Generate appendix sections based on tracked content and flags.
-
-        Args:
-            content_tracker: ContentTracker with tracked references
-            flags: AppendixFlags indicating which appendices to generate
-
-        Returns:
-            List of ContentSection objects for template-based rendering
-        """
-        appendices: list[ContentSection] = []
-
-        if not flags.has_any_enabled():
-            return appendices
-
-        # Export initial tracked content by type
-        tracked_content = content_tracker.export_for_appendix()
-
-        # Generate creature appendix first (may add spell references during rendering)
-        if flags.creatures and "creature" in tracked_content:
-            creatures_appendix = self._generate_creature_appendix(
-                tracked_content["creature"], content_tracker
-            )
-            if creatures_appendix:
-                appendices.append(creatures_appendix)
-
-        # Re-export tracked content to capture any new references from creature rendering
-        tracked_content = content_tracker.export_for_appendix()
-
-        # Generate remaining appendices in alphabetical order
-        if flags.items and "item" in tracked_content:
-            items_appendix = self._generate_item_appendix(
-                tracked_content["item"], content_tracker
-            )
-            if items_appendix:
-                appendices.append(items_appendix)
-
-        if flags.spells and "spell" in tracked_content:
-            spells_appendix = self._generate_spell_appendix(
-                tracked_content["spell"], content_tracker
-            )
-            if spells_appendix:
-                appendices.append(spells_appendix)
-
+    ) -> list[Appendix]:
+        """The appendices the flags ask for: creatures, then items, then spells."""
+        tracked = content_tracker.export_for_appendix()
+        wanted = {
+            "creature": flags.creatures,
+            "item": flags.items,
+            "spell": flags.spells,
+        }
+        appendices = []
+        for kind, (title, label, _) in APPENDICES.items():
+            if wanted[kind] and (items := self._resolve(kind, tracked.get(kind, []))):
+                appendices.append(Appendix(title, label, kind, items))
         return appendices
 
-    def generate_recursive_appendices(
-        self, content_tracker: ContentTracker, flags: AppendixFlags, max_depth: int = 2
-    ) -> list[ContentSection]:
-        """Generate appendices with recursive reference tracking.
+    def _resolve(self, kind: str, tracked: list[dict[str, Any]]) -> list[Any]:
+        """One entry per name, sorted by name.
 
-        Args:
-            content_tracker: Initial tracked content from main document
-            flags: Which appendix types to generate
-            max_depth: Maximum recursion depth (default 2 = original + 1 level)
-
-        Returns:
-            List of ContentSection objects with recursive content
+        A name is looked up with the source a reference gave, else 5etools'
+        default source for the tag, else by name alone.
         """
-        # For now, recursive generation is simplified - return standard appendices
-        # TODO: Implement proper recursive content tracking for template-first approach
-        logger.debug("Using simplified recursive appendix generation")
-        return self.generate_appendices(content_tracker, flags)
-
-    def _generate_spell_appendix(
-        self, tracked_spells: list[dict[str, Any]], content_tracker: ContentTracker
-    ) -> ContentSection | None:
-        """Generate spells appendix using SpellCollector and template-based rendering.
-
-        Args:
-            tracked_spells: List of tracked spell references
-            content_tracker: Content tracker for additional references
-
-        Returns:
-            ContentSection with spell objects for template rendering or None if no spells found
-        """
-        if not tracked_spells:
-            return None
-
-        # Extract spell names from tracked content
-        spell_names = [content["name"] for content in tracked_spells]
-
-        # Use existing collector service
-        collection_result = self.spell_collector.collect_by_names(spell_names)
-
-        if not collection_result.spells:
-            return None
-
-        # Create ContentSection with spell objects for template-based rendering
-        return ContentSection(
-            title="Spells",
-            level=SectionLevel.CHAPTER,
-            numbered=False,  # Appendices use LaTeX's automatic lettering after \appendix
-            chapter_type=ChapterType.APPENDIX,
-            label="ch:appendix-spells",
-            page_break_before=False,
-            page_break_after=False,
-            two_column=None,
-            content_items=collection_result.spells,  # Raw spell objects for template rendering
-        )
-
-    def _generate_item_appendix(
-        self, tracked_items: list[dict[str, Any]], content_tracker: ContentTracker
-    ) -> ContentSection | None:
-        """Generate items appendix using ItemCollector and template-based rendering.
-
-        Args:
-            tracked_items: List of tracked item references
-            content_tracker: Content tracker for additional references
-
-        Returns:
-            ContentSection with item objects for template rendering or None if no items found
-        """
-        if not tracked_items:
-            return None
-
-        # Extract item names from tracked content
-        item_names = [content["name"] for content in tracked_items]
-
-        # Use existing collector service
-        collection_result = self.item_collector.collect_by_names(item_names)
-
-        if not collection_result.items:
-            return None
-
-        # Create ContentSection with item objects for template-based rendering
-        return ContentSection(
-            title="Magic Items",
-            level=SectionLevel.CHAPTER,
-            numbered=False,  # Appendices use LaTeX's automatic lettering after \appendix
-            chapter_type=ChapterType.APPENDIX,
-            label="ch:appendix-items",
-            page_break_before=False,
-            page_break_after=False,
-            two_column=None,
-            content_items=collection_result.items,  # Raw item objects for template rendering
-        )
-
-    def _generate_creature_appendix(
-        self, tracked_creatures: list[dict[str, Any]], content_tracker: ContentTracker
-    ) -> ContentSection | None:
-        """Generate creatures appendix using CreatureCollector and template-based rendering.
-
-        Args:
-            tracked_creatures: List of tracked creature references
-
-        Returns:
-            ContentSection with creature objects for template rendering or None if no creatures found
-        """
-        if not tracked_creatures:
-            return None
-
-        # Extract creature names from tracked content
-        creature_names = [content["name"] for content in tracked_creatures]
-
-        # Extract unique sources from tracked creatures to ensure we include adventure-specific sources
-        from studiorum.core.config.unified_config import get_default_sources
-
-        tracked_sources = set()
-        for creature_data in tracked_creatures:
-            if "source" in creature_data and creature_data["source"]:
-                tracked_sources.add(creature_data["source"])
-
-        # Combine default sources with adventure sources
-        default_sources = get_default_sources()
-        all_sources = list(set(default_sources + list(tracked_sources)))
-
-        # Use existing collector service with combined sources
-        collection_result = self.creature_collector.collect_by_names(
-            creature_names, all_sources
-        )
-
-        if not collection_result.creatures:
-            return None
-
-        # Create ContentSection with creature objects for template-based rendering
-        return ContentSection(
-            title="Creatures",
-            level=SectionLevel.CHAPTER,
-            numbered=False,  # Appendices use LaTeX's automatic lettering after \appendix
-            chapter_type=ChapterType.APPENDIX,
-            label="ch:appendix-creatures",
-            page_break_before=False,
-            page_break_after=False,
-            two_column=None,
-            content_items=collection_result.creatures,  # Raw creature objects for template rendering
-        )
+        content_type = ContentType(kind)
+        default_source = APPENDICES[kind][2]
+        sources: dict[str, tuple[str, str]] = {}
+        for ref in tracked:
+            name = str(ref["name"])
+            source = str(ref.get("source") or "")
+            known = sources.get(name.lower())
+            if known is None or (source and not known[1]):
+                sources[name.lower()] = (name, source)
+        found = []
+        for name, source in sources.values():
+            item = self.omnidexer.find(content_type, name, source or default_source)
+            if item is None:
+                item = next(iter(self.omnidexer.find_all(content_type, name)), None)
+            if item is None:
+                logger.warning(f"No {kind} named {name!r} for the appendix")
+                continue
+            found.append(item)
+        return sorted(found, key=lambda item: item.name.lower())

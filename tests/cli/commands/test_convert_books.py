@@ -32,7 +32,7 @@ class TestConvertBookCommand:
 
     @patch("studiorum.services.Services.load_omnidexer")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -61,11 +61,9 @@ class TestConvertBookCommand:
         )
 
         # Mock LaTeX engine
-        mock_engine = Mock()
-        mock_engine.render_document.return_value = (
+        mock_engine_factory.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -89,7 +87,7 @@ class TestConvertBookCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_convert_book_with_custom_options(
@@ -102,11 +100,9 @@ class TestConvertBookCommand:
         # Mock dependencies
 
         # Mock LaTeX engine
-        mock_engine = Mock()
-        mock_engine.render_document.return_value = (
+        mock_engine_factory.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()

@@ -22,7 +22,6 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from tests.test_helpers import reset_test_environment
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -98,11 +97,6 @@ def isolated_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Pa
         "STUDIORUM_CONFIG_FILE", str(REPO_ROOT / "tests" / "test-config.yaml")
     )
     monkeypatch.chdir(REPO_ROOT)
-    # The .tex output does not need the DND LaTeX class installed, only
-    # compilation does.
-    monkeypatch.setattr(
-        LaTeXTemplateEngine, "check_dnd_template_availability", lambda self: True
-    )
     reset_test_environment()
     yield tmp_path
     reset_test_environment()

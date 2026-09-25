@@ -35,15 +35,16 @@ def run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
                 ],
             )
         assert result.exit_code == 0, result.output
-        return render.call_args.args[1]
+        return render.call_args.args
 
     return invoke
 
 
 def test_without_spells_nothing_is_tracked(run) -> None:
-    context = run()
+    args = run()
 
-    assert context.content_tracker is None
+    assert args[1].content_tracker is None
+    assert args[6] is None
 
 
 def test_with_spells_the_appendix_generator_gets_the_tracker(run) -> None:
@@ -51,9 +52,10 @@ def test_with_spells_the_appendix_generator_gets_the_tracker(run) -> None:
         "studiorum.core.services.appendix_generator.AppendixGenerator"
     ) as generator:
         generator.return_value.generate_appendices.return_value = []
-        context = run("--spells")
+        args = run("--spells")
+        assert args[6]() == []
 
-    assert isinstance(context.content_tracker, ContentTracker)
+    assert isinstance(args[1].content_tracker, ContentTracker)
     tracker, flags = generator.return_value.generate_appendices.call_args.args
     assert isinstance(tracker, ContentTracker)
     assert (flags.spells, flags.creatures, flags.items) == (True, False, False)

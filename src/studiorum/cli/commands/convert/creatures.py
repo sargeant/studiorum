@@ -1,15 +1,16 @@
 """convert creatures: a bestiary or a token sheet."""
 
+from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 
 import typer
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.creatures import Creature
-from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import (
@@ -23,7 +24,6 @@ from .fluff import (
 from .options import ConvertOptions, option
 from .run import (
     NameList,
-    append_appendix,
     conversion_errors,
     document_metadata,
     load_data,
@@ -32,6 +32,9 @@ from .run import (
     split_csv,
     write_document,
 )
+
+if TYPE_CHECKING:
+    from studiorum.latex_engine.document import DocumentChapter
 
 SELECT = "Search & Selection"
 FILTER = "Advanced Filtering"
@@ -347,22 +350,29 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
         tracker = references.get_content_tracker() if references else None
         found_fluff = _fluff(omnidexer, found, ctx.params, tracker) if fluff else None
         context = RenderingContext(
-            output_format="latex",
-            omnidexer=omnidexer,
             content_tracker=tracker,
-            metadata={
-                "title": _heading(options, creature_types),
-                "include_images": options.images,
-                "template": "bestiary",
-                "fluff": found_fluff.fluff if found_fluff else {},
-                "fluff_images": found_fluff.images if found_fluff else {},
-                "fluff_images_enabled": with_fluff_images,
-                "creature_level": creature_level,
-            },
+            omnidexer=omnidexer,
+            style=Style(monster_spells=True, images=options.images),
+            fluff=found_fluff.fluff if found_fluff else {},
+            fluff_images=(found_fluff.images if found_fluff else {})
+            if with_fluff_images
+            else None,
+            creature_level=creature_level,
         )
-        latex = _render_bestiary(found, context, options, result, sort)
-        if references:
-            latex = _append_spell_appendix(latex, omnidexer, references, found)
+        appendices = (
+            _spell_appendix(context, omnidexer, references, found)
+            if references
+            else None
+        )
+        latex = _render_bestiary(
+            found,
+            context,
+            _heading(options, creature_types),
+            options,
+            result,
+            sort,
+            appendices,
+        )
         write_document(
             options, latex, Path("output/creatures/bestiary.tex"), "Bestiary generated"
         )
@@ -570,22 +580,21 @@ def _group_creatures(
 def _render_bestiary(
     creatures: list[Creature],
     context: RenderingContext,
+    heading: str,
     options: ConvertOptions,
     result: Any,
     sort_mode: CreatureSortMode,
+    appendices: Callable[[], list["DocumentChapter"]] | None = None,
 ) -> str:
     """Render creatures using the bestiary template with grouping."""
     from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
-    heading = context.metadata["title"]
     template_engine = LaTeXTemplateEngine()
     template_engine.update_latex_config(options.latex)
     template_context = template_engine.create_dnd_template_context(
         content_type="creature",
         title=heading,
-        metadata=document_metadata(
-            options, heading, description=f"Collection of {len(creatures)} creatures"
-        ),
+        metadata=document_metadata(options, heading),
         latex_config=options.latex,
         rendering_context=context,
         creatures=creatures,
@@ -596,6 +605,8 @@ def _render_bestiary(
         sources_used=list(result.sources_used or []),
         show_creature_table_of_contents=options.document.show_toc,
     )
+    if appendices is not None:
+        template_context["appendices"] = appendices
     with display_manager.progress("Rendering bestiary") as _:
         task = display_manager.add_task("[green]Rendering bestiary...", total=None)
         latex = template_engine.render_template("bestiary.tex.j2", template_context)
@@ -633,23 +644,31 @@ def _render_tokens(
     return latex
 
 
-def _append_spell_appendix(
-    latex: str, omnidexer: Any, references: Any, creatures: list[Creature]
-) -> str:
-    """Add the appendix of spells the creatures cast."""
-    from studiorum.core.interfaces import DeepIndexable
-    from studiorum.core.services.appendix_generator import (
-        AppendixFlags,
-        AppendixGenerator,
-    )
+def _spell_appendix(
+    context: RenderingContext,
+    omnidexer: Any,
+    references: Any,
+    creatures: list[Creature],
+) -> Callable[[], list["DocumentChapter"]]:
+    """The appendix of spells the creatures cast, built once the body is rendered."""
 
-    with display_manager.progress("Extracting spell references") as _:
-        for creature in creatures:
-            if isinstance(creature, DeepIndexable):
-                references.track_deep_index_references(
-                    creature, "creature spellcasting abilities"
-                )
-    sections = AppendixGenerator(omnidexer=omnidexer).generate_appendices(
-        references.get_content_tracker(), AppendixFlags(spells=True)
-    )
-    return append_appendix(latex, sections, gap_after="\n\n")
+    def appendices() -> list["DocumentChapter"]:
+        from studiorum.core.interfaces import DeepIndexable
+        from studiorum.core.services.appendix_generator import (
+            AppendixFlags,
+            AppendixGenerator,
+        )
+        from studiorum.latex_engine.document import appendices_as_chapters
+
+        with display_manager.progress("Extracting spell references") as _:
+            for creature in creatures:
+                if isinstance(creature, DeepIndexable):
+                    references.track_deep_index_references(
+                        creature, "creature spellcasting abilities"
+                    )
+        found = AppendixGenerator(omnidexer=omnidexer).generate_appendices(
+            references.get_content_tracker(), AppendixFlags(spells=True)
+        )
+        return appendices_as_chapters(found, context)
+
+    return appendices

@@ -1,22 +1,22 @@
 """convert spells: a spellbook."""
 
+from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 
 import typer
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.spells import Spell
-from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import Fluff, FluffImages, FluffSections, FluffSources, collect_fluff
 from .options import ConvertOptions, option
 from .run import (
     NameList,
-    append_appendix,
     conversion_errors,
     document_metadata,
     load_data,
@@ -24,6 +24,9 @@ from .run import (
     report_collection,
     write_document,
 )
+
+if TYPE_CHECKING:
+    from studiorum.latex_engine.document import DocumentChapter
 
 SELECT = "Search & Selection"
 PROPERTIES = "Spell Properties"
@@ -244,34 +247,46 @@ def spells(
 
             tracker = ContentReferenceManager(omnidexer=omnidexer).get_content_tracker()
         context = RenderingContext(
-            output_format="latex",
-            omnidexer=omnidexer,
             content_tracker=tracker,
-            metadata={
-                "title": heading,
-                "include_images": options.images,
-                "template": "spellbook",
-                "content_type": "spell",
-                "fluff": found_fluff.fluff if found_fluff else {},
-                "fluff_images": found_fluff.images if found_fluff else {},
-                "fluff_images_enabled": with_fluff_images,
-            },
+            omnidexer=omnidexer,
+            style=Style(content_type="spell", images=options.images),
+            fluff=found_fluff.fluff if found_fluff else {},
+            fluff_images=(found_fluff.images if found_fluff else {})
+            if with_fluff_images
+            else None,
         )
-        latex = _render_spellbook(found, by_level, context, options, heading, result)
-
-        if tracker:
-            from studiorum.core.services.appendix_generator import (
-                AppendixFlags,
-                AppendixGenerator,
-            )
-
-            sections = AppendixGenerator(omnidexer).generate_appendices(
-                tracker, AppendixFlags(creatures=True)
-            )
-            latex = append_appendix(latex, sections, gap_after="\n")
+        latex = _render_spellbook(
+            found,
+            by_level,
+            context,
+            options,
+            heading,
+            result,
+            _creature_appendix(context, omnidexer, tracker) if tracker else None,
+        )
         write_document(
             options, latex, Path("output/spells/spellbook.tex"), "Spellbook generated"
         )
+
+
+def _creature_appendix(
+    context: RenderingContext, omnidexer: Any, tracker: Any
+) -> Callable[[], list["DocumentChapter"]]:
+    """The appendix of creatures the spells name, built once the body is rendered."""
+
+    def appendices() -> list["DocumentChapter"]:
+        from studiorum.core.services.appendix_generator import (
+            AppendixFlags,
+            AppendixGenerator,
+        )
+        from studiorum.latex_engine.document import appendices_as_chapters
+
+        found = AppendixGenerator(omnidexer).generate_appendices(
+            tracker, AppendixFlags(creatures=True)
+        )
+        return appendices_as_chapters(found, context)
+
+    return appendices
 
 
 def _parse(parser: Any, values: list[str] | None) -> list[Any] | None:
@@ -340,6 +355,7 @@ def _render_spellbook(
     options: ConvertOptions,
     heading: str,
     result: Any,
+    appendices: Callable[[], list["DocumentChapter"]] | None = None,
 ) -> str:
     """Render spells using the spellbook template."""
     from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
@@ -349,9 +365,7 @@ def _render_spellbook(
     template_context = template_engine.create_dnd_template_context(
         content_type="spell",
         title=heading,
-        metadata=document_metadata(
-            options, heading, description=f"Collection of {len(spells)} spells"
-        ),
+        metadata=document_metadata(options, heading),
         latex_config=options.latex,
         spells=spells,
         spells_by_level={level: by_level[level] for level in sorted(by_level)},
@@ -362,6 +376,8 @@ def _render_spellbook(
         ordinal=_ordinal_number,
         rendering_context=context,
     )
+    if appendices is not None:
+        template_context["appendices"] = appendices
     with display_manager.progress("Rendering spellbook") as _:
         task = display_manager.add_task("[green]Rendering spellbook...", total=None)
         latex = template_engine.render_template("spellbook.tex.j2", template_context)

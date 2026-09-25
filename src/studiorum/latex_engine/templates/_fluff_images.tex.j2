@@ -3,13 +3,12 @@
   Purpose: Render the images of a creature's, spell's or item's fluff
            (convert --fluff --with-fluff-images) as image entries.
   Requires: rendering_context in the template context, whose
-            metadata holds fluff_images (name -> image entries).
-  Call it inside a check of metadata.fluff_images_enabled so documents
-  without fluff images are unchanged.
+            fluff_images maps names to image entries.
+  Call it inside a check that fluff_images is not none.
 --#>
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 <@ macro render_fluff_images(content_name) @>
-<@ for image in rendering_context.metadata.get('fluff_images', {}).get(content_name, []) @>
+<@ for image in (rendering_context.fluff_images or {}).get(content_name, []) @>
 <# smart_render_entry(image) #>
 <@ endfor @>
 <@ endmacro @>

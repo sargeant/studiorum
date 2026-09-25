@@ -14,6 +14,9 @@
 
 % Enhanced list environments for spell details
 \tcbuselibrary{breakable}
+<@ if appendices is defined @>
+\usepackage{placeins}  % \FloatBarrier between appendix statblocks
+<@ endif @>
 <@ endblock @>
 
 <@ block document_config @>
@@ -58,7 +61,7 @@
 <#-- Spells in this level --#>
 <@ for spell in spell_list @>
 <@ if show_spell_table_of_contents @>
-\addcontentsline{toc}{subsection}{<# spell.name | latex_escape #>}
+\addcontentsline{toc}{subsection}{<# spell.name #>}
 <@ endif @>
 <# render_spell(spell) #>
 
@@ -76,7 +79,7 @@
 <#-- Fallback: render spells without level grouping --#>
 <@ for spell in spells @>
 <@ if show_spell_table_of_contents @>
-\addcontentsline{toc}{subsection}{<# spell.name | latex_escape #>}
+\addcontentsline{toc}{subsection}{<# spell.name #>}
 <@ endif @>
 <# render_spell(spell) #>
 

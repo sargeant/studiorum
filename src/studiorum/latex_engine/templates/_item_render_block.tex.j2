@@ -1,5 +1,4 @@
-% Shared item rendering block for use in both itemcompendium and item_entry templates
-% This macro can be included by both templates to ensure consistent rendering
+% Item rendering block for appendices, supplements and inset statblocks (_content.tex.j2)
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 <@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
@@ -7,25 +6,23 @@
 <@ macro render_item(item) @>
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_item_metadata_line() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() #>}
 <@ else @>
-\DndItemHeader{<# item.name | latex_escape #>}{<# item.get_type_text() | latex_escape #>}
+\DndItemHeader{<# item.name #>}{<# item.get_type_text() #>}
 <@ endif @>
 
 % Item statistics for weapons, armor, etc.
 <@ if item.get_value_text() @>
-\textit{<# item.get_value_text() | latex_escape #>}
+\textit{<# item.get_value_text() #>}
 <@ endif @>
 
 % Item description
 <@ if item.entries @>
 <# smart_render_entry(item) #>
-<@ elif description_text is defined and description_text @>
-<# description_text | latex_escape #>
 <@ endif @>
 
 <#-- Render fluff content after item description if available --#>
-<@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
-<# render_fluff_for_content(item.name, rendering_context.metadata['fluff']) #>
+<@ if rendering_context and rendering_context.fluff @>
+<# render_fluff_for_content(item.name, rendering_context.fluff) #>
 <@ endif @>
 <@ endmacro @>

@@ -13,8 +13,9 @@ from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.result import Error, Success
-from studiorum.latex_engine import create_latex_engine
-from studiorum.renderers.context import RenderingContext
+from studiorum.core.services.appendix_generator import AppendixFlags
+from studiorum.latex_engine.document import render_document as render_latex
+from studiorum.renderers.context import RenderingContext, Style
 
 from . import options as opt
 from .options import ConvertOptions, option
@@ -170,18 +171,15 @@ def adventure(
 
         heading = options.title or content_items[0].name
         tracker = ContentTracker()
-        context = rendering_context(
-            options,
+        # --ultimate-appendix adds nothing the appendix flags don't
+        latex = render_document(
+            content_items,
+            rendering_context(options, tracker, creature_level),
             document_metadata(options, heading),
-            tracker,
-            appendix_spells=appendix_spells,
-            appendix_items=appendix_items,
-            appendix_creatures=appendix_creatures,
-            ultimate_appendix=ultimate_appendix,
-            creature_level=creature_level,
-            _source_adventure=content_items[0],  # for chapter number lookup
+            options,
+            appendix_flags(appendix_spells, appendix_items, appendix_creatures),
+            "adventure",
         )
-        latex = render_document(content_items, context, "adventure")
         _write_content_lists(
             tracker,
             heading,
@@ -212,47 +210,47 @@ def load_content(source: str, content_type: ContentType) -> tuple[list[Any], str
 
 
 def rendering_context(
-    options: ConvertOptions,
-    metadata: DocumentMetadata,
-    tracker: ContentTracker | None,
-    title: str | None = None,
-    **appendices: Any,
+    options: ConvertOptions, tracker: ContentTracker | None, creature_level: int = 1
 ) -> RenderingContext:
-    """The context for a document rendered by the LaTeX engine.
-
-    ``appendices`` are None where a flag was not given; those take the config
-    default. ``title`` overrides the metadata title in the running header.
-    """
-    content = get_app_config().rendering.content
-    for kind in ("spells", "items", "creatures"):
-        key = f"appendix_{kind}"
-        if key in appendices and appendices[key] is None:
-            appendices[key] = getattr(content, key)
+    """The context an adventure or book renders its entries with."""
     return RenderingContext(
-        output_format="latex",
-        omnidexer=get_services().omnidexer,
         content_tracker=tracker,
-        metadata={
-            "title": title or metadata.title,
-            "include_images": options.images,
-            "include_toc": metadata.include_toc,
-            "include_index": metadata.include_index,
-            "document_metadata": metadata,
-            "latex_config": options.latex,
-            "content_tracker": tracker,
-            **appendices,
-        },
+        omnidexer=get_services().omnidexer,
+        style=Style(book=True, images=options.images),
+        creature_level=creature_level,
+    )
+
+
+def appendix_flags(
+    spells: bool | None, items: bool | None, creatures: bool | None
+) -> AppendixFlags:
+    """The appendices asked for; a flag not given takes the config default."""
+    content = get_app_config().rendering.content
+    return AppendixFlags(
+        spells=content.appendix_spells if spells is None else spells,
+        items=content.appendix_items if items is None else items,
+        creatures=content.appendix_creatures if creatures is None else creatures,
     )
 
 
 def render_document(
-    content: list[BaseContent], context: RenderingContext, kind: str
+    content: list[BaseContent],
+    context: RenderingContext,
+    metadata: DocumentMetadata,
+    options: ConvertOptions,
+    appendices: AppendixFlags,
+    kind: str,
 ) -> str:
-    """Render content through the LaTeX engine with a progress spinner."""
-    engine = create_latex_engine()
+    """Render content as a LaTeX document with a progress spinner."""
     with display_manager.progress(f"Rendering {kind}") as _:
         task = display_manager.add_task(f"[green]Rendering {kind}...", total=None)
-        latex = engine.render_document(content, context)
+        latex = render_latex(
+            content,
+            context,
+            metadata,
+            appendices=appendices,
+            latex_config=options.latex,
+        )
         display_manager.update_task(task, completed=100)
     return latex
 

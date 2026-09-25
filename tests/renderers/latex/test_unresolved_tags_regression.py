@@ -1,6 +1,6 @@
 r"""Regression tests to ensure no unresolved tags appear in rendered output.
 
-These tests exercise the entry renderers with minimal content objects and
+These tests render minimal content objects through their render macros and
 assert that the LaTeX produced by templates does not contain unresolved
 5e.tools tag syntax ("{@...}") or its escaped variant ("\{@...").
 """
@@ -11,11 +11,7 @@ from typing import Any
 
 import pytest
 
-from studiorum.latex_engine.core.entry_renderers import (
-    CreatureEntryRenderer,
-    ItemEntryRenderer,
-    SpellEntryRenderer,
-)
+from studiorum.latex_engine.document import render_models
 from studiorum.renderers.context import RenderingContext
 
 
@@ -54,9 +50,9 @@ class TestNoUnresolvedTags:
         }
 
         spell = Spell.model_validate(spell_data)
-        ctx = RenderingContext(output_format="latex")
+        ctx = RenderingContext()
 
-        latex = SpellEntryRenderer().render(spell, ctx)
+        latex = render_models("spell", [spell], ctx)
         assert latex and not _has_unresolved_tags(latex)
 
     def test_creature_no_unresolved_tags(self) -> None:
@@ -96,9 +92,9 @@ class TestNoUnresolvedTags:
         }
 
         creature = Creature.model_validate(creature_data)
-        ctx = RenderingContext(output_format="latex")
+        ctx = RenderingContext()
 
-        latex = CreatureEntryRenderer().render(creature, ctx)
+        latex = render_models("creature", [creature], ctx)
         assert latex and not _has_unresolved_tags(latex)
 
     def test_items_no_unresolved_tags(self) -> None:
@@ -131,10 +127,8 @@ class TestNoUnresolvedTags:
             },
         ]
 
-        ctx = RenderingContext(output_format="latex")
-        renderer = ItemEntryRenderer()
-
+        ctx = RenderingContext()
         for data in items_data:
             item = Item.model_validate(data)
-            latex = renderer.render(item, ctx)
+            latex = render_models("item", [item], ctx)
             assert latex and not _has_unresolved_tags(latex)

@@ -75,11 +75,6 @@ def test_config_file_sets_convert_defaults(
     """The --pdf default comes from the -c file, read after the callback loads it."""
     from unittest.mock import Mock
 
-    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
-
-    monkeypatch.setattr(
-        LaTeXTemplateEngine, "check_dnd_template_availability", lambda self: True
-    )
     compile_pdf = Mock()
     monkeypatch.setattr(
         "studiorum.cli.commands.convert.run.compile_pdf",

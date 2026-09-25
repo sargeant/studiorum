@@ -100,11 +100,9 @@ class TestAdventureContentOutput:
 
         # Mock LaTeX engine rendering
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_engine_factory:
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_engine_factory.return_value = mock_engine
+            mock_engine_factory.return_value = "Mock LaTeX output"
 
             # Mock resolve_content_or_file
             with patch(
@@ -171,11 +169,9 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_create_engine:
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_create_engine.return_value = mock_engine
+            mock_create_engine.return_value = "Mock LaTeX output"
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -231,11 +227,9 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_create_engine:
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_create_engine.return_value = mock_engine
+            mock_create_engine.return_value = "Mock LaTeX output"
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -289,11 +283,9 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_create_engine:
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_create_engine.return_value = mock_engine
+            mock_create_engine.return_value = "Mock LaTeX output"
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -350,11 +342,9 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_create_engine:
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_create_engine.return_value = mock_engine
+            mock_create_engine.return_value = "Mock LaTeX output"
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -413,11 +403,9 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_create_engine:
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_create_engine.return_value = mock_engine
+            mock_create_engine.return_value = "Mock LaTeX output"
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -469,11 +457,9 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            "studiorum.cli.commands.convert.adventure.render_latex"
         ) as mock_create_engine:
-            mock_engine = Mock()
-            mock_engine.render_document.return_value = "Mock LaTeX output"
-            mock_create_engine.return_value = mock_engine
+            mock_create_engine.return_value = "Mock LaTeX output"
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -530,11 +516,9 @@ class TestAdventureContentOutput:
             mock_get_writer.return_value = mock_writer
 
             with patch(
-                "studiorum.cli.commands.convert.adventure.create_latex_engine"
+                "studiorum.cli.commands.convert.adventure.render_latex"
             ) as mock_create_engine:
-                mock_engine = Mock()
-                mock_engine.render_document.return_value = "Mock LaTeX output"
-                mock_create_engine.return_value = mock_engine
+                mock_create_engine.return_value = "Mock LaTeX output"
 
                 with patch(
                     "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -592,11 +576,9 @@ class TestAdventureContentOutput:
             mock_get_writer.return_value = mock_writer
 
             with patch(
-                "studiorum.cli.commands.convert.adventure.create_latex_engine"
+                "studiorum.cli.commands.convert.adventure.render_latex"
             ) as mock_create_engine:
-                mock_engine = Mock()
-                mock_engine.render_document.return_value = "Mock LaTeX output"
-                mock_create_engine.return_value = mock_engine
+                mock_create_engine.return_value = "Mock LaTeX output"
 
                 with patch(
                     "studiorum.cli.commands.convert.adventure.ContentTracker"

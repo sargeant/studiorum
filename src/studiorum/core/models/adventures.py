@@ -214,10 +214,7 @@ class Adventure(BaseContent):
                                 "entries": entries,
                             }
                             if "id" in section:
-                                chapter["ordinal"] = {
-                                    "type": "section",
-                                    "identifier": section["id"],
-                                }
+                                chapter["id"] = section["id"]
                             contents.append(chapter)
 
                     obj["contents"] = contents
@@ -413,8 +410,8 @@ class Adventure(BaseContent):
 
             # Create parser for this chapter
             chapter_name = chapter.name
-            if chapter.get_chapter_number():
-                chapter_name = f"{chapter.get_chapter_number()}: {chapter.name}"
+            if chapter.label:
+                chapter_name = f"{chapter.label}: {chapter.name}"
 
             parser = EntryParser(
                 source=self.source, parent_name=f"{self.name} > {chapter_name}"
