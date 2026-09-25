@@ -17,6 +17,10 @@ from studiorum.renderers.escape import escape, escape_url
         ("~x^2", r"\textasciitilde{}x\textasciicircum{}2"),
         ("a\u2014b\u2013c\u2026", r"a---b--c\ldots{}"),
         (
+            "1\u2153 cup, \u00bd tsp",
+            "1\\textsuperscript{1}/\\textsubscript{3} cup, \u00bd tsp",
+        ),
+        (
             "\u00b0 \u00a9 \u00ae \u2122",
             r"\textdegree{} \copyright{} \textregistered{} \texttrademark{}",
         ),
