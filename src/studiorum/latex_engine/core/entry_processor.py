@@ -947,48 +947,6 @@ class RecursiveEntryProcessor:
 
         return commands[min(depth, len(commands) - 1)]
 
-    def _preprocess_attack_abbreviations(self, text: str) -> str:
-        """Preprocess attack abbreviations to match 2024 5e format.
-
-        Converts standalone attack abbreviations like 'm +10' to 'Melee Attack Roll: +10'
-        based on 5etools attackTagToFull function.
-
-        Args:
-            text: Text that may contain attack abbreviations
-
-        Returns:
-            Text with attack abbreviations converted
-        """
-        import re
-
-        # Pattern to match attack abbreviations at start of text
-        # Matches: "m +10", "r +8", "m,r +5" etc.
-        # Must be at start of line or after sentence punctuation
-        attack_pattern = r"(?:^|(?<=[.!?;]\s))([mr](?:,[mr])*)\s+"
-
-        def replace_abbreviation(match: re.Match[str]) -> str:
-            abbrevs = match.group(1)  # e.g., "m", "r", "m,r"
-            attack_types = []
-
-            # Split by comma and process each type
-            for abbrev in abbrevs.split(","):
-                abbrev = abbrev.strip()
-                if abbrev == "m":
-                    attack_types.append("Melee")
-                elif abbrev == "r":
-                    attack_types.append("Ranged")
-
-            if len(attack_types) == 1:
-                return f"{attack_types[0]} Attack Roll: "
-            if len(attack_types) > 1:
-                return f"{' or '.join(attack_types)} Attack Roll: "
-            # Fallback, return original
-            return match.group(0)
-
-        # Apply the replacement
-        result = re.sub(attack_pattern, replace_abbreviation, text)
-        return result
-
     def _process_text_with_tags(self, text: str, context: RenderingContext) -> str:
         """Process text containing 5etools tags.
 
@@ -1001,9 +959,6 @@ class RecursiveEntryProcessor:
         """
         if not text or not context.tag_resolver:
             return escape(text)
-
-        # Preprocess attack abbreviations (2024 5e format)
-        text = self._preprocess_attack_abbreviations(text)
 
         # Skip obvious non-tag content to avoid parser warnings
         if not self._is_valid_tag_input(text):
