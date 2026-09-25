@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from .content import BaseContent
+from .feats import Prerequisite
 
 
 class VehicleArmor(BaseModel):
@@ -78,3 +79,14 @@ class Vehicle(BaseContent):
 
     def __str__(self) -> str:
         return f"{self.name} ({self.source})"
+
+
+class VehicleUpgrade(BaseContent):
+    """A ship upgrade or an infernal war machine's weapon, armour or gadget."""
+
+    upgrade_type: list[str] = Field(
+        default_factory=list, alias="upgradeType", description="Upgrade type codes"
+    )
+    prerequisite: list[Prerequisite] | None = None
+    cost: int | None = Field(None, description="Cost in copper pieces")
+    entries: list[Any] = Field(default_factory=list)

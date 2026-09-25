@@ -258,6 +258,14 @@ async def test_feats_keep_their_prerequisites() -> None:
 
 
 @pytest.mark.asyncio
+async def test_languages_can_be_found_and_read() -> None:
+    found = await call("search_content", content_type="language", query="elv")
+    assert [r["name"] for r in found["results"]] == ["Elvish"]
+    elvish = await call("get_content", content_type="language", name="Elvish")
+    assert "Elvish" in elvish["text"]
+
+
+@pytest.mark.asyncio
 async def test_bad_filters_say_what_is_wrong() -> None:
     with pytest.raises(ToolError, match=r"cr_min \(5\) is more than cr_max \(1\)"):
         await call("search_creatures", cr_min=5, cr_max=1)

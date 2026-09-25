@@ -250,6 +250,7 @@ _CONTENT_TAGS = {
     "feat": ("feat", "PHB"),
     "hazard": ("hazard", "DMG"),
     "item": ("item", "DMG"),
+    "language": ("language", "PHB"),
     "optfeature": ("optionalfeature", "PHB"),
     "race": ("race", "PHB"),
     "sense": ("sense", "PHB"),
@@ -258,6 +259,7 @@ _CONTENT_TAGS = {
     "trap": ("trap", "DMG"),
     "variantrule": ("variantrule", "DMG"),
     "vehicle": ("vehicle", "GoS"),
+    "vehupgrade": ("vehicleUpgrade", "GoS"),
 }
 _FEATURE_TAGS = {"classFeature": 5, "subclassFeature": 7}
 
