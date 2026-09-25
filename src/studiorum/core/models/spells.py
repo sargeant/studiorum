@@ -640,24 +640,3 @@ class Spell(BaseContent):
             class_names.append(class_ref.name)
 
         return ", ".join(class_names)
-
-    def get_latex_safe_name(self) -> str:
-        """Get LaTeX-safe version of spell name."""
-        # Basic LaTeX escaping for common characters
-        name = self.name
-        latex_escapes = {
-            "&": "\\&",
-            "%": "\\%",
-            "$": "\\$",
-            "#": "\\#",
-            "_": "\\_",
-            "{": "\\{",
-            "}": "\\}",
-            "^": "\\textasciicircum{}",
-            "~": "\\textasciitilde{}",
-        }
-
-        for char, escape in latex_escapes.items():
-            name = name.replace(char, escape)
-
-        return name

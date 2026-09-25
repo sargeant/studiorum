@@ -4,114 +4,46 @@ This test suite validates that all user-provided content is properly escaped
 to prevent LaTeX code injection attacks.
 """
 
+import re
+import time
+
 from hypothesis import given, strategies as st
 
-from studiorum.core.latex_utils import escape_latex_text
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+from studiorum.renderers.escape import escape
+
+_COMMAND = re.compile(r"\\(newcommand|def|input|immediate|write18|end|begin)\b")
 
 
 class TestLaTeXEscaping:
-    """Test LaTeX character escaping functions."""
-
-    def test_basic_latex_special_characters(self):
-        """Test that basic LaTeX special characters are properly escaped."""
-        dangerous_chars = {
-            "{": "\\{",
-            "}": "\\}",
-            "$": "\\$",
-            "&": "\\&",
-            "%": "\\%",
-            "#": "\\#",
-            "^": "\\textasciicircum{}",
-            "_": "\\_",
-            "~": "\\textasciitilde{}",
-        }
-
-        for char, expected in dangerous_chars.items():
-            result = escape_latex_text(char)
-            assert result == expected, f"Failed to escape '{char}' correctly"
-
-    def test_unicode_characters(self):
-        """Test that Unicode characters are properly handled."""
-        unicode_chars = {
-            "—": "---",  # Em dash
-            "–": "--",  # En dash
-            "…": "\\ldots{}",  # Ellipsis
-            "°": "\\textdegree{}",  # Degree symbol
-            "©": "\\copyright{}",  # Copyright symbol
-            "®": "\\textregistered{}",  # Registered trademark
-        }
-
-        for char, expected in unicode_chars.items():
-            result = escape_latex_text(char)
-            assert result == expected, f"Failed to handle Unicode '{char}' correctly"
-
-    def test_injection_attempts(self):
-        """Test protection against common LaTeX injection attacks."""
-        injection_attempts = [
-            # Command injection
-            "\\newcommand{\\evil}{PWNED}",
-            "\\def\\evil{PWNED}",
-            "\\gdef\\evil{PWNED}",
-            # File operations
-            "\\input{/etc/passwd}",
-            "\\include{sensitive_file}",
-            "\\InputIfFileExists{/etc/passwd}{}{}",
-            # Shell escape attempts
-            "\\immediate\\write18{rm -rf /}",
-            "\\write18{whoami}",
-            # Document structure manipulation
-            "\\end{document}\\begin{document}",
-            "\\documentclass{article}",
-            # Counter manipulation
-            "\\setcounter{secnumdepth}{0}",
-            "\\stepcounter{page}",
-            # Environment manipulation
-            "\\newenvironment{evil}{}{}",
-            "\\renewenvironment{itemize}{}{}",
-        ]
-
-        for attempt in injection_attempts:
-            escaped = escape_latex_text(attempt)
-            # Verify that dangerous commands are neutralized by escaping their arguments
-            # The commands themselves remain but their arguments are escaped, making them safe
-            if "{" in attempt:
-                assert "\\{" in escaped, f"Braces should be escaped in: {attempt}"
-            if "}" in attempt:
-                assert "\\}" in escaped, f"Braces should be escaped in: {attempt}"
-            # Verify that the escaped content won't execute as intended
-            assert attempt != escaped, f"Content should be modified: {attempt}"
+    """Escaping neutralises LaTeX commands in content."""
 
     @given(st.text())
-    def test_property_based_escaping(self, text):
-        """Property-based test to ensure escaping never introduces vulnerabilities."""
-        escaped = escape_latex_text(text)
+    def test_no_special_character_survives(self, text):
+        escaped = escape(text)
+        for char in "$&%#_":
+            assert re.search(rf"(?<!\\){re.escape(char)}", escaped) is None
+        assert "^" not in escaped
+        assert _COMMAND.search(escaped) is None
 
-        # Properties that must hold:
-        # 1. Result should be a string
-        assert isinstance(escaped, str)
-
-        # 2. Should not contain unescaped special characters (except backslash)
-        dangerous_unescaped = ["{", "}", "$", "&", "%", "#"]
-        for char in dangerous_unescaped:
-            if char in text:
-                # If the char was in input, it should be escaped in output
-                assert char not in escaped or f"\\{char}" in escaped
+    def test_injection_attempts_are_neutralised(self):
+        attempts = [
+            "\\newcommand{\\evil}{PWNED}",
+            "\\def\\evil{PWNED}",
+            "\\input{/etc/passwd}",
+            "\\immediate\\write18{rm -rf /}",
+            "\\end{document}\\begin{document}",
+        ]
+        for attempt in attempts:
+            escaped = escape(attempt)
+            assert escaped.startswith("\\textbackslash{}")
+            assert _COMMAND.search(escaped) is None, escaped
 
     def test_performance_escaping(self):
-        """Test that escaping large texts performs reasonably."""
-        import time
-
-        # Large text with mixed content
-        large_text = "Test content with special chars: " + "{$&#%}" * 1000
-
+        large_text = "Test content with special chars: " + "{$&#%}\\" * 1000
         start_time = time.time()
-        escaped = escape_latex_text(large_text)
-        end_time = time.time()
-
-        # Should complete in reasonable time (< 1 second for this size)
-        assert (end_time - start_time) < 1.0
-        assert len(escaped) > len(large_text)  # Should be longer due to escaping
+        escape(large_text)
+        assert (time.time() - start_time) < 1.0
 
 
 class TestTemplateInjectionVulnerabilities:
@@ -201,10 +133,8 @@ class TestTemplateInjectionVulnerabilities:
         # This will demonstrate the vulnerability in current templates
         result = self.engine.render_template("spell_entry", test_context)
 
-        # Verify that injection attempts are present (showing vulnerability)
-        assert "\\newcommand" in result
-        # TemplateService now properly escapes LaTeX, so check for escaped version
-        assert "\\input\\{/etc/passwd\\}" in result
+        assert "Fireball\\textbackslash{}newcommand\\{" in result
+        assert "\\newcommand" not in result
 
     def test_creature_template_vulnerabilities(self):
         """Test current creature template for injection vulnerabilities."""
@@ -284,10 +214,7 @@ class TestTemplateInjectionVulnerabilities:
 
         result = self.engine.render_template("creature_entry", test_context)
 
-        # Verify that injection attempts are present (showing vulnerability)
-        # The name should be properly escaped as \\def\\evil\\{PWNED\\}
-        assert "\\def\\evil" in result
-        # For now, just check that the basic template renders (no traits to test injection)
+        assert "\\def\\evil" not in result
         assert "DndMonster" in result
 
 
@@ -357,47 +284,3 @@ class TestSecureTemplatePatterns:
         finally:
             if template_path.exists():
                 template_path.unlink()
-
-
-class TestLaTeXSecurityValidation:
-    """Test security validation functions."""
-
-    def test_validate_safe_latex(self):
-        """Test function to validate if LaTeX content is safe."""
-        # This function doesn't exist yet but should be implemented
-        # For now, we'll test the concept
-
-        safe_latex_examples = [
-            "\\textbf{Bold text}",
-            "\\textit{Italic text}",
-            "\\emph{Emphasized}",
-            "Simple text with no commands",
-        ]
-
-        dangerous_latex_examples = [
-            "\\newcommand{\\evil}{PWNED}",
-            "\\input{file}",
-            "\\write18{command}",
-            "\\def\\bad{stuff}",
-        ]
-
-        # Implementation needed: is_safe_latex function
-        # For now, we'll define basic validation logic
-        def contains_dangerous_commands(text: str) -> bool:
-            dangerous_patterns = [
-                "\\newcommand",
-                "\\def",
-                "\\gdef",
-                "\\input",
-                "\\include",
-                "\\write18",
-                "\\immediate",
-                "\\InputIfFileExists",
-            ]
-            return any(pattern in text for pattern in dangerous_patterns)
-
-        for safe_text in safe_latex_examples:
-            assert not contains_dangerous_commands(safe_text)
-
-        for dangerous_text in dangerous_latex_examples:
-            assert contains_dangerous_commands(dangerous_text)

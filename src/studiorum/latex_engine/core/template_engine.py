@@ -12,13 +12,10 @@ from studiorum.core.config.unified_config import (
     LaTeXDocumentConfig,
     get_app_config,
 )
-from studiorum.core.latex_utils import (
-    contains_dangerous_latex,
-    escape_latex_text,
-)
 from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Ability, Spellcasting
 from studiorum.core.types import LaTeXConfig as LaTeXConfigDict
+from studiorum.renderers.escape import escape
 
 from ..services.template_service import active_template_service
 from . import model_text
@@ -158,204 +155,7 @@ class LaTeXTemplateEngine:
             """Escape LaTeX special characters and Unicode characters."""
             if not isinstance(value, str):
                 value = str(value)
-            return escape_latex_text(value)
-
-        def latex_newlines(value: str) -> str:
-            """Convert newlines to LaTeX line breaks."""
-            if not isinstance(value, str):
-                value = str(value)
-            return value.replace("\n", r" \\ ")
-
-        def latex_bold(value: str) -> str:
-            """Wrap text in LaTeX bold formatting."""
-            if not isinstance(value, str):
-                value = str(value)
-            return f"\\textbf{{{value}}}"
-
-        def latex_italic(value: str) -> str:
-            """Wrap text in LaTeX italic formatting."""
-            if not isinstance(value, str):
-                value = str(value)
-            return f"\\textit{{{value}}}"
-
-        def latex_underline(value: str) -> str:
-            """Wrap text in LaTeX underline formatting."""
-            if not isinstance(value, str):
-                value = str(value)
-            return f"\\underline{{{value}}}"
-
-        def latex_verbatim(value: str) -> str:
-            """Wrap text in LaTeX verbatim environment."""
-            if not isinstance(value, str):
-                value = str(value)
-            return f"\\verb|{value}|"
-
-        def latex_safe_check(value: str) -> str:
-            """Check if content is safe and return warning if not."""
-            if not isinstance(value, str):
-                value = str(value)
-
-            if contains_dangerous_latex(value):
-                # Log security issue but don't fail rendering
-                # In production, this might trigger security alerts
-                from studiorum.core.logging import get_logger
-
-                logger = get_logger(__name__)
-                logger.warning(
-                    "Potentially dangerous LaTeX content detected: %s",
-                    value[:100] + "..." if len(value) > 100 else value,
-                )
-                return f"% SECURITY WARNING: Dangerous content detected\n{escape_latex_text(value)}"
-
-            return value
-
-        def dnd_ability_modifier(value: int | str) -> str:
-            """Format ability score as modifier (+1, -2, etc.)."""
-            try:
-                score = int(value)
-                modifier = (score - 10) // 2
-                return f"+{modifier}" if modifier >= 0 else str(modifier)
-            except (ValueError, TypeError):
-                return str(value)
-
-        def dnd_challenge_rating(value: int | str | float) -> str:
-            """Format challenge rating for display."""
-            try:
-                cr = float(value)
-                if cr < 1:
-                    return f"1/{int(1 / cr)}"
-                if cr == int(cr):
-                    return str(int(cr))
-                return str(cr)
-            except (ValueError, TypeError):
-                return str(value)
-
-        def dnd_spell_level(value: int | str) -> str:
-            """Format spell level for display."""
-            try:
-                level = int(value)
-                if level == 0:
-                    return "Cantrip"
-                if level == 1:
-                    return "1st-level"
-                if level == 2:
-                    return "2nd-level"
-                if level == 3:
-                    return "3rd-level"
-                return f"{level}th-level"
-            except (ValueError, TypeError):
-                return str(value)
-
-        def markdown_to_latex(value: str) -> str:
-            """Convert basic Markdown formatting to LaTeX equivalents."""
-            if not isinstance(value, str):
-                value = str(value)
-
-            # Convert **bold** to \textbf{}
-            value = re.sub(r"\*\*(.*?)\*\*", r"\\textbf{\1}", value)
-
-            # Convert *italic* to \textit{}
-            value = re.sub(r"\*(.*?)\*", r"\\textit{\1}", value)
-
-            # Convert `code` to \texttt{}
-            value = re.sub(r"`(.*?)`", r"\\texttt{\1}", value)
-
-            # Convert bullet points to itemize
-            if "•" in value or value.strip().startswith("- "):
-                lines = value.split("\n")
-                processed_lines = []
-                in_list = False
-
-                for line in lines:
-                    line = line.strip()
-                    if line.startswith("•") or line.startswith("-"):
-                        if not in_list:
-                            processed_lines.append("\\begin{itemize}")
-                            in_list = True
-                        # Remove bullet and add item
-                        item_text = (
-                            line[1:].strip() if line.startswith(("•", "-")) else line
-                        )
-                        processed_lines.append(f"\\item {item_text}")
-                    else:
-                        if in_list:
-                            processed_lines.append("\\end{itemize}")
-                            in_list = False
-                        if line:  # Don't add empty lines
-                            processed_lines.append(line)
-
-                if in_list:
-                    processed_lines.append("\\end{itemize}")
-
-                value = "\n".join(processed_lines)
-
-            return value
-
-        def clean_jinja_comments(value: str) -> str:
-            """Remove Jinja2 comment syntax and clean up unwanted formatting from source data."""
-            if not isinstance(value, str):
-                value = str(value)
-
-            # Remove {#itemEntry ...} patterns that appear in 5e.tools data
-            value = re.sub(r"\{#itemEntry[^}]*\}", "", value)
-
-            # Remove any other stray Jinja2 comment patterns
-            value = re.sub(r"\{#[^}]*\}", "", value)
-
-            # Clean up markdown formatting that shouldn't be in descriptions
-            # Remove **Spells** headers since we handle spells with tables
-            value = re.sub(r"\*\*Spells\*\*\s*", "", value)
-            value = re.sub(r"\*\*Regaining Charges\*\*\s*", "", value)
-
-            # Clean up extra whitespace left behind, preserving paragraph breaks
-            value = re.sub(r"\n\s*\n\s*\n", "\n\n", value)
-            # Normalize horizontal whitespace but preserve newlines
-            value = re.sub(
-                r"[ \t]+", " ", value
-            )  # Only collapse spaces and tabs, not newlines
-            value = value.strip()
-
-            return value
-
-        def dnd_smallcaps(value: str) -> str:
-            """Convert '5e' text to LaTeX small-caps, replacing \textbf{} commands from {@b} tags."""
-            if not isinstance(value, str):
-                value = str(value)
-
-            # Replace LaTeX bold commands around 5e text with small-caps
-            # Note: This runs after tag processing, so {@b} tags are already converted to \textbf{}
-            patterns = [
-                # Handle \textbf{5e} -> \textsc{5e}
-                (
-                    r"\\textbf\{5e\}",
-                    r"\\textsc{5e}",
-                ),
-                # Handle \textbf{5e} -> \textsc{5e}
-                (r"\\textbf\{5e\}", r"\\textsc{5e}"),
-                # Handle cases where ampersand might not be escaped yet
-                (
-                    r"\\textbf\{5e\}",
-                    r"\\textsc{5e}",
-                ),
-                (r"\\textbf\{5e\}", r"\\textsc{5e}"),
-                # Fallback for untagged instances (preserve existing behavior)
-                (
-                    r"(?<!\\textbf\{)5e(?!\})",
-                    r"\\textsc{5e}",
-                ),
-                (r"(?<!\\textbf\{)5e(?!\})", r"\\textsc{5e}"),
-                # Handle unescaped fallbacks too
-                (
-                    r"(?<!\\textbf\{)5e(?!\})",
-                    r"\\textsc{5e}",
-                ),
-                (r"(?<!\\textbf\{)5e(?!\})", r"\\textsc{5e}"),
-            ]
-
-            for pattern, replacement in patterns:
-                value = re.sub(pattern, replacement, value, flags=re.IGNORECASE)
-
-            return value
+            return escape(value)
 
         def processed_ac_text(creature: Any) -> str:
             """Creature AC with tags in armour sources resolved."""
@@ -386,18 +186,6 @@ class LaTeXTemplateEngine:
 
         # Register filters
         self.env.filters["latex_escape"] = latex_escape
-        self.env.filters["latex_newlines"] = latex_newlines
-        self.env.filters["latex_bold"] = latex_bold
-        self.env.filters["latex_italic"] = latex_italic
-        self.env.filters["latex_underline"] = latex_underline
-        self.env.filters["latex_verbatim"] = latex_verbatim
-        self.env.filters["latex_safe_check"] = latex_safe_check
-        self.env.filters["dnd_ability_modifier"] = dnd_ability_modifier
-        self.env.filters["dnd_challenge_rating"] = dnd_challenge_rating
-        self.env.filters["dnd_spell_level"] = dnd_spell_level
-        self.env.filters["markdown_to_latex"] = markdown_to_latex
-        self.env.filters["clean_jinja_comments"] = clean_jinja_comments
-        self.env.filters["dnd_smallcaps"] = dnd_smallcaps
         self.env.filters["safe_processed_name"] = safe_processed_name
         self.env.filters["processed_ac_text"] = processed_ac_text
         self.env.filters["processed_senses"] = processed_senses

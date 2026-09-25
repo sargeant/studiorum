@@ -6,7 +6,7 @@ written per test, and read the .tex file back.
 
 import re
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 import yaml
@@ -116,13 +116,11 @@ def test_invalid_layout_value_exits_with_the_field(run) -> None:
 
 @pytest.mark.parametrize(("flag", "compiled"), [([], True), (["--no-pdf"], False)])
 def test_pdf_defaults_to_the_config(run, flag: list[str], compiled: bool) -> None:
-    with patch(
-        "studiorum.cli.commands.convert.run.compile_pdf", new_callable=AsyncMock
-    ) as compile_pdf:
+    with patch("studiorum.cli.commands.convert.run.compile_pdf") as compile_pdf:
         result, _ = run([*CREATURES, *flag], compilation={"auto_compile_pdf": True})
 
     assert result.exit_code == 0, result.output
-    assert compile_pdf.await_count == (1 if compiled else 0)
+    assert compile_pdf.call_count == (1 if compiled else 0)
 
 
 def test_adventure_appendix_flags_default_to_the_config(run) -> None:

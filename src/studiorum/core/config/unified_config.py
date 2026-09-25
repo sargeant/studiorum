@@ -168,14 +168,7 @@ class LaTeXEngineConfig(BaseModel):
         description="Fallback engines if primary fails",
     )
     timeout: int = Field(
-        default=300, ge=30, description="Compilation timeout in seconds"
-    )
-    max_passes: int = Field(
-        default=3, ge=1, le=10, description="Maximum compilation passes"
-    )
-    show_progress: bool = Field(default=True, description="Show compilation progress")
-    keep_temp_files: bool = Field(
-        default=False, description="Keep temporary compilation files for debugging"
+        default=300, ge=30, description="Seconds latexmk may run for each engine"
     )
 
 

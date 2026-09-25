@@ -104,7 +104,7 @@ class TestCLIConfigIntegration:
         """Test CLI with configuration validation errors."""
         # Create config with validation errors
         invalid_config = {
-            "rendering": {"latex": {"engine": {"max_passes": 0}}}  # Below 1
+            "rendering": {"latex": {"engine": {"timeout": 0}}}  # Below 30
         }
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:

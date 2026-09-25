@@ -1,6 +1,5 @@
 """convert bulk: several adventures or books, one .tex file each."""
 
-import asyncio
 from pathlib import Path
 from typing import Annotated
 
@@ -123,7 +122,7 @@ def bulk(
                     output_path = output_dir / f"{result.query}.tex"
                     output_path.write_text(latex, encoding="utf-8")
                     if options.compile_pdf:
-                        asyncio.run(compile_pdf(output_path))
+                        compile_pdf(output_path)
                     converted.append(result.query)
                 except Exception as e:
                     rprint(f"[red]Error converting {result.query}:[/red] {e}")

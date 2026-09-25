@@ -372,19 +372,6 @@ class TestSpellInvariants:
         assert len(spell.name.strip()) > 0
         assert spell.name == spell.name.strip()  # No leading/trailing whitespace
 
-    @given(valid_spells())
-    def test_spell_latex_safety(self, spell_data: dict):
-        """LaTeX-safe names should escape dangerous characters."""
-        spell = Spell.model_validate(spell_data)
-        latex_name = spell.get_latex_safe_name()
-
-        # Check that dangerous LaTeX characters are escaped
-        dangerous_chars = ["&", "%", "$", "#", "_", "{", "}", "^", "~"]
-        for char in dangerous_chars:
-            if char in spell.name:
-                # The character should be escaped in the latex version
-                assert char not in latex_name or f"\\{char}" in latex_name
-
     @given(
         st.integers(min_value=1, max_value=10),
         st.sampled_from(["action", "bonus action", "minute", "hour"]),

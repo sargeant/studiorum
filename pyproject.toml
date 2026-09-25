@@ -50,6 +50,7 @@ dependencies = [
     "fastmcp>=3,<4",
     "logfire>=0.54.0",
     "orjson>=3.11.6",
+    "pylatexenc>=2.10,<3",
 ]
 
 [project.urls]
@@ -177,7 +178,6 @@ ignore = [
 "src/studiorum/cli/main.py" = ["B904", "PTH123"]
 "src/studiorum/core/config/data_sources.py" = ["SIM102", "UP042"]
 "src/studiorum/core/error_types.py" = ["UP042"]
-"src/studiorum/core/latex_utils.py" = ["B007", "RET504", "SIM110"]
 "src/studiorum/core/loaders/content_merger.py" = ["PTH123"]
 "src/studiorum/core/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
 "src/studiorum/core/loaders/data_source_manager.py" = ["B007", "PERF102", "SIM102", "SIM118"]
@@ -223,8 +223,6 @@ ignore = [
 "src/studiorum/core/utils/chapters.py" = ["B904", "SIM102"]
 "src/studiorum/core/validation/error_tracker.py" = ["RET504"]
 "src/studiorum/core/validation/strictness.py" = ["UP042"]
-"src/studiorum/latex_engine/config/compilation.py" = ["PERF401"]
-"src/studiorum/latex_engine/core/compiler.py" = ["PERF401"]
 "src/studiorum/latex_engine/core/content_organizer.py" = ["B007", "PERF102"]
 "src/studiorum/latex_engine/core/content_processor.py" = ["PERF401", "RET504", "SIM101"]
 "src/studiorum/latex_engine/core/dnd_template.py" = ["PERF401"]
@@ -232,8 +230,6 @@ ignore = [
 "src/studiorum/latex_engine/core/document_structure.py" = ["B007", "PERF102", "RET504", "SIM102"]
 "src/studiorum/latex_engine/core/entry_processor.py" = ["RET504", "SIM103"]
 "src/studiorum/latex_engine/core/template_engine.py" = ["PIE810", "RET504"]
-"src/studiorum/latex_engine/utils/error_parser.py" = ["PIE810"]
-"src/studiorum/latex_engine/utils/progress_tracker.py" = ["E722", "SIM102", "T201"]
 "tests/build_all_content.py" = ["PTH123", "T201"]
 "tests/cli/commands/test_base_convert_command.py" = ["SIM117"]
 "tests/cli/commands/test_cli_integration_enhanced_features.py" = ["SIM117"]
@@ -264,13 +260,10 @@ ignore = [
 "tests/property_based/test_content_stateful.py" = ["PERF401", "SIM118"]
 "tests/property_based/test_creature_properties.py" = ["B007", "S110"]
 "tests/property_based/test_spell_properties.py" = ["SIM102"]
-"tests/renderers/latex/test_compiler.py" = ["SIM103"]
 "tests/renderers/latex/test_content_placeholder_regression.py" = ["B007"]
 "tests/renderers/latex/test_dnd_template.py" = ["B007", "PERF102", "RET503"]
-"tests/renderers/latex/test_document_renderer_integration.py" = ["SIM117"]
 "tests/renderers/latex/test_entry_processor_errors.py" = ["S110"]
 "tests/renderers/latex/test_performance_benchmarks.py" = ["PERF401", "T201"]
-"tests/renderers/latex/test_progress_tracker.py" = ["SIM117"]
 "tests/test_data_helpers.py" = ["RET504"]
 "tests/unit/core/services/test_fluff_matcher_phase5.py" = ["RET504"]
 "tests/unit/models/test_creature_stat_blocks.py" = ["PERF401"]
@@ -305,6 +298,10 @@ plugins = ["pydantic.mypy"]
 exclude = ["tests/.*\\.py$"]
 # Temporarily disable some strict checks for gradual mypy adoption
 disable_error_code = ["no-any-return", "arg-type", "return-value"]
+
+[[tool.mypy.overrides]]
+module = ["pylatexenc.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -403,7 +400,6 @@ layers = [
 ]
 ignore_imports = [
     "studiorum.cli.commands.mcp -> studiorum.mcp.server",
-    "studiorum.latex_engine.utils.progress_tracker -> studiorum.cli.display_manager",
 ]
 
 [[tool.importlinter.contracts]]

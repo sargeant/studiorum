@@ -251,25 +251,6 @@ class TestSpellFormattingMethods:
         no_material_spell = Spell.model_validate(no_material_data)
         assert no_material_spell.has_material_components() is False
 
-    def test_get_latex_safe_name(self, sample_spell_data: dict[str, Any]) -> None:
-        """Test LaTeX-safe name formatting."""
-        # Test name with special characters
-        special_name_data = {
-            **sample_spell_data,
-            "name": "Mordenkainen's Magnificent Mansion",
-        }
-        special_spell = Spell.model_validate(special_name_data)
-        expected = (
-            "Mordenkainen's Magnificent Mansion"  # Apostrophe should be preserved
-        )
-        assert special_spell.get_latex_safe_name() == expected
-
-        # Test name with LaTeX special characters
-        latex_chars_data = {**sample_spell_data, "name": "Spell & Magic"}
-        latex_spell = Spell.model_validate(latex_chars_data)
-        expected = "Spell \\& Magic"
-        assert latex_spell.get_latex_safe_name() == expected
-
     def test_edge_cases(self, sample_spell_data: dict[str, Any]) -> None:
         """Test edge cases and error handling."""
         # Test spell with minimal data

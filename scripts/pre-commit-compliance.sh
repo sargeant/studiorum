@@ -23,9 +23,9 @@ fi
 
 # Check for trademark violations
 # Allowlist specific files where controlled references are required
-# - Tag tests (branding formatting tests)
+# - Tag and escape tests (branding formatting tests)
 # - Website landing page (docs/index.md)
-ALLOWLIST_PATTERN='^(tests/renderers/test_tags\.py|docs/index\.md)$'
+ALLOWLIST_PATTERN='^(tests/renderers/test_(tags|escape)\.py|docs/index\.md)$'
 
 # Stricter branding patterns to reduce false positives:
 #  - Dungeons {&,\&,and} Dragons (flexible whitespace)

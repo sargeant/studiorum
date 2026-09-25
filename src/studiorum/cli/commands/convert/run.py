@@ -1,7 +1,6 @@
 """The steps every convert command shares: reading names, reporting errors,
 writing the .tex file, compiling and opening the PDF."""
 
-import asyncio
 import os
 
 # Using subprocess securely with validated paths via studiorum.core.security
@@ -25,9 +24,9 @@ from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
+from studiorum.core.result import Error
 from studiorum.core.security import ExecutableNotFoundError, get_platform_file_opener
-from studiorum.latex_engine.config.compilation import CompilationConfig, LaTeXEngine
-from studiorum.latex_engine.core.compiler import LaTeXCompiler
+from studiorum.latex_engine.latexmk import build_pdf
 
 from .options import ConvertOptions
 
@@ -74,7 +73,7 @@ def write_document(
     output_path.write_text(latex, encoding="utf-8")
     rprint(f"[green]✓[/green] {done}: {output_path}")
     if options.compile_pdf:
-        asyncio.run(compile_pdf(output_path, options.open_pdf))
+        compile_pdf(output_path, options.open_pdf)
     return output_path
 
 
@@ -110,62 +109,20 @@ def append_appendix(latex: str, sections: list[Any], *, gap_after: str) -> str:
     return f"{body}\n\n{text}{gap_after}\\end{{document}}{end}"
 
 
-def create_latex_compiler() -> LaTeXCompiler:
-    """A compiler configured from the app config; exits if the config is invalid."""
-    engine = get_app_config().rendering.latex.engine
-    compilation_config = CompilationConfig(
-        primary_engine=LaTeXEngine(engine.primary_engine),
-        fallback_engines=[LaTeXEngine(e) for e in engine.fallback_engines],
-        timeout_seconds=engine.timeout,
-        max_passes=engine.max_passes,
-        show_progress=engine.show_progress,
-        keep_intermediate_files=engine.keep_temp_files,
-    )
-    validation_errors = compilation_config.validate_config()
-    if validation_errors:
-        rprint("[red]LaTeX configuration errors:[/red]")
-        for error in validation_errors:
-            rprint(f"  [red]•[/red] {error}")
-        rprint("\n[yellow]Suggestions:[/yellow]")
-        rprint("  • Use XeLaTeX or LuaLaTeX for fontspec package support")
-        rprint("  • Remove fontspec from required packages if using PDFLaTeX")
-        rprint("  • Check your configuration in ~/.studiorum/config.yaml")
-        raise typer.Exit(1)
-    return LaTeXCompiler(compilation_config)
-
-
-async def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
-    """Compile a .tex file next to itself, and open the PDF if asked."""
+def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
+    """Compile a .tex file to a PDF beside it, and open the PDF if asked."""
     rprint(f"[cyan]Compiling PDF: {latex_path.with_suffix('.pdf')}[/cyan]")
-    try:
-        compiler = create_latex_compiler()
-        with display_manager.progress("Compiling PDF") as _:
-            compile_task = display_manager.add_task(
-                "[cyan]Running LaTeX compilation...", total=None
-            )
-            result = await compiler.compile_document(
-                latex_path.read_text(encoding="utf-8"),
-                output_name=latex_path.stem,
-                working_dir=latex_path.parent,
-            )
-            display_manager.update_task(compile_task, completed=100)
-    except typer.Exit:
-        raise
-    except Exception as e:
-        rprint(f"[red]Error during PDF compilation:[/red] {e}")
-        raise typer.Exit(1) from None
-
-    for warning in result.warnings:
-        rprint(f"[yellow]Warning:[/yellow] {warning}")
-    if not result.success:
+    with display_manager.progress("Compiling PDF") as _:
+        task = display_manager.add_task("[cyan]Running latexmk...", total=None)
+        result = build_pdf(latex_path, get_app_config().rendering.latex.engine)
+        display_manager.update_task(task, completed=100)
+    if isinstance(result, Error):
         rprint("[red]✗[/red] Compilation failed")
-        if result.error_message:
-            rprint(f"[red]Error:[/red] {result.error_message}")
+        rprint(result.error)
         raise typer.Exit(1)
-
-    pdf_path = latex_path.with_suffix(".pdf")
+    pdf_path = result.unwrap()
     rprint(f"[green]✓[/green] PDF compiled: {pdf_path}")
-    if open_file and pdf_path.exists():
+    if open_file:
         open_in_viewer(pdf_path)
 
 

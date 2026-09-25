@@ -8,6 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.commands.convert import app
+from studiorum.core.result import Success
 
 
 @pytest.mark.cli
@@ -45,10 +46,10 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.run.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.run.build_pdf")
     def test_adventure_conversion_with_real_data_latex_only(
         self,
-        mock_create_compiler,
+        mock_build_pdf,
         mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
@@ -65,13 +66,8 @@ class TestConvertCommandsWithReducedMocking:
         )  # Pass through tags unchanged
         mock_get_tag_resolver.return_value = mock_tag_resolver
 
-        # Only mock the LaTeX compiler and display manager (external dependencies)
-        mock_compiler = Mock()
-        mock_result = Mock()
-        mock_result.success = True
-        mock_result.output_file = Path("/tmp/test.pdf")
-        mock_compiler.compile_document.return_value = mock_result
-        mock_create_compiler.return_value = mock_compiler
+        # Only mock LaTeX compilation (an external dependency)
+        mock_build_pdf.return_value = Success(Path("/tmp/test.pdf"))
 
         # Mock display manager for clean output
 
@@ -107,10 +103,10 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    @patch("studiorum.cli.commands.convert.run.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.run.build_pdf")
     def test_book_conversion_with_real_data_latex_only(
         self,
-        mock_create_compiler,
+        mock_build_pdf,
         mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
@@ -127,13 +123,8 @@ class TestConvertCommandsWithReducedMocking:
         )  # Pass through tags unchanged
         mock_get_tag_resolver.return_value = mock_tag_resolver
 
-        # Only mock the LaTeX compiler and display manager (external dependencies)
-        mock_compiler = Mock()
-        mock_result = Mock()
-        mock_result.success = True
-        mock_result.output_file = Path("/tmp/test.pdf")
-        mock_compiler.compile_document.return_value = mock_result
-        mock_create_compiler.return_value = mock_compiler
+        # Only mock LaTeX compilation (an external dependency)
+        mock_build_pdf.return_value = Success(Path("/tmp/test.pdf"))
 
         # Mock display manager for clean output
 
@@ -189,7 +180,7 @@ class TestConvertCommandsWithReducedMocking:
         mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
-        mock_compile_pdf.return_value = None  # Async function returns None
+        mock_compile_pdf.return_value = None
 
         # Mock display manager for clean output
 
@@ -232,17 +223,3 @@ class TestConvertCommandsWithReducedMocking:
 
         # Command should fail gracefully
         assert result.exit_code != 0
-
-    def test_compiler_helper_function_creates_proper_config(self):
-        """Test create_latex_compiler helper function without mocking."""
-        from studiorum.cli.commands.convert.run import create_latex_compiler
-        from studiorum.latex_engine.config.compilation import CompilationConfig
-        from studiorum.latex_engine.core.compiler import LaTeXCompiler
-
-        # Test the helper function creates properly configured compiler
-        compiler = create_latex_compiler()
-
-        # Verify it's a LaTeXCompiler instance with proper configuration
-        assert isinstance(compiler, LaTeXCompiler)
-        assert isinstance(compiler.config, CompilationConfig)
-        assert hasattr(compiler.config, "primary_engine")

@@ -1,10 +1,8 @@
 """LaTeX document renderer implementation."""
 
 from collections.abc import Sequence
-from pathlib import Path
 from typing import Any
 
-from studiorum.core.latex_utils import escape_latex_text
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import BaseContent
 from studiorum.core.models.content_models import content_type_of
@@ -17,9 +15,8 @@ from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGe
 from studiorum.core.types import LaTeXConfig
 from studiorum.renderers.base import DocumentRenderer, RenderingError
 from studiorum.renderers.context import RenderingContext
+from studiorum.renderers.escape import escape
 
-from ..config.compilation import CompilationConfig, CompilationResult, LaTeXEngine
-from .compiler import LaTeXCompiler
 from .content_organizer import ContentOrganizer
 from .document_structure import DocumentStructureBuilder
 from .entry_renderers import EntryRendererRegistry
@@ -42,9 +39,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         self.entry_registry = EntryRendererRegistry()
         self.content_organizer = ContentOrganizer()
         self._structure_builder: DocumentStructureBuilder | None = None
-
-        # Initialize LaTeX compiler
-        self.compiler = LaTeXCompiler(self._create_compilation_config(config))
 
     @property
     def output_format(self) -> str:
@@ -208,11 +202,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
                             placeholder_pattern = "% Content: String Entry (str)"
                         elif isinstance(item, dict):
                             item_name = item.get("name", "Unknown")
-                            escaped_name = self._escape_latex(item_name)
+                            escaped_name = escape(item_name)
                             placeholder_pattern = f"% Content: {escaped_name} (dict)"
                         else:
                             item_name = getattr(item, "name", "Unknown")
-                            escaped_name = self._escape_latex(item_name)
+                            escaped_name = escape(item_name)
                             item_class = item.__class__.__name__
                             placeholder_pattern = (
                                 f"% Content: {escaped_name} ({item_class})"
@@ -436,8 +430,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         else:
             content_source = "Unknown"
 
-        escaped_name = self._escape_latex(content_name)
-        source_text = self._escape_latex(content_source)
+        escaped_name = escape(content_name)
+        source_text = escape(content_source)
 
         return f"""
 \\subsection{{{escaped_name}}}
@@ -445,17 +439,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
 This content type is not yet fully supported by the rendering system.
 """
-
-    def _escape_latex(self, text: str) -> str:
-        """Escape LaTeX special characters.
-
-        Args:
-            text: Text to escape
-
-        Returns:
-            LaTeX-safe text
-        """
-        return escape_latex_text(text)
 
     def _is_book_entry(self, content: Any, context: RenderingContext) -> bool:
         """Check if content is a raw book entry that should be processed recursively.
@@ -556,7 +539,7 @@ This content type is not yet fully supported by the rendering system.
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)
-            return self._escape_latex(content)
+            return escape(content)
         if isinstance(content, dict):
             # Process dict entry - use same approach as book rendering
             try:
@@ -591,7 +574,7 @@ This content type is not yet fully supported by the rendering system.
                     section_cmd = (
                         "chapter"  # Always use chapter for top-level adventure chapters
                     )
-                    escaped_name = self._escape_latex(chapter_name)
+                    escaped_name = escape(chapter_name)
                     result.append(f"\\{section_cmd}{{{escaped_name}}}")
 
                 # Add the processed entries
@@ -633,7 +616,7 @@ This content type is not yet fully supported by the rendering system.
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)
-            return self._escape_latex(content)
+            return escape(content)
         if isinstance(content, dict):
             # Process dict entry
             return processor.process_entry_dict(content, context)
@@ -642,119 +625,6 @@ This content type is not yet fully supported by the rendering system.
             processed_entries = processor.process_entries(content.entries, context)
             return "\n\n".join(processed_entries)
         return str(content)
-
-    def _create_compilation_config(
-        self, config: LaTeXConfig | dict[str, Any] | None = None
-    ) -> CompilationConfig:
-        """Create compilation configuration from renderer config.
-
-        Args:
-            config: Renderer configuration
-
-        Returns:
-            CompilationConfig instance
-        """
-        if not config:
-            config = {}
-
-        # Extract compilation-specific settings
-        compilation_config = CompilationConfig()
-
-        # Map renderer config to compilation config
-        if "latex_engine" in config:
-            engine_name = config["latex_engine"].lower()
-            for engine in LaTeXEngine:
-                if engine.value == engine_name:
-                    compilation_config.primary_engine = engine
-                    break
-
-        if "compilation_timeout" in config:
-            compilation_config.timeout_seconds = config["compilation_timeout"]
-
-        if "max_passes" in config:
-            compilation_config.max_passes = config["max_passes"]
-
-        if "show_progress" in config:
-            compilation_config.show_progress = config["show_progress"]
-
-        if "keep_temp_files" in config:
-            compilation_config.keep_intermediate_files = config["keep_temp_files"]
-
-        if "output_dir" in config and config["output_dir"] is not None:
-            compilation_config.output_dir = Path(config["output_dir"])
-
-        return compilation_config
-
-    async def compile_to_pdf(
-        self,
-        content: BaseContent,
-        output_path: Path | None = None,
-        context: dict[str, Any] | None = None,
-    ) -> CompilationResult:
-        """Compile a single content item to PDF.
-
-        Args:
-            content: Content to compile
-            output_path: Path for output PDF (auto-generated if None)
-            context: Optional rendering context
-
-        Returns:
-            CompilationResult with compilation details
-        """
-        render_context = RenderingContext(output_format="latex")
-        latex_source = self.render_document([content], render_context)
-
-        output_name = output_path.stem if output_path else content.name
-        working_dir = output_path.parent if output_path else None
-
-        return await self.compiler.compile_document(
-            latex_source, output_name, working_dir
-        )
-
-    async def compile_document_to_pdf(
-        self,
-        content_items: Sequence[BaseContent],
-        output_path: Path | None = None,
-        context: RenderingContext | None = None,
-    ) -> CompilationResult:
-        """Compile multiple content items to PDF.
-
-        Args:
-            content_items: List of content to compile
-            output_path: Path for output PDF (auto-generated if None)
-            context: Optional rendering context
-
-        Returns:
-            CompilationResult with compilation details
-        """
-        if not context:
-            context = RenderingContext(output_format="latex")
-
-        # Generate LaTeX source
-        latex_source = self.render_document(content_items, context)
-
-        # Determine output configuration
-        working_dir: Path | None
-        if output_path:
-            output_name = output_path.stem
-            working_dir = output_path.parent
-        else:
-            output_name = context.metadata.get("title", "document")
-            working_dir = self.compiler.config.output_dir
-
-        # Compile to PDF
-        result = await self.compiler.compile_document(
-            latex_source, output_name, working_dir
-        )
-
-        # Move output file to requested location if needed
-        if output_path and result.success and result.output_file:
-            if result.output_file != output_path:
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                result.output_file.rename(output_path)
-                result.output_file = output_path
-
-        return result
 
     def _append_appendices(self, document: str, context: RenderingContext) -> str:
         """Generate and append appendices to the document if requested.
@@ -967,19 +837,3 @@ This content type is not yet fully supported by the rendering system.
         content += "\\FloatBarrier\n\n"
 
         return content
-
-    def validate_latex_environment(self) -> dict[str, bool]:
-        """Validate the LaTeX compilation environment.
-
-        Returns:
-            Dictionary of validation results
-        """
-        return self.compiler.validate_environment()
-
-    def get_available_engines(self) -> list:
-        """Get available LaTeX engines.
-
-        Returns:
-            List of available LaTeX engines
-        """
-        return self.compiler.get_available_engines()
