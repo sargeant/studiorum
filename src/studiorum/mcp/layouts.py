@@ -6,6 +6,7 @@ from typing import Any
 
 from studiorum.core import encounter
 from studiorum.core.loaders import item_types
+from studiorum.core.models.items import variation_entries
 from studiorum.mcp.markdown import render, strip_tags
 
 type Raw = dict[str, Any]
@@ -409,6 +410,9 @@ def _item(data: Raw, _: str) -> list[str]:
             if line
         ),
         _entries(data.get("entries")),
+        _entries(
+            variation_entries(data.get("items"), hidden=bool(data.get("itemsHidden")))
+        ),
     ]
 
 

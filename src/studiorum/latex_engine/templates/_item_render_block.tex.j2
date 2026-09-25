@@ -20,6 +20,10 @@
 <@ if item.entries @>
 <# smart_render_entry(item) #>
 <@ endif @>
+<@ if item.variation_entries() @>
+
+<# smart_render_entry(item.variation_entries()) #>
+<@ endif @>
 
 <#-- Render fluff content after item description if available --#>
 <@ if rendering_context and rendering_context.fluff @>

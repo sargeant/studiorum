@@ -12,6 +12,7 @@ from studiorum.core.loaders.data_dir import DataDir, DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
+from studiorum.core.models.items import Item
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -198,6 +199,35 @@ def test_magic_variants_take_their_source_from_inherits(tmp_path: Path) -> None:
     omnidexer = _load(tmp_path)
 
     assert omnidexer.find(ContentType.MAGICVARIANT, "+1 Test", "DMG") is not None
+
+
+def test_item_groups_load_as_items_that_list_their_variations(
+    tmp_path: Path,
+) -> None:
+    group = {
+        "name": "Potion of Resistance",
+        "source": "DMG",
+        "type": "P",
+        "rarity": "uncommon",
+        "items": ["Potion of Acid Resistance", "Potion of Cold Resistance|DMG"],
+    }
+    _write(tmp_path / "items.json", {"item": [], "itemGroup": [group]})
+
+    found = _load(tmp_path).find(ContentType.ITEM, "Potion of Resistance", "DMG")
+
+    assert isinstance(found, Item)
+    assert found.variation_entries() == [
+        "Multiple variations of this item exist, as listed below:",
+        {
+            "type": "list",
+            "items": [
+                "{@item Potion of Acid Resistance}",
+                "{@item Potion of Cold Resistance|DMG}",
+            ],
+        },
+    ]
+    hidden = found.model_copy(update={"items_hidden": True})
+    assert hidden.variation_entries() == []
 
 
 def test_an_item_property_is_named_after_its_first_entry(tmp_path: Path) -> None:

@@ -80,6 +80,10 @@
 <@ if item.entries @>
 <# smart_render_entry(item) #>
 <@ endif @>
+<@ if item.variation_entries() @>
+
+<# smart_render_entry(item.variation_entries()) #>
+<@ endif @>
 
 <#-- Render fluff images if available --#>
 <@ if rendering_context and rendering_context.fluff_images is not none @>
@@ -123,6 +127,10 @@
 % Item description
 <@ if item.entries @>
 <# smart_render_entry(item) #>
+<@ endif @>
+<@ if item.variation_entries() @>
+
+<# smart_render_entry(item.variation_entries()) #>
 <@ endif @>
 
 <#-- Render fluff images if available --#>

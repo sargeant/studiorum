@@ -163,6 +163,7 @@ PROP_TYPES: dict[str, ContentType] = {
     "monster": ContentType.CREATURE,
     "item": ContentType.ITEM,
     "baseitem": ContentType.ITEM,
+    "itemGroup": ContentType.ITEM,
     "spell": ContentType.SPELL,
     "background": ContentType.BACKGROUND,
     "charoption": ContentType.CHAROPTION,
