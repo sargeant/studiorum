@@ -17,7 +17,6 @@ from studiorum.renderers.base import DocumentRenderer, RenderingError
 from studiorum.renderers.context import RenderingContext
 from studiorum.renderers.escape import escape
 
-from .content_organizer import ContentOrganizer
 from .document_structure import DocumentStructureBuilder
 from .entry_renderers import EntryRendererRegistry
 from .template_engine import LaTeXTemplateEngine
@@ -37,7 +36,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         super().__init__(config)
         self.template_engine = LaTeXTemplateEngine(config)
         self.entry_registry = EntryRendererRegistry()
-        self.content_organizer = ContentOrganizer()
         self._structure_builder: DocumentStructureBuilder | None = None
 
     @property
@@ -119,14 +117,12 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         # Initialize structure builder
         self._structure_builder = DocumentStructureBuilder(metadata)
-        self.content_organizer.document_type = metadata.document_type
 
         # Add document_type to context metadata so entry processor can access it
         context.metadata["document_type"] = metadata.document_type
 
-        # Organize content and build structure
+        # Build structure
         content_list = list(content_items)
-        self.content_organizer.organize_content(content_list)
         sections, document_context = self._structure_builder.build_document_structure(
             content_list, context
         )
