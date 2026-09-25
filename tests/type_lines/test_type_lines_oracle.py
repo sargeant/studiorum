@@ -93,7 +93,7 @@ def _differences(
 
 
 @pytest.mark.parametrize(
-    "prop", ["trap", "hazard", "feat", "deity", "optionalfeature", "facility"]
+    "prop", ["trap", "hazard", "feat", "deity", "optionalfeature", "facility", "object"]
 )
 def test_type_lines_match_5etools(
     oracle: dict[str, Any], omnidexer: Omnidexer, prop: str

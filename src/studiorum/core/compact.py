@@ -17,6 +17,7 @@ from .models.classes import Class
 from .models.deities import Deity
 from .models.facilities import Facility
 from .models.feats import Feat
+from .models.objects import Object
 from .models.optional_features import OptionalFeature
 from .models.recipes import Recipe
 from .models.rule_types import Hazard
@@ -30,6 +31,7 @@ from .type_lines import (
     facility_entries,
     feat_entries,
     hazard_entries,
+    object_entries,
     optional_feature_entries,
     trap_entries,
 )
@@ -136,4 +138,5 @@ _BUILDERS: tuple[
     (Deity, deity_entries),
     (OptionalFeature, optional_feature_entries),
     (Facility, facility_entries),
+    (Object, object_entries),
 )

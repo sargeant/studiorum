@@ -4,6 +4,7 @@ from studiorum.core.compact import compact_entries, compact_heading
 from studiorum.core.models.deities import Deity
 from studiorum.core.models.facilities import Facility
 from studiorum.core.models.feats import Feat
+from studiorum.core.models.objects import Object
 from studiorum.core.models.optional_features import OptionalFeature
 from studiorum.core.models.rule_types import Hazard
 from studiorum.core.models.traps import Trap
@@ -177,4 +178,31 @@ def test_a_facility_lists_its_prerequisite_space_hirelings_and_orders() -> None:
             ],
         },
         "Books.",
+    ]
+
+
+def test_an_object_has_its_size_attributes_and_actions() -> None:
+    thing = Object.model_validate(
+        {
+            "name": "Boilerdrak",
+            "source": "DSotDQ",
+            "size": ["L"],
+            "objectType": "SW",
+            "ac": 15,
+            "hp": 100,
+            "immune": ["poison", "psychic"],
+            "entries": ["A dragon-shaped device."],
+            "actionEntries": [
+                {"type": "entries", "name": "Flames", "entries": ["Fire."]}
+            ],
+        }
+    )
+
+    assert compact_entries(thing, None) == [
+        "{@i Large object}",
+        "{@b Armor Class:} 15",
+        "{@b Hit Points:} 100",
+        "{@b Damage Immunities:} poison, psychic",
+        "A dragon-shaped device.",
+        {"type": "entries", "name": "Flames", "entries": ["Fire."]},
     ]

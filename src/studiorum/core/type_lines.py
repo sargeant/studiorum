@@ -13,6 +13,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from .text.parser import (
+    ABILITIES,
     ABILITY_NAMES,
     OPT_FEATURE_TYPES,
     TRAP_HAZARD_TYPES,
@@ -23,6 +24,14 @@ from .text.parser import (
     tier_to_full_level,
 )
 from .text.prerequisites import prerequisite_entry
+from .text.stats import (
+    ability_entry,
+    condition_text,
+    damage_text,
+    senses_entry,
+    size_text,
+    speed_text,
+)
 from .text.strings import common_prefix, join_conjunct, title_case, to_plural
 
 if TYPE_CHECKING:
@@ -384,3 +393,68 @@ def _hirelings(hirelings: list[Raw]) -> str:
         elif hire.get("min") is not None:
             parts.append(f"{hire['min']}+ (see below{';' if space else ''}{space})")
     return join_conjunct(parts, ", ", " or ")
+
+
+def object_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.object``: size, attributes, entries, then actions."""
+    data = raw(content)
+    if data.get("objectType") == "GEN":
+        size = "Variable size object"
+    else:
+        size = f"{size_text(data.get('size'))} {data.get('creatureType') or 'object'}"
+    return [
+        f"{{@i {size}}}",
+        *_object_attributes(data),
+        *(data.get("entries") or []),
+        *(data.get("actionEntries") or []),
+    ]
+
+
+def _object_attributes(data: Raw) -> list[str]:
+    lines: list[tuple[str, str]] = []
+    if data.get("capCrew") is not None or data.get("capPassenger") is not None:
+        lines.append(("Creature Capacity", creature_capacity(data)))
+    if data.get("capCargo") is not None:
+        lines.append(("Cargo Capacity", cargo_capacity(data["capCargo"])))
+    for prop, label in (("ac", "Armor Class"), ("hp", "Hit Points")):
+        value = data.get(prop)
+        if value is not None:
+            special = value.get("special") if isinstance(value, dict) else None
+            lines.append((label, str(special if special is not None else value)))
+    if data.get("speed") is not None:
+        lines.append(("Speed", speed_text(data, style=STYLE)))
+    if any(data.get(a) is not None for a in ABILITIES):
+        scores = ", ".join(
+            f"{a.upper()}\u00a0{ability_entry(data, a)}"
+            for a in ABILITIES
+            if data.get(a) is not None
+        )
+        lines.append(("Ability Scores", scores))
+    # The model gives absent lists as empty ones
+    for prop, label, text in (
+        ("immune", "Damage Immunities", damage_text),
+        ("resist", "Damage Resistances", damage_text),
+        ("vulnerable", "Damage Vulnerabilities", damage_text),
+        ("conditionImmune", "Condition Immunities", condition_text),
+    ):
+        if data.get(prop):
+            lines.append((label, text(data[prop])))
+    if data.get("senses"):
+        lines.append(("Senses", senses_entry(data["senses"], style=STYLE)))
+    return [f"{{@b {label}:}} {value}" for label, value in lines]
+
+
+def creature_capacity(data: Raw) -> str:
+    """``getShipCreatureCapacity``: "20 crew, 10 passengers"."""
+    crew, passengers = data.get("capCrew"), data.get("capPassenger")
+    parts = [f"{crew} crew"] if crew else []
+    if passengers:
+        parts.append(f"{passengers} passenger{'' if passengers == 1 else 's'}")
+    return ", ".join(parts)
+
+
+def cargo_capacity(cargo: Any) -> str:
+    """``getShipCargoCapacity``: "100 tons"."""
+    return (
+        cargo if isinstance(cargo, str) else f"{cargo} ton{'' if cargo == 1 else 's'}"
+    )

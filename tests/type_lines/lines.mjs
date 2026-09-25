@@ -15,6 +15,8 @@ await import(path.join(root, "js/utils.js"));
 await import(path.join(root, "js/render.js"));
 await import(path.join(root, "js/render-dice.js"));
 globalThis.VetoolsConfig = {get: () => "classic"};
+// No prerelease or homebrew content
+globalThis.PrereleaseUtil = globalThis.BrewUtil2 = {getBrewProcessedFromCache: () => [], getMetaLookup: () => null};
 
 const loaded = {};
 DataUtil._pLoad = async ({url, id}) => (loaded[id] ||= JSON.parse(fs.readFileSync(path.join(root, url.split("?")[0]), "utf-8")));
@@ -71,6 +73,15 @@ const BUILDERS = {
 	facility: ["bastions.json", ent => {
 		const meta = Renderer.facility.getFacilityRenderableEntriesMeta(ent);
 		return [...(meta.entryLevel ? [meta.entryLevel] : []), ...meta.entriesDescription];
+	}],
+	object: ["objects.json", ent => {
+		const meta = Renderer.object.getObjectRenderableEntriesMeta(ent);
+		return [
+			meta.entrySize,
+			...Renderer.object.RENDERABLE_ENTRIES_PROP_ORDER__ATTRIBUTES.map(prop => meta[prop]).filter(Boolean),
+			...(ent.entries || []),
+			...(ent.actionEntries || []),
+		];
 	}],
 	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
 };
