@@ -346,7 +346,7 @@ TAGS: dict[str, TagFn] = {
     "link": _link,
     "quickref": lambda parts, r: _italic(r.text(display_part("quickref", parts))),
     "area": _area,
-    "style": lambda parts, r: escape(parts[0]),
+    "style": lambda parts, r: r.text(parts[0]),
     "s": _wrap("sout"),
     "strike": _wrap("sout"),
     "s2": _wrap("sout"),
