@@ -15,6 +15,8 @@ await import(path.join(root, "js/utils.js"));
 await import(path.join(root, "js/render.js"));
 await import(path.join(root, "js/render-dice.js"));
 globalThis.VetoolsConfig = {get: () => "classic"};
+// utils-ui.js needs a DOM; this is its intToBonus
+globalThis.UiUtil = {intToBonus: (int, {isPretty = false} = {}) => `${int >= 0 ? "+" : int < 0 ? (isPretty ? "\u2212" : "-") : ""}${Math.abs(int)}`};
 // No prerelease or homebrew content
 globalThis.PrereleaseUtil = globalThis.BrewUtil2 = {getBrewProcessedFromCache: () => [], getMetaLookup: () => null};
 
@@ -86,9 +88,18 @@ const BUILDERS = {
 	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
 };
 
+BUILDERS.race = [null, ent => {
+	const meta = Renderer.race.getRaceRenderableEntriesMeta(ent, STYLE);
+	const hw = ent.heightAndWeight && !ent._isBaseRace ? Renderer.race.getHeightAndWeightEntries(ent, {isStatic: true}) : [];
+	const out = [...(meta.entryAttributes ? [meta.entryAttributes] : []), ...(meta.entryMain.entries || []), ...hw];
+	// A base race's list names a subrace's source in a <span> when two share a name
+	return JSON.parse(JSON.stringify(out).replace(/<span title=\\"[^"\\]*\\">([^<]*)<\/span>/g, "$1"));
+}];
+const races = await DataUtil.race.loadJSON({isAddBaseRaces: true});
+
 const compact = {};
 for (const [prop, [file, build]] of Object.entries(BUILDERS)) {
-	compact[prop] = ((await load(file))[prop] || [])
+	compact[prop] = (file ? (await load(file))[prop] || [] : races.race)
 		.map(ent => ({name: ent.name, source: ent.source, entries: build(MiscUtil.copyFast(ent))}));
 }
 

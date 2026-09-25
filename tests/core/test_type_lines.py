@@ -6,6 +6,7 @@ from studiorum.core.models.facilities import Facility
 from studiorum.core.models.feats import Feat
 from studiorum.core.models.objects import Object
 from studiorum.core.models.optional_features import OptionalFeature
+from studiorum.core.models.races import Race
 from studiorum.core.models.rule_types import Hazard
 from studiorum.core.models.traps import Trap
 
@@ -205,4 +206,35 @@ def test_an_object_has_its_size_attributes_and_actions() -> None:
         "{@b Damage Immunities:} poison, psychic",
         "A dragon-shaped device.",
         {"type": "entries", "name": "Flames", "entries": ["Fire."]},
+    ]
+
+
+def test_a_race_lists_its_attributes_before_its_entries() -> None:
+    race = Race.model_validate(
+        {
+            "name": "Dhampir",
+            "source": "RHW",
+            "size": ["S", "M"],
+            "speed": {"walk": 35, "climb": True},
+            "creatureTypes": ["humanoid"],
+            "entries": [
+                {"type": "entries", "name": "Spider Climb", "entries": ["Up."]}
+            ],
+        }
+    )
+
+    assert compact_entries(race, None) == [
+        {
+            "type": "list",
+            "style": "list-hang-notitle",
+            "items": [
+                {"type": "item", "name": "Size:", "entry": "Small or Medium"},
+                {
+                    "type": "item",
+                    "name": "Speed:",
+                    "entry": "35 feet, climb equal to your walking speed",
+                },
+            ],
+        },
+        {"type": "entries", "name": "Spider Climb", "entries": ["Up."]},
     ]

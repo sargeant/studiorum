@@ -19,6 +19,7 @@ from .models.facilities import Facility
 from .models.feats import Feat
 from .models.objects import Object
 from .models.optional_features import OptionalFeature
+from .models.races import Race
 from .models.recipes import Recipe
 from .models.rule_types import Hazard
 from .models.subclasses import Subclass
@@ -33,6 +34,7 @@ from .type_lines import (
     hazard_entries,
     object_entries,
     optional_feature_entries,
+    race_entries,
     trap_entries,
 )
 
@@ -139,4 +141,5 @@ _BUILDERS: tuple[
     (OptionalFeature, optional_feature_entries),
     (Facility, facility_entries),
     (Object, object_entries),
+    (Race, race_entries),
 )

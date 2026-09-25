@@ -32,7 +32,13 @@ from .text.stats import (
     size_text,
     speed_text,
 )
-from .text.strings import common_prefix, join_conjunct, title_case, to_plural
+from .text.strings import (
+    common_prefix,
+    join_conjunct,
+    number_to_text,
+    title_case,
+    to_plural,
+)
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -458,3 +464,171 @@ def cargo_capacity(cargo: Any) -> str:
     return (
         cargo if isinstance(cargo, str) else f"{cargo} ton{'' if cargo == 1 else 's'}"
     )
+
+
+def race_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.race``: ability scores, creature type, size and speed, entries,
+    then the height and weight table."""
+    data = raw(content)
+    items = [
+        data.get("abilityEntry")
+        or _item("Ability Scores:", ability_text(data.get("ability") or [])),
+        data.get("creatureTypesEntry") or _race_creature_type(data),
+        data.get("sizeEntry") or _item("Size:", size_text(data.get("size"))),
+        data.get("speedEntry")
+        or _item("Speed:", speed_text(data, style=STYLE, long_form=True))
+        if data.get("speed") is not None
+        else None,
+    ]
+    listed = [i for i in items if i]
+    header = [{"type": "list", "style": "list-hang-notitle", "items": listed}]
+    if data.get("_isBaseRace"):
+        return [*(header if listed else []), *(data.get("_baseRaceEntries") or [])]
+    return [
+        *(header if listed else []),
+        *(data.get("entries") or []),
+        *_height_and_weight(data.get("heightAndWeight")),
+    ]
+
+
+def _item(name: str, entry: str) -> Raw | None:
+    return {"type": "item", "name": name, "entry": entry} if entry else None
+
+
+def _race_creature_type(data: Raw) -> Raw | None:
+    """Only a creature type other than humanoid, in the classic style."""
+    types = [t for t in data.get("creatureTypes") or [] if str(t).lower() != "humanoid"]
+    if not types:
+        return None
+    choosing = any(isinstance(t, dict) and t.get("choose") for t in types)
+    # Parser.monTypeToFullObj(type).asText for a plain type
+    names = [
+        join_conjunct(
+            [title_case(c) for c in sorted(t["choose"], key=str.lower)], ", ", " or "
+        )
+        if isinstance(t, dict) and t.get("choose")
+        else title_case(str(t))
+        for t in types
+    ]
+    return _item(
+        "Creature Type:", join_conjunct(names, "; " if choosing else ", ", " and ")
+    )
+
+
+def _height_and_weight(hw: Raw | None) -> list[Any]:
+    """``getHeightAndWeightEntries``, without the roller."""
+    if not hw:
+        return []
+    height = hw["baseHeight"]
+    feet, inches = height // 12, height % 12
+    base_height = (f"{feet}'" if feet else "") + (f'{inches}"' if inches else "")
+    return [
+        "You may roll for your character's height and weight on the Random Height "
+        "and Weight table. The roll in the Height Modifier column adds a number (in "
+        "inches) to the character's base height. To get a weight, multiply the "
+        "number you rolled for height by the roll in the Weight Modifier column and "
+        "add the result (in pounds) to the base weight.",
+        {
+            "type": "table",
+            "caption": "Random Height and Weight",
+            "colLabels": [
+                "Base Height",
+                "Base Weight",
+                "Height Modifier",
+                "Weight Modifier",
+            ],
+            "colStyles": [
+                "col-2-3 text-center",
+                "col-2-3 text-center",
+                "col-2-3 text-center",
+                "col-2 text-center",
+            ],
+            "rows": [
+                [
+                    base_height,
+                    f"{hw['baseWeight']} lb.",
+                    f"+{hw['heightMod']}",
+                    f"\u00d7 {hw.get('weightMod') or '1'} lb.",
+                ]
+            ],
+        },
+    ]
+
+
+def _bonus(value: int) -> str:
+    return f"+{value}" if value >= 0 else f"\u2212{abs(value)}"
+
+
+def ability_text(options: list[Raw]) -> str:
+    """``Renderer.getAbilityData(...).asText``: "Strength +2; Choose any other +1"."""
+    texts = [_ability_option(o) for o in options]
+    if len(texts) <= 1:
+        return texts[0] if texts else ""
+    letters = " ".join(f"({chr(97 + i)}) {t}" for i, t in enumerate(texts))
+    return f"Choose one of: {letters}"
+
+
+def _ability_option(option: Raw) -> str:
+    fixed = sorted(
+        (a for a in ABILITIES if option.get(a) is not None),
+        key=lambda a: -(option.get(a) or 0),
+    )
+    texts = [f"{ABILITY_NAMES[a]} {_bonus(option[a])}" for a in fixed]
+    choose = option.get("choose") or {}
+    if weighted := choose.get("weighted"):
+        texts.append(_weighted(weighted))
+    if choose.get("from") is not None:
+        texts.append(_choose_from(choose, fixed))
+    return "; ".join(texts)
+
+
+def _weighted(weighted: Raw) -> str:
+    choices, weights = weighted["from"], weighted["weights"]
+    any_ = len(choices) == 6
+    equal = len(set(weights)) == 1
+    done = 0
+
+    def parts(values: list[int], verb: str) -> list[str]:
+        nonlocal done
+        if any_ and equal and len(weights) > 1 and values and values[0] == weights[0]:
+            return [
+                f"{'choose ' if done else ''}{number_to_text(len(weights))} different {_bonus(values[0])}"
+            ]
+        out = []
+        for value in values:
+            if any_:
+                out.append(
+                    f"{'choose ' if done else ''}any {'other ' if done else ''}{_bonus(value)}"
+                )
+            else:
+                out.append(
+                    f"one {'other ' if done else ''}ability to {verb} by {abs(value)}"
+                )
+            done += 1
+        return out
+
+    increases = parts(sorted((w for w in weights if w >= 0), reverse=True), "increase")
+    reductions = parts(sorted((w for w in weights if w < 0), reverse=True), "decrease")
+    if any_:
+        return "Choose " + "; ".join(increases + reductions)
+    names = join_conjunct([ABILITY_NAMES[a] for a in choices], ", ", " and ")
+    return f"From {names} choose " + join_conjunct(
+        increases + reductions, ", ", " and "
+    )
+
+
+def _choose_from(choose: Raw, fixed: list[str]) -> str:
+    choices = choose["from"]
+    every = len(choices) == 6
+    with_fixed = len({*fixed, *(c.lower() for c in choices)}) == 6
+    amount = _bonus(choose.get("amount", 1))
+    count = choose.get("count") or 0
+    parts = ["any"] if every else ["any other"] if with_fixed else []
+    if count > 1:
+        parts.append(number_to_text(count))
+    if every or with_fixed:
+        parts.append(f"{'unique ' if count > 1 else ''}{amount}")
+    else:
+        names = join_conjunct([ABILITY_NAMES[a] for a in choices], ", ", " or ")
+        parts.append(f"{names} {amount}")
+    return "Choose " + " ".join(parts)
