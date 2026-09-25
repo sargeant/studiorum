@@ -196,11 +196,13 @@ def render_models(
     context: RenderingContext,
     *,
     barriers: bool = False,
+    floating: bool = True,
 ) -> str:
     """Creatures, items or spells through their render macros.
 
     ``barriers`` adds a float barrier every ten items and at the end, for
-    appendices of statblocks.
+    appendices of statblocks. ``floating=False`` sets narrow creature
+    statblocks in the text.
     """
     if kind not in CONTENT_TITLES:
         raise ValueError(f"Cannot render {kind} content in a document")
@@ -209,5 +211,9 @@ def render_models(
     context = replace(context, style=replace(context.style, content_type=content_type))
     template = environment().get_template("_content.tex.j2")
     return template.render(
-        kind=kind, items=items, barriers=barriers, rendering_context=context
+        kind=kind,
+        items=items,
+        barriers=barriers,
+        floating=floating,
+        rendering_context=context,
     ).strip()

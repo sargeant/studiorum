@@ -4,7 +4,7 @@
 <@ from "_item_render_block.tex.j2" import render_item with context @>
 <@ for item in items @>
 <@ if kind == "creature" @>
-<# render_creature(item) #>
+<# render_creature(item, floating) #>
 <@ elif kind == "spell" @>
 <# render_spell(item) #>
 <@ else @>

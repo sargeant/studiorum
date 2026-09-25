@@ -21,7 +21,10 @@ from pydantic import BaseModel
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import PROP_TYPES
+from studiorum.core.models.content_models import (
+    PROP_TYPES,
+    content_type_of,
+)
 from studiorum.core.models.creatures import ArmorClass, Creature
 from studiorum.renderers.context import Style
 from studiorum.renderers.escape import escape
@@ -77,6 +80,9 @@ STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
     "vehicle": (ContentType.VEHICLE, "GoS"),
 }
 
+# Content that statblocks render through its own macro (render_models)
+MODEL_KINDS = frozenset({"creature", "spell", "item"})
+
 _warned_types: set[str] = set()
 _warned_statblocks: set[str] = set()
 
@@ -111,6 +117,7 @@ class EntryRenderer:
         self._context = context
         self._depth = 0
         self._path: list[str] = []
+        self._wide_float = False
 
     @classmethod
     def from_context(cls, context: RenderingContext) -> EntryRenderer:
@@ -226,6 +233,9 @@ class EntryRenderer:
         if entries := entry.get("entries", []):
             with self._deeper():
                 result.extend(self.entries(entries))
+        if name and self._wide_float:
+            result.append("\\FloatBarrier")
+            self._wide_float = False
         return "\n\n".join(result)
 
     def _inset_read_aloud(self, entry: dict[str, Any]) -> str:
@@ -494,12 +504,12 @@ class EntryRenderer:
         found = self._statblock_content(entry)
         if found is None:
             return self._heading(self._depth, name)
+        if display := entry.get("displayName"):
+            found = found.model_copy(update={"name": display})
+        content_type = content_type_of(found)
+        if content_type.value in MODEL_KINDS:
+            return self._render_model(content_type.value, found)
         inset = entry.get("style", "") == "inset"
-        tag = entry.get("tag", "")
-        if inset and tag in ("creature", "item"):
-            if display := entry.get("displayName"):
-                found = found.model_copy(update={"name": display})
-            return self._render_model(tag, found)
         entries = found.model_dump().get("entries") or []
         if not entries:
             return self.text(name) if inset else self._heading(self._depth, name)
@@ -533,7 +543,8 @@ class EntryRenderer:
             )
         return found
 
-    def _render_model(self, tag: str, content: Any) -> str:
+    def _render_model(self, kind: str, content: Any) -> str:
+        """A creature, spell or item through its macro, in the text."""
         from studiorum.renderers.context import RenderingContext
 
         from .document import render_models
@@ -541,7 +552,11 @@ class EntryRenderer:
         context = self._context or RenderingContext(
             content_tracker=self.tracker, omnidexer=self.omnidexer
         )
-        return render_models(tag, [content], context)
+        latex = render_models(kind, [content], context, floating=False)
+        # A wide statblock still floats; its section ends with a float barrier
+        if "[float*" in latex and self.style.book:
+            self._wide_float = True
+        return latex
 
 
 def spellcasting(renderer: EntryRenderer, entry: dict[str, Any]) -> str:

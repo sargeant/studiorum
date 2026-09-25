@@ -341,3 +341,47 @@ def test_armour_class_renders_its_sources() -> None:
 
 def test_senses_render_tags() -> None:
     assert creature_senses_text(CREATURE) == "\\textit{darkvision} 60 ft."
+
+
+def _statblock_in_section(creature: Creature) -> str:
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=creature)), style=Style(book=True)
+    )
+    return renderer.entry(
+        {
+            "type": "section",
+            "name": "Knights",
+            "entries": [{"type": "statblock", "tag": "creature", "name": "Knight"}],
+        }
+    )
+
+
+def test_creature_statblocks_sit_in_the_text() -> None:
+    out = _statblock_in_section(CREATURE)
+
+    assert "\\begin{DndMonster}{Knight}" in out
+    assert "FloatBarrier" not in out
+
+
+def test_a_wide_statblock_floats_to_the_end_of_its_section() -> None:
+    legendary = CREATURE.model_copy(
+        update={"legendary": [Ability(name="Charge", entries=["It moves."])]}
+    )
+    out = _statblock_in_section(legendary)
+
+    assert "\\begin{DndMonster}[float*=tp" in out
+    assert out.endswith("\\FloatBarrier")
+
+
+def test_statblocks_take_their_display_name() -> None:
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=CREATURE)))
+    out = renderer.entry(
+        {
+            "type": "statblock",
+            "tag": "creature",
+            "name": "Knight",
+            "displayName": "Sir Knight",
+        }
+    )
+
+    assert "\\begin{DndMonster}{Sir Knight}" in out
