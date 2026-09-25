@@ -20,6 +20,7 @@ from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.loaders.content_sources import parse_enhanced_name_lines
+from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.protocols.progress import ProgressCallback
@@ -48,14 +49,13 @@ def conversion_errors() -> Iterator[None]:
         raise typer.Exit(1) from None
 
 
-def load_data(kind: str) -> tuple[Any, Any]:
-    """The omnidexer and tag resolver, loading the data set with a spinner."""
+def load_data(kind: str) -> Omnidexer:
+    """The omnidexer, loading the data set with a spinner."""
     with display_manager.progress("Loading content") as _:
         task = display_manager.add_task(f"[cyan]Loading {kind} data...", total=None)
-        services = get_services()
-        omnidexer, tag_resolver = services.omnidexer, services.tag_resolver
+        omnidexer = get_services().omnidexer
         display_manager.update_task(task, completed=100)
-    return omnidexer, tag_resolver
+    return omnidexer
 
 
 def write_document(

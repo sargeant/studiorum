@@ -251,22 +251,10 @@ class TestCreatureRealDataIntegration:
         assert "0" in spells_dict  # Cantrips
         assert "9" in spells_dict  # 9th level spells
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_real_data_markup_processing(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_real_data_markup_processing(self, mock_get_omnidexer):
         """Test markup processing with real data patterns."""
         # Setup mocks for tag processing
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text.side_effect = lambda text: (
-            text.replace("{@atk mw}", "Melee Weapon Attack:")
-            .replace("{@atk rw}", "Ranged Weapon Attack:")
-            .replace("{@hit 4}", "+4")
-            .replace("{@h}", "Hit: ")
-            .replace("1d6 + 2", "1d6 + 2")
-        )
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 

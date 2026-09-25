@@ -6,9 +6,7 @@ from typing import Any
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
-from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
-from studiorum.latex_engine.services.template_service import active_template_service
 from studiorum.renderers.context import RenderingContext
 
 
@@ -58,14 +56,6 @@ class SpellEntryRenderer(BaseEntryRenderer):
             content.higher_level or [], skip_section_names=True
         )
 
-        # Get template service for explicit context passing
-        # Try to get from context first, fallback to CLI service
-        template_service = None
-        if hasattr(context, "template_service") and context.template_service:
-            template_service = context.template_service
-        else:
-            template_service = active_template_service()
-
         # Ensure sectioning depth for spells uses paragraph at depth 1
         # by marking the rendering context with content_type="spell".
         try:
@@ -78,7 +68,6 @@ class SpellEntryRenderer(BaseEntryRenderer):
                 debug_mode=context.debug_mode,
                 omnidexer=context.omnidexer,
                 content_tracker=context.content_tracker,
-                tag_resolver=context.tag_resolver,
                 metadata=spell_metadata,
             )
         except Exception:
@@ -94,8 +83,6 @@ class SpellEntryRenderer(BaseEntryRenderer):
             "description_text": description_text,
             "higher_level_text": higher_level_text,
             "rendering_context": rendering_context,
-            "template_service": template_service,
-            "content_tracker": context.content_tracker or ContentTracker(),
         }
 
 
@@ -110,14 +97,6 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         self, content: Creature, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for creature using model methods."""
-        # Get template service for explicit context passing
-        # Try to get from context first, fallback to CLI service
-        template_service = None
-        if hasattr(context, "template_service") and context.template_service:
-            template_service = context.template_service
-        else:
-            template_service = active_template_service()
-
         # Provide both the creature object and preprocessed fields for compatibility
         return {
             "creature": content,
@@ -139,8 +118,6 @@ class CreatureEntryRenderer(BaseEntryRenderer):
                 "cha": content.get_ability_text(content.charisma),
             },
             "rendering_context": context,
-            "template_service": template_service,
-            "content_tracker": context.content_tracker or ContentTracker(),
         }
 
 
@@ -155,14 +132,6 @@ class ItemEntryRenderer(BaseEntryRenderer):
         self, content: Item, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for item using model methods."""
-        # Get template service for explicit context passing
-        # Try to get from context first, fallback to CLI service
-        template_service = None
-        if hasattr(context, "template_service") and context.template_service:
-            template_service = context.template_service
-        else:
-            template_service = active_template_service()
-
         # Ensure sectioning depth for items uses subparagraph for named subentries
         # by marking the rendering context with content_type="item".
         try:
@@ -175,7 +144,6 @@ class ItemEntryRenderer(BaseEntryRenderer):
                 debug_mode=context.debug_mode,
                 omnidexer=context.omnidexer,
                 content_tracker=context.content_tracker,
-                tag_resolver=context.tag_resolver,
                 metadata=item_metadata,
             )
         except Exception:
@@ -198,8 +166,6 @@ class ItemEntryRenderer(BaseEntryRenderer):
             "value_text": content.get_value_text(),
             "description_text": description_text,
             "rendering_context": rendering_context,
-            "template_service": template_service,
-            "content_tracker": context.content_tracker or ContentTracker(),
         }
 
 

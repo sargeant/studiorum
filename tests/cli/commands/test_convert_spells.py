@@ -8,7 +8,6 @@ from typer.testing import CliRunner
 
 from studiorum.cli.main import app
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.renderers.tags import TagResolver
 
 
 @pytest.mark.cli
@@ -87,7 +86,6 @@ class TestConvertSpellsCommand:
         ]
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
@@ -98,15 +96,12 @@ class TestConvertSpellsCommand:
         mock_display,
         mock_render_spellbook,
         mock_spell_collector_class,
-        mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test converting specific spells by name."""
         # Mock dependencies
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock spell collector
         mock_collector = Mock()
@@ -178,20 +173,17 @@ class TestConvertSpellsCommand:
         assert "File does not exist" in result.stdout
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     def test_convert_spells_no_spells_found(
         self,
         mock_display,
         mock_spell_collector_class,
-        mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test error handling when no spells are found."""
         # Mock dependencies
         mock_omnidexer.return_value = Mock(spec=Omnidexer)
-        mock_tag_resolver.return_value = Mock(spec=TagResolver)
 
         # Mock spell collector with no results
         mock_collector = Mock()

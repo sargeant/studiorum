@@ -24,31 +24,15 @@ from studiorum.core.config.unified_config import (
 from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Ability, Spellcasting
 from studiorum.core.types import LaTeXConfig as LaTeXConfigDict
+from studiorum.latex_engine.entries import (
+    EntryRenderer,
+    creature_ac_text,
+    creature_senses_text,
+)
 from studiorum.renderers.escape import escape
+from studiorum.renderers.tags import render
 
-from ..services.template_service import active_template_service
-from . import model_text
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
-
-
-def _active_tag_resolver() -> Any:
-    """The active template service's tag resolver, or None if there is none."""
-    try:
-        service = active_template_service()
-    except Exception:
-        return None
-    return service.tag_resolver if service is not None else None
-
-
-def _active_omnidexer_and_tag_resolver() -> tuple[Any, Any]:
-    """The active template service's omnidexer and tag resolver, or (None, None)."""
-    try:
-        service = active_template_service()
-    except Exception:
-        return None, None
-    if service is None:
-        return None, None
-    return service.omnidexer, service.tag_resolver
 
 
 def _class_for_content_type(
@@ -81,21 +65,10 @@ def _latex_escape(value: Any) -> str:
     return escape(value if isinstance(value, str) else str(value))
 
 
-def _processed_ac_text(creature: Any) -> str:
-    """Creature AC with tags in armour sources resolved."""
-    return model_text.creature_ac_text(creature, _active_tag_resolver())
-
-
-def _processed_senses(creature: Any) -> str | None:
-    """Creature senses with tags resolved."""
-    return model_text.creature_senses_text(creature, _active_tag_resolver())
-
-
 def _safe_processed_name(obj: Any) -> str:
-    """Safely get processed name from object or dict."""
-    if isinstance(obj, (Ability, Spellcasting)):
-        omnidexer, tag_resolver = _active_omnidexer_and_tag_resolver()
-        return model_text.ability_name_text(obj, omnidexer, tag_resolver)
+    """An ability's name with its tags rendered, or any object's name."""
+    if isinstance(obj, Ability | Spellcasting):
+        return render(obj.name) if obj.name else ""
     if hasattr(obj, "get_processed_name"):
         try:
             return obj.get_processed_name()
@@ -114,8 +87,6 @@ def _safe_processed_name(obj: Any) -> str:
 @pass_context
 def _entries(context: Context, value: Any) -> str:
     """LaTeX for entries, rendered with the template's rendering_context."""
-    from studiorum.latex_engine.entries import EntryRenderer
-
     if isinstance(value, Undefined):
         return ""
     rendering_context = context.get("rendering_context")
@@ -146,8 +117,8 @@ def environment() -> Environment:
     filters: dict[str, Callable[..., Any]] = {
         "latex_escape": _latex_escape,
         "safe_processed_name": _safe_processed_name,
-        "processed_ac_text": _processed_ac_text,
-        "processed_senses": _processed_senses,
+        "processed_ac_text": creature_ac_text,
+        "processed_senses": creature_senses_text,
         "entries": _entries,
     }
     env.filters.update(filters)
@@ -346,36 +317,6 @@ class LaTeXTemplateEngine:
             "config": self.config,
             "debug": self.debug,
         }
-
-        # Add template services if not already provided
-        if "template_service" not in kwargs:
-            context["template_service"] = active_template_service()
-
-        if "content_tracker" not in kwargs:
-            from ...core.references.content_tracker import ContentTracker
-
-            context["content_tracker"] = ContentTracker()
-
-        # Provide a default RenderingContext when not explicitly supplied
-        if "rendering_context" not in kwargs and "rendering_context" not in context:
-            try:
-                from studiorum.renderers.context import RenderingContext as RC
-
-                tmpl_service = context.get("template_service")
-                context["rendering_context"] = RC(
-                    output_format="latex",
-                    omnidexer=getattr(tmpl_service, "omnidexer", None),
-                    content_tracker=context.get("content_tracker"),
-                    tag_resolver=getattr(tmpl_service, "tag_resolver", None),
-                    debug_mode=bool(self.debug),
-                    metadata=dict(kwargs.get("metadata", {}) or {}),
-                )
-            except Exception:
-                # Non-fatal: log and continue; missing context will surface at render
-                self._logger.debug(
-                    "Failed to initialize rendering_context default in template context",
-                    exc_info=True,
-                )
 
         context.update(kwargs)
         return context

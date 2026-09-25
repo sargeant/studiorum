@@ -200,7 +200,6 @@ class TestEnhancedFromFileSupport:
         return [MockItem(name, item_type) for name, item_type in item_data]
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
@@ -211,7 +210,6 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test spells command with simple format (backward compatibility)."""
@@ -222,7 +220,6 @@ class TestEnhancedFromFileSupport:
         # Mock dependencies following working test pattern
         mock_omnidexer_instance = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver.return_value = Mock()
 
         # Mock spell collector following working test pattern
         mock_collector = Mock()
@@ -280,7 +277,6 @@ class TestEnhancedFromFileSupport:
         assert output_file.exists()
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
@@ -291,7 +287,6 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test spells command with enhanced format including counts."""
@@ -302,7 +297,6 @@ class TestEnhancedFromFileSupport:
         # Mock dependencies following working test pattern
         mock_omnidexer_instance = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver.return_value = Mock()
 
         # Set up config mocks
 
@@ -352,7 +346,6 @@ class TestEnhancedFromFileSupport:
         assert mock_collector.collect_spells.call_count >= 1
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
@@ -363,7 +356,6 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test spells command respects source specifications."""
@@ -374,7 +366,6 @@ class TestEnhancedFromFileSupport:
         # Mock dependencies following working test pattern
         mock_omnidexer_instance = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver.return_value = Mock()
 
         # Set up config mocks
 
@@ -425,9 +416,8 @@ class TestEnhancedFromFileSupport:
     @patch("studiorum.cli.commands.convert.creatures._render_bestiary")
     @patch("studiorum.core.services.creature_collector.CreatureCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_creatures_enhanced_format_with_counts(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_omnidexer, mock_collector_class, mock_render
     ):
         """Test creatures command with enhanced format and counts for statblocks."""
         # Create test file with counts (relevant for creatures as statblocks)
@@ -437,7 +427,6 @@ class TestEnhancedFromFileSupport:
         # Mock dependencies
         mock_omnidexer = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock the collector with proper CreatureCollectorResult
         mock_collector = Mock()
@@ -487,9 +476,8 @@ class TestEnhancedFromFileSupport:
     @patch("studiorum.cli.commands.convert.items._render_itemcompendium")
     @patch("studiorum.core.services.item_collector.ItemCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_items_enhanced_format_with_counts(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_omnidexer, mock_collector_class, mock_render
     ):
         """Test items command with enhanced format and counts."""
         # Create test file with counts
@@ -499,7 +487,6 @@ class TestEnhancedFromFileSupport:
         # Mock dependencies
         mock_omnidexer = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock the collector with proper ItemCollectorResult
         mock_collector = Mock()
@@ -584,9 +571,8 @@ class TestEnhancedFromFileSupport:
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_mixed_format_handling(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_omnidexer, mock_collector_class, mock_render
     ):
         """Test handling of mixed format lines in same file."""
         content = """# Mixed format test
@@ -600,7 +586,6 @@ Haste|PHB"""
         # Mock dependencies
         mock_omnidexer = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
@@ -649,9 +634,8 @@ Haste|PHB"""
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_comments_and_whitespace_handling(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_omnidexer, mock_collector_class, mock_render
     ):
         """Test proper handling of comments and whitespace."""
         content = """# This is a spell list
@@ -668,7 +652,6 @@ Haste|PHB"""
         # Mock dependencies
         mock_omnidexer = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
@@ -717,9 +700,8 @@ Haste|PHB"""
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_zero_count_handling(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_omnidexer, mock_collector_class, mock_render
     ):
         """Test handling of zero counts in enhanced format."""
         content = "0 Fireball|PHB\n3 Magic Missile|PHB\n0 Shield"
@@ -728,7 +710,6 @@ Haste|PHB"""
         # Mock dependencies
         mock_omnidexer = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
@@ -780,9 +761,8 @@ Haste|PHB"""
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_large_count_handling(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_omnidexer, mock_collector_class, mock_render
     ):
         """Test handling of large counts."""
         content = "100 Fireball|PHB\n999 Magic Missile|PHB"
@@ -791,7 +771,6 @@ Haste|PHB"""
         # Mock dependencies
         mock_omnidexer = self.create_mock_omnidexer()
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
@@ -840,9 +819,8 @@ Haste|PHB"""
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.core.services.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_complex_names_with_special_characters(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_omnidexer, mock_collector_class, mock_render
     ):
         """Test handling of complex names with special characters."""
         content = """Bigby's Hand|PHB
@@ -885,7 +863,6 @@ Mordenkainen's Magnificent Mansion|PHB"""
 
         mock_omnidexer.find_all = Mock(side_effect=mock_find_all)
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()

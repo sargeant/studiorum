@@ -5,13 +5,17 @@ from unittest.mock import Mock
 
 import pytest
 
+from studiorum.core.models.creatures import Ability, Creature
 from studiorum.core.models.document_metadata import DocumentType
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
     EntryError,
     EntryRenderer,
     Style,
     column_spec,
+    creature_ac_text,
+    creature_senses_text,
 )
 
 
@@ -275,3 +279,41 @@ def test_a_failure_names_where_it_happened() -> None:
         render(tree)
     with pytest.raises(EntryError, match="Cannot render a object"):
         render(object())
+
+
+CREATURE = Creature.model_validate(
+    {
+        "name": "Knight",
+        "source": "MM",
+        "size": ["M"],
+        "type": "humanoid",
+        "alignment": ["N"],
+        "ac": [{"ac": 18, "from": ["{@item plate armor|phb}"]}, 12],
+        "hp": {"average": 52},
+        "speed": {"walk": 30},
+        "str": 16,
+        "dex": 11,
+        "con": 14,
+        "int": 11,
+        "wis": 11,
+        "cha": 15,
+        "cr": "3",
+        "senses": ["{@sense darkvision|XPHB} 60 ft."],
+    }
+)
+
+
+def test_ability_names_render_tags() -> None:
+    ability = Ability(name="Fire Breath {@recharge 5}", entries=[])
+    assert (
+        environment().filters["safe_processed_name"](ability)
+        == "Fire Breath (Recharge 5--6)"
+    )
+
+
+def test_armour_class_renders_its_sources() -> None:
+    assert creature_ac_text(CREATURE) == "18 (\\textit{plate armor}), 12"
+
+
+def test_senses_render_tags() -> None:
+    assert creature_senses_text(CREATURE) == "\\textit{darkvision} 60 ft."

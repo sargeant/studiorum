@@ -107,9 +107,8 @@ class TestEnhancedFileSupportIntegration:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_to_content_lists_workflow(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
+        self, mock_get_omnidexer, mock_get_writer
     ):
         """Test complete workflow from adventure conversion to content list generation."""
         # Setup mocks
@@ -120,7 +119,6 @@ class TestEnhancedFileSupportIntegration:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter to simulate real file writing
         mock_writer = Mock()
@@ -225,10 +223,9 @@ class TestEnhancedFileSupportIntegration:
                 )
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_spells_conversion_workflow(
-        self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
+        self, mock_get_default_sources, mock_get_omnidexer
     ):
         """Test workflow from content list file to spell conversion."""
         # Create enhanced format content list
@@ -279,7 +276,6 @@ class TestEnhancedFileSupportIntegration:
         mock_omnidexer.get_spell.side_effect = mock_get_spell
         mock_omnidexer.find_all.side_effect = mock_find_all
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock default sources to return a list of source abbreviations
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
@@ -315,10 +311,9 @@ class TestEnhancedFileSupportIntegration:
             assert mock_omnidexer.find_all.call_count == 3
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_creatures_conversion_workflow(
-        self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
+        self, mock_get_default_sources, mock_get_omnidexer
     ):
         """Test workflow from content list file to creature conversion."""
         # Create enhanced format content list
@@ -384,7 +379,6 @@ class TestEnhancedFileSupportIntegration:
         ]
 
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock default sources to return a list of source abbreviations
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
@@ -420,10 +414,9 @@ class TestEnhancedFileSupportIntegration:
             assert mock_omnidexer.find.call_count == 3
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_items_conversion_workflow(
-        self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
+        self, mock_get_default_sources, mock_get_omnidexer
     ):
         """Test workflow from content list file to item conversion."""
         # Create enhanced format content list
@@ -499,7 +492,6 @@ class TestEnhancedFileSupportIntegration:
         ]
 
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock default sources to return a list of source abbreviations
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]

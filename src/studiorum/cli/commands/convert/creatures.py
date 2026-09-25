@@ -302,7 +302,7 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
     """
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
-        omnidexer, tag_resolver = load_data("creature")
+        omnidexer = load_data("creature")
 
         names = read_names(
             creature_names,
@@ -350,7 +350,6 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
             output_format="latex",
             omnidexer=omnidexer,
             content_tracker=tracker,
-            tag_resolver=tag_resolver,
             metadata={
                 "title": _heading(options, creature_types),
                 "include_images": options.images,

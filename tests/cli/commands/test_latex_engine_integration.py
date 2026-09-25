@@ -38,12 +38,10 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_adventure_pdf_uses_latex_compiler_with_config(
         self,
         mock_compile_pdf,
-        mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test that adventure PDF compilation uses LaTeXCompiler with proper configuration."""
@@ -52,12 +50,6 @@ class TestLaTeXEngineIntegration:
         mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
         mock_omnidexer.get_all_by_type = Mock(return_value=[])
         mock_get_omnidexer.return_value = mock_omnidexer
-
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve = Mock(
-            side_effect=lambda text, _: text
-        )  # Pass through tags unchanged
-        mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
         mock_compile_pdf.return_value = None
@@ -100,12 +92,10 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_book_pdf_uses_configured_engine(
         self,
         mock_compile_pdf,
-        mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test that book PDF compilation uses configured LaTeX engine."""
@@ -114,12 +104,6 @@ class TestLaTeXEngineIntegration:
         mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
         mock_omnidexer.get_all_by_type = Mock(return_value=[])
         mock_get_omnidexer.return_value = mock_omnidexer
-
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve = Mock(
-            side_effect=lambda text, _: text
-        )  # Pass through tags unchanged
-        mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
         mock_compile_pdf.return_value = None

@@ -19,7 +19,6 @@ from studiorum.core.loaders.data_dir import DataDir, DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
 from studiorum.core.models.creatures import Creature  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
-from studiorum.renderers.tags import TagResolver
 
 # Import the test helper for consistent setup
 from tests.test_helpers import reset_test_environment
@@ -287,11 +286,6 @@ def make_omnidexer():
         return omnidexer
 
     return _make_omnidexer
-
-
-@pytest.fixture
-def tag_resolver() -> TagResolver:
-    return TagResolver()
 
 
 @pytest.fixture

@@ -114,7 +114,6 @@ class TestTemplateInjectionVulnerabilities:
                 return None
 
         # Test with a malicious spell name
-        from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
 
         test_context = {
@@ -126,7 +125,6 @@ class TestTemplateInjectionVulnerabilities:
             "duration_text": "Instantaneous",
             "description_text": "Test\\input{/etc/passwd}",
             "higher_level_text": None,
-            "template_service": get_services().template_service,
             "content_tracker": ContentTracker(),
         }
 

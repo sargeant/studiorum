@@ -21,6 +21,7 @@ from pydantic import BaseModel
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
+from studiorum.core.models.creatures import ArmorClass, Creature
 from studiorum.core.models.document_metadata import DocumentType
 from studiorum.renderers.escape import escape
 from studiorum.renderers.tags import render
@@ -718,6 +719,41 @@ def column_spec(col_styles: list[str], count: int) -> str:
                     specs[i] = "X"
                     converted += 1
     return "".join(specs)
+
+
+# Creature statblock fields that carry markup; references in them are not tracked
+
+
+def armor_class_text(armor_class: ArmorClass) -> str:
+    """An AC value with its armour sources and condition."""
+    if armor_class.special:
+        return render(armor_class.special)
+    if armor_class.ac is None:
+        return "Unknown"
+    result = str(armor_class.ac)
+    if armor_class.from_:
+        result += f" ({', '.join(render(source) for source in armor_class.from_)})"
+    if armor_class.condition:
+        result += f" {render(armor_class.condition)}"
+    return result
+
+
+def creature_ac_text(creature: Creature) -> str:
+    """The creature's AC line, one part per AC entry."""
+    if not isinstance(creature.ac, list):
+        return str(creature.ac)
+    return ", ".join(
+        str(item) if isinstance(item, int) else armor_class_text(item)
+        for item in creature.ac
+    )
+
+
+def creature_senses_text(creature: Creature) -> str | None:
+    """The creature's senses, or None if it has none."""
+    if not creature.senses:
+        return None
+    senses = creature.senses
+    return render(", ".join(senses) if isinstance(senses, list) else str(senses))
 
 
 HANDLERS: dict[str, Callable[[EntryRenderer, dict[str, Any]], str]] = {

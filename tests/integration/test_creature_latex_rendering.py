@@ -11,7 +11,6 @@ from unittest.mock import Mock, PropertyMock, patch
 import pytest
 
 from studiorum.core.models.creatures import Creature
-from studiorum.latex_engine.core import model_text
 
 
 @pytest.mark.integration
@@ -101,27 +100,10 @@ class TestCreatureLaTeXRendering:
             ],
         }
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_creature_stat_block_latex_generation(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_creature_stat_block_latex_generation(self, mock_get_omnidexer):
         """Test LaTeX generation for creature stat blocks."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text.side_effect = lambda text: (
-            text.replace("{@atk mw}", "Melee Weapon Attack:")
-            .replace("{@hit 11}", "+11")
-            .replace("{@h}", "Hit: ")
-            .replace("{@damage 1d8}", "1d8")
-            .replace("{@damage 12d8}", "12d8")
-            .replace("{@damage 2d6 + 6}", "2d6 + 6")
-            .replace("{@recharge 3}", "(3/Day)")
-            .replace("{@recharge 5}", "(Recharge 5-6)")
-            .replace("{@skill Perception}", "Perception")
-            .replace("{@condition prone}", "prone")
-        )
-        mock_get_tag_resolver.return_value = mock_tag_resolver
 
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
@@ -137,15 +119,10 @@ class TestCreatureLaTeXRendering:
         assert "Large dragon (chromatic)" in creature.get_size_type_alignment()
         assert "chaotic evil" in creature.get_size_type_alignment()
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_creature_abilities_latex_processing(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_creature_abilities_latex_processing(self, mock_get_omnidexer):
         """Test LaTeX processing of creature abilities with 5etools markup."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -154,13 +131,11 @@ class TestCreatureLaTeXRendering:
         # Test trait processing
 
         trait = creature.trait[0]
-        processed_name = model_text.ability_name_text(
-            trait, mock_omnidexer, mock_tag_resolver
-        )
         from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
         from studiorum.latex_engine.entries import EntryRenderer
         from studiorum.renderers.context import RenderingContext
+        from studiorum.renderers.tags import render
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
@@ -173,7 +148,7 @@ class TestCreatureLaTeXRendering:
         )
         processed_desc = "\n\n".join(processed_entries)
 
-        assert "Legendary Resistance" in processed_name
+        assert "Legendary Resistance" in render(trait.name)
         assert "saving throw" in processed_desc
 
         # Test action processing
@@ -288,22 +263,10 @@ class TestCreatureLaTeXRendering:
             else spellcasting_data.get("headerEntries", [""])[0]
         )
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_creature_complex_markup_integration(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_creature_complex_markup_integration(self, mock_get_omnidexer):
         """Test integration of complex 5etools markup processing."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text.side_effect = lambda text: (
-            text.replace("{@atk mw}", "Melee Weapon Attack:")
-            .replace("{@hit 11}", "+11")
-            .replace("{@damage 12d8}", "12d8")
-            .replace("{@recharge 5}", "(Recharge 5-6)")
-            .replace("{@condition prone}", "prone")
-        )
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -460,15 +423,10 @@ class TestCreatureRenderingParityPhase3:
     5. Empty sections handling
     """
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_named_creature_pronouns_and_headers(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_named_creature_pronouns_and_headers(self, mock_get_omnidexer):
         """Test that named creatures use 'they/them/their' and no 'the' prefix."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -527,15 +485,10 @@ class TestCreatureRenderingParityPhase3:
         assert "their turn" in header_text  # Named creature uses "their"
         assert "its turn" not in header_text  # Should not use generic pronoun
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_generic_creature_pronouns_and_headers(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_generic_creature_pronouns_and_headers(self, mock_get_omnidexer):
         """Test that generic creatures use 'it/its/its' and 'the' prefix."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -591,15 +544,10 @@ class TestCreatureRenderingParityPhase3:
         assert "its turn" in header_text  # Generic creature uses "its"
         assert "their turn" not in header_text  # Should not use named creature pronoun
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_lair_variant_parenthetical(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_lair_variant_parenthetical(self, mock_get_omnidexer):
         """Test lair variant parenthetical when counts differ."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -646,18 +594,10 @@ class TestCreatureRenderingParityPhase3:
             in header_text
         )
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_structured_headers_rendering(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_structured_headers_rendering(self, mock_get_omnidexer):
         """Test structured headers (dict/tag content) render via smart_render_entry."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text.side_effect = lambda text: text.replace(
-            "{@spell fireball}", "fireball"
-        )
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -708,13 +648,10 @@ class TestCreatureRenderingParityPhase3:
             "@spell fireball" in structured_entry.entries[0]
         )  # Should contain markup for processing
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_empty_sections_handling(self, mock_get_omnidexer, mock_get_tag_resolver):
+    def test_empty_sections_handling(self, mock_get_omnidexer):
         """Test sections omitted when both entries and spells are empty."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -755,18 +692,10 @@ class TestCreatureRenderingParityPhase3:
         assert creature.get_section_header("legendary") is None
         assert creature.get_section_header("reaction") is None
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_integration_rendering_pipeline_with_new_helpers(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_integration_rendering_pipeline_with_new_helpers(self, mock_get_omnidexer):
         """Test that new helpers integrate properly with the rendering pipeline."""
         # Setup mocks
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text.side_effect = lambda text: text.replace(
-            "{@atk mw}", "Melee Weapon Attack:"
-        )
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 

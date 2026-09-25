@@ -4,11 +4,8 @@ These tests focus on the core functionality of creature models for generating
 properly formatted stat blocks with ability scores, modifiers, and complex text formatting.
 """
 
-from unittest.mock import PropertyMock, patch
-
 import pytest
 
-from studiorum.cli.context import get_services
 from studiorum.core.models.creatures import (
     Ability,
     ArmorClass,
@@ -19,7 +16,7 @@ from studiorum.core.models.creatures import (
     Speed,
 )
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.core import model_text
+from studiorum.latex_engine.entries import EntryRenderer
 
 
 class TestCreatureStatBlockRendering:
@@ -391,27 +388,10 @@ class TestCreatureAbilities:
         # Test fallback text extraction (without tag processing)
 
         # Built before the patch: the patch only reaches the template filters
-        template_service = get_services().template_service
-        with patch(
-            "studiorum.services.Services.tag_resolver",
-            new_callable=PropertyMock,
-            side_effect=Exception("No resolver"),
-        ):
-            # Use template service for text extraction
-            content_tracker = ContentTracker()
-            bound = template_service.bind_context(content_tracker)
-            text = bound.render_entry(simple_ability.entries)
-            assert "advantage on Wisdom (Perception)" in text
-
-    def test_ability_name_processing(self):
-        """Test ability name processing with fallback."""
-        ability = Ability(
-            name="Multiattack", entries=["The creature makes two weapon attacks."]
-        )
-
-        # Without a tag resolver the name is returned unprocessed
-        name = model_text.ability_name_text(ability, None, None)
-        assert name == "Multiattack"
+        content_tracker = ContentTracker()
+        bound = EntryRenderer(tracker=content_tracker)
+        text = bound.render(simple_ability.entries)
+        assert "advantage on Wisdom (Perception)" in text
 
     def test_complex_entry_structure(self):
         """Test handling of complex entry structures."""
@@ -435,19 +415,12 @@ class TestCreatureAbilities:
         # Test fallback text extraction
 
         # Built before the patch: the patch only reaches the template filters
-        template_service = get_services().template_service
-        with patch(
-            "studiorum.services.Services.tag_resolver",
-            new_callable=PropertyMock,
-            side_effect=Exception("No resolver"),
-        ):
-            # Use template service for text extraction
-            content_tracker = ContentTracker()
-            bound = template_service.bind_context(content_tracker)
-            text = bound.render_entry(complex_ability.entries)
-            assert "18th-level spellcaster" in text
-            assert "Cantrips" in text
-            assert "magic missile" in text
+        content_tracker = ContentTracker()
+        bound = EntryRenderer(tracker=content_tracker)
+        text = bound.render(complex_ability.entries)
+        assert "18th-level spellcaster" in text
+        assert "Cantrips" in text
+        assert "magic missile" in text
 
 
 class TestCreatureLayoutDecisions:

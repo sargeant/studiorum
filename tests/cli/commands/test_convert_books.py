@@ -10,7 +10,6 @@ from typer.testing import CliRunner
 
 from studiorum.cli.main import app
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.renderers.tags import TagResolver
 
 
 @pytest.mark.cli
@@ -33,7 +32,6 @@ class TestConvertBookCommand:
 
     @patch("studiorum.services.Services.load_omnidexer")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
@@ -45,7 +43,6 @@ class TestConvertBookCommand:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_tag_resolver,
         mock_omnidexer,
         mock_shared_omnidexer,
     ):
@@ -62,8 +59,6 @@ class TestConvertBookCommand:
         mock_shared_omnidexer.return_value = (
             mock_omnidexer_instance  # Use same mock for shared module
         )
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock LaTeX engine
         mock_engine = Mock()
@@ -94,7 +89,6 @@ class TestConvertBookCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("pathlib.Path.mkdir")
@@ -103,12 +97,9 @@ class TestConvertBookCommand:
         mock_mkdir,
         mock_display,
         mock_engine_factory,
-        mock_tag_resolver,
     ):
         """Test book conversion with custom options."""
         # Mock dependencies
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock LaTeX engine
         mock_engine = Mock()

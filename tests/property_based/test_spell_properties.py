@@ -8,7 +8,6 @@ import pytest
 from hypothesis import example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from studiorum.cli.context import get_services
 from studiorum.core.models.spells import (
     Spell,
     SpellComponent,
@@ -16,6 +15,7 @@ from studiorum.core.models.spells import (
     SpellTime,
 )
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.latex_engine.entries import EntryRenderer
 
 # ==== Hypothesis Strategies for 5e Domain Objects ====
 
@@ -430,10 +430,9 @@ class TestSpellDataIntegrity:
 
         assert len(spell.entries) > 0
         # Use template service for description extraction
-        template_service = get_services().template_service
         content_tracker = ContentTracker()
-        bound = template_service.bind_context(content_tracker)
-        description_text = bound.render_entry(spell.entries)
+        bound = EntryRenderer(tracker=content_tracker)
+        description_text = bound.render(spell.entries)
         assert len(description_text.strip()) > 0
 
     @given(valid_spells())

@@ -186,7 +186,7 @@ def items(
 
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
-        omnidexer, tag_resolver = load_data("item")
+        omnidexer = load_data("item")
 
         names = read_names(item_names, from_file, from_stdin, "item")
         types = _parse(ItemInputParser.parse_type_list, item_types)
@@ -227,7 +227,6 @@ def items(
         context = RenderingContext(
             output_format="latex",
             omnidexer=omnidexer,
-            tag_resolver=tag_resolver,
             metadata={
                 "title": heading,
                 "include_images": options.images,

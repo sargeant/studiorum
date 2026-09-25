@@ -174,7 +174,6 @@ class ContentBuilder:
             from studiorum.cli.context import get_services
 
             omnidexer = get_services().omnidexer
-            tag_resolver = get_services().tag_resolver
 
             context = RenderingContext(
                 output_format="latex",
@@ -183,7 +182,6 @@ class ContentBuilder:
                     "title": content_name,
                     "include_images": not self.no_images,
                     "include_toc": True,
-                    "tag_resolver": tag_resolver,
                 },
             )
 

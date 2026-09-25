@@ -17,6 +17,7 @@ from studiorum.core.models.creatures import (  # type: ignore
 )
 from studiorum.core.models.spells import Spell, SpellComponent  # type: ignore
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.latex_engine.entries import EntryRenderer
 
 
 class TestSource:
@@ -607,10 +608,9 @@ class TestAbility:
         )
         assert str(ability) == "Multiattack"
         # Test description extraction using template service
-        template_service = get_services().template_service
         content_tracker = ContentTracker()
-        bound = template_service.bind_context(content_tracker)
-        description = bound.render_entry(ability.entries)
+        bound = EntryRenderer(tracker=content_tracker)
+        description = bound.render(ability.entries)
         assert description == "The dragon makes three attacks."
 
     def test_ability_complex_entries(self) -> None:
@@ -625,10 +625,9 @@ class TestAbility:
         ]
         ability: Any = Ability(name="Breath Weapon", entries=entries)
         # Test complex entries using template service
-        template_service = get_services().template_service
         content_tracker = ContentTracker()
-        bound = template_service.bind_context(content_tracker)
-        result = bound.render_entry(ability.entries)
+        bound = EntryRenderer(tracker=content_tracker)
+        result = bound.render(ability.entries)
         assert "The dragon breathes fire in a cone." in result
         assert "Fire Breath" in result  # LaTeX format: \subsection{Fire Breath}
         assert "Each creature in the area must make a saving throw." in result
@@ -641,10 +640,9 @@ class TestAbility:
         ]
         ability: Any = Ability(name="Complex Ability", entries=entries)
         # Test text entries using template service
-        template_service = get_services().template_service
         content_tracker = ContentTracker()
-        bound = template_service.bind_context(content_tracker)
-        result = bound.render_entry(ability.entries)
+        bound = EntryRenderer(tracker=content_tracker)
+        result = bound.render(ability.entries)
         # Note: {"text": "..."} entries are not rendering properly in current implementation
         # This is a known issue with the entry processing system
         # assert "This is a text entry." in result
@@ -665,7 +663,6 @@ class TestAbility:
         ]
         ability: Any = Ability(name="List Ability", entries=entries)
         # Test list entries using modern RecursiveEntryProcessor
-        from studiorum.cli.context import get_services
         from studiorum.latex_engine.entries import EntryRenderer
         from studiorum.renderers.context import RenderingContext
 
@@ -696,7 +693,6 @@ class TestAbility:
         ]
         ability: Any = Ability(name="Nested Ability", entries=entries)
         # Test nested entries using modern RecursiveEntryProcessor
-        from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
         from studiorum.latex_engine.entries import EntryRenderer
         from studiorum.renderers.context import RenderingContext
@@ -723,16 +719,15 @@ class TestAbility:
         # Empty entries
         ability1: Any = Ability(name="Empty", entries=[])
         # Test empty entries using template service
-        template_service = get_services().template_service
         content_tracker = ContentTracker()
-        bound = template_service.bind_context(content_tracker)
-        assert bound.render_entry(ability1.entries) == ""
+        bound = EntryRenderer(tracker=content_tracker)
+        assert bound.render(ability1.entries) == ""
 
         # None/empty dict entries
         ability2: Any = Ability(name="Minimal", entries=[{}])
-        assert bound.render_entry(ability2.entries) == ""
+        assert bound.render(ability2.entries) == ""
 
         # Mixed empty and valid entries
         ability3: Any = Ability(name="Mixed", entries=["Valid text", {}, ""])
-        result = bound.render_entry(ability3.entries)
+        result = bound.render(ability3.entries)
         assert "Valid text" in result

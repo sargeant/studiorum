@@ -45,12 +45,10 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.build_pdf")
     def test_adventure_conversion_with_real_data_latex_only(
         self,
         mock_build_pdf,
-        mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test adventure conversion using real test data, only mocking LaTeX compiler."""
@@ -59,12 +57,6 @@ class TestConvertCommandsWithReducedMocking:
         mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
         mock_omnidexer.get_all_by_type = Mock(return_value=[])
         mock_get_omnidexer.return_value = mock_omnidexer
-
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve = Mock(
-            side_effect=lambda text, _: text
-        )  # Pass through tags unchanged
-        mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Only mock LaTeX compilation (an external dependency)
         mock_build_pdf.return_value = Success(Path("/tmp/test.pdf"))
@@ -102,12 +94,10 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.build_pdf")
     def test_book_conversion_with_real_data_latex_only(
         self,
         mock_build_pdf,
-        mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test book conversion using real test data, only mocking LaTeX compiler."""
@@ -116,12 +106,6 @@ class TestConvertCommandsWithReducedMocking:
         mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
         mock_omnidexer.get_all_by_type = Mock(return_value=[])
         mock_get_omnidexer.return_value = mock_omnidexer
-
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve = Mock(
-            side_effect=lambda text, _: text
-        )  # Pass through tags unchanged
-        mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Only mock LaTeX compilation (an external dependency)
         mock_build_pdf.return_value = Success(Path("/tmp/test.pdf"))
@@ -158,12 +142,10 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.ci_broken
     @pytest.mark.requires_latex
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_pdf_compilation_uses_configured_compiler(
         self,
         mock_compile_pdf,
-        mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
         """Test that PDF compilation uses the configured LaTeX compiler."""
@@ -172,12 +154,6 @@ class TestConvertCommandsWithReducedMocking:
         mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
         mock_omnidexer.get_all_by_type = Mock(return_value=[])
         mock_get_omnidexer.return_value = mock_omnidexer
-
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.resolve = Mock(
-            side_effect=lambda text, _: text
-        )  # Pass through tags unchanged
-        mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
         mock_compile_pdf.return_value = None

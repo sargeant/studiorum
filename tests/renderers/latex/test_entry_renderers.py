@@ -23,8 +23,6 @@ def mock_context() -> Mock:
     from studiorum.core.references.content_tracker import ContentTracker
 
     context = Mock(spec=RenderingContext)
-    context.tag_resolver = Mock()
-    context.tag_resolver.process_text.side_effect = lambda x: x
     context.content_tracker = ContentTracker()
     return context
 
@@ -131,9 +129,6 @@ class TestSpellEntryRenderer:
         from studiorum.core.references.content_tracker import ContentTracker
 
         mock_context = Mock(spec=RenderingContext)
-        # Tag resolver is provided but not used by entry renderers
-        mock_context.tag_resolver = Mock()
-        mock_context.tag_resolver.process_text.return_value = "PROCESSED_TEXT"
         mock_context.content_tracker = ContentTracker()
 
         spell = Spell.model_validate(sample_spell_data)
@@ -142,25 +137,6 @@ class TestSpellEntryRenderer:
         # Check that raw description text is returned (not processed)
         assert "description_text" in context
         assert context["description_text"] != "PROCESSED_TEXT"  # Should be raw text
-        # Tag resolver should NOT be called by entry renderers
-        mock_context.tag_resolver.process_text.assert_not_called()
-
-    def test_get_template_context_without_tag_resolver(
-        self, renderer: SpellEntryRenderer, sample_spell_data: dict[str, Any]
-    ) -> None:
-        """Test template context without tag resolver."""
-        from studiorum.core.references.content_tracker import ContentTracker
-
-        mock_context = Mock(spec=RenderingContext)
-        mock_context.tag_resolver = None
-        mock_context.content_tracker = ContentTracker()
-
-        spell = Spell.model_validate(sample_spell_data)
-        context = renderer.get_template_context(spell, mock_context)
-
-        # Should still work without tag resolver
-        assert "description_text" in context
-        assert context["description_text"] != ""
 
     def test_render_integration(
         self,
@@ -291,7 +267,6 @@ class TestCreatureEntryRenderer:
         from studiorum.core.references.content_tracker import ContentTracker
 
         mock_context = Mock(spec=RenderingContext)
-        mock_context.tag_resolver = None
         mock_context.content_tracker = ContentTracker()
 
         creature = Creature.model_validate(sample_creature_data)
@@ -344,7 +319,6 @@ class TestItemEntryRenderer:
         from studiorum.core.references.content_tracker import ContentTracker
 
         mock_context = Mock(spec=RenderingContext)
-        mock_context.tag_resolver = None
         mock_context.content_tracker = ContentTracker()
 
         item = Item.model_validate(sample_item_data)
@@ -436,7 +410,6 @@ class TestRendererPerformance:
         from studiorum.core.references.content_tracker import ContentTracker
 
         mock_context = Mock(spec=RenderingContext)
-        mock_context.tag_resolver = None
         mock_context.content_tracker = ContentTracker()
 
         # Create spell with large description

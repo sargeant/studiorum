@@ -228,18 +228,15 @@ def rendering_context(
         key = f"appendix_{kind}"
         if key in appendices and appendices[key] is None:
             appendices[key] = getattr(content, key)
-    tag_resolver = get_services().tag_resolver
     return RenderingContext(
         output_format="latex",
         omnidexer=get_services().omnidexer,
         content_tracker=tracker,
-        tag_resolver=tag_resolver,
         metadata={
             "title": title or metadata.title,
             "include_images": options.images,
             "include_toc": metadata.include_toc,
             "include_index": metadata.include_index,
-            "tag_resolver": tag_resolver,
             "document_metadata": metadata,
             "latex_config": options.latex,
             "content_tracker": tracker,
