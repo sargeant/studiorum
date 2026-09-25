@@ -219,3 +219,18 @@ def duration_entry(durations: list[Any], *, style: str = "classic") -> str:
                 parts.append(f"Permanent{condition}")
     joined = join_conjunct(parts, "; " if sub_or else ", ", " or ")
     return joined + (" (see below)" if len(durations) > 1 else "")
+
+
+# Parser.SOURCE_JSON_TO_ABV where it isn't the source itself
+_SOURCE_ABBREVIATIONS = {
+    "PHB": "PHB'14",
+    "DMG": "DMG'14",
+    "MM": "MM'14",
+    "SAC": "SAC'14",
+    "Screen": "Scr'14",
+}
+
+
+def source_abbreviation(source: str) -> str:
+    """``Parser.sourceJsonToAbv``: "DMG'14" for the 2014 core books."""
+    return _SOURCE_ABBREVIATIONS.get(source, source)

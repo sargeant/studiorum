@@ -359,14 +359,8 @@ class Omnidexer:
 
     @staticmethod
     def _add_merged_subraces(raw: dict[str, list[Raw]]) -> None:
-        """Add the races 5etools makes from subraces, unless a race already has the name."""
-        have = {
-            (str(r.get("name", "")).lower(), str(r.get("source", "")).lower())
-            for r in raw.get("race", [])
-        }
-        for race in subraces.merge(raw.get("race", []), raw.get("subrace", [])):
-            if (race["name"].lower(), str(race["source"]).lower()) not in have:
-                raw["race"].append(race)
+        """Races as 5etools lists them: base races and races merged with subraces."""
+        raw["race"] = subraces.merge(raw.get("race", []), raw.get("subrace", []))
 
     def _index_nested(self, content: DeepIndexable, content_type: ContentType) -> None:
         try:
