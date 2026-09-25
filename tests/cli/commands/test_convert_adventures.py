@@ -10,7 +10,6 @@ from typer.testing import CliRunner
 
 from studiorum.cli.main import app
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.renderers.tags import TagResolver
 
 
 @pytest.mark.cli
@@ -37,22 +36,18 @@ class TestConvertAdventureCommand:
         }
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     def test_convert_adventure_with_file_path(
         self,
         mock_display,
         mock_engine_factory,
-        mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test converting adventure from file path."""
         # Mock dependencies - create a mock that passes isinstance checks
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock LaTeX engine
         mock_engine = Mock()
@@ -88,7 +83,6 @@ class TestConvertAdventureCommand:
             Path(file_path).unlink()
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch(
         "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
@@ -101,7 +95,6 @@ class TestConvertAdventureCommand:
         mock_display,
         mock_engine_factory,
         mock_enrich_content,
-        mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test converting adventure from abbreviation."""
@@ -129,9 +122,6 @@ class TestConvertAdventureCommand:
 
         # Mock content enrichment to return content unchanged (avoid file loading)
         mock_enrich_content.side_effect = lambda content, content_type: content
-
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock user config with defaults (all None to use app config defaults)
         mock_latex = Mock()
@@ -226,7 +216,6 @@ class TestConvertAdventureCommand:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.load_omnidexer")
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
@@ -235,7 +224,6 @@ class TestConvertAdventureCommand:
         mock_compile_pdf,
         mock_display,
         mock_engine_factory,
-        mock_tag_resolver,
         mock_shared_omnidexer,
         mock_omnidexer,
     ):
@@ -246,8 +234,6 @@ class TestConvertAdventureCommand:
         mock_shared_omnidexer.return_value = (
             mock_omnidexer_instance  # Use same mock instance
         )
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock LaTeX engine
         mock_engine = Mock()

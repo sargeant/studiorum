@@ -193,15 +193,13 @@ class TestLaTeXDocumentRenderer:
         assert renderer.template_engine is not None
         assert renderer.entry_registry is not None
 
-    def test_render_single_spell(self, sample_spell: Any, tag_resolver: Any) -> None:
+    def test_render_single_spell(self, sample_spell: Any) -> None:
         """Test rendering single spell as document."""
         renderer: Any = LaTeXDocumentRenderer()
         context: Any = RenderingContext(
             output_format="latex",
-            tag_resolver=tag_resolver,
             metadata={
                 "title": "Test Spell Document",
-                "tag_resolver": tag_resolver,
             },
         )
 
@@ -221,17 +219,15 @@ class TestLaTeXDocumentRenderer:
         assert "\\end{document}" in result
 
     def test_render_multiple_content(
-        self, sample_spell: Any, sample_creature: Any, tag_resolver: Any
+        self, sample_spell: Any, sample_creature: Any
     ) -> None:
         """Test rendering multiple content items."""
         renderer: Any = LaTeXDocumentRenderer()
         context: Any = RenderingContext(
             output_format="latex",
-            tag_resolver=tag_resolver,
             metadata={
                 "title": "Mixed Content Document",
                 "include_toc": True,
-                "tag_resolver": tag_resolver,
             },
         )
 

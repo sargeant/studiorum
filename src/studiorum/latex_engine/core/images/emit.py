@@ -9,15 +9,12 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from functools import cache
 from typing import TYPE_CHECKING, Any
 
 from studiorum.core.logging import get_logger
 
 if TYPE_CHECKING:
     from jinja2 import Template
-
-    from studiorum.renderers.context import RenderingContext
 
     from .resolve import ImageResolver
 
@@ -28,13 +25,13 @@ WIDE_IMAGE_TYPES = frozenset({"map", "mapPlayer"})
 
 def image(
     entry: dict[str, Any],
-    context: RenderingContext,
+    include: bool,
     resolver: ImageResolver,
     text: Callable[[str], str],
 ) -> str:
-    """LaTeX for a 5etools ``image`` entry."""
+    """LaTeX for a 5etools ``image`` entry, or a comment if images are off."""
     title = entry.get("title") or ""
-    if not context.metadata.get("include_images", True) or not entry.get("href"):
+    if not include or not entry.get("href"):
         return f"% Image placeholder: {title}" if title else "% Image placeholder"
     path = resolver.resolve(entry.get("href"))
     if path is None:
@@ -49,12 +46,12 @@ def image(
 
 def gallery(
     entry: dict[str, Any],
-    context: RenderingContext,
+    include: bool,
     resolver: ImageResolver,
     text: Callable[[str], str],
 ) -> str:
     """LaTeX for a 5etools ``gallery`` entry: a grid, skipping missing images."""
-    if not context.metadata.get("include_images", True):
+    if not include:
         title = entry.get("title", entry.get("caption", ""))
         return f"% Gallery placeholder: {title}" if title else "% Gallery placeholder"
     found: list[dict[str, str]] = []
@@ -91,8 +88,7 @@ def _describe(href: Any) -> str:
     return str(href)
 
 
-@cache
 def _template(name: str) -> Template:
-    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+    from studiorum.latex_engine.core.template_engine import environment
 
-    return LaTeXTemplateEngine().env.get_template(name)
+    return environment().get_template(name)

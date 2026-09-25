@@ -186,7 +186,7 @@ def items(
 
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
-        omnidexer, tag_resolver = load_data("item")
+        omnidexer = load_data("item")
 
         names = read_names(item_names, from_file, from_stdin, "item")
         types = _parse(ItemInputParser.parse_type_list, item_types)
@@ -227,7 +227,6 @@ def items(
         context = RenderingContext(
             output_format="latex",
             omnidexer=omnidexer,
-            tag_resolver=tag_resolver,
             metadata={
                 "title": heading,
                 "include_images": options.images,
@@ -353,7 +352,6 @@ def _render_itemcompendium(
     sort_mode: ItemSortMode,
 ) -> str:
     """Render items using the itemcompendium template."""
-    from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
     from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
     template_engine = LaTeXTemplateEngine()
@@ -373,7 +371,6 @@ def _render_itemcompendium(
         sources_used=list(result.sources_used or []),
         show_item_table_of_contents=options.document.show_toc,
         rendering_context=context,
-        entry_processor=RecursiveEntryProcessor(use_dnd_template=True),
     )
     with display_manager.progress("Rendering item compendium") as _:
         task = display_manager.add_task(

@@ -17,6 +17,7 @@ from studiorum.core.models.creatures import (  # type: ignore
 from studiorum.core.models.items import Item  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.latex_engine.entries import EntryRenderer
 
 
 class TestModelValidationEdgeCases:
@@ -99,10 +100,9 @@ class TestModelValidationEdgeCases:
             assert spell.name == spell_data["name"]
 
             # Test text extraction using new template service pattern
-            template_service = get_services().template_service
             content_tracker = ContentTracker()
-            bound = template_service.bind_context(content_tracker)
-            description = bound.render_entry(spell.entries)
+            bound = EntryRenderer(tracker=content_tracker)
+            description = bound.render(spell.entries)
             assert description, f"Failed to extract description for test case {i}"
             assert len(description) > 10, f"Description too short for test case {i}"
 
@@ -174,11 +174,10 @@ class TestModelValidationEdgeCases:
             spell = Spell.model_validate(spell_data)
 
             # Test higher level text extraction using template service
-            template_service = get_services().template_service
             content_tracker = ContentTracker()
-            bound = template_service.bind_context(content_tracker)
+            bound = EntryRenderer(tracker=content_tracker)
             if spell.higher_level:
-                higher_text = bound.render_entry(spell.higher_level)
+                higher_text = bound.render(spell.higher_level)
                 assert higher_text, (
                     f"Failed to extract higher level text for test case {i}"
                 )
@@ -357,21 +356,17 @@ class TestModelValidationEdgeCases:
             assert ability.name == cast(dict, ability_data)["name"]
 
             # Test ability description extraction using template service
-            from studiorum.cli.context import get_services
-            from studiorum.latex_engine.core.entry_processor import (
-                RecursiveEntryProcessor,
-            )
+            from studiorum.latex_engine.entries import EntryRenderer
             from studiorum.renderers.context import RenderingContext
 
-            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
                 output_format="latex",
                 omnidexer=get_services().omnidexer,
                 content_tracker=content_tracker,
             )
-            processed_entries = entry_processor.process_entries(
-                ability.entries, rendering_context
+            processed_entries = EntryRenderer.from_context(rendering_context).entries(
+                ability.entries
             )
             description = "\n\n".join(processed_entries)
             assert description, (
@@ -450,21 +445,18 @@ class TestModelValidationEdgeCases:
                 # Test item description extraction using modern RecursiveEntryProcessor
                 from studiorum.cli.context import get_services
                 from studiorum.core.references.content_tracker import ContentTracker
-                from studiorum.latex_engine.core.entry_processor import (
-                    RecursiveEntryProcessor,
-                )
+                from studiorum.latex_engine.entries import EntryRenderer
                 from studiorum.renderers.context import RenderingContext
 
-                entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
                 content_tracker = ContentTracker()
                 rendering_context = RenderingContext(
                     output_format="latex",
                     omnidexer=get_services().omnidexer,
                     content_tracker=content_tracker,
                 )
-                processed_entries = entry_processor.process_entries(
-                    item.entries, rendering_context
-                )
+                processed_entries = EntryRenderer.from_context(
+                    rendering_context
+                ).entries(item.entries)
                 description = "\n\n".join(processed_entries)
                 assert description, (
                     f"Failed to extract description for item test case {i}"

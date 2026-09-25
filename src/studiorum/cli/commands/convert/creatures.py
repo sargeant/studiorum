@@ -302,7 +302,7 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
     """
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
-        omnidexer, tag_resolver = load_data("creature")
+        omnidexer = load_data("creature")
 
         names = read_names(
             creature_names,
@@ -350,7 +350,6 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
             output_format="latex",
             omnidexer=omnidexer,
             content_tracker=tracker,
-            tag_resolver=tag_resolver,
             metadata={
                 "title": _heading(options, creature_types),
                 "include_images": options.images,
@@ -576,7 +575,6 @@ def _render_bestiary(
     sort_mode: CreatureSortMode,
 ) -> str:
     """Render creatures using the bestiary template with grouping."""
-    from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
     from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
     heading = context.metadata["title"]
@@ -590,7 +588,6 @@ def _render_bestiary(
         ),
         latex_config=options.latex,
         rendering_context=context,
-        entry_processor=RecursiveEntryProcessor(use_dnd_template=True),
         creatures=creatures,
         creatures_by_group=_group_creatures(creatures, sort_mode),
         creature_count=len(creatures),

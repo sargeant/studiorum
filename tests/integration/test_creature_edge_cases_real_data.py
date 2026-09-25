@@ -414,23 +414,18 @@ class TestCreatureEdgeCasesRealData:
                             from studiorum.core.references.content_tracker import (
                                 ContentTracker,
                             )
-                            from studiorum.latex_engine.core.entry_processor import (
-                                RecursiveEntryProcessor,
-                            )
+                            from studiorum.latex_engine.entries import EntryRenderer
                             from studiorum.renderers.context import RenderingContext
 
-                            entry_processor = RecursiveEntryProcessor(
-                                use_dnd_template=True
-                            )
                             content_tracker = ContentTracker()
                             rendering_context = RenderingContext(
                                 output_format="latex",
                                 omnidexer=get_services().omnidexer,
                                 content_tracker=content_tracker,
                             )
-                            processed_entries = entry_processor.process_entries(
-                                action.entries, rendering_context
-                            )
+                            processed_entries = EntryRenderer.from_context(
+                                rendering_context
+                            ).entries(action.entries)
                             desc = "\n\n".join(processed_entries)
                             assert desc is not None
                         elif hasattr(action, "entries"):

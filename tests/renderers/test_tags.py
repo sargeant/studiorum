@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from studiorum.core.config.unified_config import load_config
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.renderers.context import RenderingContext
-from studiorum.renderers.tags import TagResolver, render
-from studiorum.services import build_services
-
-
-@pytest.fixture
-def resolver() -> TagResolver:
-    return TagResolver()
+from studiorum.latex_engine.entries import EntryRenderer
+from studiorum.renderers.tags import render
 
 
 @pytest.mark.parametrize(
@@ -84,18 +76,18 @@ def resolver() -> TagResolver:
         ("{@code a_b}", r"\texttt{a\_b}"),
     ],
 )
-def test_tag(resolver: TagResolver, text: str, latex: str) -> None:
-    assert resolver.process_text(text) == latex
+def test_tag(text: str, latex: str) -> None:
+    assert render(text) == latex
 
 
-def test_nested_display_text_renders_recursively(resolver: TagResolver) -> None:
+def test_nested_display_text_renders_recursively() -> None:
     text = "{@creature goblin|MM|the {@i sneaky} goblin}"
-    assert resolver.process_text(text) == r"\textbf{the \textit{sneaky} goblin}"
+    assert render(text) == r"\textbf{the \textit{sneaky} goblin}"
 
 
-def test_unhandled_tag_renders_escaped_display_text(resolver: TagResolver) -> None:
+def test_unhandled_tag_renders_escaped_display_text() -> None:
     text = "Ride the {@vehicle Ship of the Line|GoS} & go"
-    assert resolver.process_text(text) == r"Ride the Ship of the Line \& go"
+    assert render(text) == r"Ride the Ship of the Line \& go"
 
 
 def test_unknown_tag_renders_display_text_and_warns_once() -> None:
@@ -110,22 +102,21 @@ def test_unknown_tag_renders_display_text_and_warns_once() -> None:
     assert "@notATag" in logger.warning.call_args.args[0]
 
 
-def test_references_are_tracked_including_nested_ones(resolver: TagResolver) -> None:
+def test_references_are_tracked_including_nested_ones() -> None:
     tracker = ContentTracker()
-    context = RenderingContext(output_format="latex", content_tracker=tracker)
-    resolver.process_text(
-        "{@note see {@creature goblin|MM}} and {@spell fireball|PHB|Fire}", context
-    )
+    render("{@note see {@creature goblin|MM}} and {@spell fireball|PHB|Fire}", tracker)
     tracked = {
         (c.content_type, c.name, c.source) for c in tracker.get_tracked_content()
     }
     assert tracked == {("creature", "goblin", "MM"), ("spell", "fireball", "PHB")}
 
 
-def test_resolver_is_built_without_loading_data() -> None:
-    services = build_services(load_config(Path("tests/test-config.yaml")))
-    with patch.object(
-        type(services), "load_omnidexer", side_effect=AssertionError("loaded")
+def test_rendering_loads_no_data() -> None:
+    with patch(
+        "studiorum.services.Services.load_omnidexer",
+        side_effect=AssertionError("loaded"),
     ):
-        latex = services.tag_resolver.process_text("{@spell fireball}")
+        latex = render("{@spell fireball}")
+        entry = EntryRenderer().render({"type": "list", "items": ["{@spell fly}"]})
     assert latex == r"\textit{fireball}"
+    assert r"\item \textit{fly}" in entry

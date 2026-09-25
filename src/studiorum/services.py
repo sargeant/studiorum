@@ -18,8 +18,6 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.services.content_list_writer import ContentListWriter
-from studiorum.latex_engine.services.template_service import TemplateService
-from studiorum.renderers.tags import TagResolver
 
 logger = get_logger(__name__)
 
@@ -62,17 +60,6 @@ class Services:
     @property
     def omnidexer(self) -> Omnidexer:
         return self.load_omnidexer()
-
-    @cached_property
-    def tag_resolver(self) -> TagResolver:
-        return TagResolver()
-
-    @cached_property
-    def template_service(self) -> TemplateService:
-        return TemplateService(
-            tag_resolver=self.tag_resolver,
-            omnidexer=self.omnidexer,
-        )
 
     @cached_property
     def content_list_writer(self) -> ContentListWriter:

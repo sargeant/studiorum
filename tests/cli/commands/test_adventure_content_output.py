@@ -80,10 +80,7 @@ class TestAdventureContentOutput:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    def test_adventure_output_spells_option(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
-    ):
+    def test_adventure_output_spells_option(self, mock_get_omnidexer, mock_get_writer):
         """Test --output-spells option in adventure conversion."""
         # Setup mocks
         mock_omnidexer = Mock()
@@ -93,7 +90,6 @@ class TestAdventureContentOutput:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter
         mock_writer = Mock()
@@ -154,9 +150,8 @@ class TestAdventureContentOutput:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_creatures_option(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
+        self, mock_get_omnidexer, mock_get_writer
     ):
         """Test --output-creatures option in adventure conversion."""
         # Setup mocks
@@ -167,7 +162,6 @@ class TestAdventureContentOutput:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter
         mock_writer = Mock()
@@ -218,10 +212,7 @@ class TestAdventureContentOutput:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    def test_adventure_output_items_option(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
-    ):
+    def test_adventure_output_items_option(self, mock_get_omnidexer, mock_get_writer):
         """Test --output-items option in adventure conversion."""
         # Setup mocks
         mock_omnidexer = Mock()
@@ -231,7 +222,6 @@ class TestAdventureContentOutput:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter
         mock_writer = Mock()
@@ -280,9 +270,8 @@ class TestAdventureContentOutput:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_all_content_types(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
+        self, mock_get_omnidexer, mock_get_writer
     ):
         """Test outputting all content types in single command."""
         # Setup mocks
@@ -293,7 +282,6 @@ class TestAdventureContentOutput:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter
         mock_writer = Mock()
@@ -343,9 +331,8 @@ class TestAdventureContentOutput:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_with_custom_title(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
+        self, mock_get_omnidexer, mock_get_writer
     ):
         """Test content output with custom adventure title."""
         # Setup mocks
@@ -356,7 +343,6 @@ class TestAdventureContentOutput:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter
         mock_writer = Mock()
@@ -403,9 +389,8 @@ class TestAdventureContentOutput:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_content_list_error(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
+        self, mock_get_omnidexer, mock_get_writer
     ):
         """Test error handling when content list writing fails."""
         # Setup mocks
@@ -416,7 +401,6 @@ class TestAdventureContentOutput:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter to return error
         from studiorum.core.result import Error
@@ -464,9 +448,8 @@ class TestAdventureContentOutput:
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     def test_adventure_output_empty_content_tracker(
-        self, mock_tag_resolver, mock_get_omnidexer, mock_get_writer
+        self, mock_get_omnidexer, mock_get_writer
     ):
         """Test content output when content tracker is empty."""
         # Setup mocks
@@ -477,7 +460,6 @@ class TestAdventureContentOutput:
             "data": [],
         }
         mock_get_omnidexer.return_value = mock_omnidexer
-        mock_tag_resolver.return_value = Mock()
 
         # Mock ContentListWriter
         mock_writer = Mock()
@@ -533,11 +515,7 @@ class TestAdventureContentOutput:
             patch(
                 "studiorum.services.Services.omnidexer", new_callable=PropertyMock
             ) as mock_get_omnidexer,
-            patch(
-                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
-            ) as mock_tag_resolver,
         ):
-            # Setup mocks
             mock_omnidexer = Mock()
             mock_omnidexer.get_adventure.return_value = {
                 "name": "Test Adventure",
@@ -545,7 +523,6 @@ class TestAdventureContentOutput:
                 "data": [],
             }
             mock_get_omnidexer.return_value = mock_omnidexer
-            mock_tag_resolver.return_value = Mock()
 
             # Mock ContentListWriter
             mock_writer = Mock()
@@ -601,11 +578,7 @@ class TestAdventureContentOutput:
             patch(
                 "studiorum.services.Services.omnidexer", new_callable=PropertyMock
             ) as mock_get_omnidexer,
-            patch(
-                "studiorum.services.Services.tag_resolver", new_callable=PropertyMock
-            ) as mock_tag_resolver,
         ):
-            # Setup mocks
             mock_omnidexer = Mock()
             mock_omnidexer.get_adventure.return_value = {
                 "name": "Test Adventure",
@@ -613,7 +586,6 @@ class TestAdventureContentOutput:
                 "data": [],
             }
             mock_get_omnidexer.return_value = mock_omnidexer
-            mock_tag_resolver.return_value = Mock()
 
             # Mock ContentListWriter (should not be called)
             mock_writer = Mock()

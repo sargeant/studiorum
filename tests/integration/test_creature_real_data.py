@@ -251,22 +251,10 @@ class TestCreatureRealDataIntegration:
         assert "0" in spells_dict  # Cantrips
         assert "9" in spells_dict  # 9th level spells
 
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_real_data_markup_processing(
-        self, mock_get_omnidexer, mock_get_tag_resolver
-    ):
+    def test_real_data_markup_processing(self, mock_get_omnidexer):
         """Test markup processing with real data patterns."""
         # Setup mocks for tag processing
-        mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text.side_effect = lambda text: (
-            text.replace("{@atk mw}", "Melee Weapon Attack:")
-            .replace("{@atk rw}", "Ranged Weapon Attack:")
-            .replace("{@hit 4}", "+4")
-            .replace("{@h}", "Hit: ")
-            .replace("1d6 + 2", "1d6 + 2")
-        )
-        mock_get_tag_resolver.return_value = mock_tag_resolver
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
@@ -316,38 +304,25 @@ class TestCreatureRealDataIntegration:
         orc = Creature.model_validate(real_orc_data)
 
         # Test markup processing in actions
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
-        ) as mock_processor_class:
-            mock_processor = Mock()
-            mock_processor.process_entries.return_value = [
-                "Melee Weapon Attack: +5 to hit, reach 5 ft., one target.",
-                "Hit: 1d12 + 3 slashing damage.",
-            ]
-            mock_processor_class.return_value = mock_processor
+        greataxe_action = orc.action[0]
+        from studiorum.cli.context import get_services
+        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.latex_engine.entries import EntryRenderer
+        from studiorum.renderers.context import RenderingContext
 
-            greataxe_action = orc.action[0]
-            from studiorum.cli.context import get_services
-            from studiorum.core.references.content_tracker import ContentTracker
-            from studiorum.latex_engine.core.entry_processor import (
-                RecursiveEntryProcessor,
-            )
-            from studiorum.renderers.context import RenderingContext
+        content_tracker = ContentTracker()
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_services().omnidexer,
+            content_tracker=content_tracker,
+        )
+        processed_entries = EntryRenderer.from_context(rendering_context).entries(
+            greataxe_action.entries
+        )
+        processed_desc = "\n\n".join(processed_entries)
 
-            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
-            content_tracker = ContentTracker()
-            rendering_context = RenderingContext(
-                output_format="latex",
-                omnidexer=get_services().omnidexer,
-                content_tracker=content_tracker,
-            )
-            processed_entries = entry_processor.process_entries(
-                greataxe_action.entries, rendering_context
-            )
-            processed_desc = "\n\n".join(processed_entries)
-
-            assert "Melee Weapon Attack" in processed_desc
-            assert "+5 to hit" in processed_desc
+        assert "Melee Weapon Attack" in processed_desc
+        assert "+5 to hit" in processed_desc
 
     def test_real_data_edge_cases(self):
         """Test edge cases found in real 5etools data."""

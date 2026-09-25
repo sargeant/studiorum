@@ -10,7 +10,6 @@ from typer.testing import CliRunner
 
 from studiorum.cli.main import app
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.renderers.tags import TagResolver
 
 
 @pytest.mark.cli
@@ -23,14 +22,11 @@ class TestErrorHandlingPaths:
         self.runner = CliRunner()
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
-    def test_json_decode_error(self, mock_tag_resolver, mock_omnidexer):
+    def test_json_decode_error(self, mock_omnidexer):
         """Test handling of invalid JSON files."""
         # Mock dependencies
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Create temporary file with invalid JSON (use real file instead of mocking)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -49,11 +45,10 @@ class TestErrorHandlingPaths:
             Path(file_path).unlink()
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("builtins.open")
     def test_renderer_exception(
-        self, mock_builtin_open, mock_engine_factory, mock_tag_resolver, mock_omnidexer
+        self, mock_builtin_open, mock_engine_factory, mock_omnidexer
     ):
         """Test handling of renderer exceptions."""
         # Mock file operations
@@ -79,8 +74,6 @@ class TestErrorHandlingPaths:
         # Mock dependencies
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock engine to raise exception
         mock_engine = Mock()
@@ -115,7 +108,6 @@ class TestSpecialCases:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch("studiorum.services.Services.load_omnidexer")
-    @patch("studiorum.services.Services.tag_resolver", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
@@ -127,7 +119,6 @@ class TestSpecialCases:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_tag_resolver,
         mock_shared_omnidexer,
         mock_omnidexer,
     ):
@@ -157,8 +148,6 @@ class TestSpecialCases:
         mock_shared_omnidexer.return_value = (
             mock_omnidexer_instance  # Use same mock instance
         )
-        mock_tag_resolver_instance = Mock(spec=TagResolver)
-        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock LaTeX engine
         mock_engine = Mock()

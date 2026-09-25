@@ -4,7 +4,7 @@
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 <@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
 
-<@ macro render_item(item, template_service=template_service, content_tracker=content_tracker, entry_processor=entry_processor, rendering_context=rendering_context) @>
+<@ macro render_item(item) @>
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
 \DndItemHeader{<# item.name | latex_escape #>}{<# item.get_item_metadata_line() | latex_escape #>}
@@ -19,7 +19,7 @@
 
 % Item description
 <@ if item.entries @>
-<# smart_render_entry(item, entry_processor, rendering_context) #>
+<# smart_render_entry(item) #>
 <@ elif description_text is defined and description_text @>
 <# description_text | latex_escape #>
 <@ endif @>

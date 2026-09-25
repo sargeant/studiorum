@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from studiorum.core.logging import get_logger
 from studiorum.core.text.tags import (
@@ -64,13 +64,6 @@ def render(text: str, tracker: ContentTracker | None = None) -> str:
         else:
             out.append(escape(part))
     return "".join(out)
-
-
-class TagResolver:
-    """``render`` behind the interface the entry processor calls."""
-
-    def process_text(self, text: str, context: Any = None) -> str:
-        return render(text, getattr(context, "content_tracker", None))
 
 
 def _part(parts: list[str], index: int) -> str:

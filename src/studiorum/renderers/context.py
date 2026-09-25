@@ -19,9 +19,6 @@ class RenderingContext(BaseModel):
     content_tracker: Any = Field(
         default=None, description="Tracks content for appendices"
     )
-    tag_resolver: Any = Field(
-        default=None, description="Tag resolver for processing text content"
-    )
 
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional context metadata"

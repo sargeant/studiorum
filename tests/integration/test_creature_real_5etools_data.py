@@ -8,7 +8,6 @@ and edge cases found in the actual dataset.
 import os
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -462,39 +461,27 @@ class TestCreatureOutputQualityValidation:
     def test_latex_output_syntax_validation(self):
         """Validate that generated LaTeX is syntactically correct."""
         # Mock LaTeX rendering components
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
-        ) as mock_processor_class:
-            mock_processor = Mock()
-            mock_processor.process_entries.return_value = ["Processed entry text"]
-            mock_processor_class.return_value = mock_processor
 
-            for creature in self.sample_creatures[:5]:  # Test first 5
-                try:
-                    # Test various text generation methods
-                    cr_text = creature.get_enhanced_cr_text()
-                    sta_text = creature.get_size_type_alignment()
-                    ac_text = creature.get_ac_text()
-                    hp_text = creature.get_hp_text()
-                    speed_text = creature.get_speed_text()
+        for creature in self.sample_creatures[:5]:  # Test first 5
+            try:
+                # Test various text generation methods
+                cr_text = creature.get_enhanced_cr_text()
+                sta_text = creature.get_size_type_alignment()
+                ac_text = creature.get_ac_text()
+                hp_text = creature.get_hp_text()
+                speed_text = creature.get_speed_text()
 
-                    # Check for common LaTeX syntax issues
-                    for text in [cr_text, sta_text, ac_text, hp_text, speed_text]:
-                        # Should not have unescaped special characters
-                        assert "&" not in text or "\\&" in text, (
-                            f"Unescaped & in {text}"
-                        )
-                        # Should not have unmatched braces
-                        open_braces = text.count("{")
-                        close_braces = text.count("}")
-                        assert open_braces == close_braces, (
-                            f"Unmatched braces in {text}"
-                        )
+                # Check for common LaTeX syntax issues
+                for text in [cr_text, sta_text, ac_text, hp_text, speed_text]:
+                    # Should not have unescaped special characters
+                    assert "&" not in text or "\\&" in text, f"Unescaped & in {text}"
+                    # Should not have unmatched braces
+                    open_braces = text.count("{")
+                    close_braces = text.count("}")
+                    assert open_braces == close_braces, f"Unmatched braces in {text}"
 
-                except Exception as e:
-                    pytest.fail(
-                        f"LaTeX syntax validation failed for {creature.name}: {e}"
-                    )
+            except Exception as e:
+                pytest.fail(f"LaTeX syntax validation failed for {creature.name}: {e}")
 
     def test_cross_reference_consistency(self):
         """Test that cross-references in creature descriptions are consistent."""
@@ -713,23 +700,18 @@ class TestCreatureRegressionSuite:
                             from studiorum.core.references.content_tracker import (
                                 ContentTracker,
                             )
-                            from studiorum.latex_engine.core.entry_processor import (
-                                RecursiveEntryProcessor,
-                            )
+                            from studiorum.latex_engine.entries import EntryRenderer
                             from studiorum.renderers.context import RenderingContext
 
-                            entry_processor = RecursiveEntryProcessor(
-                                use_dnd_template=True
-                            )
                             content_tracker = ContentTracker()
                             rendering_context = RenderingContext(
                                 output_format="latex",
                                 omnidexer=get_services().omnidexer,
                                 content_tracker=content_tracker,
                             )
-                            processed_entries = entry_processor.process_entries(
-                                action.entries, rendering_context
-                            )
+                            processed_entries = EntryRenderer.from_context(
+                                rendering_context
+                            ).entries(action.entries)
                             "\n\n".join(processed_entries)
                         elif hasattr(action, "entries"):
                             str(action.entries)
