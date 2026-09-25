@@ -14,7 +14,6 @@ from typer.testing import CliRunner
 
 from studiorum.cli.commands.convert.run import read_names
 from studiorum.cli.main import app
-from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CREATURES = ["convert", "creatures", "Goblin", "--sources", "SRD"]
@@ -24,9 +23,6 @@ CREATURES = ["convert", "creatures", "Goblin", "--sources", "SRD"]
 def run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Run the CLI with a config file holding ``document`` and ``extra``."""
     monkeypatch.chdir(REPO_ROOT)
-    monkeypatch.setattr(
-        LaTeXTemplateEngine, "check_dnd_template_availability", lambda self: True
-    )
 
     def invoke(args: list[str], document: dict | None = None, **extra: object):
         config = {

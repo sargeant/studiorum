@@ -2,23 +2,13 @@
 
 from typing import Any
 
-import pytest
-
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.chapter import Chapter
 from studiorum.core.models.content import Source
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.models.spells import Spell
-from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from studiorum.latex_engine.document import DocumentChapter, render_document
 from studiorum.renderers.context import RenderingContext
-
-
-@pytest.fixture(autouse=True)
-def _template_installed(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        LaTeXTemplateEngine, "check_dnd_template_availability", lambda self: True
-    )
 
 
 def _chapter(name: str, kind: str | None = None, identifier: Any = None) -> Chapter:

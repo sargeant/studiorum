@@ -32,8 +32,6 @@ from studiorum.latex_engine.entries import (
 from studiorum.renderers.escape import escape
 from studiorum.renderers.tags import render
 
-from .dnd_template import DNDTemplateManager, check_dnd_template_status
-
 
 def _class_for_content_type(
     doc: LaTeXDocumentConfig, content_type: str
@@ -172,9 +170,6 @@ class LaTeXTemplateEngine:
         """
         if latex_config is not None:
             self.latex_config = latex_config
-
-        # Initialize DND template manager
-        self.dnd_manager = DNDTemplateManager()
 
         self.env = environment()
 
@@ -321,38 +316,6 @@ class LaTeXTemplateEngine:
         context.update(kwargs)
         return context
 
-    def check_dnd_template_availability(self) -> bool:
-        """Check if DND-5e-LaTeX-Template is available.
-
-        Returns:
-            True if template is available and ready to use
-        """
-        return check_dnd_template_status()
-
-    def get_dnd_template_status(self) -> dict[str, Any]:
-        """Get detailed DND template status information.
-
-        Returns:
-            Dictionary with template status details
-        """
-        template_available, missing_files = (
-            self.dnd_manager.check_template_availability()
-        )
-        latex_available, latex_version = self.dnd_manager.check_latex_installation()
-        packages_available, missing_packages = (
-            self.dnd_manager.check_required_packages()
-        )
-
-        return {
-            "template_available": template_available,
-            "missing_template_files": missing_files,
-            "latex_available": latex_available,
-            "latex_version": latex_version,
-            "packages_available": packages_available,
-            "missing_packages": missing_packages,
-            "system_info": self.dnd_manager.get_system_info(),
-        }
-
     def create_dnd_template_context(
         self, content_type: str = "book", **kwargs: Any
     ) -> dict[str, Any]:
@@ -379,8 +342,6 @@ class LaTeXTemplateEngine:
                 "document_class": document_class,
                 "class_options": class_options,
                 "content_type": content_type,
-                "use_dnd_template": True,
-                "dnd_template_available": self.check_dnd_template_availability(),
             }
         )
 
@@ -408,40 +369,6 @@ class LaTeXTemplateEngine:
     def render_dnd_template(
         self, template_name: str, content_type: str = "book", **kwargs: Any
     ) -> str:
-        """Render template with DND-specific configuration.
-
-        Args:
-            template_name: Name of template to render
-            content_type: Type of content being rendered
-            **kwargs: Additional context variables
-
-        Returns:
-            Rendered template content
-
-        Raises:
-            RuntimeError: If DND template is not available
-        """
-        # Check DND template availability
-        if not self.check_dnd_template_availability():
-            raise RuntimeError(
-                "DND-5e-LaTeX-Template is not available. "
-                "Please install the template before rendering."
-            )
-
-        # Create DND-optimized context
+        """Render a document template with the configured document class and options."""
         context = self.create_dnd_template_context(content_type, **kwargs)
-
-        # Render template
         return self.render_template(template_name, context)
-
-    def get_installation_guide(self) -> str:
-        """Get DND template installation guide.
-
-        Returns:
-            Installation guide text
-        """
-        return self.dnd_manager.create_installation_guide()
-
-    def print_dnd_status_report(self) -> None:
-        """Print comprehensive DND template status report."""
-        self.dnd_manager.print_status_report()
