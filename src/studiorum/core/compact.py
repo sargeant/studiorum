@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 from .class_entries import class_entries, subclass_entries
 from .models.classes import Class
+from .models.deities import Deity
 from .models.feats import Feat
 from .models.recipes import Recipe
 from .models.rule_types import Hazard
@@ -21,7 +22,13 @@ from .models.subclasses import Subclass
 from .models.table import Table, TableGroup
 from .models.traps import Trap
 from .text.properties import apply_properties
-from .type_lines import feat_entries, hazard_entries, trap_entries
+from .type_lines import (
+    deity_entries,
+    deity_heading,
+    feat_entries,
+    hazard_entries,
+    trap_entries,
+)
 
 if TYPE_CHECKING:
     from .loaders.omnidexer import Omnidexer
@@ -47,6 +54,11 @@ def compact_entries(content: BaseContent, omnidexer: Omnidexer | None) -> list[A
         if isinstance(content, kind):
             return build(content, omnidexer)
     return list(content.model_dump().get("entries") or [])
+
+
+def compact_heading(content: BaseContent, name: str) -> str:
+    """The statblock's heading: its name, and for a deity its title."""
+    return deity_heading(content, name) if isinstance(content, Deity) else name
 
 
 def _table(table: Table, _: Omnidexer | None) -> list[Any]:
@@ -117,4 +129,5 @@ _BUILDERS: tuple[
     (Trap, trap_entries),
     (Hazard, hazard_entries),
     (Feat, feat_entries),
+    (Deity, deity_entries),
 )

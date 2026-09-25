@@ -61,6 +61,7 @@ const BUILDERS = {
 		const repeatable = ent.repeatableHidden ? null : Renderer.utils.getRepeatableEntry(ent);
 		return [...italic(joined), ...(repeatable ? [repeatable] : []), ...Renderer.feat.getFeatRendereableEntriesMeta(ent).entryMain.entries];
 	}],
+	deity: ["deities.json", ent => [...Renderer.deity.getDeityRenderableEntriesMeta(ent).entriesAttributes, ...(ent.entries || [])]],
 	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
 };
 

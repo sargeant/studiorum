@@ -1,6 +1,7 @@
 """The lines 5etools shows around an entity's entries; lines.mjs checks all of them."""
 
-from studiorum.core.compact import compact_entries
+from studiorum.core.compact import compact_entries, compact_heading
+from studiorum.core.models.deities import Deity
 from studiorum.core.models.feats import Feat
 from studiorum.core.models.rule_types import Hazard
 from studiorum.core.models.traps import Trap
@@ -95,3 +96,25 @@ def test_a_feat_has_its_category_and_prerequisite_and_the_increase_in_its_list()
             ],
         },
     ]
+
+
+def test_a_deity_has_labelled_lines_in_order_and_its_title_in_the_heading() -> None:
+    deity = Deity.model_validate(
+        {
+            "name": "Paladine",
+            "source": "DSotDQ",
+            "pantheon": "Dragonlance",
+            "title": "the valiant warrior",
+            "alignment": ["L", "G"],
+            "symbol": "Silver triangle",
+            "category": "Good",
+        }
+    )
+
+    assert compact_entries(deity, None) == [
+        "{@b Alignment:} Lawful Good",
+        "{@b Category:} Good",
+        "{@b Pantheon:} Dragonlance",
+        "{@b Symbol:} Silver triangle",
+    ]
+    assert compact_heading(deity, "Paladine") == "Paladine, The Valiant Warrior"

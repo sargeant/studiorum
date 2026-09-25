@@ -9,12 +9,14 @@ entry renderer can set them without any LaTeX in Python.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from .text.parser import (
     ABILITY_NAMES,
     TRAP_HAZARD_TYPES,
     TRAP_INITIATIVES,
+    alignment_abv_to_full,
     duration_entry,
     feat_category,
     tier_to_full_level,
@@ -227,3 +229,45 @@ def _increase_text(ability: Raw) -> str:
         )
     names = join_conjunct([ABILITY_NAMES[a] for a in choose["from"]], ", ", " or ")
     return f"Increase your {names} by {amount}, to a maximum of {maximum}."
+
+
+# Renderer.deity._BASE_PART_TRANSLATORS: label and how a list shows
+_DEITY_PARTS: tuple[tuple[str, str, Callable[[Any], str] | None], ...] = (
+    (
+        "alignment",
+        "Alignment",
+        lambda v: title_case(" ".join(alignment_abv_to_full(a) for a in v)),
+    ),
+    ("pantheon", "Pantheon", None),
+    ("category", "Category", lambda v: v if isinstance(v, str) else ", ".join(v)),
+    ("domains", "Domains", ", ".join),
+    ("province", "Province", None),
+    ("dogma", "Dogma", None),
+    ("altNames", "Alternate Names", ", ".join),
+    ("plane", "Home Plane", None),
+    ("worshipers", "Typical Worshipers", None),
+    ("symbol", "Symbol", None),
+    ("favoredWeapons", "Favored Weapons", None),
+)
+
+
+def deity_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.deity``: labelled lines in alphabetical order, then entries."""
+    data = raw(content)
+    lines = [
+        (label, f"{{@b {label}:}} {show(data[prop]) if show else data[prop]}")
+        for prop, label, show in _DEITY_PARTS
+        if data.get(prop) is not None
+    ]
+    lines += [
+        (name, f"{{@b {name}:}} {value}")
+        for name, value in (data.get("customProperties") or {}).items()
+    ]
+    lines.sort(key=lambda line: line[0].lower())
+    return [*(text for _, text in lines), *(data.get("entries") or [])]
+
+
+def deity_heading(content: BaseModel, name: str) -> str:
+    """5etools names a deity with its title: "Paladine, the Valiant Warrior"."""
+    title = raw(content).get("title")
+    return f"{name}, {title_case(title)}" if title else name
