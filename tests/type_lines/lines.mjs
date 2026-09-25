@@ -56,6 +56,11 @@ const BUILDERS = {
 			: [...entries, ...(meta.entriesAttributes || [])];
 		return [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...body];
 	}],
+	feat: ["feats.json", ent => {
+		const joined = Renderer.feat.getJoinedCategoryPrerequisites(ent.category, Renderer.utils.prerequisite.getEntry(ent.prerequisite, STYLE));
+		const repeatable = ent.repeatableHidden ? null : Renderer.utils.getRepeatableEntry(ent);
+		return [...italic(joined), ...(repeatable ? [repeatable] : []), ...Renderer.feat.getFeatRendereableEntriesMeta(ent).entryMain.entries];
+	}],
 	hazard: ["trapshazards.json", ent => [...italic(Renderer.traphazard.getSubtitle(ent, STYLE)), ...(ent.entries || [])]],
 };
 

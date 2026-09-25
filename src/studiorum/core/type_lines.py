@@ -12,11 +12,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from .text.parser import (
+    ABILITY_NAMES,
     TRAP_HAZARD_TYPES,
     TRAP_INITIATIVES,
     duration_entry,
+    feat_category,
     tier_to_full_level,
 )
+from .text.prerequisites import prerequisite_entry
 from .text.strings import join_conjunct, title_case
 
 if TYPE_CHECKING:
@@ -127,3 +130,100 @@ def _initiative(data: Raw) -> list[str] | None:
         return None
     note = f" ({data['initiativeNote']})" if data.get("initiativeNote") else ""
     return [f"The trap acts on {TRAP_INITIATIVES.get(initiative, initiative)}{note}."]
+
+
+def feat_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+    """``Renderer.feat``: category and prerequisite, then entries with the increase."""
+    data = raw(content)
+    return [*_category_line(data), *_repeatable(data), *_full_entries(data)]
+
+
+def _category_line(data: Raw) -> list[str]:
+    """``getJoinedCategoryPrerequisites``: "General Feat (Prerequisite: ...)"."""
+    category = feat_category(data["category"]) if data.get("category") else ""
+    prerequisite = prerequisite_entry(data.get("prerequisite"), style=STYLE)
+    if category and prerequisite:
+        return [f"{{@i {category} ({prerequisite})}}"]
+    text = category or prerequisite
+    return [f"{{@i {text}}}"] if text else []
+
+
+def _repeatable(data: Raw) -> list[str]:
+    if data.get("repeatableHidden") or not data.get("repeatable"):
+        return []
+    return [f"{{@b Repeatable:}} {data.get('repeatableNote') or 'Yes'}"]
+
+
+def _full_entries(data: Raw) -> list[Any]:
+    """``Renderer.feat.initFullEntries``: the ability increase joins the entries."""
+    entries = list(data.get("entries") or [])
+    shown = [a for a in data.get("ability") or [] if not a.get("hidden")]
+    if not shown:
+        return entries
+    lists = [e for e in entries if isinstance(e, dict) and e.get("type") == "list"]
+    if lists:
+        items = lists[0].setdefault("items", [])
+        named = all(isinstance(i, dict) and i.get("type") == "item" for i in items)
+        # 5etools puts each at the front in turn, so the last comes first
+        for ability in shown:
+            text = _increase_text(ability)
+            item = (
+                {"type": "item", "name": "Ability Score Increase.", "entry": text}
+                if named
+                else text
+            )
+            items.insert(0, item)
+        return entries
+    first = next(
+        (
+            i
+            for i, e in enumerate(entries)
+            if isinstance(e, dict) and e.get("type") == "entries"
+        ),
+        None,
+    )
+    texts = [_increase_text(a) for a in shown]
+    if first is not None:
+        increase = {
+            "type": "entries",
+            "name": "Ability Score Increase",
+            "entries": texts,
+        }
+        return [*entries[:first], increase, *entries[first:]]
+    return [*reversed(texts), *entries]
+
+
+def _increase_text(ability: Raw) -> str:
+    """``_mergeAbilityIncrease_getText``."""
+    maximum = ability.get("max", 20)
+    choose = ability.get("choose")
+    if not choose:
+        return " ".join(
+            f"Increase your {ABILITY_NAMES[a]} score by {n}, to a maximum of {maximum}."
+            for a, n in ability.items()
+            if a != "max"
+        )
+    if weighted := choose.get("weighted"):
+        weights = join_conjunct(
+            [
+                f"{'an' if i == 0 else 'another'} ability score to "
+                f"{'increase' if w > 0 else 'decrease'} by {abs(w)}"
+                for i, w in enumerate(weighted["weights"])
+            ],
+            ", ",
+            " and ",
+        )
+        if len(weighted["from"]) == 6:
+            return f"Choose {weights}."
+        names = join_conjunct(
+            [ABILITY_NAMES[a] for a in weighted["from"]], ", ", " and "
+        )
+        return f"Choose {weights} from among {names}."
+    amount = choose.get("amount", 1)
+    if len(choose["from"]) == 6:
+        return choose.get("entry") or (
+            f"Increase one ability score of your choice by {amount}, "
+            f"to a maximum of {maximum}."
+        )
+    names = join_conjunct([ABILITY_NAMES[a] for a in choose["from"]], ", ", " or ")
+    return f"Increase your {names} by {amount}, to a maximum of {maximum}."

@@ -1,6 +1,7 @@
 """The lines 5etools shows around an entity's entries; lines.mjs checks all of them."""
 
 from studiorum.core.compact import compact_entries
+from studiorum.core.models.feats import Feat
 from studiorum.core.models.rule_types import Hazard
 from studiorum.core.models.traps import Trap
 
@@ -63,3 +64,34 @@ def test_a_hazard_is_subtitled_by_its_kind() -> None:
     )
 
     assert compact_entries(hazard, None) == ["{@i Environmental Hazard}", "Ice."]
+
+
+def test_a_feat_has_its_category_and_prerequisite_and_the_increase_in_its_list() -> (
+    None
+):
+    feat = Feat.model_validate(
+        {
+            "name": "Initiate of High Sorcery",
+            "source": "DSotDQ",
+            "category": "O",
+            "prerequisite": [{"level": 4}],
+            "ability": [{"choose": {"from": ["int", "wis", "cha"]}}],
+            "entries": [
+                "You learn magic.",
+                {"type": "list", "items": ["You learn a cantrip."]},
+            ],
+        }
+    )
+
+    assert compact_entries(feat, None) == [
+        "{@i Origin Feat (Prerequisite: 4th level)}",
+        "You learn magic.",
+        {
+            "type": "list",
+            "items": [
+                "Increase your Intelligence, Wisdom, or Charisma by 1, "
+                "to a maximum of 20.",
+                "You learn a cantrip.",
+            ],
+        },
+    ]
