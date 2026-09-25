@@ -60,7 +60,7 @@ UltimateAppendix = Annotated[
     bool,
     option(
         "--ultimate-appendix",
-        text="Generate recursive appendices (creatures include spells, spells include creatures)",
+        text="Also add what appendix entries refer to (a creature's spells, a spell's creatures); all three appendices unless the flags choose",
         panel=A,
     ),
 ]
@@ -171,13 +171,14 @@ def adventure(
 
         heading = options.title or content_items[0].name
         tracker = ContentTracker()
-        # --ultimate-appendix adds nothing the appendix flags don't
         latex = render_document(
             content_items,
             rendering_context(options, tracker, creature_level),
             document_metadata(options, heading),
             options,
-            appendix_flags(appendix_spells, appendix_items, appendix_creatures),
+            appendix_flags(
+                appendix_spells, appendix_items, appendix_creatures, ultimate_appendix
+            ),
             "adventure",
         )
         _write_content_lists(
@@ -226,14 +227,23 @@ def rendering_context(
 
 
 def appendix_flags(
-    spells: bool | None, items: bool | None, creatures: bool | None
+    spells: bool | None,
+    items: bool | None,
+    creatures: bool | None,
+    recursive: bool = False,
 ) -> AppendixFlags:
-    """The appendices asked for; a flag not given takes the config default."""
+    """The appendices asked for; a flag not given takes the config default.
+
+    Recursive appendices with no flags given are all three.
+    """
+    if recursive and spells is None and items is None and creatures is None:
+        spells = items = creatures = True
     content = get_app_config().rendering.content
     return AppendixFlags(
         spells=content.appendix_spells if spells is None else spells,
         items=content.appendix_items if items is None else items,
         creatures=content.appendix_creatures if creatures is None else creatures,
+        recursive=recursive,
     )
 
 

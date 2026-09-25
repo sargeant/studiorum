@@ -73,7 +73,9 @@ def book(
             rendering_context(options, ContentTracker()),
             document_metadata(options, options.title or name, DocumentType.BOOK),
             options,
-            appendix_flags(appendix_spells, appendix_items, appendix_creatures),
+            appendix_flags(
+                appendix_spells, appendix_items, appendix_creatures, ultimate_appendix
+            ),
             "book",
         )
         file_name = (

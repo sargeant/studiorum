@@ -134,6 +134,23 @@ def test_adventure_appendix_flags_default_to_the_config(run) -> None:
     assert flags.creatures is False
 
 
+@pytest.mark.parametrize(
+    ("flags", "wanted"),
+    [([], (True, True, True)), (["--spells"], (True, False, False))],
+)
+def test_ultimate_appendix_is_recursive_and_all_three_unless_chosen(
+    run, flags: list[str], wanted: tuple[bool, bool, bool]
+) -> None:
+    with patch("studiorum.cli.commands.convert.adventure.render_latex") as render_latex:
+        render_latex.return_value = "\\documentclass{dndbook}"
+        result, _ = run(["convert", "adventure", "test", "--ultimate-appendix", *flags])
+
+    assert result.exit_code == 0, result.output
+    appendices = render_latex.call_args.kwargs["appendices"]
+    assert appendices.recursive is True
+    assert (appendices.spells, appendices.items, appendices.creatures) == wanted
+
+
 class TestReadNames:
     def test_counts_sources_and_comments(self, tmp_path: Path) -> None:
         names = tmp_path / "names.txt"

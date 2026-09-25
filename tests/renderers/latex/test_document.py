@@ -1,6 +1,7 @@
 """Documents assembled from chapters opened by their 5etools ordinals."""
 
 from typing import Any
+from unittest.mock import Mock
 
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.chapter import Chapter
@@ -8,8 +9,11 @@ from studiorum.core.models.content import Source
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.models.spells import Spell
+from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.core.services.appendix_generator import AppendixFlags
 from studiorum.latex_engine.document import (
     DocumentChapter,
+    appendix_chapters,
     render_document,
     render_models,
 )
@@ -176,3 +180,53 @@ def test_the_statblock_style_places_saving_throws() -> None:
     assert "saving-throws" not in latex("2024")
     assert "saving-throws = {Con +5}" in latex("2014")
     assert "con save" not in latex("2014")
+
+
+def test_recursive_appendices_add_what_appendix_entries_refer_to() -> None:
+    mage = Creature.model_validate(
+        {
+            "name": "Mage",
+            "source": "MM",
+            "size": ["M"],
+            "type": "humanoid",
+            "alignment": ["A"],
+            "ac": [12],
+            "hp": {"average": 40, "formula": "9d8"},
+            "speed": {"walk": 30},
+            "str": 9,
+            "dex": 14,
+            "con": 11,
+            "int": 17,
+            "wis": 12,
+            "cha": 11,
+            "cr": "6",
+            "trait": [{"name": "Wards", "entries": ["It casts {@spell shield}."]}],
+        }
+    )
+    shield = Spell.model_validate(
+        {
+            "name": "Shield",
+            "source": "PHB",
+            "level": 1,
+            "school": "A",
+            "time": [{"number": 1, "unit": "reaction"}],
+            "range": {"type": "point", "distance": {"type": "self"}},
+            "components": {"v": True, "s": True},
+            "duration": [{"type": "timed", "duration": {"type": "round", "amount": 1}}],
+            "entries": ["An invisible barrier."],
+        }
+    )
+    content = {"mage": mage, "shield": shield}
+    omnidexer = Mock(
+        find=Mock(side_effect=lambda _type, name, _source: content.get(name.lower()))
+    )
+
+    def titles(recursive: bool) -> list[str]:
+        tracker = ContentTracker()
+        tracker.add_content("creature", "Mage", "MM")
+        context = RenderingContext(content_tracker=tracker, omnidexer=omnidexer)
+        flags = AppendixFlags(creatures=True, spells=True, recursive=recursive)
+        return [chapter.title for chapter in appendix_chapters(context, flags)]
+
+    assert titles(recursive=False) == ["Creatures"]
+    assert titles(recursive=True) == ["Creatures", "Spells"]
