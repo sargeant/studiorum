@@ -8,8 +8,6 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.commands.convert import app
-from studiorum.latex_engine.config.compilation import LaTeXEngine
-from studiorum.latex_engine.core.compiler import LaTeXCompiler
 
 
 @pytest.mark.cli
@@ -62,7 +60,7 @@ class TestLaTeXEngineIntegration:
         mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
-        mock_compile_pdf.return_value = None  # Async function returns None
+        mock_compile_pdf.return_value = None
 
         # Mock display manager for clean output
 
@@ -124,7 +122,7 @@ class TestLaTeXEngineIntegration:
         mock_get_tag_resolver.return_value = mock_tag_resolver
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
-        mock_compile_pdf.return_value = None  # Async function returns None
+        mock_compile_pdf.return_value = None
 
         # Mock display manager for clean output
 
@@ -166,19 +164,3 @@ class TestLaTeXEngineIntegration:
 
         # Verify no subprocess calls were made (particularly not xelatex)
         mock_subprocess.assert_not_called()
-
-    def test_latex_compiler_helper_creates_proper_config(self):
-        """Test that create_latex_compiler helper creates proper configuration."""
-        from studiorum.cli.commands.convert.run import create_latex_compiler
-        from studiorum.latex_engine.config.compilation import CompilationConfig
-
-        # Test the helper function creates properly configured compiler
-        compiler = create_latex_compiler()
-
-        # Verify it's a LaTeXCompiler instance
-        assert isinstance(compiler, LaTeXCompiler)
-
-        # Verify it has the expected configuration
-        assert isinstance(compiler.config, CompilationConfig)
-        assert hasattr(compiler.config, "primary_engine")
-        assert isinstance(compiler.config.primary_engine, LaTeXEngine)

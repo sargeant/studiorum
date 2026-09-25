@@ -1,12 +1,13 @@
 """Tests for compiling the .tex file a convert command wrote."""
 
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 import typer
 
 from studiorum.cli.commands.convert.run import compile_pdf
+from studiorum.core.result import Error, Success
 
 
 @pytest.fixture
@@ -16,46 +17,30 @@ def tex_file(tmp_path: Path) -> Path:
     return path
 
 
-def compiler_returning(result: object = None, error: Exception | None = None) -> Mock:
-    compiler = Mock()
-    compiler.compile_document = AsyncMock(return_value=result, side_effect=error)
-    return compiler
-
-
 @pytest.mark.cli
-@pytest.mark.asyncio
 class TestCompilePdf:
-    async def test_success_compiles_the_file_next_to_itself(self, tex_file: Path):
-        result = Mock(success=True, warnings=[], error_message=None)
-        compiler = compiler_returning(result)
+    def test_compiles_with_the_configured_engines(self, tex_file: Path, capsys):
         with patch(
-            "studiorum.cli.commands.convert.run.create_latex_compiler",
-            return_value=compiler,
-        ):
-            await compile_pdf(tex_file)
+            "studiorum.cli.commands.convert.run.build_pdf",
+            return_value=Success(tex_file.with_suffix(".pdf")),
+        ) as build:
+            compile_pdf(tex_file)
 
-        compiler.compile_document.assert_awaited_once()
-        kwargs = compiler.compile_document.call_args.kwargs
-        assert kwargs == {"output_name": "test", "working_dir": tex_file.parent}
+        path, engines = build.call_args.args
+        assert path == tex_file
+        assert engines.primary_engine in {"xelatex", "lualatex", "pdflatex"}
+        assert "PDF compiled" in capsys.readouterr().out
 
-    async def test_failed_compilation_exits(self, tex_file: Path):
-        result = Mock(success=False, warnings=[], error_message="LaTeX error")
+    def test_failure_prints_the_summary_and_exits(self, tex_file: Path, capsys):
         with (
             patch(
-                "studiorum.cli.commands.convert.run.create_latex_compiler",
-                return_value=compiler_returning(result),
+                "studiorum.cli.commands.convert.run.build_pdf",
+                return_value=Error(
+                    "xelatex: ./test.tex:3: Undefined control sequence."
+                ),
             ),
             pytest.raises(typer.Exit),
         ):
-            await compile_pdf(tex_file)
+            compile_pdf(tex_file)
 
-    async def test_missing_latex_engine_exits(self, tex_file: Path):
-        compiler = compiler_returning(error=FileNotFoundError("lualatex not found"))
-        with (
-            patch(
-                "studiorum.cli.commands.convert.run.create_latex_compiler",
-                return_value=compiler,
-            ),
-            pytest.raises(typer.Exit),
-        ):
-            await compile_pdf(tex_file)
+        assert "Undefined control sequence" in capsys.readouterr().out
