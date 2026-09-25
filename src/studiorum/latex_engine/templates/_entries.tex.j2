@@ -24,7 +24,9 @@
 <@ else @>
 \begin{DndTable}{<# spec | safe #>}
 <@ endif @>
-<@ if labels @>
+<@ if labels and wide @>
+<@ for label in labels @><# column_label(label) #><@ if not loop.last @> & <@ endif @><@ endfor @> \\
+<@ elif labels @>
 <# labels | join(' & ') | safe #> \\
 <@ endif @>
 <@ for row in rows @>
@@ -35,6 +37,15 @@
 
 \end{table*}
 <@- endif @>
+<@- endmacro @>
+
+<#-- A wide table's plain label of several words, one word a line --#>
+<@ macro column_label(label) @>
+<@- if ' ' in label and '\\' not in label -@>
+\shortstack{<# label.split(' ') | join('\\\\') | safe #>}
+<@- else -@>
+<# label | safe #>
+<@- endif -@>
 <@- endmacro @>
 
 <@ macro read_aloud(body) @>

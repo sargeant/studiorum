@@ -528,3 +528,18 @@ def test_named_entries_in_a_list_run_in_without_a_heading(
 
 def test_a_column_spec_covers_every_column() -> None:
     assert column_spec(["col-2 text-center"] * 3, 4, stretch=False) == "cccl"
+
+
+def test_a_wide_table_stacks_the_words_of_its_plain_labels() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Level", "Proficiency Bonus", "{@i Rage Damage}"],
+            "rows": [["1st", "+2", "+2"]],
+            "wide": True,
+        }
+    )
+
+    assert (
+        "Level & \\shortstack{Proficiency\\\\Bonus} & \\textit{Rage Damage} \\\\" in out
+    )
