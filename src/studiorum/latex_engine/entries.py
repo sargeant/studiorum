@@ -418,14 +418,22 @@ class EntryRenderer:
         return " ".join(result)
 
     def _options(self, entry: dict[str, Any]) -> str:
+        """5etools' _renderOptions: named options first, by name; a list if hanging."""
         entries = entry.get("entries", [])
         if not entries:
             return ""
-        items = [
-            (None, self.entry(e) if isinstance(e, str | dict) else str(e))
-            for e in entries
+        named = sorted(
+            (e for e in entries if isinstance(e, dict) and e.get("name")),
+            key=lambda e: str(e["name"]).lower(),
+        )
+        entries = named + [
+            e for e in entries if not (isinstance(e, dict) and e.get("name"))
         ]
-        return str(_macros().list_env("itemize", items))
+        if entry.get("style") == "list-hang-notitle":
+            return self._list(
+                {"type": "list", "style": "list-hang-notitle", "items": entries}
+            )
+        return "\n\n".join(self.entries(entries))
 
     def _variant(self, entry: dict[str, Any]) -> str:
         name = entry.get("name", "")

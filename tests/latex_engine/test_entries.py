@@ -206,8 +206,17 @@ def test_run_in_entries() -> None:
     assert render({"type": "abilityGeneric", "name": "Note", "text": "x"}) == (
         "\\textbf{Note:} x"
     )
-    assert render({"type": "options", "entries": ["a", "b"]}) == (
-        "\\begin{itemize}\n\\item a\n\\item b\n\\end{itemize}"
+    assert render({"type": "options", "entries": ["a", "b"]}) == "a\n\nb"
+    hanging = {
+        "type": "options",
+        "style": "list-hang-notitle",
+        "entries": [
+            {"type": "entries", "name": "Shot", "entries": ["s"]},
+            {"type": "entries", "name": "Arrow", "entries": ["a"]},
+        ],
+    }
+    assert render(hanging) == (
+        "\\begin{description}\n\\item[Arrow.] a\n\\item[Shot.] s\n\\end{description}"
     )
 
 
