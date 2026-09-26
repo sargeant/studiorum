@@ -10,6 +10,7 @@ from studiorum.core.models.subclasses import Subclass
 from studiorum.core.models.subraces import Subrace
 from studiorum.core.models.traps import Trap
 from studiorum.core.models.variantrule import VariantRule
+from studiorum.core.models.vehicles import Vehicle
 
 
 def test_reprints_take_both_forms() -> None:
@@ -163,3 +164,20 @@ def test_a_subrace_can_have_a_plain_speed_and_no_entries() -> None:
 
     assert subrace.speed == 40
     assert subrace.entries == []
+
+
+def test_an_infernal_war_machine_keeps_its_mishap_threshold() -> None:
+    vehicle = Vehicle.model_validate(
+        {
+            "name": "Devil's Ride",
+            "source": "BGDIA",
+            "vehicleType": "INFWAR",
+            "hp": {"hp": 30, "dt": 5, "mt": 10},
+        }
+    )
+
+    assert vehicle.model_dump(by_alias=True, exclude_none=True)["hp"] == {
+        "hp": 30,
+        "dt": 5,
+        "mt": 10,
+    }

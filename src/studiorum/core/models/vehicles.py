@@ -26,6 +26,7 @@ class VehicleHitPoints(BaseModel):
     average: int | None = Field(None, description="Average hit points")
     formula: str | None = Field(None, description="Hit point formula")
     dt: int | None = Field(None, description="Damage threshold")
+    mt: int | None = Field(None, description="Mishap threshold")
 
 
 class VehicleSpeed(BaseModel):
