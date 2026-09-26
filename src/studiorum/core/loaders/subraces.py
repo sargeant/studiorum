@@ -1,9 +1,16 @@
-"""Races merged with their subraces: "Genasi" and "Air" make "Genasi (Air)".
+"""Races as 5etools' races page loads them: "Genasi" and "Air" make "Genasi (Air)".
 
-A port of 5etools' ``Renderer.race.adoptSubraces`` and ``_getMergedSubrace``
-(``js/render.js``), which the races page runs when it loads, so a statblock or
-tag that names "Genasi (Air)|EEPC" finds a race. Nameless subraces hold a
-race's defaults and are left out, as the loader leaves them out elsewhere.
+A port of ``DataUtil.race.getPostProcessedSiteJson`` and
+``Renderer.race.mergeSubraces`` with base races (``js/utils.js``,
+``js/render.js``), which every 5etools page that looks up a race runs, so a
+statblock or tag that names "Genasi (Air)|EEPC" or "Dwarf|PHB" finds a race:
+
+- a race with subraces becomes a base race, which lists its subraces, and one
+  race per subrace merged into it. A nameless subrace holds the race's
+  defaults: merged, it keeps the race's name, and the base race is renamed
+  "Human (Base)".
+- a race with a 2014 lineage (MPMM, VRGR) gets the ability scores and
+  languages that lineage gives.
 """
 
 from __future__ import annotations
@@ -13,6 +20,7 @@ import re
 from typing import Any
 
 from ..logging import get_logger
+from ..text.parser import source_abbreviation
 
 logger = get_logger(__name__)
 
@@ -44,29 +52,134 @@ def subrace_name(race_name: str, subrace_name: str | None) -> str:
 
 
 def merge(races: list[Raw], subraces: list[Raw]) -> list[Raw]:
-    """Each named subrace merged into its race, as a race of its own."""
-    by_key = {
-        (str(r.get("name", "")), str(r.get("source", ""))): r
+    """Every race as 5etools lists it: base races, merged subraces and the rest."""
+    attached: dict[tuple[str, str], list[Raw]] = {}
+    keys = {
+        (str(r.get("name", "")), str(r.get("source", "")))
         for r in races
         if "_copy" not in r
     }
-    out = []
     for subrace in subraces:
-        if not subrace.get("name") or "_copy" in subrace:
+        if "_copy" in subrace:
             continue
-        race = by_key.get(
-            (str(subrace.get("raceName", "")), str(subrace.get("raceSource", "")))
-        )
-        if race is None:
+        key = (str(subrace.get("raceName", "")), str(subrace.get("raceSource", "")))
+        if key not in keys:
             logger.debug(f"No race for subrace {subrace.get('name')}")
             continue
-        try:
-            out.append(_merged(race, subrace))
-        except ValueError as e:
-            logger.warning(
-                f"Could not merge subrace {subrace['name']} into {race['name']}: {e}"
-            )
+        attached.setdefault(key, []).append(subrace)
+
+    out = []
+    for race in races:
+        if "_copy" in race:
+            continue
+        race = _with_lineage(race)
+        own = attached.get((str(race.get("name", "")), str(race.get("source", ""))))
+        if not own:
+            out.append(race)
+            continue
+        own = sorted(
+            ({**sr, "source": sr.get("source") or race.get("source")} for sr in own),
+            key=lambda sr: (
+                str(sr.get("name") or "_").lower(),
+                str(sr["source"]).lower(),
+            ),
+        )
+        out.append(_base_race(race, own))
+        for subrace in own:
+            try:
+                out.append(_merged(race, subrace))
+            except ValueError as e:
+                logger.warning(
+                    f"Could not merge subrace {subrace.get('name')} into "
+                    f"{race['name']}: {e}"
+                )
     return out
+
+
+_LANGUAGES = {
+    "type": "entries",
+    "name": "Languages",
+    "entries": [
+        "You can speak, read, and write Common and one other language that you "
+        "and your DM agree is appropriate for your character."
+    ],
+}
+_ALL_ABILITIES = ["str", "dex", "con", "int", "wis", "cha"]
+_LINEAGE_ABILITIES = {
+    "VRGR": [
+        {"choose": {"weighted": {"from": _ALL_ABILITIES, "weights": [2, 1]}}},
+        {"choose": {"weighted": {"from": _ALL_ABILITIES, "weights": [1, 1, 1]}}},
+    ],
+    "UA1": [{"choose": {"weighted": {"from": _ALL_ABILITIES, "weights": [2, 1]}}}],
+}
+
+
+def _with_lineage(race: Raw) -> Raw:
+    """What a 2014 lineage gives a race that doesn't say: abilities and languages."""
+    lineage = race.get("lineage")
+    if not lineage or lineage is True or race.get("edition") not in (None, "classic"):
+        return race
+    race = copy.deepcopy(race)
+    if lineage in _LINEAGE_ABILITIES:
+        race["ability"] = race.get("ability") or copy.deepcopy(
+            _LINEAGE_ABILITIES[lineage]
+        )
+    if not race.get("languageProficiencies"):
+        race.setdefault("entries", []).append(copy.deepcopy(_LANGUAGES))
+        race["languageProficiencies"] = [{"common": True, "anyStandard": 1}]
+    return race
+
+
+def _base_race(race: Raw, own: list[Raw]) -> Raw:
+    """``mergeSubraces`` with ``isAddBaseRaces``: the race, listing its subraces."""
+    base = copy.deepcopy(race)
+    base["_isBaseRace"] = True
+    name = str(race["name"])
+    if any(not sr.get("name") for sr in own):
+        base["_rawName"] = name
+        base["name"] = f"{name} (Base)"
+    counts: dict[str, int] = {}
+    for sr in own:
+        key = str(sr.get("name") or "_").lower()
+        counts[key] = counts.get(key, 0) + 1
+    items = []
+    for sr in own:
+        full = subrace_name(name, sr.get("name"))
+        # 5etools shows the source when two subraces share a name
+        shown = (
+            f"|{full} ({source_abbreviation(sr['source'])})"
+            if counts[str(sr.get("name") or "_").lower()] > 1
+            else ""
+        )
+        items.append(f"{{@race {full}|{sr['source']}{shown}}}")
+    listed = {
+        "type": "section",
+        "entries": [
+            "This race has multiple subraces, as listed below:",
+            {"type": "list", "items": items},
+        ],
+    }
+    traits = {
+        "type": "section",
+        "entries": [
+            {
+                "type": "entries",
+                "entries": [
+                    {
+                        "type": "entries",
+                        "name": "Traits",
+                        "entries": copy.deepcopy(race.get("entries") or []),
+                    }
+                ],
+            }
+        ],
+    }
+    base["_baseRaceEntries"] = [listed, *([traits] if race.get("entries") else [])]
+    base["_subraces"] = [
+        {"name": subrace_name(name, sr.get("name")), "source": sr["source"]}
+        for sr in own
+    ]
+    return base
 
 
 def _merged(race: Raw, subrace: Raw) -> Raw:
@@ -77,7 +190,7 @@ def _merged(race: Raw, subrace: Raw) -> Raw:
     sub.pop("raceSource", None)
     sub.setdefault("source", race.get("source"))
 
-    merged["name"] = subrace_name(str(race["name"]), sub.pop("name"))
+    merged["name"] = subrace_name(str(race["name"]), sub.pop("name", None))
     if ability := sub.pop("ability", None):
         if overwrite.get("ability") or not merged.get("ability"):
             merged["ability"] = [{} for _ in ability]

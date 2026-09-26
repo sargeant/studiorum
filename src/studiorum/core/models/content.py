@@ -38,6 +38,7 @@ class ContentType(str, Enum):
     HAZARD = "hazard"
     DECK = "deck"
     DEITY = "deity"
+    LANGUAGE = "language"
     DISEASE = "disease"
     CULT = "cult"
     BOON = "boon"
@@ -46,6 +47,7 @@ class ContentType(str, Enum):
     TABLE_GROUP = "tableGroup"
     VARIANTRULE = "variantrule"
     VEHICLE = "vehicle"
+    VEHICLE_UPGRADE = "vehicleUpgrade"
     LEGENDARYGROUP = "legendarygroup"
     PSIONIC = "psionic"
     REFERENCE = "reference"  # For quick reference tags and rule references

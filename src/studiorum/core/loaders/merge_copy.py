@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..encounter import XP_BY_CR
+from ..text.strings import title_case as to_title_case
 
 JSON = Any
 
@@ -343,74 +344,6 @@ def _sort_lower(values: list[JSON]) -> None:
     values.sort(key=lambda v: v.lower() if isinstance(v, str) else v)
 
 
-_JS_WS = "\\s\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff"
-_TITLE_LOWER = [
-    "a",
-    "an",
-    "the",
-    "and",
-    "but",
-    "or",
-    "for",
-    "nor",
-    "as",
-    "at",
-    "by",
-    "for",
-    "from",
-    "in",
-    "into",
-    "near",
-    "of",
-    "on",
-    "onto",
-    "to",
-    "with",
-    "over",
-    "von",
-    "between",
-    "per",
-    "beyond",
-    "among",
-]
-# 5etools' list; the ampersand is escaped so the trademark hook passes
-_TITLE_UPPER = [
-    "Id",
-    "Tv",
-    "Dm",
-    "Ok",
-    "Npc",
-    "Pc",
-    "Tpk",
-    "Wip",
-    "Dc",
-    "D\x26d",
-    "Ac",
-    "Hp",
-]
-_TITLE_UPPER_PLURAL = ["Ids", "Tvs", "Dms", "Oks", "Npcs", "Pcs", "Tpks", "Wips", "Dcs"]
-_TITLE_INITIAL = re.compile(rf"(?<!\{{[@=])(\b\w+[^-\u2014{_JS_WS}/|]*) *", re.ASCII)
-_TITLE_LOWER_RE = re.compile(
-    rf"[{_JS_WS}]({'|'.join(_TITLE_LOWER)})(?=[{_JS_WS}])", re.ASCII | re.IGNORECASE
-)
-_TITLE_UPPER_RE = re.compile(rf"\b({'|'.join(_TITLE_UPPER)})\b", re.ASCII)
-_TITLE_UPPER_PLURAL_RE = re.compile(rf"\b({'|'.join(_TITLE_UPPER_PLURAL)})\b", re.ASCII)
-_TITLE_COMPOUND_LOWER = re.compile(r"([a-z]-(?:Like|Kreen|Toa))")
-_TITLE_POST_PUNCT = re.compile(rf"([;:?!.])([{_JS_WS}]*)([^{_JS_WS}])")
-
-
-def _title_case(text: str) -> str:
-    """``StrUtil.toTitleCase``."""
-    text = _TITLE_INITIAL.sub(lambda m: m[0][0].upper() + m[0][1:].lower(), text)
-    text = _TITLE_LOWER_RE.sub(lambda m: m[0].lower(), text)
-    text = _TITLE_UPPER_RE.sub(lambda m: m[0].upper(), text)
-    text = _TITLE_UPPER_PLURAL_RE.sub(
-        lambda m: m[0][:-1].upper() + m[0][-1].lower(), text
-    )
-    text = _TITLE_COMPOUND_LOWER.sub(lambda m: m[0].lower(), text)
-    return _TITLE_POST_PUNCT.sub(lambda m: m[1] + m[2] + m[3].upper(), text)
-
-
 def _short_name(mon: dict[str, JSON], *, title_case: bool = False) -> str:
     """``Renderer.monster.getShortName``."""
     name = mon.get("name")
@@ -424,7 +357,7 @@ def _short_name(mon: dict[str, JSON], *, title_case: bool = False) -> str:
         return f"{prefix}{name}"
     if _truthy(short_name):
         if not prefix and title_case:
-            return f"{prefix}{_title_case(str(short_name))}"
+            return f"{prefix}{to_title_case(str(short_name))}"
         return f"{prefix}{str(short_name).lower()}"
     base = str(name).split(",")[0]
     out = re.sub(

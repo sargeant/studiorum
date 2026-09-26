@@ -80,6 +80,7 @@ from studiorum.renderers.tags import render
         ("{@kbd SHIFT}", r"\texttt{SHIFT}"),
         ("{@color ♦|#ff0000}", r"\textcolor[HTML]{FF0000}{♦}"),
         ("{@color red|--rgb-name}", "red"),
+        ("{@style [{@tip 4 sq|4 squares}]|muted;small}", "[4 sq]"),
     ],
 )
 def test_tag(text: str, latex: str) -> None:

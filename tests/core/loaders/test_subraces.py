@@ -55,8 +55,10 @@ def test_subrace_names_follow_5etools(
 
 
 def test_a_subrace_overwrites_and_extends_its_race() -> None:
-    [merged] = merge([HALF_ELF], [MARK])
+    base, merged = merge([HALF_ELF], [MARK])
 
+    assert base["name"] == "Half-Elf"
+    assert base["_isBaseRace"]
     assert merged["name"] == "Half-Elf (Variant; Mark of Detection)"
     assert merged["source"] == "ERLW"
     assert merged["ability"] == [{"wis": 1}]
@@ -70,11 +72,41 @@ def test_a_subrace_overwrites_and_extends_its_race() -> None:
     assert HALF_ELF["entries"][1]["name"] == "Skill Versatility"
 
 
-def test_a_subrace_without_its_race_or_name_is_skipped() -> None:
-    orphan = {**MARK, "raceName": "Nobody"}
+def test_a_base_race_lists_its_subraces_then_its_traits() -> None:
+    base, _ = merge([HALF_ELF], [MARK])
+
+    listed, traits = base["_baseRaceEntries"]
+    assert listed["entries"][1]["items"] == [
+        "{@race Half-Elf (Variant; Mark of Detection)|ERLW}"
+    ]
+    assert traits["entries"][0]["entries"][0]["name"] == "Traits"
+
+
+def test_a_nameless_subrace_merges_under_the_race_name() -> None:
     default = {k: v for k, v in MARK.items() if k != "name"}
 
-    assert merge([HALF_ELF], [orphan, default]) == []
+    base, merged = merge([HALF_ELF], [default])
+
+    assert base["name"] == "Half-Elf (Base)"
+    assert merged["name"] == "Half-Elf"
+    assert merged["ability"] == [{"wis": 1}]
+
+
+def test_a_subrace_without_its_race_is_skipped() -> None:
+    orphan = {**MARK, "raceName": "Nobody"}
+
+    assert merge([HALF_ELF], [orphan]) == [HALF_ELF]
+
+
+def test_a_lineage_race_gets_its_abilities_and_languages() -> None:
+    race = {"name": "Fairy", "source": "MPMM", "lineage": "VRGR", "speed": 30}
+
+    [fairy] = merge([race], [])
+
+    assert len(fairy["ability"]) == 2
+    assert fairy["entries"][-1]["name"] == "Languages"
+    assert fairy["languageProficiencies"] == [{"common": True, "anyStandard": 1}]
+    assert "ability" not in race
 
 
 def test_the_loader_adds_merged_subraces_as_races(tmp_path: Path) -> None:

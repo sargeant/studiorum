@@ -205,6 +205,22 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     )
 
     _write(
+        tmp_path / "languages.json",
+        {
+            "language": [
+                {
+                    "name": "Elvish",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "type": "standard",
+                    "typicalSpeakers": ["{@race Elf|XPHB|Elves}"],
+                    "script": "Elvish",
+                }
+            ]
+        },
+    )
+
+    _write(
         tmp_path / "feats.json",
         {"feat": _pick(SRD_DATA / "feats.json", "feat", {"Grappler"})},
     )

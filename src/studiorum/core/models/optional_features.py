@@ -50,6 +50,10 @@ class ResourceConsumption(BaseModel):
 
     name: str = Field(..., description="Name of consumed resource")
     amount: int | None = Field(None, description="Amount consumed")
+    amount_min: int | None = Field(
+        None, alias="amountMin", description="Least consumed"
+    )
+    amount_max: int | None = Field(None, alias="amountMax", description="Most consumed")
 
 
 class OptionalFeature(BaseContent):

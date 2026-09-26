@@ -13,11 +13,36 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from .class_entries import class_entries, subclass_entries
+from .models.backgrounds import Background
 from .models.classes import Class
+from .models.deities import Deity
+from .models.facilities import Facility
+from .models.feats import Feat
+from .models.languages import Language
+from .models.objects import Object
+from .models.optional_features import OptionalFeature
+from .models.races import Race
 from .models.recipes import Recipe
+from .models.rule_types import Hazard
 from .models.subclasses import Subclass
 from .models.table import Table, TableGroup
+from .models.traps import Trap
+from .models.vehicles import VehicleUpgrade
 from .text.properties import apply_properties
+from .type_lines import (
+    background_entries,
+    deity_entries,
+    deity_heading,
+    facility_entries,
+    feat_entries,
+    hazard_entries,
+    language_entries,
+    object_entries,
+    optional_feature_entries,
+    race_entries,
+    trap_entries,
+    vehicle_upgrade_entries,
+)
 
 if TYPE_CHECKING:
     from .loaders.omnidexer import Omnidexer
@@ -43,6 +68,11 @@ def compact_entries(content: BaseContent, omnidexer: Omnidexer | None) -> list[A
         if isinstance(content, kind):
             return build(content, omnidexer)
     return list(content.model_dump().get("entries") or [])
+
+
+def compact_heading(content: BaseContent, name: str) -> str:
+    """The statblock's heading: its name, and for a deity its title."""
+    return deity_heading(content, name) if isinstance(content, Deity) else name
 
 
 def _table(table: Table, _: Omnidexer | None) -> list[Any]:
@@ -110,4 +140,15 @@ _BUILDERS: tuple[
     (Recipe, _recipe),
     (Class, class_entries),
     (Subclass, subclass_entries),
+    (Trap, trap_entries),
+    (Hazard, hazard_entries),
+    (Feat, feat_entries),
+    (Deity, deity_entries),
+    (OptionalFeature, optional_feature_entries),
+    (Facility, facility_entries),
+    (Object, object_entries),
+    (Race, race_entries),
+    (Background, background_entries),
+    (VehicleUpgrade, vehicle_upgrade_entries),
+    (Language, language_entries),
 )

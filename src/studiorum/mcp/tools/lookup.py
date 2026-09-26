@@ -45,6 +45,7 @@ EntryType = Literal[
     "feat",
     "hazard",
     "item",
+    "language",
     "optionalfeature",
     "race",
     "sense",
@@ -55,6 +56,7 @@ EntryType = Literal[
     "trap",
     "variantrule",
     "vehicle",
+    "vehicleUpgrade",
 ]
 
 

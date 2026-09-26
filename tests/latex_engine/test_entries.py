@@ -114,6 +114,29 @@ def test_an_unnamed_block_breaks_out_of_a_hanging_list() -> None:
     )
 
 
+def test_a_hanging_list_that_starts_with_an_unnamed_block_has_no_empty_list() -> None:
+    out = render(
+        {
+            "type": "list",
+            "style": "list-hang",
+            "items": [{"type": "entries", "entries": ["block"]}],
+        }
+    )
+    assert out == "block"
+
+
+def test_a_table_is_as_wide_as_its_widest_row() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Challenge", "Creature"],
+            "colStyles": ["col-2 text-center", "col-10"],
+            "rows": [["1/2", "Shadow", "MM"]],
+        }
+    )
+    assert "{cXl}" in out
+
+
 def test_credits_list_wraps_named_blocks_in_a_list() -> None:
     out = render(
         {

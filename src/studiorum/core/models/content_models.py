@@ -47,6 +47,7 @@ from .fluff import (
 from .itemmastery import ItemMastery
 from .itemproperties import ItemProperty
 from .items import Item
+from .languages import Language
 from .legendarygroup import LegendaryGroup
 from .magicvariant import MagicVariant
 from .objects import Object
@@ -62,7 +63,7 @@ from .subraces import Subrace
 from .table import Table, TableGroup
 from .traps import Trap
 from .variantrule import VariantRule
-from .vehicles import Vehicle
+from .vehicles import Vehicle, VehicleUpgrade
 
 CONTENT_MODELS: dict[ContentType, type[BaseContent]] = {
     ContentType.ADVENTURE: Adventure,
@@ -124,6 +125,8 @@ CONTENT_MODELS: dict[ContentType, type[BaseContent]] = {
     ContentType.TRAP: Trap,
     ContentType.VARIANTRULE: VariantRule,
     ContentType.VEHICLE: Vehicle,
+    ContentType.VEHICLE_UPGRADE: VehicleUpgrade,
+    ContentType.LANGUAGE: Language,
 }
 
 FLUFF_TYPES: frozenset[ContentType] = frozenset(
@@ -218,4 +221,6 @@ PROP_TYPES: dict[str, ContentType] = {
     "trap": ContentType.TRAP,
     "variantrule": ContentType.VARIANTRULE,
     "vehicle": ContentType.VEHICLE,
+    "vehicleUpgrade": ContentType.VEHICLE_UPGRADE,
+    "language": ContentType.LANGUAGE,
 }
