@@ -370,9 +370,15 @@ class EntryRenderer:
         count = max(count, *(len(row) for row in cells))
         # "wide" is Studiorum's own, on tables it builds (a class table)
         wide = bool(entry.get("wide"))
+        # A summary (a vehicle's) splits the width evenly and wraps, as on 5etools
+        spec = (
+            "X" * count
+            if entry.get("style") == "summary"
+            else column_spec(col_styles, count, stretch=not wide)
+        )
         table = _macros().table(
             escape(caption) if caption else "",
-            column_spec(col_styles, count, stretch=not wide),
+            spec,
             [self.text(str(label)) for label in labels],
             cells,
             wide,

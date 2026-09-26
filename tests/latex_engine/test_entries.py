@@ -562,6 +562,19 @@ def test_table_rows_may_be_row_objects() -> None:
     assert "Padded & 5" in out
 
 
+def test_a_summary_table_wraps_in_even_columns() -> None:
+    out = EntryRenderer().entry(
+        {
+            "type": "table",
+            "style": "summary",
+            "colStyles": ["col-6", "col-6"],
+            "rows": [["{@b Speed:} fly 30 ft.", "{@b Cost:} 25,000 gp"]],
+        }
+    )
+
+    assert "\\begin{DndTable}{XX}" in out
+
+
 def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
     fighter = Mock(model_copy=Mock())
     renderer = EntryRenderer(
