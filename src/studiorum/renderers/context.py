@@ -29,7 +29,9 @@ ARTICLE_HEADINGS = (
 class Style:
     """How the surrounding document shapes entries."""
 
-    content_type: str | None = None  # "spell" and "item" nest headings deeper
+    content_type: str | None = (
+        None  # "spell", "item" and "vehicle" nest headings deeper
+    )
     book: bool = False  # a book or adventure, whose chapters the document opens
     sidebar: bool = False
     monster_spells: bool = False  # DndMonsterSpells macros, in statblocks only
@@ -40,7 +42,7 @@ class Style:
     def headings(self) -> tuple[str, ...]:
         if self.content_type == "spell":
             return SPELL_HEADINGS
-        if self.content_type == "item":
+        if self.content_type in ("item", "vehicle"):
             return ITEM_HEADINGS
         if self.sidebar:
             return SIDEBAR_HEADINGS

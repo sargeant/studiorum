@@ -88,7 +88,7 @@ STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
 }
 
 # Content that statblocks render through its own macro (render_models)
-MODEL_KINDS = frozenset({"creature", "spell", "item"})
+MODEL_KINDS = frozenset({"creature", "spell", "item", "vehicle"})
 
 _warned_types: set[str] = set()
 _warned_statblocks: set[str] = set()
@@ -618,7 +618,7 @@ class EntryRenderer:
         return self.omnidexer.find(content_type, entry.get("name", ""), source)
 
     def _render_model(self, kind: str, content: Any) -> str:
-        """A creature, spell or item through its macro, in the text."""
+        """A creature, spell, item or vehicle through its macro, in the text."""
         from studiorum.renderers.context import RenderingContext
 
         from .document import render_models

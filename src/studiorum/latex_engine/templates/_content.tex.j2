@@ -1,12 +1,15 @@
-<#-- Creatures, spells or items (kind says which) through their render macros --#>
+<#-- Creatures, spells, items or vehicles (kind says which) through their render macros --#>
 <@ from "_creature_render_block.tex.j2" import render_creature with context @>
 <@ from "_spell_render_block.tex.j2" import render_spell with context @>
 <@ from "_item_render_block.tex.j2" import render_item with context @>
+<@ from "_vehicle_render_block.tex.j2" import render_vehicle with context @>
 <@ for item in items @>
 <@ if kind == "creature" @>
 <# render_creature(item, floating) #>
 <@ elif kind == "spell" @>
 <# render_spell(item) #>
+<@ elif kind == "vehicle" @>
+<# render_vehicle(item) #>
 <@ else @>
 <# render_item(item) #>
 <@ endif @>

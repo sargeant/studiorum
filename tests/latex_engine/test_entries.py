@@ -10,6 +10,7 @@ from studiorum.core.models.creatures import Ability, Creature
 from studiorum.core.models.deities import Deity
 from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.core.models.vehicles import Vehicle
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
@@ -406,6 +407,43 @@ def test_a_wide_statblock_floats_to_the_end_of_its_section() -> None:
 
     assert "\\begin{DndMonster}[float*=tp" in out
     assert out.endswith("\\FloatBarrier")
+
+
+def test_vehicle_statblocks_sit_in_the_text_in_the_vehicle_box() -> None:
+    vehicle = Vehicle.model_validate(
+        {
+            "name": "Devil's Ride",
+            "source": "BGDIA",
+            "vehicleType": "INFWAR",
+            "size": "L",
+            "weight": 500,
+            "capCreature": 1,
+            "capCargo": 100,
+            "speed": 120,
+            "str": 14,
+            "dex": 18,
+            "con": 12,
+            "hp": {"hp": 30, "dt": 5, "mt": 10},
+            "immune": ["fire"],
+            "trait": [{"name": "Jump", "entries": ["It clears 60 feet."]}],
+        }
+    )
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=vehicle)), style=Style(book=True)
+    )
+
+    out = renderer.entry(
+        {"type": "statblock", "tag": "vehicle", "name": "Devil's Ride"}
+    )
+
+    assert out.startswith("\\begin{DndVehicle}{Devil's Ride}")
+    assert "\\DndVehicleType{\\textit{Large vehicle (500 lb.)}}" in out
+    assert "\\noindent \\textbf{Speed} 120 ft.\\par" in out
+    assert "\\DndVehicleAbilityScores[str = 14, dex = 18, con = 12]" in out
+    assert "damage-immunities = {fire}" in out
+    assert "\\DndVehicleSection{Traits}\n\\DndVehicleAction{Jump}" in out
+    assert "float" not in out
+    assert out.endswith("\\end{DndVehicle}")
 
 
 def test_statblocks_take_their_display_name() -> None:

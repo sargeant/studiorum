@@ -1,0 +1,81 @@
+% Vehicle rendering block for _content.tex.j2
+
+<@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+<@ from "_entries.tex.j2" import flush_lines @>
+
+<#--
+  Macro: render_vehicle_entries(entries)
+  Purpose: A section's entries; a named one (a trait, action or reaction)
+           gets a DndVehicleAction heading, as creature abilities do, and
+           paragraphs are flush left, as on 5etools.
+--#>
+<@ macro render_vehicle_entries(entries) @>
+<@ for entry in entries @>
+<@ if entry is mapping and entry.name is defined @>
+\DndVehicleAction{<# entry.name | entries #>}
+<# smart_render_entry(entry.entries | default([])) #>
+
+<@ elif entry is string @>
+\noindent <# smart_render_entry(entry) #>
+
+<@ else @>
+<# smart_render_entry(entry) #>
+
+<@ endif @>
+<@ endfor @>
+<@ endmacro @>
+
+<#--
+  Macro: render_vehicle(vehicle)
+  Purpose: A vehicle statblock in the text, not floated, in the fork's
+           DndVehicle box. The lines come from core.vehicle_lines as 5etools
+           markup; the fork's Control, Movement, Weapon and Basics macros are
+           not used (they print defaults for absent values).
+--#>
+<@ macro render_vehicle(vehicle) @>
+<@ set block = vehicle | vehicle_block @>
+\begin{DndVehicle}{<# vehicle.name #>}
+<@ if block.type_line @>
+\noindent \DndVehicleType{<# block.type_line | entries #>}
+<@ endif @>
+<@ if block.attributes @>
+\DndMonsterLine
+{\color{statblocktitle}
+<# flush_lines(block.attributes | map('entries') | list) #>
+}
+<@ if block.note @>
+\noindent\hspace{1em}{\small <# block.note | entries #>}\par
+<@ endif @>
+\DndMonsterLine
+<@ endif @>
+<@ if block.summary @>
+<# smart_render_entry(block.summary) #>
+
+<@ endif @>
+<@ if block.abilities @>
+\DndVehicleAbilityScores[str = <# block.abilities.str #>, dex = <# block.abilities.dex #>, con = <# block.abilities.con #>]
+<@ endif @>
+<@ if block.details @>
+\DndVehicleDetails[
+<@ for label, text in block.details @>
+    <# label | lower | replace(' ', '-') #> = {<# text | entries #>}<@ if not loop.last @>,<@ endif @>
+
+<@ endfor @>
+]
+<@ endif @>
+<@ for section in block.sections @>
+\DndVehicleSection{<# section.title | entries #>}
+<@ if section.lines @>
+{\color{statblocktitle}
+<# flush_lines(section.lines | map('entries') | list) #>
+}
+<@ endif @>
+<# render_vehicle_entries(section.entries) #>
+<@ endfor @>
+<@ set _source_abbrev = vehicle.source | attr('abbreviation') | default(None, true) @>
+<@ if _source_abbrev @>
+\vspace{2pt}
+\noindent\hfill{\scriptsize\textcolor{gray}{<# _source_abbrev #>}}
+<@ endif @>
+\end{DndVehicle}
+<@ endmacro @>
