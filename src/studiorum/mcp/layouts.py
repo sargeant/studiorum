@@ -11,6 +11,7 @@ from studiorum.core.text.parser import feat_category
 from studiorum.core.text.prerequisites import prerequisite_entry
 from studiorum.core.text.stats import speed_text
 from studiorum.core.type_lines import ability_text
+from studiorum.core.vehicle_lines import VehicleSection, vehicle_block
 from studiorum.mcp.markdown import render, strip_tags
 
 type Raw = dict[str, Any]
@@ -579,107 +580,37 @@ def _race(data: Raw, _: str) -> list[str]:
     ]
 
 
-_VEHICLE_TYPES = {"SHIP": "ship", "SPELLJAMMER": "spelljammer ship", "INFWAR": "infernal war machine", "ELEMENTAL_AIRSHIP": "elemental airship", "OBJECT": "object", "CREATURE": "creature"}  # fmt: skip
-
-
-def _vehicle(data: Raw, _: str) -> list[str]:
-    size = _SIZES.get(str(data.get("size", "")), "")
-    kind = _VEHICLE_TYPES.get(str(data.get("vehicleType")), "vehicle")
-    hull = data.get("hull") or {}
-    hp = data.get("hp") or {}
-    if not isinstance(hp, dict):
-        hp = {"hp": hp}
-    ac = hull.get("ac") or data.get("ac")
-    hit_points = hull.get("hp") or hp.get("hp")
-    threshold = hull.get("dt") or hp.get("dt")
-    speed = data.get("speed")
-    crew = ", ".join(
-        f"{data[k]} {label if data[k] != 1 else one}"
-        for k, label, one in (
-            ("capCrew", "crew", "crew"),
-            ("capPassenger", "passengers", "passenger"),
-            ("capCreature", "creatures", "creature"),
-        )
-        if data.get(k)
-    )
-    cost = data.get("cost")
-    stats = [
-        _line("Armor Class", str(ac) if ac and not isinstance(ac, list) else ""),
-        _line(
-            "Hit Points",
-            f"{hit_points}" + (f" (damage threshold {threshold})" if threshold else "")
-            if hit_points
-            else "",
-        ),
-        _line(
-            "Speed",
-            f"{speed} ft."
-            if isinstance(speed, int)
-            else _speed(speed)
-            if speed
-            else "",
-        ),
-        _line("Dimensions", " by ".join(data.get("dimensions") or [])),
-        _line("Terrain", ", ".join(data.get("terrain") or [])),
-        _line("Capacity", crew),
-        _line("Cargo", _cargo(data)),
-        _line("Cost", f"{cost / 100:,g} gp" if isinstance(cost, int | float) else ""),
-        _line("Immunities", _join(data.get("immune") or [])),
-        _line("Condition Immunities", _join(data.get("conditionImmune") or [])),
-    ]
+def _vehicle(data: Raw, content_type: str) -> list[str]:
+    """``Renderer.vehicle``'s layouts (``core.vehicle_lines``); a creature as one."""
+    if data.get("vehicleType") == "CREATURE":
+        return _creature(data, content_type)
+    block = vehicle_block(data)
     return [
         _title(data),
-        f"*{' '.join(w for w in (size, kind) if w)}* · *{_source(data)}*",
-        "\n".join(line for line in stats if line),
-        _abilities(data) if any(data.get(a) for a in _ABILITIES) else "",
-        _entries(data.get("entries")),
-        _named_blocks("Traits", data.get("trait")),
-        _named_blocks("Action Stations", data.get("actionStation")),
-        _named_blocks("Actions", data.get("action")),
-        _named_blocks("Reactions", data.get("reaction")),
-        _parts("Control", data.get("control")),
-        _parts("Movement", data.get("movement")),
-        _parts("Weapons", data.get("weapon")),
+        " · ".join(p for p in (_entries(block.type_line), f"*{_source(data)}*") if p),
+        "\n".join(_entries(line) for line in block.attributes),
+        _entries(block.note),
+        _entries(block.summary),
+        _abilities(data) if block.abilities else "",
+        "\n".join(_line(label, _entries(text)) for label, text in block.details),
+        _entries(block.entries),
+        *(_vehicle_section(section) for section in block.sections),
     ]
 
 
-def _cargo(data: Raw) -> str:
-    cargo = data.get("capCargo")
-    if not cargo:
-        return ""
-    # Infernal war machines carry pounds; ships, tons
-    return f"{cargo} lb." if data.get("vehicleType") == "INFWAR" else f"{cargo} tons"
-
-
-def _parts(heading: str, parts: Any) -> str:
-    """A ship's control, movement and weapon parts, each with its AC and HP."""
-    if not parts:
-        return ""
-    blocks = [f"## {heading}"]
-    for part in parts:
-        if not isinstance(part, dict):
-            continue
-        stats = ", ".join(
-            f"{label} {part[k]}"
-            for k, label in (("ac", "AC"), ("hp", "HP"), ("dt", "damage threshold"))
-            if part.get(k)
-        )
-        count = f" ({part['count']})" if part.get("count") else ""
-        body = [_entries(part.get("entries"), 3)]
-        body += [
-            f"*{str(mode.get('mode', '')).title()}.* {_entries(mode.get('entries'), 4)}"
-            for mode in part.get("speed") or part.get("locomotion") or []
-            if isinstance(mode, dict)
-        ]
-        body += [
-            f"*{strip_tags(str(a.get('name', '')))}.* {_entries(a.get('entries'), 4)}"
-            for a in part.get("action") or []
-            if isinstance(a, dict)
-        ]
-        title = f"***{strip_tags(str(part.get('name', '')))}{count}.***"
-        blocks.append(" ".join(t for t in (title, f"*{stats}*" if stats else "") if t))
-        blocks += [b for b in body if b]
-    return "\n\n".join(blocks)
+def _vehicle_section(section: VehicleSection) -> str:
+    """A titled part: its lines, then its entries, named ones as ***Name.***."""
+    parts = [f"## {section.title}", "\n".join(_entries(line) for line in section.lines)]
+    for entry in section.entries:
+        if (
+            isinstance(entry, dict)
+            and entry.get("name")
+            and entry.get("type", "entries") == "entries"
+        ):
+            parts.append(_named_blocks("", [entry]).removeprefix("## \n\n"))
+        else:
+            parts.append(_entries(entry, 3))
+    return "\n\n".join(p for p in parts if p)
 
 
 def item_kind(data: Raw) -> str:
