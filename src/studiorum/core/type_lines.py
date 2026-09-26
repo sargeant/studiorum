@@ -54,8 +54,10 @@ STYLE = "classic"
 _CLASSIC_TRAPS = ("MECH", "MAG", "TRP", "HAUNT")
 
 
-def raw(content: BaseModel) -> Raw:
+def raw(content: BaseModel | Raw) -> Raw:
     """The content as 5etools data."""
+    if isinstance(content, dict):
+        return content
     return content.model_dump(by_alias=True, exclude_none=True)
 
 
@@ -417,7 +419,7 @@ def object_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
     ]
 
 
-def object_lines(content: BaseModel) -> list[str]:
+def object_lines(content: BaseModel | Raw) -> list[str]:
     """An object's size and attributes, which 5etools sets flush above its entries."""
     data = raw(content)
     if data.get("objectType") == "GEN":

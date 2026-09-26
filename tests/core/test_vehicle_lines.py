@@ -232,12 +232,37 @@ def test_an_infernal_war_machine_has_its_thresholds_and_stations() -> None:
     assert [t["name"] for t in block.sections[0].entries] == ["Jump", "Stunt"]
 
 
-def test_a_vehicle_type_without_a_layout_is_an_error() -> None:
-    vehicle = Vehicle.model_validate(
-        {"name": "Rowboat", "source": "DMG", "vehicleType": "OBJECT"}
+def test_an_object_vehicle_is_laid_out_as_an_object() -> None:
+    boat = Vehicle.model_validate(
+        {
+            "name": "Rowboat",
+            "source": "XDMG",
+            "vehicleType": "OBJECT",
+            "size": "L",
+            "capCrew": 1,
+            "capPassenger": 3,
+            "speed": {"walk": 0, "swim": 15},
+            "entries": ["A small boat."],
+        }
     )
 
-    with pytest.raises(ValueError, match="OBJECT"):
+    block = vehicle_block(boat)
+
+    assert block.type_line == "{@i Large object}"
+    assert block.attributes == [
+        "{@b Creature Capacity:} 1 crew, 3 passengers",
+        "{@b Speed:} 0 ft., swim 15 ft.",
+    ]
+    assert block.entries == ["A small boat."]
+    assert block.sections == []
+
+
+def test_a_creature_vehicle_has_no_vehicle_layout() -> None:
+    vehicle = Vehicle.model_validate(
+        {"name": "Stahlmaster", "source": "DD", "vehicleType": "CREATURE"}
+    )
+
+    with pytest.raises(ValueError, match="CREATURE"):
         vehicle_block(vehicle)
 
 

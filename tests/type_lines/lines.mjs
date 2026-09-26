@@ -161,6 +161,7 @@ const VEHICLES = {
 			summary: null,
 			abilities: abilities(ent),
 			details: details(ent),
+			entries: [],
 			sections: [
 				...(ent.action ? [section("Actions", [], ent.action)] : []),
 				...(meta.entriesOtherActions || []).map(other),
@@ -178,12 +179,12 @@ const VEHICLES = {
 		};
 	},
 	SPELLJAMMER: ent => ({
-		type_line: null, attributes: [], note: null, abilities: null, details: [],
+		type_line: null, attributes: [], note: null, abilities: null, details: [], entries: [],
 		summary: V.spelljammer.getRenderableEntriesMeta(ent).entryTableSummary,
 		sections: (ent.weapon || []).map(w => station(V.spelljammer.getStationEntriesMeta(w).entryName, w, true)),
 	}),
 	ELEMENTAL_AIRSHIP: ent => ({
-		type_line: null, attributes: [], note: null, abilities: null, details: [],
+		type_line: null, attributes: [], note: null, abilities: null, details: [], entries: [],
 		summary: V.elementalAirship.getRenderableEntriesMeta(ent).entryTableSummary,
 		sections: [...(ent.weapon || []), ...(ent.station || [])].map(s => station(V.elementalAirship.getStationEntriesMeta(s).entryName, s, false)),
 	}),
@@ -197,9 +198,20 @@ const VEHICLES = {
 			summary: null,
 			abilities: abilities(ent),
 			details: details(ent),
+			entries: [],
 			sections: [...traits(ent), ...part("actionStation", "Action Stations"), ...part("reaction", "Reactions")],
 		};
 	},
+};
+VEHICLES.OBJECT = ent => {
+	const meta = Renderer.object.getObjectRenderableEntriesMeta(ent);
+	return {
+		type_line: meta.entrySize,
+		attributes: Renderer.object.RENDERABLE_ENTRIES_PROP_ORDER__ATTRIBUTES.map(prop => meta[prop]).filter(Boolean),
+		note: null, summary: null, abilities: null, details: [],
+		entries: [...(ent.entries || []), ...(ent.actionEntries || [])],
+		sections: [],
+	};
 };
 const vehicles = (await load("vehicles.json")).vehicle
 	.filter(ent => VEHICLES[ent.vehicleType || "SHIP"])

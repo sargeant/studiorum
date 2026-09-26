@@ -2,7 +2,7 @@
 
 A port of ``Renderer.vehicle`` (``js/render.js``): one layout per
 ``vehicleType`` (ship, Spelljammer ship, elemental airship, infernal war
-machine), in 2014 ("classic") wording. The lines and summary are the markup
+machine, and object as ``Renderer.object``), in 2014 ("classic") wording. The lines and summary are the markup
 5etools builds in its ``get*RenderableEntriesMeta`` functions; the section
 titles are the text of its HTML headers. The vehicle template sets them.
 """
@@ -18,7 +18,7 @@ from .text.parser import SIZES
 from .text.stats import SPEED_MODES, condition_text, damage_text, size_text, speed_text
 from .text.strings import join_conjunct
 from .text.tags import plain_text
-from .type_lines import cargo_capacity, creature_capacity, raw
+from .type_lines import cargo_capacity, creature_capacity, object_lines, raw
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -66,7 +66,8 @@ class VehicleBlock:
 
     ``summary`` is a table entry (Spelljammer ships and elemental airships);
     ``note`` is the small bracketed line under the attributes; ``details``
-    pairs each immunity label with its text.
+    pairs each immunity label with its text; ``entries`` (an object's) come
+    before the sections.
     """
 
     type_line: str | None = None
@@ -75,12 +76,14 @@ class VehicleBlock:
     summary: Raw | None = None
     abilities: dict[str, int] | None = None
     details: list[tuple[str, str]] = field(default_factory=list)
+    entries: list[Any] = field(default_factory=list)
     sections: list[VehicleSection] = field(default_factory=list)
 
 
-def vehicle_block(content: BaseModel) -> VehicleBlock:
+def vehicle_block(content: BaseModel | Raw) -> VehicleBlock:
     """The statblock for a vehicle, by its ``vehicleType`` (ships by default)."""
-    data = raw(content)
+    # The model gives absent lists (ac, size, entries) as empty ones
+    data = {k: v for k, v in raw(content).items() if v != []}
     match data.get("vehicleType") or "SHIP":
         case "SPELLJAMMER":
             return _spelljammer(data)
@@ -90,6 +93,8 @@ def vehicle_block(content: BaseModel) -> VehicleBlock:
             return _infwar(data)
         case "SHIP":
             return _ship(data)
+        case "OBJECT":
+            return _object(data)
         case other:
             raise ValueError(f"No vehicle layout for {other!r}")
 
@@ -152,6 +157,16 @@ def _ship(data: Raw) -> VehicleBlock:
         abilities=_abilities(data),
         details=_details(data),
         sections=sections,
+    )
+
+
+def _object(data: Raw) -> VehicleBlock:
+    """``Renderer.object``: size, attributes, entries, then actions."""
+    size, *attributes = object_lines(data)
+    return VehicleBlock(
+        type_line=size,
+        attributes=attributes,
+        entries=[*(data.get("entries") or []), *(data.get("actionEntries") or [])],
     )
 
 
@@ -316,12 +331,10 @@ def _infwar(data: Raw) -> VehicleBlock:
     """``_getRenderedString_infwar``."""
     hp = data.get("hp") or {}
     dex_mod = math.floor((data.get("dex", 10) - 10) / 2)
-    # 5etools reads `ac ?? dexMod === 0 ? ...`, so any set AC prints 19. The
-    # model gives an absent AC as []
-    ac_set = data.get("ac") not in (None, [])
+    # 5etools reads `ac ?? dexMod === 0 ? ...`, so any set AC prints 19
     ac = (
         "19"
-        if (bool(data["ac"]) if ac_set else dex_mod == 0)
+        if (bool(data["ac"]) if data.get("ac") is not None else dex_mod == 0)
         else f"{19 + dex_mod} (19 while motionless)"
     )
     thresholds = ", ".join(

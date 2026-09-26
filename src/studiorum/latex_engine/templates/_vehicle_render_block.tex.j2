@@ -63,6 +63,7 @@
 <@ endfor @>
 ]
 <@ endif @>
+<# render_vehicle_entries(block.entries) #>
 <@ for section in block.sections @>
 \DndVehicleSection{<# section.title | entries #>}
 <@ if section.lines @>
