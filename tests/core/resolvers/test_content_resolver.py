@@ -179,6 +179,20 @@ class TestContentResolver:
         assert result.query == "phb"
         mock_omnidexer.get_all_by_type.assert_called_with(ContentType("book"))
 
+    def test_resolve_book_by_its_5etools_id(self, resolver, mock_omnidexer) -> None:
+        """A book whose id differs from its source ("PS-Z", "PSZ") matches both."""
+        book = Book(
+            name="Plane Shift: Zendikar",
+            source=Source(abbreviation="PSZ", name="PSZ"),
+            id="PS-Z",
+        )
+        mock_omnidexer.get_all_by_type.return_value = [book]
+
+        for query in ("PS-Z", "ps-z", "psz"):
+            result = resolver.resolve_book(query)
+            assert result.status == ResolutionStatus.EXACT_MATCH, query
+            assert result.content == book
+
     def test_resolve_adventure_multiple_matches_picks_preferred(
         self, resolver, mock_omnidexer
     ) -> None:
@@ -353,7 +367,7 @@ class TestContentResolver:
             name="Test",
             source=source,
             contents=[],
-            id="test",
+            id="other",
             metadata={},
             published=None,
             author=None,
