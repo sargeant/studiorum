@@ -26,6 +26,7 @@ from studiorum.core.models.content import ContentType
 from studiorum.core.models.content_models import (
     FLUFF_TYPES,
     PROP_TYPES,
+    TAG_TYPES,
     content_type_of,
 )
 from studiorum.core.models.creatures import ArmorClass, Creature
@@ -51,40 +52,6 @@ ABILITIES = {
     "int": "Intelligence",
     "wis": "Wisdom",
     "cha": "Charisma",
-}
-
-# What a statblock's tag looks up, and the source when it gives none: 5etools'
-# Parser.TAG_TO_PROPS and each tag's defaultSource. An item may also be a
-# generic variant, which renders as an item.
-STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
-    "action": (ContentType.ACTION, "PHB"),
-    "background": (ContentType.BACKGROUND, "PHB"),
-    "charoption": (ContentType.CHAROPTION, "MOT"),
-    "class": (ContentType.CLASS, "PHB"),
-    "condition": (ContentType.CONDITION, "PHB"),
-    "creature": (ContentType.CREATURE, "MM"),
-    "deck": (ContentType.DECK, "DMG"),
-    "deity": (ContentType.DEITY, "PHB"),
-    "disease": (ContentType.DISEASE, "DMG"),
-    "facility": (ContentType.FACILITY, "XDMG"),
-    "feat": (ContentType.FEAT, "PHB"),
-    "hazard": (ContentType.HAZARD, "DMG"),
-    "item": (ContentType.ITEM, "DMG"),
-    "language": (ContentType.LANGUAGE, "PHB"),
-    "object": (ContentType.OBJECT, "DMG"),
-    "optfeature": (ContentType.OPTIONALFEATURE, "PHB"),
-    "race": (ContentType.RACE, "PHB"),
-    "recipe": (ContentType.RECIPE, "HF"),
-    "reward": (ContentType.REWARD, "DMG"),
-    "sense": (ContentType.SENSE, "PHB"),
-    "spell": (ContentType.SPELL, "PHB"),
-    "status": (ContentType.STATUS, "PHB"),
-    "subclass": (ContentType.SUBCLASS, "PHB"),
-    "table": (ContentType.TABLE, "DMG"),
-    "trap": (ContentType.TRAP, "DMG"),
-    "variantrule": (ContentType.VARIANTRULE, "DMG"),
-    "vehicle": (ContentType.VEHICLE, "GoS"),
-    "vehupgrade": (ContentType.VEHICLE_UPGRADE, "GoS"),
 }
 
 # Content that statblocks render through its own macro (render_models)
@@ -584,7 +551,7 @@ class EntryRenderer:
         """The content a statblock names by its prop, or else its tag."""
         name = entry.get("name", "")
         tag, prop = entry.get("tag", ""), entry.get("prop", "")
-        known = STATBLOCK_TAGS.get(tag)
+        known = TAG_TYPES.get(tag)
         content_type = PROP_TYPES.get(prop) if prop else known and known[0]
         if content_type is None:
             kind = prop or tag
@@ -594,6 +561,7 @@ class EntryRenderer:
             return None
         source = entry.get("source") or (known[1] if known else "")
         found = self._find(content_type, entry, source)
+        # An item may be a generic variant, which renders as an item
         if found is None and content_type == ContentType.ITEM:
             found = self._find(ContentType.MAGICVARIANT, entry, source)
         if isinstance(found, MagicVariant):
