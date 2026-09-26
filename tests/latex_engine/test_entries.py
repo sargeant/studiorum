@@ -7,6 +7,7 @@ import pytest
 
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Ability, Creature
+from studiorum.core.models.deities import Deity
 from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.models.magicvariant import MagicVariant
 from studiorum.core.references.content_tracker import ContentTracker
@@ -437,6 +438,30 @@ def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
     assert renderer.entry(statblock) == "\\subsection{Orc}\n\nSavage."
 
 
+def test_a_deitys_labelled_lines_are_flush_left_above_its_entries() -> None:
+    deity = Deity.model_validate(
+        {
+            "name": "Moradin",
+            "source": "PHB",
+            "pantheon": "Dwarven",
+            "alignment": ["L", "G"],
+            "domains": ["Knowledge"],
+            "entries": ["The Soul Forger."],
+        }
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=deity)))
+
+    out = renderer.entry({"type": "statblock", "tag": "deity", "name": "Moradin"})
+
+    assert out == (
+        "\\section{Moradin}\n\n"
+        "\\noindent \\textbf{Alignment:} Lawful Good\\par\n"
+        "\\noindent \\textbf{Domains:} Knowledge\\par\n"
+        "\\noindent \\textbf{Pantheon:} Dwarven\\par\n\n"
+        "The Soul Forger."
+    )
+
+
 def test_item_statblocks_fall_back_to_generic_variants() -> None:
     variant = MagicVariant.model_validate(
         {
@@ -511,8 +536,11 @@ def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
             lambda _: ContentType.CLASS,
         )
         patch.setattr(
-            "studiorum.latex_engine.entries.compact_entries",
-            lambda *_: [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],
+            "studiorum.latex_engine.entries.compact_parts",
+            lambda *_: (
+                [],
+                [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],
+            ),
         )
         out = renderer.entry(
             {

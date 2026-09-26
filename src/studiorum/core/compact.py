@@ -33,11 +33,13 @@ from .type_lines import (
     background_entries,
     deity_entries,
     deity_heading,
+    deity_lines,
     facility_entries,
     feat_entries,
     hazard_entries,
     language_entries,
     object_entries,
+    object_lines,
     optional_feature_entries,
     race_entries,
     trap_entries,
@@ -68,6 +70,18 @@ def compact_entries(content: BaseContent, omnidexer: Omnidexer | None) -> list[A
         if isinstance(content, kind):
             return build(content, omnidexer)
     return list(content.model_dump().get("entries") or [])
+
+
+def compact_parts(
+    content: BaseContent, omnidexer: Omnidexer | None
+) -> tuple[list[str], list[Any]]:
+    """``compact_entries`` split into the lines set flush above the rest, if any."""
+    entries = compact_entries(content, omnidexer)
+    for kind, lines in _LINES:
+        if isinstance(content, kind):
+            head = lines(content)
+            return head, entries[len(head) :]
+    return [], entries
 
 
 def compact_heading(content: BaseContent, name: str) -> str:
@@ -151,4 +165,10 @@ _BUILDERS: tuple[
     (Background, background_entries),
     (VehicleUpgrade, vehicle_upgrade_entries),
     (Language, language_entries),
+)
+
+# Types whose first entries are labelled lines, flush left on 5etools
+_LINES: tuple[tuple[type[Any], Callable[[Any], list[str]]], ...] = (
+    (Deity, deity_lines),
+    (Object, object_lines),
 )
