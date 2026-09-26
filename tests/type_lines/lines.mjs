@@ -1,10 +1,12 @@
 // What 5etools shows around an entity's entries, with its own code, as the
-// oracle for core/text/prerequisites.py and the type lines in core/compact.py.
+// oracle for core/text/prerequisites.py, the type lines in core/compact.py and
+// core/vehicle_lines.py.
 //
 // Usage: node lines.mjs <5etools root> > result.json
-// Prints {"prerequisites": [...], "compact": {...}}: every prerequisite in the
-// data in the classic and one styles, and for each type what 5etools shows in
-// classic style, assembled as the list of entries core/compact.py builds.
+// Prints {"prerequisites": [...], "compact": {...}, "vehicles": [...]}: every
+// prerequisite in the data in the classic and one styles, for each type what
+// 5etools shows in classic style, assembled as the list of entries
+// core/compact.py builds, and each vehicle's statblock.
 import fs from "fs";
 import path from "path";
 
@@ -118,4 +120,101 @@ for (const [prop, [file, build]] of Object.entries(BUILDERS)) {
 		.map(ent => ({name: ent.name, source: ent.source, entries: build(MiscUtil.copyFast(ent))}));
 }
 
-process.stdout.write(JSON.stringify({prerequisites, compact}));
+// Each vehicle as core/vehicle_lines.py builds it: the lines 5etools'
+// get*RenderableEntriesMeta functions build, and the section titles its HTML
+// headers print
+const V = Renderer.vehicle;
+const hpLines = (entry, isEach = false) => {
+	const meta = V.ship.getSectionHpEntriesMeta_({entry, isEach});
+	return [meta.entryArmorClass, meta.entryHitPoints].filter(Boolean);
+};
+const section = (title, lines = [], entries = []) => ({title, lines, entries});
+const abilities = ent => Parser.ABIL_ABVS.some(it => ent[it] != null)
+	? Object.fromEntries(Parser.ABIL_ABVS.filter(it => ent[it] != null).map(it => [it, ent[it]]))
+	: null;
+const details = ent => {
+	const meta = V.getVehicleRenderableEntriesMeta(ent);
+	return ["entryDamageVulnerabilities", "entryDamageResistances", "entryDamageImmunities", "entryConditionImmunities"]
+		.map(prop => meta[prop]).filter(Boolean);
+};
+const traits = ent => {
+	const ordered = Renderer.monster.getOrderedTraits(ent);
+	return ordered ? [section("Traits", [], ordered)] : [];
+};
+const station = (title, entry, isDisplayEmptyCost) => {
+	const meta = V.spelljammerElementalAirship.getStationEntriesMeta(entry);
+	return section(title, [
+		meta.entrySize,
+		meta.entryArmorClass,
+		meta.entryHitPoints,
+		isDisplayEmptyCost || entry.costs?.length ? meta.entryCost : null,
+	].filter(Boolean), [...(entry.entries || []), ...(entry.action || [])]);
+};
+const VEHICLES = {
+	SHIP: ent => {
+		const meta = V.ship.getVehicleShipRenderableEntriesMeta(ent);
+		const other = oth => section(oth.name, hpLines(oth), oth.entries || []);
+		return {
+			type_line: meta.entrySizeDimensions,
+			attributes: [meta.entryCreatureCapacity, meta.entryCargoCapacity, meta.entryInitiative, meta.entryTravelPace].filter(Boolean),
+			note: meta.entryTravelPaceNote,
+			summary: null,
+			abilities: abilities(ent),
+			details: details(ent),
+			entries: [],
+			sections: [
+				...(ent.action ? [section("Actions", [], ent.action)] : []),
+				...(meta.entriesOtherActions || []).map(other),
+				...(ent.hull ? [section("Hull", hpLines(ent.hull))] : []),
+				...traits(ent),
+				...(ent.control || []).map(c => section(`Control: ${c.name}`, hpLines(c), c.entries || [])),
+				...(ent.movement || []).map(m => section(
+					`${m.isControl ? "Control and " : ""}Movement: ${m.name}`,
+					hpLines(m),
+					[...(m.locomotion || []).map(V.ship.getLocomotionEntries), ...(m.speed || []).map(V.ship.getSpeedEntries)],
+				)),
+				...(ent.weapon || []).map(w => section(`Weapons: ${w.name}${w.count ? ` (${w.count})` : ""}`, hpLines(w, !!w.count), w.entries || [])),
+				...(meta.entriesOtherOthers || []).map(other),
+			],
+		};
+	},
+	SPELLJAMMER: ent => ({
+		type_line: null, attributes: [], note: null, abilities: null, details: [], entries: [],
+		summary: V.spelljammer.getRenderableEntriesMeta(ent).entryTableSummary,
+		sections: (ent.weapon || []).map(w => station(V.spelljammer.getStationEntriesMeta(w).entryName, w, true)),
+	}),
+	ELEMENTAL_AIRSHIP: ent => ({
+		type_line: null, attributes: [], note: null, abilities: null, details: [], entries: [],
+		summary: V.elementalAirship.getRenderableEntriesMeta(ent).entryTableSummary,
+		sections: [...(ent.weapon || []), ...(ent.station || [])].map(s => station(V.elementalAirship.getStationEntriesMeta(s).entryName, s, false)),
+	}),
+	INFWAR: ent => {
+		const meta = V.infwar.getVehicleInfwarRenderableEntriesMeta(ent);
+		const part = (key, title) => ent[key] ? [section(`${title}${ent[`${key}Note`] ? ` (${ent[`${key}Note`]})` : ""}`, [], ent[key])] : [];
+		return {
+			type_line: meta.entrySizeWeight,
+			attributes: V.infwar.PROPS_RENDERABLE_ENTRIES_ATTRIBUTES.map(prop => meta[prop]),
+			note: meta.entrySpeedNote,
+			summary: null,
+			abilities: abilities(ent),
+			details: details(ent),
+			entries: [],
+			sections: [...traits(ent), ...part("actionStation", "Action Stations"), ...part("reaction", "Reactions")],
+		};
+	},
+};
+VEHICLES.OBJECT = ent => {
+	const meta = Renderer.object.getObjectRenderableEntriesMeta(ent);
+	return {
+		type_line: meta.entrySize,
+		attributes: Renderer.object.RENDERABLE_ENTRIES_PROP_ORDER__ATTRIBUTES.map(prop => meta[prop]).filter(Boolean),
+		note: null, summary: null, abilities: null, details: [],
+		entries: [...(ent.entries || []), ...(ent.actionEntries || [])],
+		sections: [],
+	};
+};
+const vehicles = (await load("vehicles.json")).vehicle
+	.filter(ent => VEHICLES[ent.vehicleType || "SHIP"])
+	.map(ent => ({name: ent.name, source: ent.source, block: VEHICLES[ent.vehicleType || "SHIP"](MiscUtil.copyFast(ent))}));
+
+process.stdout.write(JSON.stringify({prerequisites, compact, vehicles}));

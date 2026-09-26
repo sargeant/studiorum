@@ -44,6 +44,7 @@ CONTENT_TITLES = {
     "spell": "Spells",
     "creature": "Creatures and NPCs",
     "item": "Magic Items and Equipment",
+    "vehicle": "Vehicles",
 }
 
 
@@ -237,7 +238,7 @@ def render_models(
     barriers: bool = False,
     floating: bool = True,
 ) -> str:
-    """Creatures, items or spells through their render macros.
+    """Creatures, items, spells or vehicles through their render macros.
 
     ``barriers`` adds a float barrier every ten items and at the end, for
     appendices of statblocks. ``floating=False`` sets narrow creature
@@ -245,8 +246,9 @@ def render_models(
     """
     if kind not in CONTENT_TITLES:
         raise ValueError(f"Cannot render {kind} content in a document")
-    # Spells and items nest their headings deeper; creatures take the document's
-    content_type = kind if kind in ("spell", "item") else None
+    # Spells, items and vehicles nest their headings deeper; creatures take the
+    # document's
+    content_type = kind if kind in ("spell", "item", "vehicle") else None
     context = replace(context, style=replace(context.style, content_type=content_type))
     template = environment().get_template("_content.tex.j2")
     return template.render(

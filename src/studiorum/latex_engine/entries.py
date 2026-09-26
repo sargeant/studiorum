@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
-from studiorum.core.compact import compact_entries, compact_heading
+from studiorum.core.compact import compact_heading, compact_parts
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.loaders.magic_variants import generic_item
 from studiorum.core.logging import get_logger
@@ -88,7 +88,7 @@ STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
 }
 
 # Content that statblocks render through its own macro (render_models)
-MODEL_KINDS = frozenset({"creature", "spell", "item"})
+MODEL_KINDS = frozenset({"creature", "spell", "item", "vehicle"})
 
 _warned_types: set[str] = set()
 _warned_statblocks: set[str] = set()
@@ -370,9 +370,15 @@ class EntryRenderer:
         count = max(count, *(len(row) for row in cells))
         # "wide" is Studiorum's own, on tables it builds (a class table)
         wide = bool(entry.get("wide"))
+        # A summary (a vehicle's) splits the width evenly and wraps, as on 5etools
+        spec = (
+            "X" * count
+            if entry.get("style") == "summary"
+            else column_spec(col_styles, count, stretch=not wide)
+        )
         table = _macros().table(
             escape(caption) if caption else "",
-            column_spec(col_styles, count, stretch=not wide),
+            spec,
             [self.text(str(label)) for label in labels],
             cells,
             wide,
@@ -542,10 +548,19 @@ class EntryRenderer:
             return self._fluff(entry, found)
         inset = entry.get("style", "") == "inset"
         name = compact_heading(found, name)
-        entries = compact_entries(found, self.omnidexer)
-        if not entries:
+        lines, entries = compact_parts(found, self.omnidexer)
+        if not lines and not entries:
             return self.text(name) if inset else self._heading(self._depth, name)
-        body = "\n\n".join(self.entries(entries))
+        body = "\n\n".join(
+            [
+                *(
+                    [str(_macros().flush_lines(self.entries(lines))).strip()]
+                    if lines
+                    else []
+                ),
+                *self.entries(entries),
+            ]
+        )
         # A wide table (a class's) floats; the section around it ends with a barrier
         if "\\begin{table*}" in body and self.style.book:
             self._wide_float = True
@@ -609,7 +624,7 @@ class EntryRenderer:
         return self.omnidexer.find(content_type, entry.get("name", ""), source)
 
     def _render_model(self, kind: str, content: Any) -> str:
-        """A creature, spell or item through its macro, in the text."""
+        """A creature, spell, item or vehicle through its macro, in the text."""
         from studiorum.renderers.context import RenderingContext
 
         from .document import render_models

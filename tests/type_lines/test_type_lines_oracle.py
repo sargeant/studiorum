@@ -1,4 +1,4 @@
-"""Prerequisites and type lines match what 5etools shows, over the full data set.
+"""Prerequisites, type lines and vehicles match what 5etools shows, over the full data.
 
 Runs lines.mjs, which loads 5etools' js/ under Node. Needs Node and a 5etools
 checkout (with js/) at $STUDIORUM_5ETOOLS_DIR or ~/Code/5etools-src; run with
@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -19,8 +20,10 @@ import pytest
 from studiorum.core.compact import compact_entries
 from studiorum.core.loaders.data_dir import DataDir, DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
 from studiorum.core.models.content_models import PROP_TYPES
 from studiorum.core.text.prerequisites import prerequisite_entry
+from studiorum.core.vehicle_lines import vehicle_block
 
 FIVETOOLS = Path(
     os.environ.get("STUDIORUM_5ETOOLS_DIR", Path.home() / "Code/5etools-src")
@@ -116,3 +119,19 @@ def test_type_lines_match_5etools(
     assert sorted(oracle["compact"]) == sorted(PROPS)
     assert count
     assert not different, f"{len(different)} of {count} differ, e.g. {different[:2]}"
+
+
+def test_vehicles_match_5etools(oracle: dict[str, Any], omnidexer: Omnidexer) -> None:
+    cases = oracle["vehicles"]
+    different = []
+    for case in cases:
+        found = omnidexer.find(ContentType.VEHICLE, case["name"], case["source"])
+        assert found is not None, case["name"]
+        ours = asdict(vehicle_block(found))
+        ours["details"] = [f"{{@b {label}}} {text}" for label, text in ours["details"]]
+        if ours != case["block"]:
+            different.append((case["name"], case["block"], ours))
+    assert cases
+    assert not different, (
+        f"{len(different)} of {len(cases)} differ, e.g. {different[:1]}"
+    )

@@ -54,8 +54,10 @@ STYLE = "classic"
 _CLASSIC_TRAPS = ("MECH", "MAG", "TRP", "HAUNT")
 
 
-def raw(content: BaseModel) -> Raw:
+def raw(content: BaseModel | Raw) -> Raw:
     """The content as 5etools data."""
+    if isinstance(content, dict):
+        return content
     return content.model_dump(by_alias=True, exclude_none=True)
 
 
@@ -270,6 +272,11 @@ _DEITY_PARTS: tuple[tuple[str, str, Callable[[Any], str] | None], ...] = (
 
 def deity_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
     """``Renderer.deity``: labelled lines in alphabetical order, then entries."""
+    return [*deity_lines(content), *(raw(content).get("entries") or [])]
+
+
+def deity_lines(content: BaseModel) -> list[str]:
+    """A deity's labelled lines, which 5etools sets flush above its entries."""
     data = raw(content)
     lines = [
         (label, f"{{@b {label}:}} {show(data[prop]) if show else data[prop]}")
@@ -281,7 +288,7 @@ def deity_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
         for name, value in (data.get("customProperties") or {}).items()
     ]
     lines.sort(key=lambda line: line[0].lower())
-    return [*(text for _, text in lines), *(data.get("entries") or [])]
+    return [text for _, text in lines]
 
 
 def deity_heading(content: BaseModel, name: str) -> str:
@@ -405,16 +412,21 @@ def _hirelings(hirelings: list[Raw]) -> str:
 def object_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
     """``Renderer.object``: size, attributes, entries, then actions."""
     data = raw(content)
+    return [
+        *object_lines(content),
+        *(data.get("entries") or []),
+        *(data.get("actionEntries") or []),
+    ]
+
+
+def object_lines(content: BaseModel | Raw) -> list[str]:
+    """An object's size and attributes, which 5etools sets flush above its entries."""
+    data = raw(content)
     if data.get("objectType") == "GEN":
         size = "Variable size object"
     else:
         size = f"{size_text(data.get('size'))} {data.get('creatureType') or 'object'}"
-    return [
-        f"{{@i {size}}}",
-        *_object_attributes(data),
-        *(data.get("entries") or []),
-        *(data.get("actionEntries") or []),
-    ]
+    return [f"{{@i {size}}}", *_object_attributes(data)]
 
 
 def _object_attributes(data: Raw) -> list[str]:

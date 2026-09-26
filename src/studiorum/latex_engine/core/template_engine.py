@@ -24,6 +24,7 @@ from studiorum.core.config.unified_config import (
     get_app_config,
 )
 from studiorum.core.models.creatures import Ability, Spellcasting
+from studiorum.core.vehicle_lines import vehicle_block
 from studiorum.latex_engine.entries import (
     EntryRenderer,
     creature_ac_text,
@@ -136,6 +137,7 @@ def environment() -> Environment:
         "processed_ac_text": _latex(creature_ac_text),
         "processed_senses": _latex(creature_senses_text),
         "entries": _entries,
+        "vehicle_block": vehicle_block,
     }
     env.filters.update(filters)
     return env

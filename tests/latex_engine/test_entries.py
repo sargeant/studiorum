@@ -7,8 +7,10 @@ import pytest
 
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Ability, Creature
+from studiorum.core.models.deities import Deity
 from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.core.models.vehicles import Vehicle
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
@@ -407,6 +409,43 @@ def test_a_wide_statblock_floats_to_the_end_of_its_section() -> None:
     assert out.endswith("\\FloatBarrier")
 
 
+def test_vehicle_statblocks_sit_in_the_text_in_the_vehicle_box() -> None:
+    vehicle = Vehicle.model_validate(
+        {
+            "name": "Devil's Ride",
+            "source": "BGDIA",
+            "vehicleType": "INFWAR",
+            "size": "L",
+            "weight": 500,
+            "capCreature": 1,
+            "capCargo": 100,
+            "speed": 120,
+            "str": 14,
+            "dex": 18,
+            "con": 12,
+            "hp": {"hp": 30, "dt": 5, "mt": 10},
+            "immune": ["fire"],
+            "trait": [{"name": "Jump", "entries": ["It clears 60 feet."]}],
+        }
+    )
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=vehicle)), style=Style(book=True)
+    )
+
+    out = renderer.entry(
+        {"type": "statblock", "tag": "vehicle", "name": "Devil's Ride"}
+    )
+
+    assert out.startswith("\\begin{DndVehicle}{Devil's Ride}")
+    assert "\\DndVehicleType{\\textit{Large vehicle (500 lb.)}}" in out
+    assert "\\noindent \\textbf{Speed} 120 ft.\\par" in out
+    assert "\\DndVehicleAbilityScores[str = 14, dex = 18, con = 12]" in out
+    assert "damage-immunities = {fire}" in out
+    assert "\\DndVehicleSection{Traits}\n\\DndVehicleAction{Jump}" in out
+    assert "float" not in out
+    assert out.endswith("\\end{DndVehicle}")
+
+
 def test_statblocks_take_their_display_name() -> None:
     renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=CREATURE)))
     out = renderer.entry(
@@ -435,6 +474,30 @@ def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
 
     assert renderer.entry({**statblock, **skip_root}) == "Savage."
     assert renderer.entry(statblock) == "\\subsection{Orc}\n\nSavage."
+
+
+def test_a_deitys_labelled_lines_are_flush_left_above_its_entries() -> None:
+    deity = Deity.model_validate(
+        {
+            "name": "Moradin",
+            "source": "PHB",
+            "pantheon": "Dwarven",
+            "alignment": ["L", "G"],
+            "domains": ["Knowledge"],
+            "entries": ["The Soul Forger."],
+        }
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=deity)))
+
+    out = renderer.entry({"type": "statblock", "tag": "deity", "name": "Moradin"})
+
+    assert out == (
+        "\\section{Moradin}\n\n"
+        "\\noindent \\textbf{Alignment:} Lawful Good\\par\n"
+        "\\noindent \\textbf{Domains:} Knowledge\\par\n"
+        "\\noindent \\textbf{Pantheon:} Dwarven\\par\n\n"
+        "The Soul Forger."
+    )
 
 
 def test_item_statblocks_fall_back_to_generic_variants() -> None:
@@ -499,6 +562,19 @@ def test_table_rows_may_be_row_objects() -> None:
     assert "Padded & 5" in out
 
 
+def test_a_summary_table_wraps_in_even_columns() -> None:
+    out = EntryRenderer().entry(
+        {
+            "type": "table",
+            "style": "summary",
+            "colStyles": ["col-6", "col-6"],
+            "rows": [["{@b Speed:} fly 30 ft.", "{@b Cost:} 25,000 gp"]],
+        }
+    )
+
+    assert "\\begin{DndTable}{XX}" in out
+
+
 def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
     fighter = Mock(model_copy=Mock())
     renderer = EntryRenderer(
@@ -511,8 +587,11 @@ def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
             lambda _: ContentType.CLASS,
         )
         patch.setattr(
-            "studiorum.latex_engine.entries.compact_entries",
-            lambda *_: [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],
+            "studiorum.latex_engine.entries.compact_parts",
+            lambda *_: (
+                [],
+                [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],
+            ),
         )
         out = renderer.entry(
             {

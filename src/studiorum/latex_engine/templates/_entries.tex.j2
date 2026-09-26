@@ -48,6 +48,13 @@
 <@- endif -@>
 <@- endmacro @>
 
+<#-- Lines 5etools sets as divs: flush left, one to a paragraph --#>
+<@ macro flush_lines(lines) @>
+<@ for line in lines @>
+\noindent <# line | safe #>\par
+<@ endfor @>
+<@- endmacro @>
+
 <@ macro read_aloud(body) @>
 \begin{DndReadAloud}
 <# body | safe #>
