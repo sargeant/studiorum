@@ -181,3 +181,21 @@ def test_an_infernal_war_machine_keeps_its_mishap_threshold() -> None:
         "dt": 5,
         "mt": 10,
     }
+
+
+def test_a_vehicle_dumps_only_what_its_data_has() -> None:
+    boat = Vehicle.model_validate(
+        {
+            "name": "Rowboat",
+            "source": "GoS",
+            "vehicleType": "SHIP",
+            "capCrew": 1,
+        }
+    )
+
+    assert set(boat.model_dump(by_alias=True, exclude_none=True)) == {
+        "name",
+        "source",
+        "vehicleType",
+        "capCrew",
+    }
