@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from studiorum.core.config.unified_config import LaTeXEngineConfig
+from studiorum.config import LaTeXEngineConfig
 from studiorum.core.result import Error, Success
 from studiorum.latex_engine.latexmk import build_pdf, summarise_log
 

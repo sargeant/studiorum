@@ -24,7 +24,7 @@ from studiorum.core.cache import cache_dir
 from studiorum.core.logging import get_logger
 
 if TYPE_CHECKING:
-    from studiorum.core.config.unified_config import ImageConfig
+    from studiorum.config import ImageConfig
     from studiorum.core.models.creatures import Creature
 
 logger = get_logger(__name__)

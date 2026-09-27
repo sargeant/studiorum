@@ -9,8 +9,7 @@ from typing import Any
 
 import pytest
 
-from studiorum.core.config.data_sources import DataConfig
-from studiorum.core.config.unified_config import ApplicationConfig, set_app_config
+from studiorum.config import ApplicationConfig, DataConfig, set_app_config
 
 SRD_DATA = Path(__file__).parents[2] / "srd-data"
 NOT_SRD = ("srd", "srd52", "basicRules", "basicRules2024")

@@ -191,7 +191,7 @@ class CreatureCollector:
 
         # Use default sources if none specified
         if sources is None:
-            from studiorum.core.config.unified_config import get_default_sources
+            from studiorum.config import get_default_sources
 
             sources = get_default_sources()
 

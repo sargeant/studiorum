@@ -18,7 +18,7 @@ from rich import print as rprint
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.config import get_app_config
 from studiorum.core.loaders.content_sources import parse_enhanced_name_lines
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import BaseContent, ContentType

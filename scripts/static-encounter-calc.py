@@ -92,7 +92,7 @@ def build_cache() -> dict[str, dict]:
 
     StudiorumLogger._initialized = True
 
-    from studiorum.core.config.unified_config import load_config
+    from studiorum.config import load_config
     from studiorum.services import build_services
 
     print("Building creature XP cache (one-time operation)...")

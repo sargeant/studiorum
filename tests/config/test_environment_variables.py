@@ -12,7 +12,7 @@ import pytest
 from pydantic import ValidationError
 from pydantic_settings import SettingsError
 
-from studiorum.core.config.unified_config import (
+from studiorum.config import (
     ApplicationConfig,
     get_app_config,
     reset_app_config,

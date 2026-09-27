@@ -14,7 +14,7 @@ import shutil
 import subprocess  # nosec B404
 from pathlib import Path
 
-from studiorum.core.config.unified_config import LaTeXEngineConfig
+from studiorum.config import LaTeXEngineConfig
 from studiorum.core.result import Error, Result, Success
 from studiorum.core.security import ExecutableNotFoundError, get_safe_executable
 

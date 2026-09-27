@@ -13,7 +13,7 @@ import typer
 from pydantic import BaseModel, ConfigDict, ValidationError
 from rich import print as rprint
 
-from studiorum.core.config.unified_config import (
+from studiorum.config import (
     LaTeXConfig,
     LaTeXDocumentConfig,
     get_app_config,

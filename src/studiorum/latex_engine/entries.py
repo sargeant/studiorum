@@ -191,7 +191,7 @@ class EntryRenderer:
 
     def _image_resolver(self) -> ImageResolver:
         if self._images is None:
-            from studiorum.core.config.unified_config import get_app_config
+            from studiorum.config import get_app_config
 
             self._images = ImageResolver.from_config(get_app_config().image)
         return self._images

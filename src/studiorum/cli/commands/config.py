@@ -20,7 +20,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.config import get_app_config
 from studiorum.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -50,7 +50,7 @@ Configuration management for Studiorum's settings and three-tier data source arc
 
 def _get_config_file_path() -> Path:
     """Get the configuration file path."""
-    from studiorum.core.config.unified_config import get_default_config_path
+    from studiorum.config import get_default_config_path
 
     return get_default_config_path()
 

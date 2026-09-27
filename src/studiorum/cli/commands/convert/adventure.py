@@ -8,7 +8,7 @@ from rich import print as rprint
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.config import get_app_config
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata
 from studiorum.core.references.content_tracker import ContentTracker

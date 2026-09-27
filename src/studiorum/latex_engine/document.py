@@ -13,7 +13,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from typing import Any
 
-from studiorum.core.config.unified_config import LaTeXConfig
+from studiorum.config import LaTeXConfig
 from studiorum.core.logging import get_logger
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.books import Book

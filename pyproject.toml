@@ -175,7 +175,6 @@ ignore = [
 "src/studiorum/cli/commands/list_content.py" = ["B904"]
 "src/studiorum/cli/commands/stats.py" = ["B904"]
 "src/studiorum/cli/main.py" = ["B904", "PTH123"]
-"src/studiorum/core/config/data_sources.py" = ["SIM102", "UP042"]
 "src/studiorum/core/error_types.py" = ["UP042"]
 "src/studiorum/core/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
 "src/studiorum/core/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
@@ -346,14 +345,14 @@ exclude_dirs = ["/tests/", "/scripts/"]
 [tool.importlinter]
 root_package = "studiorum"
 
-# Dependencies point down: core is the bottom layer. The ignore_imports lists were
+# Dependencies point down: config is the bottom layer. The ignore_imports lists were
 # generated on 2026-09-24 (722f688) from every import that broke the contract then.
 # They record existing debt, so the check passes today and any new inversion fails.
 # Remove entries as the inversions are fixed; a stale entry is itself an error.
 
 [[tool.importlinter.contracts]]
 id = "layers"
-name = "Layers: cli and mcp above services above latex_engine above renderers above core"
+name = "Layers: cli and mcp above services above latex_engine above renderers above core above config"
 type = "layers"
 layers = [
     "studiorum.cli | studiorum.mcp",
@@ -361,6 +360,7 @@ layers = [
     "studiorum.latex_engine",
     "studiorum.renderers",
     "studiorum.core",
+    "studiorum.config",
 ]
 ignore_imports = [
     "studiorum.cli.commands.mcp -> studiorum.mcp.server",

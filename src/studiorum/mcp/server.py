@@ -11,7 +11,7 @@ from fastmcp import FastMCP
 from fastmcp.server.middleware.logging import LoggingMiddleware
 from fastmcp.server.middleware.timing import TimingMiddleware
 
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.config import get_app_config
 from studiorum.mcp.tools.encounter import (
     calculate_encounter_budget,
     rate_encounter,

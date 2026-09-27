@@ -18,7 +18,7 @@ from jinja2 import (
 from jinja2.runtime import Context
 from markupsafe import Markup
 
-from studiorum.core.config.unified_config import (
+from studiorum.config import (
     LaTeXConfig,
     LaTeXDocumentConfig,
     get_app_config,

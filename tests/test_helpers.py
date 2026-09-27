@@ -23,7 +23,7 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         # 0. Use the test configuration, never a developer's own
         import os
 
-        from studiorum.core.config.unified_config import reset_app_config
+        from studiorum.config import reset_app_config
 
         if "STUDIORUM_CONFIG_FILE" not in os.environ:
             os.environ["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"

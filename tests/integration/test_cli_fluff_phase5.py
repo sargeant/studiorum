@@ -54,7 +54,7 @@ class TestCLIFluffPhase5Integration:
 
     def test_fluff_configuration_integration(self):
         """Test that fluff configuration is properly integrated."""
-        from studiorum.core.config.unified_config import (
+        from studiorum.config import (
             ApplicationConfig,
             FluffRenderingConfig,
         )
@@ -72,7 +72,7 @@ class TestCLIFluffPhase5Integration:
 
     def test_fluff_configuration_custom_values(self):
         """Test custom fluff configuration values."""
-        from studiorum.core.config.unified_config import (
+        from studiorum.config import (
             ApplicationConfig,
             ContentConfig,
             FluffRenderingConfig,

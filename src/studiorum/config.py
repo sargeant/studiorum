@@ -1,9 +1,6 @@
-"""
-Unified configuration system for studiorum.
+"""Studiorum's configuration: one ApplicationConfig, read by load_config().
 
-This module consolidates the various configuration patterns throughout the codebase
-into a single, cohesive Pydantic-based configuration system. It replaces the
-scattered TypedDict and separate config classes with a hierarchical structure.
+Nothing else in the package is imported here, so every layer can read it.
 """
 
 from __future__ import annotations
@@ -13,7 +10,7 @@ from contextvars import ContextVar
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -21,13 +18,52 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
-from studiorum.core.config.data_sources import DataConfig
-
 CONFIG_FILE_ENV = "STUDIORUM_CONFIG_FILE"
 
 # The YAML file ApplicationConfig reads, set only while load_config() builds one.
 # Constructing ApplicationConfig directly reads no file: defaults and environment.
 _config_file: ContextVar[Path | None] = ContextVar("_config_file", default=None)
+
+
+def _find_project_root() -> Path | None:
+    """The nearest directory above the working directory holding test-data/ and srd-data/."""
+    current = Path.cwd()
+    for candidate in [current, *current.parents]:
+        if (candidate / "test-data").is_dir() and (candidate / "srd-data").is_dir():
+            return candidate
+    return None
+
+
+def default_data_dirs() -> list[Path]:
+    """test-data/ and srd-data/ of the nearest project root, if there is one."""
+    root = _find_project_root()
+    return [root / "test-data", root / "srd-data"] if root else []
+
+
+class DataConfig(BaseModel):
+    """Where the 5etools data comes from.
+
+    ``data.dirs`` are 5etools-shaped data directories (the ``data/`` of a 5etools
+    checkout, or the repo's ``srd-data``). ``data.homebrew`` are homebrew JSON
+    files, or directories of them. When two entities share a type, name and
+    source, the one loaded first wins: dirs in order, then homebrew.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    dirs: list[Path] = Field(
+        default_factory=default_data_dirs,
+        description="5etools-shaped data directories, highest priority first",
+    )
+    homebrew: list[Path] = Field(
+        default_factory=list,
+        description="Homebrew JSON files, or directories of them",
+    )
+
+    @field_validator("dirs", "homebrew")
+    @classmethod
+    def _expand(cls, paths: list[Path]) -> list[Path]:
+        return [Path(p).expanduser() for p in paths]
 
 
 class LoggingConfig(BaseModel):

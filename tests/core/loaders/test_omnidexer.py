@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from studiorum.core.config.unified_config import ApplicationConfig, set_app_config
+from studiorum.config import ApplicationConfig, set_app_config
 from studiorum.core.loaders.data_dir import DataDir, DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType

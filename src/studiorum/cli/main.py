@@ -9,7 +9,7 @@ from rich import print as rprint
 
 from studiorum.cli.context import install_services, reset_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.unified_config import (
+from studiorum.config import (
     ConfigFileNotFoundError,
     load_config,
     reset_app_config,

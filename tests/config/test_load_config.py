@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+from studiorum import config
 from studiorum.cli.main import app
-from studiorum.core.config import unified_config
-from studiorum.core.config.unified_config import (
+from studiorum.config import (
     ConfigFileNotFoundError,
     load_config,
 )
@@ -108,7 +108,7 @@ def test_image_directory_defaults_to_5etools_img_checkout(
 ) -> None:
     checkout = tmp_path / "5etools-img"
     checkout.mkdir()
-    monkeypatch.setattr(unified_config, "FIVETOOLS_IMG_CHECKOUT", checkout)
+    monkeypatch.setattr(config, "FIVETOOLS_IMG_CHECKOUT", checkout)
     config_file = write_config(tmp_path / "config.yaml", image_config)
     assert load_config(config_file).image.image_directory == checkout
 
@@ -116,7 +116,7 @@ def test_image_directory_defaults_to_5etools_img_checkout(
 def test_image_directory_is_none_without_a_checkout(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(unified_config, "FIVETOOLS_IMG_CHECKOUT", tmp_path / "absent")
+    monkeypatch.setattr(config, "FIVETOOLS_IMG_CHECKOUT", tmp_path / "absent")
     assert (
         load_config(write_config(tmp_path / "c.yaml", "")).image.image_directory is None
     )

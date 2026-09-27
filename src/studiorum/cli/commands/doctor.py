@@ -11,8 +11,8 @@ from rich.table import Table
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
+from studiorum.config import get_default_config_path
 from studiorum.core.cache import CacheManager
-from studiorum.core.config.unified_config import get_default_config_path
 from studiorum.core.security import ExecutableNotFoundError, get_latex_utility
 
 OK, WARN, FAIL = "✅", "⚠️", "❌"

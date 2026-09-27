@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from studiorum.core.config.unified_config import LaTeXDocumentConfig
+from studiorum.config import LaTeXDocumentConfig
 
 
 def test_defaults_match_documents_rendered_before_the_merge() -> None:
