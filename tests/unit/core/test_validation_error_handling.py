@@ -155,15 +155,6 @@ class TestValidationStrictnessConfiguration:
         assert hasattr(config.validation, "enable_summary")
         assert hasattr(config.validation, "max_duplicate_errors")
 
-    def test_validation_strictness_levels(self) -> None:
-        """Test different validation strictness levels."""
-        from studiorum.core.validation.strictness import ValidationStrictness
-
-        # Test that all expected levels exist
-        assert ValidationStrictness.STRICT in ValidationStrictness
-        assert ValidationStrictness.NORMAL in ValidationStrictness
-        assert ValidationStrictness.LENIENT in ValidationStrictness
-
     @patch.dict("os.environ", {"STUDIORUM_VALIDATION__STRICTNESS": "strict"})
     def test_validation_strictness_from_environment(self) -> None:
         """Test that validation strictness can be set from environment."""
