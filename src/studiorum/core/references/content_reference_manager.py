@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
-from ..models.content import BaseContent
-from .content_tracker import ContentTracker, TrackedContent
+from studiorum.core.models.content import BaseContent
+from studiorum.core.references.content_tracker import ContentTracker, TrackedContent
 
 if TYPE_CHECKING:
-    from ..loaders.omnidexer import Omnidexer
+    from studiorum.core.loaders.omnidexer import Omnidexer
 
 
 class ReferenceSource(BaseModel):

@@ -6,9 +6,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .additional_spells import AdditionalSpells
-from .content import BaseContent, Reprint
-from .entry_types import Entry, validate_entries
+from studiorum.core.models.additional_spells import AdditionalSpells
+from studiorum.core.models.content import BaseContent, Reprint
+from studiorum.core.models.entry_types import Entry, validate_entries
 
 
 class SpellPrerequisite(BaseModel):

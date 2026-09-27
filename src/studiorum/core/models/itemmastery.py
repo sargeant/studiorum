@@ -6,8 +6,8 @@ special techniques and abilities for weapon users.
 
 from pydantic import Field
 
-from .content import BaseContent
-from .entry_types import Entry
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.entry_types import Entry
 
 
 class ItemMastery(BaseContent):

@@ -2,8 +2,8 @@
 
 from pydantic import BaseModel, Field
 
-from .content import BaseContent
-from .entry_types import Entry
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.entry_types import Entry
 
 
 class TrapRating(BaseModel):

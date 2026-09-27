@@ -3,13 +3,15 @@
 import difflib
 from typing import Any
 
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.creature_filters import (
+    CreatureCollectionResult,
+    CreatureFilterCriteria,
+)
+from studiorum.core.models.creatures import Creature, CreatureType
+from studiorum.core.models.legendarygroup import LegendaryGroup
 from studiorum.log import get_logger
-
-from ..loaders.omnidexer import Omnidexer
-from ..models.content import ContentType
-from ..models.creature_filters import CreatureCollectionResult, CreatureFilterCriteria
-from ..models.creatures import Creature, CreatureType
-from ..models.legendarygroup import LegendaryGroup
 
 logger = get_logger(__name__)
 
@@ -973,8 +975,8 @@ class CreatureCollector:
         Args:
             creatures: List of creatures to enhance with lair actions
         """
-        from ..models.content import ContentType
-        from ..models.legendarygroup import LegendaryGroup
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.models.legendarygroup import LegendaryGroup
 
         # Get all legendary groups
         try:
@@ -1048,7 +1050,7 @@ class CreatureCollector:
         Returns:
             List of creature entries (str | CreatureEntryContent)
         """
-        from ..models.creatures import CreatureEntryContent
+        from studiorum.core.models.creatures import CreatureEntryContent
 
         converted_entries = []
         for entry in lg_entries:

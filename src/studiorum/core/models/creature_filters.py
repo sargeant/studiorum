@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
-    from .creatures import Creature
+    from studiorum.core.models.creatures import Creature
 
 
 class CreatureSortMode(str, Enum):

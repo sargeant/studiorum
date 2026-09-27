@@ -14,11 +14,22 @@ from dataclasses import dataclass, field
 from functools import cmp_to_key
 from typing import TYPE_CHECKING, Any
 
-from .text.parser import SIZES
-from .text.stats import SPEED_MODES, condition_text, damage_text, size_text, speed_text
-from .text.strings import join_conjunct
-from .text.tags import plain_text
-from .type_lines import cargo_capacity, creature_capacity, object_lines, raw
+from studiorum.core.text.parser import SIZES
+from studiorum.core.text.stats import (
+    SPEED_MODES,
+    condition_text,
+    damage_text,
+    size_text,
+    speed_text,
+)
+from studiorum.core.text.strings import join_conjunct
+from studiorum.core.text.tags import plain_text
+from studiorum.core.type_lines import (
+    cargo_capacity,
+    creature_capacity,
+    object_lines,
+    raw,
+)
 
 if TYPE_CHECKING:
     from pydantic import BaseModel

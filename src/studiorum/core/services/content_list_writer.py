@@ -11,9 +11,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.result import Result
-
-    from ..references.content_tracker import ContentTracker
 
 from studiorum.log import get_logger
 from studiorum.result import Error, Success

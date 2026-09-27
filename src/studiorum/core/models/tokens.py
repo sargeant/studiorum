@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .creatures import Creature
+    from studiorum.core.models.creatures import Creature
 
 
 @dataclass

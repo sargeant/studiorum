@@ -18,8 +18,7 @@ from typing import Any
 import orjson
 
 from studiorum.config import DataConfig
-
-from ..models.content import ContentType
+from studiorum.core.models.content import ContentType
 
 # Subdirectories whose files are listed by index.json and fluff-index.json
 _MANIFEST_DIRS = ("bestiary", "spells", "class")

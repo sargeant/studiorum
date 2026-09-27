@@ -9,12 +9,11 @@ import warnings
 from collections import Counter
 from enum import Enum
 
+from studiorum.core.error_types import UnknownTypeError, create_unknown_type_error
+from studiorum.core.exceptions import EntryProcessingWarning
+from studiorum.core.models.entry_types import TYPED_ENTRY_TYPES
 from studiorum.log import get_logger
 from studiorum.result import Error, Result, Success
-
-from .error_types import UnknownTypeError, create_unknown_type_error
-from .exceptions import EntryProcessingWarning
-from .models.entry_types import TYPED_ENTRY_TYPES
 
 logger = get_logger(__name__)
 

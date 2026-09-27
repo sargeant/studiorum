@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from .content import BaseContent
+from studiorum.core.models.content import BaseContent
 
 
 def roman_to_int(roman: str) -> int:

@@ -6,8 +6,8 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from .content import BaseContent
-from .entry_types import Entry
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.entry_types import Entry
 
 
 class CharacterOption(BaseContent):

@@ -17,26 +17,25 @@ from typing import TYPE_CHECKING, Any
 from pydantic import TypeAdapter, ValidationError
 
 from studiorum.config import get_app_config
-from studiorum.log import get_logger
-
-from ..interfaces import DeepIndexable
-from ..models.content import BaseContent, ContentType, Reprint
-from ..models.content_models import (
+from studiorum.core.interfaces import DeepIndexable
+from studiorum.core.loaders import item_types, magic_variants, subraces
+from studiorum.core.loaders.data_dir import DataSet, read_json
+from studiorum.core.loaders.dual_file import merge_metadata_content
+from studiorum.core.loaders.merge_copy import resolve_copies
+from studiorum.core.models.content import BaseContent, ContentType, Reprint
+from studiorum.core.models.content_models import (
     CONTENT_MODELS,
     FLUFF_TYPES,
     PROP_TYPES,
     content_type_of,
     create_content,
 )
-from ..models.fluff import BaseFluff
-from ..validation.error_tracker import ErrorContext, ValidationErrorTracker
-from . import item_types, magic_variants, subraces
-from .data_dir import DataSet, read_json
-from .dual_file import merge_metadata_content
-from .merge_copy import resolve_copies
+from studiorum.core.models.fluff import BaseFluff
+from studiorum.core.validation.error_tracker import ErrorContext, ValidationErrorTracker
+from studiorum.log import get_logger
 
 if TYPE_CHECKING:
-    from ..protocols.progress import ProgressCallback
+    from studiorum.core.protocols.progress import ProgressCallback
 
 logger = get_logger(__name__)
 
@@ -223,8 +222,10 @@ class Omnidexer:
         self._errors.record_error(error, context)
 
     def _with_spell_classes(self, items: list[BaseContent]) -> list[BaseContent]:
-        from ..models.spells import Spell
-        from ..services.spell_class_lookup import get_spell_class_lookup_service
+        from studiorum.core.models.spells import Spell
+        from studiorum.core.services.spell_class_lookup import (
+            get_spell_class_lookup_service,
+        )
 
         lookup = get_spell_class_lookup_service()
         try:
@@ -506,7 +507,7 @@ class Omnidexer:
         ]
         if not fluff:
             return None
-        from ..services.fluff_matcher import FluffMatcher
+        from studiorum.core.services.fluff_matcher import FluffMatcher
 
         try:
             return FluffMatcher(self).match_fluff_for_content(content, fluff)

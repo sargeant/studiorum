@@ -5,11 +5,10 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..references.content_tracker import ContentTracker
+    from studiorum.core.references.content_tracker import ContentTracker
 
+from studiorum.core.models.fluff import BaseFluff
 from studiorum.log import get_logger
-
-from ..models.fluff import BaseFluff
 
 logger = get_logger(__name__)
 

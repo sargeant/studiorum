@@ -8,8 +8,8 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, Field, field_validator
 
-from .content import BaseContent
-from .entry_types import Entry
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.entry_types import Entry
 
 
 class ItemType(str, Enum):
@@ -568,7 +568,7 @@ class Item(BaseContent):
 
     def _get_type_metadata(self, type_str: str) -> dict[str, Any] | None:
         """Get type metadata for item type resolution."""
-        from ..loaders import item_types
+        from studiorum.core.loaders import item_types
 
         return item_types.get(type_str)
 

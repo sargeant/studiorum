@@ -4,12 +4,11 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from studiorum.core.models.spells import ClassReference, SpellClassList
 from studiorum.log import get_logger
 
-from ..models.spells import ClassReference, SpellClassList
-
 if TYPE_CHECKING:
-    from ..models.spells import Spell
+    from studiorum.core.models.spells import Spell
 
 logger = get_logger(__name__)
 

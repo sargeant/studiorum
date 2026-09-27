@@ -4,22 +4,21 @@ from typing import TYPE_CHECKING, Any, cast
 
 from pydantic import BaseModel, Field, field_validator
 
-from studiorum.log import get_logger
-
-from ..encounter import XP_BY_CR
-from ..types import (
+from studiorum.core.encounter import XP_BY_CR
+from studiorum.core.models.content import BaseContent
+from studiorum.core.types import (
     AlignmentDict,
     ChallengeRatingDict,
     CreatureTypeDict,
     DamageDict,
     SpeedDict,
 )
-from .content import BaseContent
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from ..loaders.omnidexer import Omnidexer
+    from studiorum.core.loaders.omnidexer import Omnidexer
 
 
 class SkillBonus(BaseModel):

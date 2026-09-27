@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field, field_validator
 
-from .items import ItemRarity, ItemType
+from studiorum.core.models.items import ItemRarity, ItemType
 
 if TYPE_CHECKING:
-    from .items import Item
+    from studiorum.core.models.items import Item
 
 
 class ItemFilterCriteria(BaseModel):

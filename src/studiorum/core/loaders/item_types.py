@@ -46,8 +46,7 @@ def reset() -> None:
 
 def _load_from_config() -> None:
     from studiorum.config import get_app_config
-
-    from .data_dir import DataSet, read_json
+    from studiorum.core.loaders.data_dir import DataSet, read_json
 
     entities: list[dict[str, Any]] = []
     for path in DataSet.from_config(get_app_config().data).files():

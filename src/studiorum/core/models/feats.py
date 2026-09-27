@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .content import BaseContent
+from studiorum.core.models.content import BaseContent
 
 
 class Prerequisite(BaseModel):

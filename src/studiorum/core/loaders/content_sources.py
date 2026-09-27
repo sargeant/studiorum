@@ -17,8 +17,8 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
-from ..models.content import BaseContent, ContentType
-from ..models.content_models import create_content
+from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.content_models import create_content
 
 
 class ValidationResult(BaseModel):

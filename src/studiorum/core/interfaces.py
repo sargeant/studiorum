@@ -2,10 +2,10 @@
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from .models.content import BaseContent
+from studiorum.core.models.content import BaseContent
 
 if TYPE_CHECKING:
-    from .loaders.omnidexer import Omnidexer
+    from studiorum.core.loaders.omnidexer import Omnidexer
 
 
 @runtime_checkable

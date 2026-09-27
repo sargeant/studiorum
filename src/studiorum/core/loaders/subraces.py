@@ -19,9 +19,8 @@ import copy
 import re
 from typing import Any
 
+from studiorum.core.text.parser import source_abbreviation
 from studiorum.log import get_logger
-
-from ..text.parser import source_abbreviation
 
 logger = get_logger(__name__)
 

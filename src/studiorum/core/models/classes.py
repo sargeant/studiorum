@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .content import BaseContent, Source
-from .entry_types import Entry
+from studiorum.core.models.content import BaseContent, Source
+from studiorum.core.models.entry_types import Entry
 
 if TYPE_CHECKING:
     pass

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .strings import join_conjunct, ordinal
+from studiorum.core.text.strings import join_conjunct, ordinal
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 ABILITY_NAMES = {

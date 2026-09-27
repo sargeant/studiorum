@@ -20,8 +20,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from ..encounter import XP_BY_CR
-from ..text.strings import title_case as to_title_case
+from studiorum.core.encounter import XP_BY_CR
+from studiorum.core.text.strings import title_case as to_title_case
 
 JSON = Any
 

@@ -7,8 +7,8 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, Field, field_validator
 
-from .content import BaseContent, Reprint
-from .entry_types import Entry, validate_entries
+from studiorum.core.models.content import BaseContent, Reprint
+from studiorum.core.models.entry_types import Entry, validate_entries
 
 
 class DurationDetails(BaseModel):

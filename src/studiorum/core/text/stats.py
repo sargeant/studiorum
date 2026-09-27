@@ -10,9 +10,9 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .parser import SIZES
-from .strings import join_conjunct, title_case
-from .tags import split_by_tags
+from studiorum.core.text.parser import SIZES
+from studiorum.core.text.strings import join_conjunct, title_case
+from studiorum.core.text.tags import split_by_tags
 
 type Raw = dict[str, Any]
 

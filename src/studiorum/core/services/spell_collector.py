@@ -3,12 +3,14 @@
 import difflib
 from typing import Any
 
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.spell_filters import (
+    SpellCollectionResult,
+    SpellFilterCriteria,
+)
+from studiorum.core.models.spells import Spell
 from studiorum.log import get_logger
-
-from ..loaders.omnidexer import Omnidexer
-from ..models.content import ContentType
-from ..models.spell_filters import SpellCollectionResult, SpellFilterCriteria
-from ..models.spells import Spell
 
 logger = get_logger(__name__)
 
@@ -235,7 +237,9 @@ class SpellCollector:
         """
         # If spell doesn't have class information, try to enhance it with lookup data
         if not spell.classes or not spell.classes.fromClassList:
-            from .spell_class_lookup import get_spell_class_lookup_service
+            from studiorum.core.services.spell_class_lookup import (
+                get_spell_class_lookup_service,
+            )
 
             lookup_service = get_spell_class_lookup_service()
             enhanced_spell = lookup_service.enhance_spell(spell, include_optional)

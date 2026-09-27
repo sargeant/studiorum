@@ -11,14 +11,14 @@ import math
 from collections.abc import Callable
 from typing import Any
 
-from .parser import (
+from studiorum.core.text.parser import (
     ABILITIES,
     ABILITY_NAMES,
     FEAT_CATEGORIES,
     alignment_list_to_full,
     pact_to_full,
 )
-from .strings import (
+from studiorum.core.text.strings import (
     article,
     common_suffix,
     join_conjunct,

@@ -507,7 +507,7 @@ class ContentResolver:
             List of matching spell objects
         """
         # Import here to avoid circular imports
-        from ..services.spell_collector import SpellCollector
+        from studiorum.core.services.spell_collector import SpellCollector
 
         collector = SpellCollector(cast("Omnidexer", self.omnidexer))
         result = collector.collect_spells(criteria)
@@ -597,7 +597,7 @@ class ContentResolver:
             List of matching item objects
         """
         # Import here to avoid circular imports
-        from ..services.item_collector import ItemCollector
+        from studiorum.core.services.item_collector import ItemCollector
 
         collector = ItemCollector(cast("Omnidexer", self.omnidexer))
         result = collector.collect_items(criteria)

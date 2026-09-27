@@ -7,8 +7,8 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from .content import BaseContent, Reprint
-from .entry_types import Entry
+from studiorum.core.models.content import BaseContent, Reprint
+from studiorum.core.models.entry_types import Entry
 
 
 class RuleType(str, Enum):

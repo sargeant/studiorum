@@ -8,7 +8,7 @@ from typing import Any
 
 from pydantic import Field
 
-from .content import BaseContent
+from studiorum.core.models.content import BaseContent
 
 
 class Disease(BaseContent):

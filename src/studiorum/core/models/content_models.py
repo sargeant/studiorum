@@ -9,22 +9,22 @@ from __future__ import annotations
 
 from typing import Any
 
-from .adventures import Adventure
-from .backgrounds import Background
-from .baseitems import BaseItem
-from .books import Book
-from .charoption import CharacterOption
-from .charoptiontype import CharacterOptionType
-from .classes import Class, ClassFeature, SubclassFeature
-from .content import BaseContent, ContentType
-from .creatures import Creature
-from .cults import Boon, Cult
-from .decks import Deck
-from .deities import Deity
-from .diseases import Disease
-from .facilities import Facility
-from .feats import Feat
-from .fluff import (
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.backgrounds import Background
+from studiorum.core.models.baseitems import BaseItem
+from studiorum.core.models.books import Book
+from studiorum.core.models.charoption import CharacterOption
+from studiorum.core.models.charoptiontype import CharacterOptionType
+from studiorum.core.models.classes import Class, ClassFeature, SubclassFeature
+from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.creatures import Creature
+from studiorum.core.models.cults import Boon, Cult
+from studiorum.core.models.decks import Deck
+from studiorum.core.models.deities import Deity
+from studiorum.core.models.diseases import Disease
+from studiorum.core.models.facilities import Facility
+from studiorum.core.models.feats import Feat
+from studiorum.core.models.fluff import (
     BackgroundFluff,
     BaseFluff,
     BastionFluff,
@@ -44,26 +44,26 @@ from .fluff import (
     TrapHazardFluff,
     VehicleFluff,
 )
-from .itemmastery import ItemMastery
-from .itemproperties import ItemProperty
-from .items import Item
-from .languages import Language
-from .legendarygroup import LegendaryGroup
-from .magicvariant import MagicVariant
-from .objects import Object
-from .optional_features import OptionalFeature
-from .psionic import Psionic
-from .races import Race
-from .recipes import Recipe
-from .rewards import Reward
-from .rule_types import Action, Condition, Hazard, Sense, Status
-from .spells import Spell
-from .subclasses import Subclass
-from .subraces import Subrace
-from .table import Table, TableGroup
-from .traps import Trap
-from .variantrule import VariantRule
-from .vehicles import Vehicle, VehicleUpgrade
+from studiorum.core.models.itemmastery import ItemMastery
+from studiorum.core.models.itemproperties import ItemProperty
+from studiorum.core.models.items import Item
+from studiorum.core.models.languages import Language
+from studiorum.core.models.legendarygroup import LegendaryGroup
+from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.core.models.objects import Object
+from studiorum.core.models.optional_features import OptionalFeature
+from studiorum.core.models.psionic import Psionic
+from studiorum.core.models.races import Race
+from studiorum.core.models.recipes import Recipe
+from studiorum.core.models.rewards import Reward
+from studiorum.core.models.rule_types import Action, Condition, Hazard, Sense, Status
+from studiorum.core.models.spells import Spell
+from studiorum.core.models.subclasses import Subclass
+from studiorum.core.models.subraces import Subrace
+from studiorum.core.models.table import Table, TableGroup
+from studiorum.core.models.traps import Trap
+from studiorum.core.models.variantrule import VariantRule
+from studiorum.core.models.vehicles import Vehicle, VehicleUpgrade
 
 CONTENT_MODELS: dict[ContentType, type[BaseContent]] = {
     ContentType.ADVENTURE: Adventure,

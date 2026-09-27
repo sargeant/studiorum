@@ -12,24 +12,24 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from .class_entries import class_entries, subclass_entries
-from .models.backgrounds import Background
-from .models.classes import Class
-from .models.deities import Deity
-from .models.facilities import Facility
-from .models.feats import Feat
-from .models.languages import Language
-from .models.objects import Object
-from .models.optional_features import OptionalFeature
-from .models.races import Race
-from .models.recipes import Recipe
-from .models.rule_types import Hazard
-from .models.subclasses import Subclass
-from .models.table import Table, TableGroup
-from .models.traps import Trap
-from .models.vehicles import VehicleUpgrade
-from .text.properties import apply_properties
-from .type_lines import (
+from studiorum.core.class_entries import class_entries, subclass_entries
+from studiorum.core.models.backgrounds import Background
+from studiorum.core.models.classes import Class
+from studiorum.core.models.deities import Deity
+from studiorum.core.models.facilities import Facility
+from studiorum.core.models.feats import Feat
+from studiorum.core.models.languages import Language
+from studiorum.core.models.objects import Object
+from studiorum.core.models.optional_features import OptionalFeature
+from studiorum.core.models.races import Race
+from studiorum.core.models.recipes import Recipe
+from studiorum.core.models.rule_types import Hazard
+from studiorum.core.models.subclasses import Subclass
+from studiorum.core.models.table import Table, TableGroup
+from studiorum.core.models.traps import Trap
+from studiorum.core.models.vehicles import VehicleUpgrade
+from studiorum.core.text.properties import apply_properties
+from studiorum.core.type_lines import (
     background_entries,
     deity_entries,
     deity_heading,
@@ -47,8 +47,8 @@ from .type_lines import (
 )
 
 if TYPE_CHECKING:
-    from .loaders.omnidexer import Omnidexer
-    from .models.content import BaseContent
+    from studiorum.core.loaders.omnidexer import Omnidexer
+    from studiorum.core.models.content import BaseContent
 
 type Raw = dict[str, Any]
 

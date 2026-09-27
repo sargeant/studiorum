@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
-    from .spells import Spell
+    from studiorum.core.models.spells import Spell
 
 
 class SpellFilterCriteria(BaseModel):

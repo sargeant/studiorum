@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import Field
 
-from .content import BaseContent, Reprint
+from studiorum.core.models.content import BaseContent, Reprint
 
 
 class Action(BaseContent):

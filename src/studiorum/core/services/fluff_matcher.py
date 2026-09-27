@@ -4,20 +4,14 @@ import re
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 if TYPE_CHECKING:
-    from ..loaders.omnidexer import Omnidexer
+    from studiorum.core.loaders.omnidexer import Omnidexer
 
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.creatures import Creature
+from studiorum.core.models.fluff import BaseFluff, CreatureFluff, ItemFluff, SpellFluff
+from studiorum.core.models.items import Item
+from studiorum.core.models.spells import Spell
 from studiorum.log import get_logger
-
-from ..models.content import BaseContent
-from ..models.creatures import Creature
-from ..models.fluff import (
-    BaseFluff,
-    CreatureFluff,
-    ItemFluff,
-    SpellFluff,
-)
-from ..models.items import Item
-from ..models.spells import Spell
 
 logger = get_logger(__name__)
 

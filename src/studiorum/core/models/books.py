@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from .chapter import Chapter
-from .content import BaseContent
+from studiorum.core.models.chapter import Chapter
+from studiorum.core.models.content import BaseContent
 
 if TYPE_CHECKING:
-    from ..loaders.omnidexer import Omnidexer
+    from studiorum.core.loaders.omnidexer import Omnidexer
 
 
 class BookMetadata(BaseModel):
@@ -211,7 +211,7 @@ class Book(BaseContent):
         Returns:
             List of nested content objects for indexing
         """
-        from ..parsers.entry_parser import EntryParser
+        from studiorum.core.parsers.entry_parser import EntryParser
 
         nested_content = []
 

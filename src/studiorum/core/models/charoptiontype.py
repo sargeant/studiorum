@@ -8,8 +8,8 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from .content import BaseContent
-from .entry_types import Entry
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.entry_types import Entry
 
 
 class CharOptionTypeCategory(str, Enum):
@@ -106,7 +106,7 @@ class CharacterOptionType(BaseContent):
     @classmethod
     def create_standard_types(cls) -> Sequence[CharacterOptionType]:
         """Create instances for all standard character option types."""
-        from .content import Source
+        from studiorum.core.models.content import Source
 
         standard_types = [
             cls(

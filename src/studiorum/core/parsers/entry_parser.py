@@ -3,19 +3,16 @@
 from collections.abc import Iterator
 from typing import Any
 
+from studiorum.core.entry_registry import ValidationMode, get_registry
 from studiorum.core.error_types import create_processing_error
-from studiorum.log import get_logger
-from studiorum.result import Error, Result, Success
-
-from ..entry_registry import ValidationMode, get_registry
-from ..models.content import Source
-from ..models.nested_content import (
+from studiorum.core.models.content import Source
+from studiorum.core.models.nested_content import (
     Inset,
     Section,
     Table,
     VariantRule,
 )
-from ..types import (
+from studiorum.core.types import (
     EntryDict,
     InsetEntry,
     NestedEntriesEntry,
@@ -23,6 +20,8 @@ from ..types import (
     SectionEntry,
     TableEntry,
 )
+from studiorum.log import get_logger
+from studiorum.result import Error, Result, Success
 
 logger = get_logger(__name__)
 

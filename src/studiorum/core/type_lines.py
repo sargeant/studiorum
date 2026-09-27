@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from .text.parser import (
+from studiorum.core.text.parser import (
     ABILITIES,
     ABILITY_NAMES,
     OPT_FEATURE_TYPES,
@@ -24,8 +24,8 @@ from .text.parser import (
     feat_category,
     tier_to_full_level,
 )
-from .text.prerequisites import prerequisite_entry
-from .text.stats import (
+from studiorum.core.text.prerequisites import prerequisite_entry
+from studiorum.core.text.stats import (
     ability_entry,
     condition_text,
     damage_text,
@@ -33,7 +33,7 @@ from .text.stats import (
     size_text,
     speed_text,
 )
-from .text.strings import (
+from studiorum.core.text.strings import (
     common_prefix,
     join_conjunct,
     number_to_text,
@@ -44,7 +44,7 @@ from .text.strings import (
 if TYPE_CHECKING:
     from pydantic import BaseModel
 
-    from .loaders.omnidexer import Omnidexer
+    from studiorum.core.loaders.omnidexer import Omnidexer
 
 type Raw = dict[str, Any]
 

@@ -15,11 +15,10 @@ import re
 from collections.abc import Callable
 from typing import Any
 
+from studiorum.core.models.items import Item
+from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.core.text.properties import apply_properties
 from studiorum.log import get_logger
-
-from ..models.items import Item
-from ..models.magicvariant import MagicVariant
-from ..text.properties import apply_properties
 
 logger = get_logger(__name__)
 

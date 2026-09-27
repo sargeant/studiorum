@@ -12,12 +12,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .models.content import ContentType
+from studiorum.core.models.content import ContentType
 
 if TYPE_CHECKING:
-    from .loaders.omnidexer import Omnidexer
-    from .models.classes import Class
-    from .models.subclasses import Subclass
+    from studiorum.core.loaders.omnidexer import Omnidexer
+    from studiorum.core.models.classes import Class
+    from studiorum.core.models.subclasses import Subclass
 
 type Raw = dict[str, Any]
 

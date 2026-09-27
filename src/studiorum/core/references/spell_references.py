@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field, field_validator
 from studiorum.log import get_logger
 
 if TYPE_CHECKING:
-    from ..loaders.omnidexer import Omnidexer
-    from ..models.content import BaseContent
+    from studiorum.core.loaders.omnidexer import Omnidexer
+    from studiorum.core.models.content import BaseContent
 
 logger = get_logger(__name__)
 
@@ -143,7 +143,7 @@ class SpellReferenceResolver:
         Returns:
             List of resolved spell objects (may be empty if not found)
         """
-        from ..models.content import ContentType
+        from studiorum.core.models.content import ContentType
 
         resolved_spells = []
 

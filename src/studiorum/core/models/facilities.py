@@ -4,8 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .content import BaseContent
-from .feats import Prerequisite
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.feats import Prerequisite
 
 
 class FacilityHirelings(BaseModel):

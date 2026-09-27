@@ -1,6 +1,6 @@
 """Indexing and cross-reference system."""
 
-from .spell_references import (
+from studiorum.core.references.spell_references import (
     SpellReference,
     SpellReferenceParser,
     SpellReferenceResolver,
