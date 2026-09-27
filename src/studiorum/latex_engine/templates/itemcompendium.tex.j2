@@ -63,7 +63,7 @@
 
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
-\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() #>}
+\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() | entries #>}
 <@ else @>
 \DndItemHeader{<# item.name #>}{<# item.get_type_text() #>}
 <@ endif @>
@@ -111,7 +111,7 @@
 
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
-\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() #>}
+\DndItemHeader{<# item.name #>}{<# item.get_item_metadata_line() | entries #>}
 <@ else @>
 \DndItemHeader{<# item.name #>}{<# item.get_type_text() #>}
 <@ endif @>

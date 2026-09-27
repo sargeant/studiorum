@@ -207,7 +207,7 @@
 \noindent \DndMonsterType{<# creature.get_size_type_alignment() #>}
 \DndMonsterBasics[
     armor-class = {<# creature | processed_ac_text | safe #>},
-    hit-points = {<# creature.get_hp_text() #>},
+    hit-points = {<# creature.get_hp_text() | entries #>},
     speed = {<# creature.get_speed_text() #>},
     initiative = <@ if creature.get_initiative_modifier() >= 0 @>+<@ endif @><# creature.get_initiative_modifier() #>
 ]

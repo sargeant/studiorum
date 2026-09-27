@@ -42,7 +42,7 @@
 \DndSpellHeader%
   {<# spell.name #>}
   {<# render_spell_header(spell) | safe #>}
-  {<# spell.get_casting_time_text() #>}
+  {<# spell.get_casting_time_text() | entries #>}
   {<# spell.get_range_text() #>}
   {<# render_spell_components(spell) | safe #>}
   {<# spell.get_duration_text() #>}
