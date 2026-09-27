@@ -10,6 +10,7 @@ from studiorum.core.models.creatures import Ability, Creature
 from studiorum.core.models.deities import Deity
 from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.core.models.variantrule import VariantRule
 from studiorum.core.models.vehicles import Vehicle
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
@@ -518,6 +519,25 @@ def test_a_deitys_labelled_lines_are_flush_left_above_its_entries() -> None:
         "\\noindent \\textbf{Pantheon:} Dwarven\\par\n\n"
         "The Soul Forger."
     )
+
+
+def test_a_statblock_in_a_section_of_its_name_keeps_one_heading() -> None:
+    rule = VariantRule.model_validate(
+        {"name": "Fear", "source": "VRGR", "entries": ["Be afraid."]}
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=rule)))
+
+    def section(name: str) -> dict[str, object]:
+        block = {"type": "statblock", "tag": "variantrule", "name": "Fear"}
+        return {
+            "type": "entries",
+            "name": name,
+            "entries": ["Intro.", {"type": "entries", "entries": [block]}],
+        }
+
+    assert renderer.entry(section("Fear")).count("{Fear}") == 1
+    assert renderer.entry(section("Dread")).count("{Fear}") == 1
+    assert "Be afraid." in renderer.entry(section("Fear"))
 
 
 def test_item_statblocks_fall_back_to_generic_variants() -> None:

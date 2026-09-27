@@ -91,6 +91,7 @@ class EntryRenderer:
         self._context = context
         self._depth = 0
         self._path: list[str] = []
+        self._sections: list[str] = []
         self._wide_float = False
 
     @classmethod
@@ -205,8 +206,12 @@ class EntryRenderer:
         if name := entry.get("name", ""):
             result.append(self._heading(heading_depth, name))
         if entries := entry.get("entries", []):
-            with self._deeper():
-                result.extend(self.entries(entries))
+            self._sections.append(name or (self._sections or [""])[-1])
+            try:
+                with self._deeper():
+                    result.extend(self.entries(entries))
+            finally:
+                self._sections.pop()
         if name and self._wide_float:
             result.append("\\FloatBarrier")
             self._wide_float = False
@@ -524,9 +529,15 @@ class EntryRenderer:
             return self._fluff(entry, found)
         inset = entry.get("style", "") == "inset"
         name = compact_heading(found, name)
+        # In a section of the same name (HF's recipes) the section's heading serves
+        heading = (
+            ""
+            if self._sections and self._sections[-1].lower() == name.lower()
+            else self._heading(self._depth, name)
+        )
         lines, entries = compact_parts(found, self.omnidexer)
         if not lines and not entries:
-            return self.text(name) if inset else self._heading(self._depth, name)
+            return self.text(name) if inset else heading
         body = "\n\n".join(
             [
                 *(
@@ -542,7 +553,7 @@ class EntryRenderer:
             self._wide_float = True
         if inset:
             return str(_macros().sidebar(self.text(name), body))
-        return f"{self._heading(self._depth, name)}\n\n{body}"
+        return f"{heading}\n\n{body}" if heading else body
 
     def _fluff(self, entry: dict[str, Any], fluff: Any) -> str:
         """Fluff in the text, as 5etools' getCompactRenderedFluffString."""
