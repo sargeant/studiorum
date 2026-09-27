@@ -8,7 +8,7 @@ from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.requires_data
@@ -306,7 +306,7 @@ class TestCreatureRealDataIntegration:
         # Test markup processing in actions
         greataxe_action = orc.action[0]
         from studiorum.cli.context import get_services
-        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.data.references.content_tracker import ContentTracker
         from studiorum.render.context import RenderingContext
         from studiorum.render.entries import EntryRenderer
 

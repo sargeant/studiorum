@@ -9,8 +9,8 @@ from rich.table import Table
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import content_type_of
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import content_type_of
 
 app: typer.Typer = typer.Typer(help="Show content statistics and analysis")
 console = display_manager.console
@@ -306,7 +306,7 @@ def show_source_stats() -> None:
 
 def _analyze_spells(spells: list) -> dict:
     """Analyze spell-specific statistics."""
-    from studiorum.core.models.spells import Spell
+    from studiorum.data.models.spells import Spell
 
     # Level distribution
     level_counts: dict[int, int] = {}
@@ -350,7 +350,7 @@ def _analyze_spells(spells: list) -> dict:
 
 def _analyze_creatures(creatures: list) -> dict:
     """Analyze creature-specific statistics."""
-    from studiorum.core.models.creatures import Creature
+    from studiorum.data.models.creatures import Creature
 
     # CR distribution
     cr_counts: dict[str, int] = {}
@@ -424,7 +424,7 @@ def _analyze_creatures(creatures: list) -> dict:
 
 def _analyze_items(items: list) -> dict:
     """Analyze item-specific statistics."""
-    from studiorum.core.models.items import Item
+    from studiorum.data.models.items import Item
 
     # Type and rarity distribution
     type_counts: dict[str, int] = {}

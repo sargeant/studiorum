@@ -6,12 +6,12 @@ from rich.panel import Panel
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.core.models.content_models import content_type_of
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.items import Item
-from studiorum.core.models.spells import Spell
-from studiorum.core.resolvers import ContentResolver
+from studiorum.data.models.content import BaseContent, ContentType
+from studiorum.data.models.content_models import content_type_of
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.items import Item
+from studiorum.data.models.spells import Spell
+from studiorum.data.resolvers import ContentResolver
 
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
 console = display_manager.console

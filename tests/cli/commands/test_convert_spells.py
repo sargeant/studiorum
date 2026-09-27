@@ -7,7 +7,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.data.loaders.omnidexer import Omnidexer
 
 
 @pytest.mark.cli
@@ -86,7 +86,7 @@ class TestConvertSpellsCommand:
         ]
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
@@ -173,7 +173,7 @@ class TestConvertSpellsCommand:
         assert "File does not exist" in result.stdout
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     def test_convert_spells_no_spells_found(
         self,
@@ -219,7 +219,7 @@ def test_material_flag_filters_both_ways(
     flag: str, has_material: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """--material and --no-material set one tri-state filter."""
-    from studiorum.core.services.spell_collector import SpellCollector
+    from studiorum.data.collectors.spell_collector import SpellCollector
 
     monkeypatch.chdir(Path(__file__).resolve().parents[3])
     collected = []

@@ -18,18 +18,18 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
-from studiorum.core.compact import compact_heading, compact_parts
-from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
-from studiorum.core.loaders.magic_variants import generic_item
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import (
+from studiorum.data.compact import compact_heading, compact_parts
+from studiorum.data.loaders.magic_variants import generic_item
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import (
     FLUFF_TYPES,
     PROP_TYPES,
     TAG_TYPES,
     content_type_of,
 )
-from studiorum.core.models.creatures import ArmorClass, Creature
-from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.data.models.creatures import ArmorClass, Creature
+from studiorum.data.models.entry_registry import KNOWN_ENTRY_TYPES
+from studiorum.data.models.magicvariant import MagicVariant
 from studiorum.log import get_logger
 from studiorum.render.context import Style
 from studiorum.render.escape import escape
@@ -39,8 +39,8 @@ from .images import emit
 from .images.resolve import ImageResolver
 
 if TYPE_CHECKING:
-    from studiorum.core.loaders.omnidexer import Omnidexer
-    from studiorum.core.references.content_tracker import ContentTracker
+    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.references.content_tracker import ContentTracker
     from studiorum.render.context import RenderingContext
 
 logger = get_logger(__name__)

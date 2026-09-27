@@ -11,7 +11,7 @@ import pytest
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
-from studiorum.core.models.content import ContentType
+from studiorum.data.models.content import ContentType
 from studiorum.mcp.server import mcp
 from studiorum.mcp.tools.lookup import EntryType
 

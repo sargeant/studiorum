@@ -10,7 +10,7 @@ from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.integration
@@ -132,7 +132,7 @@ class TestCreatureLaTeXRendering:
 
         trait = creature.trait[0]
         from studiorum.cli.context import get_services
-        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.data.references.content_tracker import ContentTracker
         from studiorum.render.context import RenderingContext
         from studiorum.render.entries import EntryRenderer
         from studiorum.render.tags import render
@@ -156,7 +156,7 @@ class TestCreatureLaTeXRendering:
 
         # Define entry_processor and rendering_context in this scope
         from studiorum.cli.context import get_services
-        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.data.references.content_tracker import ContentTracker
         from studiorum.render.context import RenderingContext
         from studiorum.render.entries import EntryRenderer
 
@@ -276,7 +276,7 @@ class TestCreatureLaTeXRendering:
 
         # Define entry_processor and rendering_context in this scope
         from studiorum.cli.context import get_services
-        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.data.references.content_tracker import ContentTracker
         from studiorum.render.context import RenderingContext
         from studiorum.render.entries import EntryRenderer
 

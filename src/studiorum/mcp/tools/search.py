@@ -9,18 +9,18 @@ from fastmcp.dependencies import Depends
 from fastmcp.exceptions import ToolError
 from pydantic import Field
 
-from studiorum.core.loaders.omnidexer import parse_uid
-from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.core.models.content_models import content_type_of
-from studiorum.core.models.creature_filters import CreatureFilterCriteria
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.item_filters import ItemFilterCriteria
-from studiorum.core.models.items import Item
-from studiorum.core.models.spell_filters import SpellFilterCriteria
-from studiorum.core.models.spells import Spell
-from studiorum.core.services.creature_collector import CreatureCollector
-from studiorum.core.services.item_collector import ItemCollector
-from studiorum.core.services.spell_collector import SpellCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.collectors.item_collector import ItemCollector
+from studiorum.data.collectors.spell_collector import SpellCollector
+from studiorum.data.loaders.omnidexer import parse_uid
+from studiorum.data.models.content import BaseContent, ContentType
+from studiorum.data.models.content_models import content_type_of
+from studiorum.data.models.creature_filters import CreatureFilterCriteria
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.item_filters import ItemFilterCriteria
+from studiorum.data.models.items import Item
+from studiorum.data.models.spell_filters import SpellFilterCriteria
+from studiorum.data.models.spells import Spell
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.layouts import item_kind
 from studiorum.mcp.models import (

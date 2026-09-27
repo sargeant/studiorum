@@ -180,7 +180,7 @@ class TestCLIIntegrationEnhancedFeatures:
                 # Content list writer should have been called
                 mock_writer.write_content_list.assert_called_once()
 
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_spell_conversion_with_traditional_and_enhanced_files(
         self, mock_get_omnidexer, mock_collector_class
@@ -271,8 +271,8 @@ class TestCLIIntegrationEnhancedFeatures:
                 new_callable=PropertyMock,
             ) as mock_get_writer:
                 # Setup resolve_content_or_file mock
-                from studiorum.core.models.adventures import Adventure
-                from studiorum.core.models.content import Source
+                from studiorum.data.models.adventures import Adventure
+                from studiorum.data.models.content import Source
 
                 test_adventure = Adventure(
                     name="Test Adventure",
@@ -377,8 +377,8 @@ class TestCLIIntegrationEnhancedFeatures:
                 new_callable=PropertyMock,
             ) as mock_get_writer:
                 # Setup resolve_content_or_file mock
-                from studiorum.core.models.adventures import Adventure
-                from studiorum.core.models.content import Source
+                from studiorum.data.models.adventures import Adventure
+                from studiorum.data.models.content import Source
 
                 test_adventure = Adventure(
                     name="Test Adventure",
@@ -397,7 +397,7 @@ class TestCLIIntegrationEnhancedFeatures:
                 )
 
                 # Mock ContentListWriter to return an error
-                from studiorum.core.services.content_list_writer import (
+                from studiorum.data.content_list_writer import (
                     ContentListWriterError,
                 )
                 from studiorum.result import Error
@@ -454,7 +454,7 @@ class TestCLIIntegrationEnhancedFeatures:
 
         # Test with spell conversion
         with patch(
-            "studiorum.core.services.spell_collector.SpellCollector"
+            "studiorum.data.collectors.spell_collector.SpellCollector"
         ) as mock_spell_collector:
             with patch(
                 "studiorum.services.Services.omnidexer", new_callable=PropertyMock
@@ -533,8 +533,8 @@ class TestCLIIntegrationEnhancedFeatures:
                 "studiorum.services.Services.content_list_writer",
                 new_callable=PropertyMock,
             ) as mock_get_writer:
-                from studiorum.core.models.adventures import Adventure
-                from studiorum.core.models.content import Source
+                from studiorum.data.models.adventures import Adventure
+                from studiorum.data.models.content import Source
 
                 test_adventure = Adventure(
                     name="Test Adventure",
@@ -602,7 +602,7 @@ class TestCLIIntegrationEnhancedFeatures:
 
         # Step 2: Use generated content list for spell conversion
         with patch(
-            "studiorum.core.services.spell_collector.SpellCollector"
+            "studiorum.data.collectors.spell_collector.SpellCollector"
         ) as mock_spell_collector:
             with patch(
                 "studiorum.services.Services.omnidexer", new_callable=PropertyMock

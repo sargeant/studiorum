@@ -12,9 +12,9 @@ from unittest.mock import Mock
 import psutil
 import pytest
 
-from studiorum.core.models.creature_filters import CreatureFilterCriteria
-from studiorum.core.models.creatures import Creature
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.models.creature_filters import CreatureFilterCriteria
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.performance

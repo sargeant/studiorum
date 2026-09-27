@@ -4,8 +4,8 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.appendices import AppendixFlags, AppendixGenerator
 
 

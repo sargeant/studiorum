@@ -2,12 +2,12 @@
 
 from unittest.mock import Mock
 
-from studiorum.core.models.content import Source
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.fluff import CreatureFluff, ItemFluff, SpellFluff
-from studiorum.core.models.items import Item
-from studiorum.core.models.spells import Spell
-from studiorum.core.services.fluff_matcher import FluffMatcher
+from studiorum.data.collectors.fluff_matcher import FluffMatcher
+from studiorum.data.models.content import Source
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.fluff import CreatureFluff, ItemFluff, SpellFluff
+from studiorum.data.models.items import Item
+from studiorum.data.models.spells import Spell
 
 
 class TestFluffMatcher:

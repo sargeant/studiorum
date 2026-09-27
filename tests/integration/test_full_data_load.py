@@ -14,9 +14,9 @@ import orjson
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from studiorum.core.loaders.data_dir import DataDir, DataSet
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
+from studiorum.data.loaders.data_dir import DataDir, DataSet
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import ContentType
 
 FIVETOOLS = Path(
     os.environ.get("STUDIORUM_5ETOOLS_DIR", Path.home() / "Code/5etools-src")

@@ -17,13 +17,13 @@ from typing import Any
 import orjson
 import pytest
 
-from studiorum.core.compact import compact_entries
-from studiorum.core.loaders.data_dir import DataDir, DataSet
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import PROP_TYPES
-from studiorum.core.text.prerequisites import prerequisite_entry
-from studiorum.core.vehicle_lines import vehicle_block
+from studiorum.data.compact import compact_entries
+from studiorum.data.loaders.data_dir import DataDir, DataSet
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import PROP_TYPES
+from studiorum.data.text.prerequisites import prerequisite_entry
+from studiorum.data.vehicle_lines import vehicle_block
 
 FIVETOOLS = Path(
     os.environ.get("STUDIORUM_5ETOOLS_DIR", Path.home() / "Code/5etools-src")

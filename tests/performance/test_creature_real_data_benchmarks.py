@@ -10,10 +10,10 @@ import time
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.creatures import Creature
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.creatures import Creature
 from tests.test_data_helpers import (
     requires_full_dataset,
     requires_minimum_creatures,
@@ -349,7 +349,7 @@ class TestCreatureRealDataPerformanceBenchmarks:
 
     def test_real_data_filtering_performance_by_complexity(self):
         """Test filtering performance based on creature complexity."""
-        from studiorum.core.models.creature_filters import CreatureFilterCriteria
+        from studiorum.data.models.creature_filters import CreatureFilterCriteria
 
         collector = CreatureCollector(self.omnidexer)
 

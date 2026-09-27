@@ -200,7 +200,7 @@ class TestEnhancedFromFileSupport:
         return [MockItem(name, item_type) for name, item_type in item_data]
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
@@ -277,7 +277,7 @@ class TestEnhancedFromFileSupport:
         assert output_file.exists()
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
@@ -346,7 +346,7 @@ class TestEnhancedFromFileSupport:
         assert mock_collector.collect_spells.call_count >= 1
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
@@ -414,7 +414,7 @@ class TestEnhancedFromFileSupport:
         assert output_file.exists()
 
     @patch("studiorum.cli.commands.convert.creatures._render_bestiary")
-    @patch("studiorum.core.services.creature_collector.CreatureCollector")
+    @patch("studiorum.data.collectors.creature_collector.CreatureCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_creatures_enhanced_format_with_counts(
         self, mock_get_omnidexer, mock_collector_class, mock_render
@@ -474,7 +474,7 @@ class TestEnhancedFromFileSupport:
         assert mock_collector.collect_creatures.call_count >= 1
 
     @patch("studiorum.cli.commands.convert.items._render_itemcompendium")
-    @patch("studiorum.core.services.item_collector.ItemCollector")
+    @patch("studiorum.data.collectors.item_collector.ItemCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_items_enhanced_format_with_counts(
         self, mock_get_omnidexer, mock_collector_class, mock_render
@@ -569,7 +569,7 @@ class TestEnhancedFromFileSupport:
         assert "does not exist" in result.stdout or "Error" in result.stdout
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_mixed_format_handling(
         self, mock_get_omnidexer, mock_collector_class, mock_render
@@ -632,7 +632,7 @@ Haste|PHB"""
         assert output_file.exists()
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_comments_and_whitespace_handling(
         self, mock_get_omnidexer, mock_collector_class, mock_render
@@ -698,7 +698,7 @@ Haste|PHB"""
         assert output_file.exists()
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_zero_count_handling(
         self, mock_get_omnidexer, mock_collector_class, mock_render
@@ -759,7 +759,7 @@ Haste|PHB"""
         assert mock_collector.collect_spells.call_count >= 1
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_large_count_handling(
         self, mock_get_omnidexer, mock_collector_class, mock_render
@@ -817,7 +817,7 @@ Haste|PHB"""
         assert output_file.exists()
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     def test_complex_names_with_special_characters(
         self, mock_get_omnidexer, mock_collector_class, mock_render

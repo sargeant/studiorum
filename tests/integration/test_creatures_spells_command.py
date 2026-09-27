@@ -7,7 +7,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.references.content_tracker import ContentTracker
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

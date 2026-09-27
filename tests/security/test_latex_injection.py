@@ -64,7 +64,7 @@ class TestTemplateInjectionVulnerabilities:
         assert "\\input" not in result
 
     def test_spell_name_cannot_inject(self):
-        from studiorum.core.models.spells import Spell
+        from studiorum.data.models.spells import Spell
 
         spell = Spell.model_validate(
             {
@@ -87,7 +87,7 @@ class TestTemplateInjectionVulnerabilities:
         assert "\\input" not in result
 
     def test_creature_name_cannot_inject(self):
-        from studiorum.core.models.creatures import Creature
+        from studiorum.data.models.creatures import Creature
 
         creature = Creature.model_validate(
             {

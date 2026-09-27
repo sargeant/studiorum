@@ -9,7 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.data.loaders.omnidexer import Omnidexer
 
 
 @pytest.mark.cli

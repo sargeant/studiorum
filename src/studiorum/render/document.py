@@ -14,12 +14,12 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from studiorum.config import LaTeXConfig
-from studiorum.core.models.adventures import Adventure
-from studiorum.core.models.books import Book
-from studiorum.core.models.chapter import NUMBERED_KINDS, OrdinalType
-from studiorum.core.models.content_models import content_type_of
-from studiorum.core.models.document_metadata import DocumentMetadata
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.adventures import Adventure
+from studiorum.data.models.books import Book
+from studiorum.data.models.chapter import NUMBERED_KINDS, OrdinalType
+from studiorum.data.models.content_models import content_type_of
+from studiorum.data.models.document_metadata import DocumentMetadata
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.log import get_logger
 from studiorum.render.appendices import (
     Appendix,

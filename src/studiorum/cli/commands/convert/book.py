@@ -5,9 +5,9 @@ from typing import Annotated
 
 import typer
 
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.document_metadata import DocumentType
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.document_metadata import DocumentType
+from studiorum.data.references.content_tracker import ContentTracker
 
 from . import options as opt
 from .adventure import (

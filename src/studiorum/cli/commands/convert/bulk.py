@@ -8,10 +8,10 @@ from rich import print as rprint
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.adventures import Adventure
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.document_metadata import DocumentType
-from studiorum.core.resolvers import ContentResolver
+from studiorum.data.models.adventures import Adventure
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.document_metadata import DocumentType
+from studiorum.data.resolvers import ContentResolver
 from studiorum.render.document import render_document
 
 from . import options as opt

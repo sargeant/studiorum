@@ -25,7 +25,7 @@ class TestCLIFluffPhase5Integration:
         self, kind: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.chdir(REPO_ROOT)
-        with patch("studiorum.core.services.fluff_matcher.FluffMatcher") as matcher:
+        with patch("studiorum.data.collectors.fluff_matcher.FluffMatcher") as matcher:
             match = getattr(matcher.return_value, f"match_{kind}_fluff")
             match.return_value = None
             result = CliRunner().invoke(
@@ -117,7 +117,7 @@ def test_fluff_images_render_as_converted_pngs(
 ) -> None:
     from PIL import Image
 
-    from studiorum.core.models.fluff import BaseFluff
+    from studiorum.data.models.fluff import BaseFluff
 
     img = tmp_path / "5etools-img"
     (img / "fluff").mkdir(parents=True)
@@ -139,7 +139,7 @@ def test_fluff_images_render_as_converted_pngs(
         }
     )
     output = tmp_path / "out.tex"
-    with patch("studiorum.core.services.fluff_matcher.FluffMatcher") as matcher:
+    with patch("studiorum.data.collectors.fluff_matcher.FluffMatcher") as matcher:
         getattr(matcher.return_value, f"match_{kind}_fluff").return_value = fluff
         result = CliRunner().invoke(
             app,

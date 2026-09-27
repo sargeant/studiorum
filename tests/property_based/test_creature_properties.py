@@ -1,6 +1,6 @@
 """Property-based tests for creature models using Hypothesis.
 
-These tests verify D&D 5e creature rule invariants and data integrity constraints
+These tests verify 5e creature rule invariants and data integrity constraints
 using only SRD-compatible and test data (no copyrighted content).
 """
 
@@ -8,21 +8,21 @@ import pytest
 from hypothesis import HealthCheck, example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 
-# ==== Hypothesis Strategies for D&D Creature Objects ====
+# ==== Hypothesis Strategies for 5e Creature Objects ====
 
 
 @composite
 def valid_creature_sizes(draw) -> str:
-    """Generate valid D&D creature sizes."""
+    """Generate valid 5e creature sizes."""
     sizes = ["Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"]
     return draw(st.sampled_from(sizes))
 
 
 @composite
 def valid_creature_types(draw) -> str:
-    """Generate valid D&D creature types."""
+    """Generate valid 5e creature types."""
     creature_types = [
         "aberration",
         "beast",
@@ -44,7 +44,7 @@ def valid_creature_types(draw) -> str:
 
 @composite
 def valid_alignments(draw) -> str:
-    """Generate valid D&D alignments."""
+    """Generate valid 5e alignments."""
     alignments = [
         "lawful good",
         "neutral good",
@@ -64,7 +64,7 @@ def valid_alignments(draw) -> str:
 @composite
 def valid_challenge_ratings(draw) -> str:
     """Generate valid challenge ratings."""
-    # Standard D&D 5e challenge ratings
+    # Standard 5e challenge ratings
     ratings = [
         "0",
         "1/8",
@@ -106,7 +106,7 @@ def valid_challenge_ratings(draw) -> str:
 
 @composite
 def valid_ability_scores(draw) -> int:
-    """Generate valid D&D ability scores (1-30 for monsters)."""
+    """Generate valid 5e ability scores (1-30 for monsters)."""
     return draw(st.integers(min_value=1, max_value=30))
 
 
@@ -274,17 +274,17 @@ def valid_test_creatures(draw) -> dict:
 
 
 class TestCreatureInvariants:
-    """Test D&D 5e creature rule invariants."""
+    """Test 5e creature rule invariants."""
 
     @given(valid_ability_scores())
     def test_ability_score_constraints(self, score: int):
-        """Ability scores must be within valid D&D ranges."""
+        """Ability scores must be within valid 5e ranges."""
         assert 1 <= score <= 30
         assert isinstance(score, int)
 
     @given(valid_challenge_ratings())
     def test_challenge_rating_validity(self, cr: str):
-        """Challenge ratings must be valid D&D values."""
+        """Challenge ratings must be valid 5e values."""
         # Valid CR formats: integers, fractions, or specific values
         valid_crs = {
             "0",
@@ -327,14 +327,14 @@ class TestCreatureInvariants:
 
     @given(valid_creature_sizes())
     def test_creature_size_validity(self, size: str):
-        """Creature sizes must be valid D&D sizes."""
+        """Creature sizes must be valid 5e sizes."""
         valid_sizes = {"Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"}
         assert size in valid_sizes
         assert size.istitle()  # Proper capitalization
 
     @given(valid_creature_types())
     def test_creature_type_validity(self, creature_type: str):
-        """Creature types must be valid D&D types."""
+        """Creature types must be valid 5e types."""
         valid_types = {
             "aberration",
             "beast",
@@ -356,7 +356,7 @@ class TestCreatureInvariants:
 
     @given(valid_alignments())
     def test_alignment_validity(self, alignment: str):
-        """Alignments must follow D&D alignment system."""
+        """Alignments must follow 5e alignment system."""
         valid_alignments = {
             "lawful good",
             "neutral good",
@@ -374,7 +374,7 @@ class TestCreatureInvariants:
 
     @given(valid_damage_types())
     def test_damage_type_validity(self, damage_types: list[str]):
-        """Damage types must be valid D&D damage types."""
+        """Damage types must be valid 5e damage types."""
         valid_damage_types = {
             "acid",
             "bludgeoning",
@@ -400,7 +400,7 @@ class TestCreatureInvariants:
 
     @given(valid_condition_immunities())
     def test_condition_immunity_validity(self, conditions: list[str]):
-        """Condition immunities must be valid D&D conditions."""
+        """Condition immunities must be valid 5e conditions."""
         valid_conditions = {
             "blinded",
             "charmed",
@@ -526,8 +526,8 @@ class TestCreatureDataIntegrity:
     def test_ability_score_modifier_calculation(
         self, str_score: int, dex_score: int, con_score: int
     ):
-        """Ability score modifiers should follow D&D rules."""
-        # D&D 5e ability score modifier formula: (score - 10) // 2
+        """Ability score modifiers should follow 5e rules."""
+        # 5e ability score modifier formula: (score - 10) // 2
         str_mod = (str_score - 10) // 2
         dex_mod = (dex_score - 10) // 2
         con_mod = (con_score - 10) // 2

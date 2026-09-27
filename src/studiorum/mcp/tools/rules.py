@@ -7,7 +7,7 @@ from typing import Annotated, Literal, get_args
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
-from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.markdown import render, snippet
 from studiorum.mcp.models import RuleResults, RuleSummary

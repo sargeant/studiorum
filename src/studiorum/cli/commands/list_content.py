@@ -9,8 +9,8 @@ from rich.table import Table
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import content_type_of
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import content_type_of
 
 app: typer.Typer = typer.Typer(help="List available 5e content")
 console = display_manager.console
@@ -298,9 +298,9 @@ def _format_file_size(size_bytes: int) -> str:
 
 def _get_content_details(item: Any) -> str:
     """Get brief details about a content item."""
-    from studiorum.core.models.creatures import Creature
-    from studiorum.core.models.items import Item
-    from studiorum.core.models.spells import Spell
+    from studiorum.data.models.creatures import Creature
+    from studiorum.data.models.items import Item
+    from studiorum.data.models.spells import Spell
 
     if isinstance(item, Spell):
         return f"Level {item.level} {item.school}"

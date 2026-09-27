@@ -6,8 +6,8 @@ import pytest
 from pydantic import ValidationError
 
 from studiorum.cli.context import get_services
-from studiorum.core.models.content import Source  # type: ignore
-from studiorum.core.models.creatures import (  # type: ignore
+from studiorum.data.models.content import Source  # type: ignore
+from studiorum.data.models.creatures import (  # type: ignore
     Ability,
     ArmorClass,
     Creature,
@@ -15,8 +15,8 @@ from studiorum.core.models.creatures import (  # type: ignore
     HitPoints,
     Speed,
 )
-from studiorum.core.models.spells import Spell, SpellComponent  # type: ignore
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.spells import Spell, SpellComponent  # type: ignore
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import EntryRenderer
 
 
@@ -686,7 +686,7 @@ class TestAbility:
         ]
         ability: Any = Ability(name="Nested Ability", entries=entries)
         # Test nested entries using modern RecursiveEntryProcessor
-        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.data.references.content_tracker import ContentTracker
         from studiorum.render.context import RenderingContext
         from studiorum.render.entries import EntryRenderer
 

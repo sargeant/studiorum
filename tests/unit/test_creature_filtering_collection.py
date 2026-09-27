@@ -9,13 +9,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from studiorum.core.models.creature_filters import (
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.models.creature_filters import (
     CreatureCollectionResult,
     CreatureFilterCriteria,
     CreatureSortMode,
 )
-from studiorum.core.models.creatures import Creature
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.fast
@@ -815,7 +815,7 @@ class TestCreatureFilteringIntegration:
 def test_cr_summary_counts_a_lair_creature_under_its_own_cr() -> None:
     from types import SimpleNamespace
 
-    from studiorum.core.models.creature_filters import CreatureCollectionResult
+    from studiorum.data.models.creature_filters import CreatureCollectionResult
 
     result = CreatureCollectionResult()
     for cr in ("1/4", {"cr": "21", "lair": "22"}, "21"):

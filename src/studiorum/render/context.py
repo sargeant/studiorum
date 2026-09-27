@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
-    from studiorum.core.loaders.omnidexer import Omnidexer
-    from studiorum.core.references.content_tracker import ContentTracker
+    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.references.content_tracker import ContentTracker
 
 # Sectioning commands by nesting depth; the last repeats below it
 SPELL_HEADINGS = ("subsubsection", "paragraph", "subparagraph")

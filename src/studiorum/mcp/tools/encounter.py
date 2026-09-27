@@ -9,10 +9,10 @@ from fastmcp.dependencies import Depends
 from fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
-from studiorum.core import encounter
-from studiorum.core.encounter import Rules
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.creatures import Creature
+from studiorum.data import encounter
+from studiorum.data.encounter import Rules
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.creatures import Creature
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.models import (
     CreatureSuggestions,

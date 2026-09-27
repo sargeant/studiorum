@@ -8,8 +8,8 @@ import pytest
 from hypothesis import given, strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, rule
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import ContentType
 
 
 class OmnidexerStateMachine(RuleBasedStateMachine):
@@ -30,7 +30,7 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
     def setup_omnidexer(self):
         """Initialize omnidexer for testing."""
         # Create a fresh omnidexer instance
-        from studiorum.core.loaders.unified_source_manager import (
+        from studiorum.data.loaders.unified_source_manager import (
             UnifiedSourceManager,
         )
 

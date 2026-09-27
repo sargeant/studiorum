@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import TextIO
 
-from studiorum.core.models.items import ItemRarity, ItemType
+from studiorum.data.models.items import ItemRarity, ItemType
 
 
 class ItemInputParser:

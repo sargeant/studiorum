@@ -25,7 +25,7 @@ class TestNoUnresolvedTags:
     """Ensure rendered entries do not contain unresolved tags."""
 
     def test_spell_no_unresolved_tags(self) -> None:
-        from studiorum.core.models.spells import Spell
+        from studiorum.data.models.spells import Spell
 
         spell_data: dict[str, Any] = {
             "name": "Test Bolt",
@@ -63,7 +63,7 @@ class TestNoUnresolvedTags:
         assert "targeted by \\textit{magic missile}" in latex
 
     def test_creature_no_unresolved_tags(self) -> None:
-        from studiorum.core.models.creatures import Creature
+        from studiorum.data.models.creatures import Creature
 
         creature_data: dict[str, Any] = {
             "name": "Test Goblin",
@@ -106,7 +106,7 @@ class TestNoUnresolvedTags:
         assert "hit-points = {127 (17d8 + 51) reduced to 107}" in latex
 
     def test_items_no_unresolved_tags(self) -> None:
-        from studiorum.core.models.items import Item
+        from studiorum.data.models.items import Item
 
         items_data = [
             {

@@ -2,8 +2,8 @@
 
 import pytest
 
-from studiorum.core.models.creature_filters import CreatureFilterCriteria
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.models.creature_filters import CreatureFilterCriteria
 
 
 class MockCreature:

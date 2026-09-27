@@ -1,12 +1,12 @@
 // What 5etools shows around an entity's entries, with its own code, as the
-// oracle for core/text/prerequisites.py, the type lines in core/compact.py and
-// core/vehicle_lines.py.
+// oracle for data/text/prerequisites.py, the type lines in data/compact.py and
+// data/vehicle_lines.py.
 //
 // Usage: node lines.mjs <5etools root> > result.json
 // Prints {"prerequisites": [...], "compact": {...}, "vehicles": [...]}: every
 // prerequisite in the data in the classic and one styles, for each type what
 // 5etools shows in classic style, assembled as the list of entries
-// core/compact.py builds, and each vehicle's statblock.
+// data/compact.py builds, and each vehicle's statblock.
 import fs from "fs";
 import path from "path";
 
@@ -120,7 +120,7 @@ for (const [prop, [file, build]] of Object.entries(BUILDERS)) {
 		.map(ent => ({name: ent.name, source: ent.source, entries: build(MiscUtil.copyFast(ent))}));
 }
 
-// Each vehicle as core/vehicle_lines.py builds it: the lines 5etools'
+// Each vehicle as data/vehicle_lines.py builds it: the lines 5etools'
 // get*RenderableEntriesMeta functions build, and the section titles its HTML
 // headers print
 const V = Renderer.vehicle;

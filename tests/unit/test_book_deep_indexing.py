@@ -1,10 +1,10 @@
 """Tests for book deep indexing functionality."""
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.books import Book
-from studiorum.core.models.chapter import Chapter
-from studiorum.core.models.content import Source
-from studiorum.core.models.nested_content import (
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.books import Book
+from studiorum.data.models.chapter import Chapter
+from studiorum.data.models.content import Source
+from studiorum.data.models.nested_content import (
     Inset,
     Section,
     Table,
@@ -34,7 +34,7 @@ class TestBookDeepIndexing:
                     "page": 10,
                     "id": "char-creation",
                     "entries": [
-                        "Creating a character is the first step in D&D.",
+                        "Creating a character is the first step in 5e.",
                         "Choose your race and class carefully.",
                     ],
                 }
@@ -206,7 +206,7 @@ class TestBookDeepIndexing:
                     "name": "Combat",
                     "page": 189,
                     "entries": [
-                        "Combat in D&D is cyclical.",
+                        "Combat in 5e is cyclical.",
                         {
                             "type": "entries",
                             "name": "Variant: Initiative Scoring",
@@ -269,7 +269,7 @@ class TestBookDeepIndexing:
                             "type": "section",
                             "name": "Introduction",
                             "page": 5,
-                            "entries": ["Welcome to D&D!"],
+                            "entries": ["Welcome to 5e!"],
                         }
                     ],
                 }

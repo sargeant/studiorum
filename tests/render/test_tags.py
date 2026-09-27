@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import EntryRenderer
 from studiorum.render.tags import render
 

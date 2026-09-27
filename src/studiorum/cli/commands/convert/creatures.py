@@ -9,7 +9,7 @@ import typer
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
@@ -342,7 +342,7 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
 
         references = None
         if spells:
-            from studiorum.core.references.content_reference_manager import (
+            from studiorum.data.references.content_reference_manager import (
                 ContentReferenceManager,
             )
 
@@ -400,7 +400,7 @@ def _fluff(
     """Fluff by creature name, with shared fluff such as lairs included once."""
     deduplicator = None
     if params["deduplicate_fluff"]:
-        from studiorum.core.services.fluff_deduplicator import (
+        from studiorum.data.collectors.fluff_deduplicator import (
             DeduplicationStrategy,
             FluffDeduplicator,
         )
@@ -422,8 +422,8 @@ def _fluff(
 def _collect(omnidexer: Any, params: dict[str, Any], names: NameList) -> Any:
     """Build the filter criteria from the command's parameters and collect."""
     from studiorum.cli.parsers.creature_input import parse_cr_range
-    from studiorum.core.models.creature_filters import CreatureFilterCriteria
-    from studiorum.core.services.creature_collector import CreatureCollector
+    from studiorum.data.collectors.creature_collector import CreatureCollector
+    from studiorum.data.models.creature_filters import CreatureFilterCriteria
 
     min_cr, max_cr = None, None
     if params["cr_range"]:
@@ -627,7 +627,7 @@ def _render_tokens(
 ) -> str:
     """Render a printable sheet of creature tokens."""
     from studiorum.cli.context import get_services
-    from studiorum.core.models.tokens import TokenSheet
+    from studiorum.data.models.tokens import TokenSheet
     from studiorum.render.images.resolve import ImageResolver
     from studiorum.render.token_renderer import TokenRenderer
 
@@ -656,7 +656,7 @@ def _spell_appendix(
     """The appendix of spells the creatures cast, built once the body is rendered."""
 
     def appendices() -> list["DocumentChapter"]:
-        from studiorum.core.interfaces import DeepIndexable
+        from studiorum.data.interfaces import DeepIndexable
         from studiorum.render.appendices import (
             AppendixFlags,
             AppendixGenerator,

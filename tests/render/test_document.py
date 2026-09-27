@@ -3,13 +3,13 @@
 from typing import Any
 from unittest.mock import Mock
 
-from studiorum.core.models.adventures import Adventure
-from studiorum.core.models.chapter import Chapter
-from studiorum.core.models.content import Source
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
-from studiorum.core.models.spells import Spell
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.adventures import Adventure
+from studiorum.data.models.chapter import Chapter
+from studiorum.data.models.content import Source
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.data.models.spells import Spell
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.appendices import AppendixFlags
 from studiorum.render.context import RenderingContext, Style
 from studiorum.render.document import (

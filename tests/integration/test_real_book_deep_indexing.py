@@ -2,8 +2,8 @@
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import ContentType
 
 
 @pytest.mark.integration

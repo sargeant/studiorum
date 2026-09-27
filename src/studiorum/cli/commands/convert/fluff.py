@@ -66,7 +66,7 @@ def collect_fluff(
     ``kind`` is creature, spell or item. A deduplicator, when given, drops fluff
     already included for another piece of content (for example a shared lair).
     """
-    from studiorum.core.services.fluff_matcher import FluffMatcher
+    from studiorum.data.collectors.fluff_matcher import FluffMatcher
 
     matcher = FluffMatcher(omnidexer)
     match: Callable[..., Any] = getattr(matcher, f"match_{kind}_fluff")

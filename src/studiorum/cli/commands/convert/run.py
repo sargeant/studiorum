@@ -19,12 +19,12 @@ from rich import print as rprint
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.config import get_app_config
-from studiorum.core.loaders.content_sources import parse_enhanced_name_lines
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
-from studiorum.core.protocols.progress import ProgressCallback
-from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
+from studiorum.data.loaders.content_sources import parse_enhanced_name_lines
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import BaseContent, ContentType
+from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.data.progress import ProgressCallback
+from studiorum.data.resolvers import ContentResolutionResult, ContentResolver
 from studiorum.render.latexmk import build_pdf
 from studiorum.render.security import ExecutableNotFoundError, get_platform_file_opener
 from studiorum.result import Error
@@ -225,7 +225,7 @@ def resolve_content_or_file(
 
     Returns the content and a description of where it came from.
     """
-    from studiorum.core.loaders.content_sources import (
+    from studiorum.data.loaders.content_sources import (
         ContentLoader,
         create_file_source,
     )

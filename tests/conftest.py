@@ -15,10 +15,10 @@ os.environ["STUDIORUM_CONFIG_FILE"] = str(Path(__file__).parent / "test-config.y
 
 import pytest
 
-from studiorum.core.loaders.data_dir import DataDir, DataSet
-from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
-from studiorum.core.models.creatures import Creature  # type: ignore
-from studiorum.core.models.spells import Spell  # type: ignore
+from studiorum.data.loaders.data_dir import DataDir, DataSet
+from studiorum.data.loaders.omnidexer import Omnidexer  # type: ignore
+from studiorum.data.models.creatures import Creature  # type: ignore
+from studiorum.data.models.spells import Spell  # type: ignore
 
 # Import the test helper for consistent setup
 from tests.test_helpers import reset_test_environment

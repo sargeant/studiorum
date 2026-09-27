@@ -9,7 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.data.loaders.omnidexer import Omnidexer
 
 
 @pytest.mark.cli
@@ -82,7 +82,7 @@ class TestConvertAdventureCommand:
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
     @patch(
-        "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
+        "studiorum.data.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
@@ -97,8 +97,8 @@ class TestConvertAdventureCommand:
     ):
         """Test converting adventure from abbreviation."""
         # Create a proper Adventure instance instead of Mock
-        from studiorum.core.models.adventures import Adventure
-        from studiorum.core.models.content import Source
+        from studiorum.data.models.adventures import Adventure
+        from studiorum.data.models.content import Source
 
         mock_adventure = Adventure(
             name="Test Adventure",
@@ -180,7 +180,7 @@ class TestConvertAdventureCommand:
         assert "Error:" in result.stdout
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.resolvers.ContentResolver")
+    @patch("studiorum.data.resolvers.ContentResolver")
     def test_convert_adventure_resolution_failure(
         self, mock_resolver_class, mock_omnidexer
     ):
@@ -191,7 +191,7 @@ class TestConvertAdventureCommand:
 
         # Mock failed resolution
         mock_resolver = Mock()
-        from studiorum.core.resolvers.content_resolver import (
+        from studiorum.data.resolvers.content_resolver import (
             ContentResolutionResult,
             ResolutionStatus,
         )

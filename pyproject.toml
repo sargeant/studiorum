@@ -175,44 +175,43 @@ ignore = [
 "src/studiorum/cli/commands/list_content.py" = ["B904"]
 "src/studiorum/cli/commands/stats.py" = ["B904"]
 "src/studiorum/cli/main.py" = ["B904", "PTH123"]
-"src/studiorum/core/error_types.py" = ["UP042"]
-"src/studiorum/core/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
-"src/studiorum/core/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
+"src/studiorum/data/error_types.py" = ["UP042"]
+"src/studiorum/data/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
+"src/studiorum/data/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
 "src/studiorum/log.py" = ["T201"]
-"src/studiorum/core/models/adventures.py" = ["PERF402", "SIM102"]
-"src/studiorum/core/models/books.py" = ["PERF402"]
-"src/studiorum/core/models/chapter.py" = ["UP042"]
-"src/studiorum/core/models/charoptiontype.py" = ["RET504", "UP042"]
-"src/studiorum/core/models/content.py" = ["UP042"]
-"src/studiorum/core/models/creature_filters.py" = ["B904", "SIM102", "UP042"]
-"src/studiorum/core/models/creatures.py" = ["B007", "PERF102", "RET504", "SIM102"]
-"src/studiorum/core/models/document_metadata.py" = ["UP042"]
-"src/studiorum/core/models/facilities.py" = ["SIM110"]
-"src/studiorum/core/models/fluff.py" = ["PERF401"]
-"src/studiorum/core/models/item_filters.py" = ["PERF401", "SIM102"]
-"src/studiorum/core/models/itemmastery.py" = ["PERF401", "SIM110"]
-"src/studiorum/core/models/itemproperties.py" = ["RET504"]
-"src/studiorum/core/models/items.py" = ["PERF401", "UP042"]
-"src/studiorum/core/models/psionic.py" = ["UP042"]
-"src/studiorum/core/models/spells.py" = ["PERF401", "SIM101", "SIM108"]
-"src/studiorum/core/models/table.py" = ["PERF401"]
-"src/studiorum/core/models/variantrule.py" = ["UP042"]
+"src/studiorum/data/models/adventures.py" = ["PERF402", "SIM102"]
+"src/studiorum/data/models/books.py" = ["PERF402"]
+"src/studiorum/data/models/chapter.py" = ["UP042"]
+"src/studiorum/data/models/charoptiontype.py" = ["RET504", "UP042"]
+"src/studiorum/data/models/content.py" = ["UP042"]
+"src/studiorum/data/models/creature_filters.py" = ["B904", "SIM102", "UP042"]
+"src/studiorum/data/models/creatures.py" = ["B007", "PERF102", "RET504", "SIM102"]
+"src/studiorum/data/models/document_metadata.py" = ["UP042"]
+"src/studiorum/data/models/facilities.py" = ["SIM110"]
+"src/studiorum/data/models/fluff.py" = ["PERF401"]
+"src/studiorum/data/models/item_filters.py" = ["PERF401", "SIM102"]
+"src/studiorum/data/models/itemmastery.py" = ["PERF401", "SIM110"]
+"src/studiorum/data/models/itemproperties.py" = ["RET504"]
+"src/studiorum/data/models/items.py" = ["PERF401", "UP042"]
+"src/studiorum/data/models/psionic.py" = ["UP042"]
+"src/studiorum/data/models/spells.py" = ["PERF401", "SIM101", "SIM108"]
+"src/studiorum/data/models/table.py" = ["PERF401"]
+"src/studiorum/data/models/variantrule.py" = ["UP042"]
 "src/studiorum/cli/parsers/creature_input.py" = ["B007", "B904", "PERF401", "RET504"]
 "src/studiorum/cli/parsers/item_input.py" = ["B007", "PIE810", "PTH123"]
 "src/studiorum/cli/parsers/spell_input.py" = ["B007", "PIE810", "PTH123"]
-"src/studiorum/core/references/content_reference_manager.py" = ["S110"]
-"src/studiorum/core/resolvers/content_resolver.py" = ["B007", "PERF102", "PERF401", "RET504"]
+"src/studiorum/data/references/content_reference_manager.py" = ["S110"]
+"src/studiorum/data/resolvers/content_resolver.py" = ["B007", "PERF102", "PERF401", "RET504"]
 "src/studiorum/render/security.py" = ["RET504"]
-"src/studiorum/core/services/content_list_writer.py" = ["SIM118"]
-"src/studiorum/core/services/creature_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
-"src/studiorum/core/services/fluff_deduplicator.py" = ["UP042"]
-"src/studiorum/core/services/fluff_matcher.py" = ["PERF401", "RET504", "SIM105"]
-"src/studiorum/core/services/item_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
-"src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
-"src/studiorum/core/services/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
-"src/studiorum/core/utils/chapters.py" = ["B904", "SIM102"]
-"src/studiorum/core/validation/error_tracker.py" = ["RET504"]
-"src/studiorum/core/validation/strictness.py" = ["UP042"]
+"src/studiorum/data/content_list_writer.py" = ["SIM118"]
+"src/studiorum/data/collectors/creature_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
+"src/studiorum/data/collectors/fluff_deduplicator.py" = ["UP042"]
+"src/studiorum/data/collectors/fluff_matcher.py" = ["PERF401", "RET504", "SIM105"]
+"src/studiorum/data/collectors/item_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
+"src/studiorum/data/loaders/spell_class_lookup.py" = ["PERF401", "SIM118"]
+"src/studiorum/data/collectors/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
+"src/studiorum/data/chapters.py" = ["B904", "SIM102"]
+"src/studiorum/data/validation/error_tracker.py" = ["RET504"]
 "tests/build_all_content.py" = ["PTH123", "T201"]
 "tests/cli/commands/test_cli_integration_enhanced_features.py" = ["SIM117"]
 "tests/cli/commands/test_convert_adventures.py" = ["PTH103", "T201"]
@@ -233,7 +232,7 @@ ignore = [
 "tests/property_based/test_creature_properties.py" = ["B007", "S110"]
 "tests/property_based/test_spell_properties.py" = ["SIM102"]
 "tests/test_data_helpers.py" = ["RET504"]
-"tests/unit/core/services/test_fluff_matcher_phase5.py" = ["RET504"]
+"tests/unit/data/test_fluff_matcher_phase5.py" = ["RET504"]
 "tests/unit/models/test_creature_stat_blocks.py" = ["PERF401"]
 "tests/unit/test_books.py" = ["B007"]
 "tests/unit/test_creature_filtering_collection.py" = ["T201"]
@@ -352,13 +351,13 @@ root_package = "studiorum"
 
 [[tool.importlinter.contracts]]
 id = "layers"
-name = "Layers: cli and mcp above services above render above core above cache, config, log and result"
+name = "Layers: cli and mcp above services above render above data above cache, config, log and result"
 type = "layers"
 layers = [
     "studiorum.cli | studiorum.mcp",
     "studiorum.services",
     "studiorum.render",
-    "studiorum.core",
+    "studiorum.data",
     "studiorum.cache | studiorum.config | studiorum.log | studiorum.result",
 ]
 ignore_imports = [
@@ -366,24 +365,23 @@ ignore_imports = [
 ]
 
 [[tool.importlinter.contracts]]
-id = "core-acyclic"
-name = "core sub-packages are acyclic"
+id = "data-acyclic"
+name = "data sub-packages are acyclic"
 type = "acyclic_siblings"
-ancestors = ["studiorum.core"]
+ancestors = ["studiorum.data"]
 ignore_imports = [
-    "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.interfaces -> studiorum.core.models.content",
-    "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",
-    "studiorum.core.loaders.omnidexer -> studiorum.core.services.spell_class_lookup",
-    "studiorum.core.models.adventures -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.models.books -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.models.creatures -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.models.items -> studiorum.core.loaders.item_types",
-    "studiorum.core.references.content_reference_manager -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.references.content_reference_manager -> studiorum.core.models.content",
-    "studiorum.core.references.spell_references -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.references.spell_references -> studiorum.core.models.content",
-    "studiorum.core.resolvers.content_resolver -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.resolvers.content_resolver -> studiorum.core.services.item_collector",
-    "studiorum.core.resolvers.content_resolver -> studiorum.core.services.spell_collector",
+    "studiorum.data.interfaces -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.interfaces -> studiorum.data.models.content",
+    "studiorum.data.models.adventures -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.models.books -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.models.creatures -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.loaders.omnidexer -> studiorum.data.collectors.fluff_matcher",
+    "studiorum.data.models.items -> studiorum.data.loaders.item_types",
+    "studiorum.data.references.content_reference_manager -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.references.content_reference_manager -> studiorum.data.models.content",
+    "studiorum.data.references.spell_references -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.references.spell_references -> studiorum.data.models.content",
+    "studiorum.data.resolvers.content_resolver -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.resolvers.content_resolver -> studiorum.data.collectors.item_collector",
+    "studiorum.data.resolvers.content_resolver -> studiorum.data.collectors.spell_collector",
 ]

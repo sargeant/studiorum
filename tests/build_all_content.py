@@ -59,9 +59,9 @@ from pathlib import Path
 from typing import Any
 
 from studiorum.cli.commands.convert import resolve_content_or_file
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.render.context import RenderingContext, Style
 from studiorum.render.document import render_document
 

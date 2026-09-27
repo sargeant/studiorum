@@ -8,7 +8,7 @@ import typer
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.items import Item
+from studiorum.data.models.items import Item
 from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
@@ -261,8 +261,8 @@ def _collect(
 ) -> tuple[Any, Any]:
     """Build the filter criteria from the command's parameters and collect."""
     from studiorum.cli.parsers.item_input import ItemInputParser
-    from studiorum.core.models.item_filters import ItemFilterCriteria
-    from studiorum.core.services.item_collector import ItemCollector
+    from studiorum.data.collectors.item_collector import ItemCollector
+    from studiorum.data.models.item_filters import ItemFilterCriteria
 
     min_value, max_value = None, None
     if params["value_range"]:

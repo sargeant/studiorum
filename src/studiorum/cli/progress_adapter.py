@@ -8,7 +8,7 @@ import time
 from typing import Any
 
 from studiorum.cli.display_manager import DisplayManager, TaskID
-from studiorum.core.protocols.progress import ProgressCallback
+from studiorum.data.progress import ProgressCallback
 
 
 class DisplayProgressAdapter:

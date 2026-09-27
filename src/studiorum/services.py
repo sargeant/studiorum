@@ -13,10 +13,10 @@ from dataclasses import dataclass, field
 from functools import cached_property
 
 from studiorum.config import ApplicationConfig
-from studiorum.core.loaders.data_dir import DataSet
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.protocols.progress import ProgressCallback
-from studiorum.core.services.content_list_writer import ContentListWriter
+from studiorum.data.content_list_writer import ContentListWriter
+from studiorum.data.loaders.data_dir import DataSet
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.progress import ProgressCallback
 from studiorum.log import get_logger
 
 logger = get_logger(__name__)

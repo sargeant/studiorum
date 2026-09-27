@@ -6,14 +6,14 @@ import pytest
 # Lazy imports to avoid slow collection
 def _get_omnidexer():
     """Lazy omnidexer import and creation."""
-    from studiorum.core.loaders.omnidexer import Omnidexer
+    from studiorum.data.loaders.omnidexer import Omnidexer
 
     return Omnidexer()
 
 
 def _get_content_type(name: str):
     """Lazy ContentType import."""
-    from studiorum.core.models.content import ContentType
+    from studiorum.data.models.content import ContentType
 
     return ContentType(name)
 
@@ -65,7 +65,7 @@ def _has_full_dataset_available(min_file_threshold: int = 50) -> bool:
     import os
     from pathlib import Path
 
-    from studiorum.core.loaders.data_dir import DataDir
+    from studiorum.data.loaders.data_dir import DataDir
 
     root = Path(
         os.environ.get("STUDIORUM_5ETOOLS_DIR", Path.home() / "Code/5etools-src")

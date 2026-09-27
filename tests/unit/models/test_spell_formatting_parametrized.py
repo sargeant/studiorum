@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from studiorum.core.models.spells import Spell
+from studiorum.data.models.spells import Spell
 
 
 class TestSpellFormattingMethodsParametrized:

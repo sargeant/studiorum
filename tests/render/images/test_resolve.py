@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from PIL import Image
 
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 from studiorum.render.images import resolve
 from studiorum.render.images.resolve import (
     ImageResolver,

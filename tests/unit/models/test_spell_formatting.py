@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from studiorum.core.models.spells import (
+from studiorum.data.models.spells import (
     Spell,
 )
 

@@ -9,7 +9,7 @@ import typer
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.spells import Spell
+from studiorum.data.models.spells import Spell
 from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
@@ -241,7 +241,7 @@ def spells(
         )
         tracker = None
         if creatures:
-            from studiorum.core.references.content_reference_manager import (
+            from studiorum.data.references.content_reference_manager import (
                 ContentReferenceManager,
             )
 
@@ -305,8 +305,8 @@ def _collect(
 ) -> Any:
     """Build the filter criteria from the command's parameters and collect."""
     from studiorum.cli.parsers.spell_input import SpellInputParser
-    from studiorum.core.models.spell_filters import SpellFilterCriteria
-    from studiorum.core.services.spell_collector import SpellCollector
+    from studiorum.data.collectors.spell_collector import SpellCollector
+    from studiorum.data.models.spell_filters import SpellFilterCriteria
 
     min_level, max_level = None, None
     if params["level"]:

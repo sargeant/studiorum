@@ -11,9 +11,9 @@ from studiorum.cli.commands.convert.run import (
     handle_resolution_result as _handle_resolution_result,
     resolve_content_or_file,
 )
-from studiorum.core.models.adventures import Adventure
-from studiorum.core.models.content import ContentType, Source
-from studiorum.core.resolvers.content_resolver import (
+from studiorum.data.models.adventures import Adventure
+from studiorum.data.models.content import ContentType, Source
+from studiorum.data.resolvers.content_resolver import (
     ContentResolutionResult,
     ResolutionStatus,
 )

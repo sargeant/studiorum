@@ -5,14 +5,14 @@ from unittest.mock import Mock
 
 import pytest
 
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.creatures import Ability, Creature
-from studiorum.core.models.deities import Deity
-from studiorum.core.models.fluff import CreatureFluff
-from studiorum.core.models.magicvariant import MagicVariant
-from studiorum.core.models.variantrule import VariantRule
-from studiorum.core.models.vehicles import Vehicle
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.creatures import Ability, Creature
+from studiorum.data.models.deities import Deity
+from studiorum.data.models.fluff import CreatureFluff
+from studiorum.data.models.magicvariant import MagicVariant
+from studiorum.data.models.variantrule import VariantRule
+from studiorum.data.models.vehicles import Vehicle
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import (
     LONG_TABLE_ROWS,
     EntryError,

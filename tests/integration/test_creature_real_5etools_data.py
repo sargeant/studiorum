@@ -11,10 +11,10 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.creatures import Creature
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.creatures import Creature
 from tests.test_data_helpers import (
     requires_full_dataset,
     requires_minimum_creatures,
@@ -697,7 +697,7 @@ class TestCreatureRegressionSuite:
                     for action in creature.action:
                         if hasattr(action, "entries") and action.entries:
                             from studiorum.cli.context import get_services
-                            from studiorum.core.references.content_tracker import (
+                            from studiorum.data.references.content_tracker import (
                                 ContentTracker,
                             )
                             from studiorum.render.context import RenderingContext

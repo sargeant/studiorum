@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.data.resolvers.content_resolver import ContentResolver
 
 
 def load_all_data_sync(omnidexer):

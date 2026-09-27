@@ -5,8 +5,8 @@ from unittest.mock import patch
 import pytest
 
 from studiorum.cli.context import get_services
-from studiorum.core.models.content import ContentType
-from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.data.models.content import ContentType
+from studiorum.data.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
 # Tests converted to sync after async removal migration
 
@@ -121,7 +121,7 @@ class TestBookResolution:
         # The first load reads the content file; the second must not
         result1 = resolver.resolve_book("TEST")
         assert result1.content is not None
-        with patch("studiorum.core.loaders.omnidexer.read_json") as read_json:
+        with patch("studiorum.data.loaders.omnidexer.read_json") as read_json:
             result2 = resolver.resolve_book("TEST")
         read_json.assert_not_called()
         assert result2.content is result1.content

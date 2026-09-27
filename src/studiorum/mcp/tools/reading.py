@@ -9,9 +9,9 @@ from fastmcp.dependencies import Depends
 from fastmcp.exceptions import ToolError
 from pydantic import Field
 
-from studiorum.core.models.adventures import Adventure
-from studiorum.core.models.books import Book
-from studiorum.core.models.content import ContentType
+from studiorum.data.models.adventures import Adventure
+from studiorum.data.models.books import Book
+from studiorum.data.models.content import ContentType
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import get_services
 from studiorum.mcp.errors import not_found

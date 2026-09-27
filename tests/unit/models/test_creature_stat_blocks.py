@@ -6,7 +6,7 @@ properly formatted stat blocks with ability scores, modifiers, and complex text 
 
 import pytest
 
-from studiorum.core.models.creatures import (
+from studiorum.data.models.creatures import (
     Ability,
     ArmorClass,
     Creature,
@@ -15,7 +15,7 @@ from studiorum.core.models.creatures import (
     SkillBonus,
     Speed,
 )
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import EntryRenderer
 
 

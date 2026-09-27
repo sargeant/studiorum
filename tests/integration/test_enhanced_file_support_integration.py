@@ -242,7 +242,7 @@ class TestEnhancedFileSupportIntegration:
         mock_omnidexer = Mock()
 
         def mock_get_spell(name):
-            from studiorum.core.models.spells import Spell
+            from studiorum.data.models.spells import Spell
 
             # Create a more realistic mock that behaves like a Spell
             mock_spell = Mock(spec=Spell)
@@ -330,7 +330,7 @@ class TestEnhancedFileSupportIntegration:
         mock_omnidexer = Mock()
 
         def mock_get_creature(name):
-            from studiorum.core.models.creatures import Creature
+            from studiorum.data.models.creatures import Creature
 
             mock_creature = Mock(spec=Creature)
             mock_creature.name = name
@@ -502,10 +502,10 @@ class TestEnhancedFileSupportIntegration:
                 "studiorum.cli.commands.convert.items._render_itemcompendium"
             ) as mock_render_items,
             patch(
-                "studiorum.core.services.item_collector.ItemCollector._get_item_value_in_gp"
+                "studiorum.data.collectors.item_collector.ItemCollector._get_item_value_in_gp"
             ) as mock_get_value,
             patch(
-                "studiorum.core.services.item_collector.ItemCollector._collect_by_names"
+                "studiorum.data.collectors.item_collector.ItemCollector._collect_by_names"
             ) as mock_collect_by_names,
         ):
             # Mock the render itemcompendium function to return a simple string
@@ -515,7 +515,7 @@ class TestEnhancedFileSupportIntegration:
 
             # Mock _collect_by_names to return a successful result with our test items
             def mock_collect_by_names_func(names, sources=None):
-                from studiorum.core.models.item_filters import ItemCollectionResult
+                from studiorum.data.models.item_filters import ItemCollectionResult
 
                 result = ItemCollectionResult()
                 for name in names:
@@ -571,8 +571,8 @@ class TestEnhancedFileSupportIntegration:
         content_file.write_text(original_content, encoding="utf-8")
 
         # Step 2: Test that the file can be parsed correctly
-        from studiorum.core.loaders.content_sources import NameListFileSource
-        from studiorum.core.models.content import ContentType
+        from studiorum.data.loaders.content_sources import NameListFileSource
+        from studiorum.data.models.content import ContentType
 
         # Test parsing as different content types
         for content_type in [ContentType.CREATURE, ContentType.SPELL, ContentType.ITEM]:
@@ -617,8 +617,8 @@ Just random text"""
         invalid_file.write_text(invalid_content, encoding="utf-8")
 
         # Should handle parsing gracefully
-        from studiorum.core.loaders.content_sources import NameListFileSource
-        from studiorum.core.models.content import ContentType
+        from studiorum.data.loaders.content_sources import NameListFileSource
+        from studiorum.data.models.content import ContentType
 
         source = NameListFileSource(invalid_file, ContentType.SPELL)
 
@@ -651,8 +651,8 @@ Just random text"""
             file_path.write_text(content, encoding="utf-8")
 
             # Test parsing with each format
-            from studiorum.core.loaders.content_sources import NameListFileSource
-            from studiorum.core.models.content import ContentType
+            from studiorum.data.loaders.content_sources import NameListFileSource
+            from studiorum.data.models.content import ContentType
 
             source = NameListFileSource(file_path, ContentType.CREATURE)
 

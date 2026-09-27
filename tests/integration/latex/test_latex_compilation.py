@@ -15,10 +15,10 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
-from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.data.references.content_tracker import ContentTracker
+from studiorum.data.resolvers.content_resolver import ContentResolver
 from studiorum.render.appendices import AppendixFlags
 from studiorum.render.context import RenderingContext
 from studiorum.render.document import render_document
