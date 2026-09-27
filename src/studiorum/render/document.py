@@ -20,16 +20,16 @@ from studiorum.core.models.chapter import NUMBERED_KINDS, OrdinalType
 from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.document_metadata import DocumentMetadata
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.appendix_generator import (
+from studiorum.log import get_logger
+from studiorum.render.appendices import (
     Appendix,
     AppendixFlags,
     AppendixGenerator,
 )
-from studiorum.log import get_logger
-from studiorum.renderers.context import RenderingContext
+from studiorum.render.context import RenderingContext
 
-from .core.template_engine import LaTeXTemplateEngine, environment
 from .entries import EntryRenderer
+from .template_engine import LaTeXTemplateEngine, environment
 
 logger = get_logger(__name__)
 

@@ -414,8 +414,8 @@ class TestCreatureEdgeCasesRealData:
                             from studiorum.core.references.content_tracker import (
                                 ContentTracker,
                             )
-                            from studiorum.latex_engine.entries import EntryRenderer
-                            from studiorum.renderers.context import RenderingContext
+                            from studiorum.render.context import RenderingContext
+                            from studiorum.render.entries import EntryRenderer
 
                             content_tracker = ContentTracker()
                             rendering_context = RenderingContext(

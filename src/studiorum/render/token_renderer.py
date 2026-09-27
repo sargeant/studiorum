@@ -26,7 +26,7 @@ class TokenRenderer:
         Returns:
             LaTeX document string
         """
-        from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+        from studiorum.render.template_engine import LaTeXTemplateEngine
 
         logger.debug(
             f"Rendering token sheet with {token_sheet.get_total_token_count()} tokens"

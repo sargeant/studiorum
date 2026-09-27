@@ -202,7 +202,7 @@ ignore = [
 "src/studiorum/core/parsers/spell_input.py" = ["B007", "PIE810", "PTH123"]
 "src/studiorum/core/references/content_reference_manager.py" = ["S110"]
 "src/studiorum/core/resolvers/content_resolver.py" = ["B007", "PERF102", "PERF401", "RET504"]
-"src/studiorum/core/security.py" = ["RET504"]
+"src/studiorum/render/security.py" = ["RET504"]
 "src/studiorum/core/services/content_list_writer.py" = ["SIM118"]
 "src/studiorum/core/services/creature_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
 "src/studiorum/core/services/fluff_deduplicator.py" = ["UP042"]
@@ -338,7 +338,7 @@ skips = ["B603"]
 # - B101: assert for type narrowing (4 occurrences) - not security assertions
 # - B105: "CS" enum value (1 occurrence) - not a password
 # - B110: try-except-pass (9 occurrences) - intentional graceful degradation
-# - B607: Already resolved via studiorum.core.security module (0 remaining)
+# - B607: Already resolved via studiorum.render.security module (0 remaining)
 
 exclude_dirs = ["/tests/", "/scripts/"]
 
@@ -352,13 +352,12 @@ root_package = "studiorum"
 
 [[tool.importlinter.contracts]]
 id = "layers"
-name = "Layers: cli and mcp above services above latex_engine above renderers above core above cache, config, log and result"
+name = "Layers: cli and mcp above services above render above core above cache, config, log and result"
 type = "layers"
 layers = [
     "studiorum.cli | studiorum.mcp",
     "studiorum.services",
-    "studiorum.latex_engine",
-    "studiorum.renderers",
+    "studiorum.render",
     "studiorum.core",
     "studiorum.cache | studiorum.config | studiorum.log | studiorum.result",
 ]

@@ -8,7 +8,7 @@ import yaml
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.security import ExecutableNotFoundError
+from studiorum.render.security import ExecutableNotFoundError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 

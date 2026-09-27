@@ -22,7 +22,7 @@ from studiorum.core.text.tags import (
     split_tag,
 )
 from studiorum.log import get_logger
-from studiorum.renderers.escape import escape, escape_url
+from studiorum.render.escape import escape, escape_url
 
 if TYPE_CHECKING:
     from studiorum.core.references.content_tracker import ContentTracker

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGenerator
+from studiorum.render.appendices import AppendixFlags, AppendixGenerator
 
 
 def _omnidexer(*entries: tuple[str, str, str]) -> Any:

@@ -10,7 +10,7 @@ from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.spells import Spell
-from studiorum.renderers.context import RenderingContext, Style
+from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import Fluff, FluffImages, FluffSections, FluffSources, collect_fluff
@@ -26,7 +26,7 @@ from .run import (
 )
 
 if TYPE_CHECKING:
-    from studiorum.latex_engine.document import DocumentChapter
+    from studiorum.render.document import DocumentChapter
 
 SELECT = "Search & Selection"
 PROPERTIES = "Spell Properties"
@@ -279,11 +279,11 @@ def _creature_appendix(
     """The appendix of creatures the spells name, built once the body is rendered."""
 
     def appendices() -> list["DocumentChapter"]:
-        from studiorum.core.services.appendix_generator import (
+        from studiorum.render.appendices import (
             AppendixFlags,
             AppendixGenerator,
         )
-        from studiorum.latex_engine.document import appendices_as_chapters
+        from studiorum.render.document import appendices_as_chapters
 
         found = AppendixGenerator(omnidexer).generate_appendices(
             tracker, AppendixFlags(creatures=True)
@@ -362,7 +362,7 @@ def _render_spellbook(
     appendices: Callable[[], list["DocumentChapter"]] | None = None,
 ) -> str:
     """Render spells using the spellbook template."""
-    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+    from studiorum.render.template_engine import LaTeXTemplateEngine
 
     template_engine = LaTeXTemplateEngine()
     template_engine.update_latex_config(options.latex)

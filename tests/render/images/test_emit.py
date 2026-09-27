@@ -7,8 +7,8 @@ from typing import Any
 import pytest
 from PIL import Image
 
-from studiorum.latex_engine.core.images.resolve import ImageResolver
-from studiorum.latex_engine.entries import EntryRenderer
+from studiorum.render.entries import EntryRenderer
+from studiorum.render.images.resolve import ImageResolver
 
 
 @pytest.fixture

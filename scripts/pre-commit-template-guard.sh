@@ -11,7 +11,7 @@ PATTERN='template_service\.render_entry_(description|content_only)\s*\('
 files=("$@")
 if [[ ${#files[@]} -eq 0 ]]; then
   while IFS= read -r -d '' f; do files+=("$f"); done < <(
-    find src/studiorum/latex_engine/templates -type f -name '*.tex.j2' -print0
+    find src/studiorum/render/templates -type f -name '*.tex.j2' -print0
   )
 fi
 

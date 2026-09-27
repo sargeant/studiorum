@@ -7,8 +7,8 @@ from unittest.mock import patch
 import pytest
 
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.entries import EntryRenderer
-from studiorum.renderers.tags import render
+from studiorum.render.entries import EntryRenderer
+from studiorum.render.tags import render
 
 
 @pytest.mark.parametrize(
@@ -99,8 +99,8 @@ def test_unhandled_tag_renders_escaped_display_text() -> None:
 
 def test_unknown_tag_renders_display_text_and_warns_once() -> None:
     with (
-        patch("studiorum.renderers.tags._warned", set()),
-        patch("studiorum.renderers.tags.logger") as logger,
+        patch("studiorum.render.tags._warned", set()),
+        patch("studiorum.render.tags.logger") as logger,
     ):
         latex = render("{@notATag first|second|shown & {@b bold}} x")
         render("{@notATag again}")

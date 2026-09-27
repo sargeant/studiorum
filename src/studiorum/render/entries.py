@@ -31,17 +31,17 @@ from studiorum.core.models.content_models import (
 from studiorum.core.models.creatures import ArmorClass, Creature
 from studiorum.core.models.magicvariant import MagicVariant
 from studiorum.log import get_logger
-from studiorum.renderers.context import Style
-from studiorum.renderers.escape import escape
-from studiorum.renderers.tags import render
+from studiorum.render.context import Style
+from studiorum.render.escape import escape
+from studiorum.render.tags import render
 
-from .core.images import emit
-from .core.images.resolve import ImageResolver
+from .images import emit
+from .images.resolve import ImageResolver
 
 if TYPE_CHECKING:
     from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.references.content_tracker import ContentTracker
-    from studiorum.renderers.context import RenderingContext
+    from studiorum.render.context import RenderingContext
 
 logger = get_logger(__name__)
 
@@ -70,7 +70,7 @@ class EntryError(Exception):
 
 @cache
 def _macros() -> Any:
-    from .core.template_engine import environment
+    from .template_engine import environment
 
     return environment().get_template("_entries.tex.j2").module
 
@@ -615,7 +615,7 @@ class EntryRenderer:
 
     def _render_model(self, kind: str, content: Any) -> str:
         """A creature, spell, item or vehicle through its macro, in the text."""
-        from studiorum.renderers.context import RenderingContext
+        from studiorum.render.context import RenderingContext
 
         from .document import render_models
 

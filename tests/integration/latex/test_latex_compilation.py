@@ -19,9 +19,9 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.resolvers.content_resolver import ContentResolver
-from studiorum.core.services.appendix_generator import AppendixFlags
-from studiorum.latex_engine.document import render_document
-from studiorum.renderers.context import RenderingContext
+from studiorum.render.appendices import AppendixFlags
+from studiorum.render.context import RenderingContext
+from studiorum.render.document import render_document
 from tests.test_data_helpers import requires_latex_template
 
 

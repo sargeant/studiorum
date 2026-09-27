@@ -13,8 +13,7 @@ from studiorum.core.models.magicvariant import MagicVariant
 from studiorum.core.models.variantrule import VariantRule
 from studiorum.core.models.vehicles import Vehicle
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.core.template_engine import environment
-from studiorum.latex_engine.entries import (
+from studiorum.render.entries import (
     LONG_TABLE_ROWS,
     EntryError,
     EntryRenderer,
@@ -23,6 +22,7 @@ from studiorum.latex_engine.entries import (
     creature_ac_text,
     creature_senses_text,
 )
+from studiorum.render.template_engine import environment
 
 
 def render(entry: object, style: Style | None = None) -> str:
@@ -645,11 +645,11 @@ def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
     table = {"type": "table", "colLabels": ["Level"], "rows": [["1st"]], "wide": True}
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr(
-            "studiorum.latex_engine.entries.content_type_of",
+            "studiorum.render.entries.content_type_of",
             lambda _: ContentType.CLASS,
         )
         patch.setattr(
-            "studiorum.latex_engine.entries.compact_parts",
+            "studiorum.render.entries.compact_parts",
             lambda *_: (
                 [],
                 [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],

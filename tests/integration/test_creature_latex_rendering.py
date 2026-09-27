@@ -133,9 +133,9 @@ class TestCreatureLaTeXRendering:
         trait = creature.trait[0]
         from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
-        from studiorum.latex_engine.entries import EntryRenderer
-        from studiorum.renderers.context import RenderingContext
-        from studiorum.renderers.tags import render
+        from studiorum.render.context import RenderingContext
+        from studiorum.render.entries import EntryRenderer
+        from studiorum.render.tags import render
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
@@ -157,8 +157,8 @@ class TestCreatureLaTeXRendering:
         # Define entry_processor and rendering_context in this scope
         from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
-        from studiorum.latex_engine.entries import EntryRenderer
-        from studiorum.renderers.context import RenderingContext
+        from studiorum.render.context import RenderingContext
+        from studiorum.render.entries import EntryRenderer
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
@@ -277,8 +277,8 @@ class TestCreatureLaTeXRendering:
         # Define entry_processor and rendering_context in this scope
         from studiorum.cli.context import get_services
         from studiorum.core.references.content_tracker import ContentTracker
-        from studiorum.latex_engine.entries import EntryRenderer
-        from studiorum.renderers.context import RenderingContext
+        from studiorum.render.context import RenderingContext
+        from studiorum.render.entries import EntryRenderer
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(

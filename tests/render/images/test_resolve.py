@@ -8,8 +8,8 @@ import pytest
 from PIL import Image
 
 from studiorum.core.models.creatures import Creature
-from studiorum.latex_engine.core.images import resolve
-from studiorum.latex_engine.core.images.resolve import (
+from studiorum.render.images import resolve
+from studiorum.render.images.resolve import (
     ImageResolver,
     token_href,
     token_name,

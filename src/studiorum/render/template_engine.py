@@ -25,13 +25,13 @@ from studiorum.config import (
 )
 from studiorum.core.models.creatures import Ability, Spellcasting
 from studiorum.core.vehicle_lines import vehicle_block
-from studiorum.latex_engine.entries import (
+from studiorum.render.entries import (
     EntryRenderer,
     creature_ac_text,
     creature_senses_text,
 )
-from studiorum.renderers.escape import escape
-from studiorum.renderers.tags import render
+from studiorum.render.escape import escape
+from studiorum.render.tags import render
 
 
 def _class_for_content_type(
@@ -56,7 +56,7 @@ def _class_for_content_type(
     return document_class, options
 
 
-TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
 # An HTML entity in the output means Jinja escaped a string as HTML: it does

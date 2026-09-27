@@ -15,7 +15,7 @@ from studiorum.core.models.spells import (
     SpellTime,
 )
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.entries import EntryRenderer
+from studiorum.render.entries import EntryRenderer
 
 # ==== Hypothesis Strategies for 5e Domain Objects ====
 

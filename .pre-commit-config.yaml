@@ -33,7 +33,7 @@ repos:
         name: Template legacy render check
         entry: scripts/pre-commit-template-guard.sh
         language: script
-        files: ^src/studiorum/latex_engine/templates/.*\.tex\.j2$
+        files: ^src/studiorum/render/templates/.*\.tex\.j2$
       - id: srd-compliance
         name: SRD compliance check
         entry: scripts/pre-commit-compliance.sh

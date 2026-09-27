@@ -16,7 +16,7 @@ from studiorum.core.models.creatures import (
     Speed,
 )
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.entries import EntryRenderer
+from studiorum.render.entries import EntryRenderer
 
 
 class TestCreatureStatBlockRendering:

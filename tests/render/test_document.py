@@ -10,14 +10,14 @@ from studiorum.core.models.creatures import Creature
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.appendix_generator import AppendixFlags
-from studiorum.latex_engine.document import (
+from studiorum.render.appendices import AppendixFlags
+from studiorum.render.context import RenderingContext, Style
+from studiorum.render.document import (
     DocumentChapter,
     appendix_chapters,
     render_document,
     render_models,
 )
-from studiorum.renderers.context import RenderingContext, Style
 
 
 def _chapter(name: str, kind: str | None = None, identifier: Any = None) -> Chapter:

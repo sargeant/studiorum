@@ -8,7 +8,7 @@ import typer
 from rich import print as rprint
 
 from studiorum.core.models.document_metadata import DocumentType
-from studiorum.core.services.appendix_generator import AppendixFlags
+from studiorum.render.appendices import AppendixFlags
 
 from . import options as opt
 from .adventure import render_document, rendering_context

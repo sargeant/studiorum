@@ -89,6 +89,6 @@ def _describe(href: Any) -> str:
 
 
 def _template(name: str) -> Template:
-    from studiorum.latex_engine.core.template_engine import environment
+    from studiorum.render.template_engine import environment
 
     return environment().get_template(name)

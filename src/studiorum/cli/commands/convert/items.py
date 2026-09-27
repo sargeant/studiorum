@@ -9,7 +9,7 @@ from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.items import Item
-from studiorum.renderers.context import RenderingContext, Style
+from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import Fluff, FluffImages, FluffSections, FluffSources, collect_fluff
@@ -351,7 +351,7 @@ def _render_itemcompendium(
     sort_mode: ItemSortMode,
 ) -> str:
     """Render items using the itemcompendium template."""
-    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+    from studiorum.render.template_engine import LaTeXTemplateEngine
 
     template_engine = LaTeXTemplateEngine()
     template_engine.update_latex_config(options.latex)

@@ -7,7 +7,7 @@ import pytest
 from jinja2 import UndefinedError
 from markupsafe import Markup
 
-from studiorum.latex_engine.core.template_engine import (
+from studiorum.render.template_engine import (
     LaTeXTemplateEngine,
     check_output,
     environment,
@@ -24,9 +24,7 @@ class TestLaTeXTemplateEngine:
 
         # Path should now be absolute and point to the templates directory
         assert engine.templates_dir.name == "templates"
-        assert str(engine.templates_dir).endswith(
-            "src/studiorum/latex_engine/templates"
-        )
+        assert str(engine.templates_dir).endswith("src/studiorum/render/templates")
         assert engine.env is not None
 
     def test_template_caching_removed(self) -> None:
@@ -62,7 +60,7 @@ class TestLaTeXTemplateEngine:
         assert "\\begin{itemize}" in result
         assert "\\end{itemize}" in result
 
-    @patch("studiorum.latex_engine.core.template_engine.FileSystemLoader")
+    @patch("studiorum.render.template_engine.FileSystemLoader")
     def test_jinja_environment_configuration(self, mock_loader: Any) -> None:
         """Test Jinja2 environment configuration."""
         engine: Any = LaTeXTemplateEngine()

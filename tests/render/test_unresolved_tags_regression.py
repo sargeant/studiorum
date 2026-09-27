@@ -11,8 +11,8 @@ from typing import Any
 
 import pytest
 
-from studiorum.latex_engine.document import render_models
-from studiorum.renderers.context import RenderingContext
+from studiorum.render.context import RenderingContext
+from studiorum.render.document import render_models
 
 
 def _has_unresolved_tags(s: str) -> bool:

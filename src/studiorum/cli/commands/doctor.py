@@ -2,7 +2,7 @@
 
 import os
 
-# kpsewhich is found on PATH through studiorum.core.security
+# kpsewhich is found on PATH through studiorum.render.security
 import subprocess  # nosec B404
 from pathlib import Path
 
@@ -13,7 +13,7 @@ from studiorum.cache import CacheManager
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.config import get_default_config_path
-from studiorum.core.security import ExecutableNotFoundError, get_latex_utility
+from studiorum.render.security import ExecutableNotFoundError, get_latex_utility
 
 OK, WARN, FAIL = "✅", "⚠️", "❌"
 Check = tuple[str, str, str]

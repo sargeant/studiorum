@@ -4,12 +4,12 @@ import subprocess
 import sys
 
 
-def test_latex_engine_before_cli() -> None:
+def test_render_before_cli() -> None:
     result = subprocess.run(
         [
             sys.executable,
             "-c",
-            "import studiorum.latex_engine.core.template_engine\n"
+            "import studiorum.render.template_engine\n"
             "import studiorum.cli.main\n"
             "from studiorum.cli.main import app\n"
             "print(sorted(g.name for g in app.registered_groups))",

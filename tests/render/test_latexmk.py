@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 
 from studiorum.config import LaTeXEngineConfig
-from studiorum.latex_engine.latexmk import build_pdf, summarise_log
+from studiorum.render.latexmk import build_pdf, summarise_log
 from studiorum.result import Error, Success
 
 MISSING_CLASS = """\
@@ -105,14 +105,14 @@ def test_falls_back_to_the_next_engine(tex: Path) -> None:
     engines = LaTeXEngineConfig(primary_engine="lualatex", fallback_engines=["xelatex"])
     with (
         patch(
-            "studiorum.latex_engine.latexmk.get_safe_executable",
+            "studiorum.render.latexmk.get_safe_executable",
             return_value="/bin/latexmk",
         ),
         patch(
-            "studiorum.latex_engine.latexmk.shutil.which",
+            "studiorum.render.latexmk.shutil.which",
             installed("lualatex", "xelatex"),
         ),
-        patch("studiorum.latex_engine.latexmk.subprocess.run", run),
+        patch("studiorum.render.latexmk.subprocess.run", run),
     ):
         result = build_pdf(tex, engines)
 
@@ -132,11 +132,11 @@ def test_reports_each_engine_when_all_fail(tex: Path) -> None:
     engines = LaTeXEngineConfig(primary_engine="xelatex", fallback_engines=["pdflatex"])
     with (
         patch(
-            "studiorum.latex_engine.latexmk.get_safe_executable",
+            "studiorum.render.latexmk.get_safe_executable",
             return_value="/bin/latexmk",
         ),
-        patch("studiorum.latex_engine.latexmk.shutil.which", installed("xelatex")),
-        patch("studiorum.latex_engine.latexmk.subprocess.run", run),
+        patch("studiorum.render.latexmk.shutil.which", installed("xelatex")),
+        patch("studiorum.render.latexmk.subprocess.run", run),
     ):
         result = build_pdf(tex, engines)
 
@@ -152,11 +152,11 @@ def test_timeout_is_reported(tex: Path) -> None:
     engines = LaTeXEngineConfig(primary_engine="xelatex", fallback_engines=[])
     with (
         patch(
-            "studiorum.latex_engine.latexmk.get_safe_executable",
+            "studiorum.render.latexmk.get_safe_executable",
             return_value="/bin/latexmk",
         ),
-        patch("studiorum.latex_engine.latexmk.shutil.which", installed("xelatex")),
-        patch("studiorum.latex_engine.latexmk.subprocess.run", run),
+        patch("studiorum.render.latexmk.shutil.which", installed("xelatex")),
+        patch("studiorum.render.latexmk.subprocess.run", run),
     ):
         result = build_pdf(tex, engines)
 

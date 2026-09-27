@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from studiorum.renderers.escape import escape, escape_url
+from studiorum.render.escape import escape, escape_url
 
 
 @pytest.mark.parametrize(
