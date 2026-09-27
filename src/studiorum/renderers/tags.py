@@ -13,7 +13,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from studiorum.core.logging import get_logger
 from studiorum.core.text.tags import (
     display_part,
     is_tag,
@@ -22,6 +21,7 @@ from studiorum.core.text.tags import (
     split_by_tags,
     split_tag,
 )
+from studiorum.log import get_logger
 from studiorum.renderers.escape import escape, escape_url
 
 if TYPE_CHECKING:

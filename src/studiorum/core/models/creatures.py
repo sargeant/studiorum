@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from pydantic import BaseModel, Field, field_validator
 
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 from ..encounter import XP_BY_CR
 from ..types import (

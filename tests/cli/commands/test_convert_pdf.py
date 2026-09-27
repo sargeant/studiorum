@@ -7,7 +7,7 @@ import pytest
 import typer
 
 from studiorum.cli.commands.convert.run import compile_pdf
-from studiorum.core.result import Error, Success
+from studiorum.result import Error, Success
 
 
 @pytest.fixture

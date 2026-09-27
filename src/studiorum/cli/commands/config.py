@@ -21,7 +21,7 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 
 from studiorum.config import get_app_config
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 console = Console()

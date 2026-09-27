@@ -14,7 +14,6 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from studiorum.config import LaTeXConfig
-from studiorum.core.logging import get_logger
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.books import Book
 from studiorum.core.models.chapter import NUMBERED_KINDS, OrdinalType
@@ -26,6 +25,7 @@ from studiorum.core.services.appendix_generator import (
     AppendixFlags,
     AppendixGenerator,
 )
+from studiorum.log import get_logger
 from studiorum.renderers.context import RenderingContext
 
 from .core.template_engine import LaTeXTemplateEngine, environment

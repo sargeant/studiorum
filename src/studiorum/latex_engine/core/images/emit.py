@@ -11,7 +11,7 @@ import re
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 if TYPE_CHECKING:
     from jinja2 import Template

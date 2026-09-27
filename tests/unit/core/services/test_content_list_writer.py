@@ -7,11 +7,11 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.result import Error, Success
 from studiorum.core.services.content_list_writer import (
     ContentListWriter,
     ContentListWriterError,
 )
+from studiorum.result import Error, Success
 
 
 @pytest.mark.fast

@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any
 from PIL import Image
 
 from studiorum.core.cache import cache_dir
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 if TYPE_CHECKING:
     from studiorum.config import ImageConfig

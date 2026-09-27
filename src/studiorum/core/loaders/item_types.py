@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..logging import get_logger
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 

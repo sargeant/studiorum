@@ -149,7 +149,7 @@ class TestEnhancedFileSupportIntegration:
                     f.write(f"{entry}\n")
 
             # Return success with entry count
-            from studiorum.core.result import Success
+            from studiorum.result import Success
 
             return Success(len(entries))
 

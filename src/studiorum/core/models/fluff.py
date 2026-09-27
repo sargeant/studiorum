@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 from .content import BaseContent
 

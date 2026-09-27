@@ -15,9 +15,9 @@ from functools import cached_property
 from studiorum.config import ApplicationConfig
 from studiorum.core.loaders.data_dir import DataSet
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.logging import get_logger
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.services.content_list_writer import ContentListWriter
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 

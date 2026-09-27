@@ -263,7 +263,7 @@ class Adventure(BaseContent):
     @model_validator(mode="after")
     def validate_adventure_structure(self) -> "Adventure":
         """Validate overall adventure structure and metadata consistency."""
-        from studiorum.core.logging import get_logger
+        from studiorum.log import get_logger
 
         logger = get_logger(__name__)
 
@@ -423,7 +423,7 @@ class Adventure(BaseContent):
                     nested_content.append(content_item)
             except Exception as e:
                 # Log error but continue processing other chapters
-                from studiorum.core.logging import get_logger
+                from studiorum.log import get_logger
 
                 logger = get_logger(__name__)
                 logger.warning(

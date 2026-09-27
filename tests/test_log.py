@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from logfire import LogfireLoggingHandler
 
-from studiorum.core.logging.logger import get_logger, setup_logging  # type: ignore
+from studiorum.log import get_logger, setup_logging  # type: ignore
 
 
 @pytest.fixture(autouse=True)
@@ -20,7 +20,7 @@ def reset_logging() -> Generator[None, None, None]:
     original_level = root_logger.level
 
     # Reset the StudiorumLogger state for testing
-    from studiorum.core.logging.logger import StudiorumLogger
+    from studiorum.log import StudiorumLogger
 
     original_initialized = StudiorumLogger._initialized
     StudiorumLogger._initialized = False
@@ -54,7 +54,7 @@ def test_setup_logging_sets_level() -> None:
     assert logging.getLogger().level == logging.DEBUG
 
     # Reset for the next test
-    from studiorum.core.logging.logger import StudiorumLogger
+    from studiorum.log import StudiorumLogger
 
     StudiorumLogger._initialized = False
     logging.getLogger().handlers.clear()

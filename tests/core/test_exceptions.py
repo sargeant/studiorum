@@ -17,7 +17,7 @@ from studiorum.core.error_types import (
     create_validation_error,
 )
 from studiorum.core.exceptions import EntryProcessingWarning
-from studiorum.core.result import Error, Success
+from studiorum.result import Error, Success
 
 
 class TestBaseError:

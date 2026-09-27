@@ -8,9 +8,9 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.logging import get_logger
 from studiorum.core.models.content_models import TAG_TYPES
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 

@@ -9,7 +9,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 

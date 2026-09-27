@@ -3,7 +3,7 @@
 import difflib
 from typing import Any
 
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType

@@ -25,9 +25,9 @@ from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
-from studiorum.core.result import Error
 from studiorum.core.security import ExecutableNotFoundError, get_platform_file_opener
 from studiorum.latex_engine.latexmk import build_pdf
+from studiorum.result import Error
 
 from .options import ConvertOptions
 

@@ -178,7 +178,7 @@ ignore = [
 "src/studiorum/core/error_types.py" = ["UP042"]
 "src/studiorum/core/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
 "src/studiorum/core/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
-"src/studiorum/core/logging/logger.py" = ["T201"]
+"src/studiorum/log.py" = ["T201"]
 "src/studiorum/core/models/adventures.py" = ["PERF402", "SIM102"]
 "src/studiorum/core/models/books.py" = ["PERF402"]
 "src/studiorum/core/models/chapter.py" = ["UP042"]
@@ -352,7 +352,7 @@ root_package = "studiorum"
 
 [[tool.importlinter.contracts]]
 id = "layers"
-name = "Layers: cli and mcp above services above latex_engine above renderers above core above config"
+name = "Layers: cli and mcp above services above latex_engine above renderers above core above config, log and result"
 type = "layers"
 layers = [
     "studiorum.cli | studiorum.mcp",
@@ -360,7 +360,7 @@ layers = [
     "studiorum.latex_engine",
     "studiorum.renderers",
     "studiorum.core",
-    "studiorum.config",
+    "studiorum.config | studiorum.log | studiorum.result",
 ]
 ignore_imports = [
     "studiorum.cli.commands.mcp -> studiorum.mcp.server",

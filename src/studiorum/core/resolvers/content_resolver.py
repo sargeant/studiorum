@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from studiorum.core.logging import get_logger
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.log import get_logger
 
 if TYPE_CHECKING:
     from studiorum.core.loaders.omnidexer import Omnidexer

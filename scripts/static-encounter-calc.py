@@ -88,7 +88,7 @@ def build_cache() -> dict[str, dict]:
 
     logfire.configure(console=False, send_to_logfire=False)
 
-    from studiorum.core.logging.logger import StudiorumLogger
+    from studiorum.log import StudiorumLogger
 
     StudiorumLogger._initialized = True
 

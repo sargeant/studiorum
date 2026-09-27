@@ -209,7 +209,7 @@ class FileContentSource(BaseContentSource):
                     content_items.append(create_content(book_data, self.content_type))
                 except ValidationError as e:
                     # Log validation error but continue
-                    from ..logging import get_logger
+                    from studiorum.log import get_logger
 
                     logger = get_logger(__name__)
                     logger.warning(f"Failed to load book: {e}")
@@ -236,7 +236,7 @@ class FileContentSource(BaseContentSource):
                     )
                 except ValidationError as e:
                     # Log validation error but continue
-                    from ..logging import get_logger
+                    from studiorum.log import get_logger
 
                     logger = get_logger(__name__)
                     logger.warning(f"Failed to load adventure: {e}")
@@ -249,7 +249,7 @@ class FileContentSource(BaseContentSource):
                         )
                     except ValidationError as e:
                         # Log validation error but continue
-                        from ..logging import get_logger
+                        from studiorum.log import get_logger
 
                         logger = get_logger(__name__)
                         logger.warning(f"Failed to load {self.content_type} item: {e}")
@@ -276,7 +276,7 @@ class FileContentSource(BaseContentSource):
                             )
                         except ValidationError as e:
                             # Log validation error but continue
-                            from ..logging import get_logger
+                            from studiorum.log import get_logger
 
                             logger = get_logger(__name__)
                             logger.warning(f"Failed to load {key} item: {e}")
@@ -424,14 +424,14 @@ class InlineContentSource(BaseContentSource):
                                     )
                                 except ValidationError as e:
                                     # Log but continue
-                                    from ..logging import get_logger
+                                    from studiorum.log import get_logger
 
                                     logger = get_logger(__name__)
                                     logger.warning(
                                         f"Failed to load inline {self.content_type}: {e}"
                                     )
         except Exception as e:
-            from ..logging import get_logger
+            from studiorum.log import get_logger
 
             logger = get_logger(__name__)
             logger.warning(f"Error extracting inline content: {e}")
@@ -653,7 +653,7 @@ class StdinContentSource(BaseContentSource):
                 try:
                     content_items.append(create_content(item_data, self.content_type))
                 except ValidationError as e:
-                    from ..logging import get_logger
+                    from studiorum.log import get_logger
 
                     logger = get_logger(__name__)
                     logger.warning(
@@ -681,7 +681,7 @@ class StdinContentSource(BaseContentSource):
                                 create_content(item_data, content_type)
                             )
                         except ValidationError as e:
-                            from ..logging import get_logger
+                            from studiorum.log import get_logger
 
                             logger = get_logger(__name__)
                             logger.warning(f"Failed to load {key} from stdin: {e}")
@@ -715,7 +715,7 @@ class ContentLoader:
                 content = source.load()
                 all_content.extend(content)
             except Exception as e:
-                from ..logging import get_logger
+                from studiorum.log import get_logger
 
                 logger = get_logger(__name__)
                 logger.error(

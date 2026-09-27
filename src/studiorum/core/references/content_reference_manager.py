@@ -181,7 +181,7 @@ class ContentReferenceManager:
 
         except Exception as e:
             # Log but don't fail - graceful degradation
-            from ..logging.logger import get_logger
+            from studiorum.log import get_logger
 
             logger = get_logger(__name__)
             logger.warning(

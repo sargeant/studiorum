@@ -21,7 +21,6 @@ from pydantic import BaseModel
 from studiorum.core.compact import compact_heading, compact_parts
 from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
 from studiorum.core.loaders.magic_variants import generic_item
-from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.content_models import (
     FLUFF_TYPES,
@@ -31,6 +30,7 @@ from studiorum.core.models.content_models import (
 )
 from studiorum.core.models.creatures import ArmorClass, Creature
 from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.log import get_logger
 from studiorum.renderers.context import Style
 from studiorum.renderers.escape import escape
 from studiorum.renderers.tags import render

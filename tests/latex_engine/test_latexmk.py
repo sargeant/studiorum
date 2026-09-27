@@ -9,8 +9,8 @@ from unittest.mock import patch
 import pytest
 
 from studiorum.config import LaTeXEngineConfig
-from studiorum.core.result import Error, Success
 from studiorum.latex_engine.latexmk import build_pdf, summarise_log
+from studiorum.result import Error, Success
 
 MISSING_CLASS = """\
 (./doc.tex

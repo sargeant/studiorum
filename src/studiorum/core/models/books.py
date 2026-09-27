@@ -235,7 +235,7 @@ class Book(BaseContent):
                     nested_content.append(content_item)
             except Exception as e:
                 # Log error but continue processing other chapters
-                from studiorum.core.logging import get_logger
+                from studiorum.log import get_logger
 
                 logger = get_logger(__name__)
                 logger.warning(

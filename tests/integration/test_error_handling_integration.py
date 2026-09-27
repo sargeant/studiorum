@@ -14,8 +14,8 @@ from studiorum.core.error_types import (
     ValidationError,
     create_validation_error,
 )
-from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result, Success, try_result
+from studiorum.log import get_logger
+from studiorum.result import Error, Result, Success, try_result
 
 
 @pytest.mark.integration

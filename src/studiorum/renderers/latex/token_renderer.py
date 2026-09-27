@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 if TYPE_CHECKING:
     from studiorum.core.models.tokens import TokenSheet

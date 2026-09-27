@@ -4,8 +4,8 @@ from collections.abc import Iterator
 from typing import Any
 
 from studiorum.core.error_types import create_processing_error
-from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result, Success
+from studiorum.log import get_logger
+from studiorum.result import Error, Result, Success
 
 from ..entry_registry import ValidationMode, get_registry
 from ..models.content import Source
