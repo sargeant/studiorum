@@ -582,6 +582,27 @@ def test_table_rows_may_be_row_objects() -> None:
     assert "Padded & 5" in out
 
 
+def test_a_table_in_a_cell_is_grouped_inside_it() -> None:
+    inner = {
+        "type": "table",
+        "caption": "Figurine",
+        "colLabels": ["d8", "Item"],
+        "rows": [["01", "Griffon"]],
+    }
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["d100", "Item"],
+            "rows": [["01-11", "Wand"], ["12-14", inner]],
+        }
+    )
+
+    # The outer table's body mustn't end at the inner table's \\end
+    start = out.index("12-14 & {")
+    assert out.index("\\end{DndTable}}", start) < out.rindex("\\end{DndTable}")
+    assert "01 & Griffon" in out
+
+
 def test_a_summary_table_wraps_in_even_columns() -> None:
     out = EntryRenderer().entry(
         {

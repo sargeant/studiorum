@@ -316,6 +316,14 @@ class EntryRenderer:
             return empty, f"\\textbf{{{label}}} {body}"
         return label, body
 
+    def _table_cell(self, cell: Any) -> str:
+        if not isinstance(cell, dict):
+            return self.text(str(cell))
+        if cell.get("type") == "table":
+            # A table in a cell (DMG's Magic Item Table G)
+            return str(_macros().cell_table(self._table(cell)))
+        return self.entry(cell)
+
     def _table(self, entry: dict[str, Any]) -> str:
         caption = entry.get("caption", "")
         labels = entry.get("colLabels", [])
@@ -329,10 +337,7 @@ class EntryRenderer:
             count = len(col_styles)
         else:
             count = len(_row_cells(rows[0])) or 2
-        cells = [
-            [self.entry(c) if isinstance(c, dict) else self.text(str(c)) for c in row]
-            for row in map(_row_cells, rows)
-        ]
+        cells = [[self._table_cell(c) for c in row] for row in map(_row_cells, rows)]
         # Rows can have more cells than the table has labels (MOT's monster lists)
         count = max(count, *(len(row) for row in cells))
         # "wide" is Studiorum's own, on tables it builds (a class table)
