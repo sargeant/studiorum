@@ -12,11 +12,11 @@ import logfire  # noqa: E402
 
 logfire.configure(console=False, send_to_logfire=False)
 
-from studiorum.core.logging.logger import StudiorumLogger  # noqa: E402
+from studiorum.log import StudiorumLogger  # noqa: E402
 
 StudiorumLogger._initialized = True
 
-from studiorum.core.config.unified_config import load_config  # noqa: E402
+from studiorum.config import load_config  # noqa: E402
 from studiorum.services import build_services  # noqa: E402
 
 XP_BUDGET = {

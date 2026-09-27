@@ -13,7 +13,7 @@ from studiorum.core.entry_registry import (
 )
 from studiorum.core.exceptions import EntryProcessingWarning
 from studiorum.core.models.entry_types import TYPED_ENTRY_TYPES
-from studiorum.core.result import Error, Success
+from studiorum.result import Error, Success
 
 
 def test_known_types_cover_5etools_and_every_typed_entry() -> None:

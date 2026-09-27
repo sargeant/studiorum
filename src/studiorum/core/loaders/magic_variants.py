@@ -15,7 +15,8 @@ import re
 from collections.abc import Callable
 from typing import Any
 
-from ..logging import get_logger
+from studiorum.log import get_logger
+
 from ..models.items import Item
 from ..models.magicvariant import MagicVariant
 from ..text.properties import apply_properties

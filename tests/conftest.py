@@ -30,7 +30,7 @@ def _isolated_disk_cache(tmp_path_factory: pytest.TempPathFactory) -> Any:
 
     Set through the environment so CLI subprocesses inherit it too.
     """
-    from studiorum.core.cache import CacheManager
+    from studiorum.cache import CacheManager
 
     with pytest.MonkeyPatch.context() as mp:
         mp.setenv(
@@ -43,11 +43,11 @@ def _isolated_disk_cache(tmp_path_factory: pytest.TempPathFactory) -> Any:
 @pytest.fixture(autouse=True, scope="session")
 def _no_5etools_img_checkout(tmp_path_factory: pytest.TempPathFactory) -> Any:
     """Keep a developer's ~/Code/5etools-img out of image_directory's default."""
-    from studiorum.core.config import unified_config
+    from studiorum import config
 
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(
-            unified_config,
+            config,
             "FIVETOOLS_IMG_CHECKOUT",
             tmp_path_factory.getbasetemp() / "no-5etools-img",
         )

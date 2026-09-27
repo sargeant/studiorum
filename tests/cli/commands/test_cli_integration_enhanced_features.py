@@ -397,10 +397,10 @@ class TestCLIIntegrationEnhancedFeatures:
                 )
 
                 # Mock ContentListWriter to return an error
-                from studiorum.core.result import Error
                 from studiorum.core.services.content_list_writer import (
                     ContentListWriterError,
                 )
+                from studiorum.result import Error
 
                 mock_writer = Mock()
                 mock_writer.write_content_list.return_value = Error(
@@ -562,7 +562,7 @@ class TestCLIIntegrationEnhancedFeatures:
                         "# Generated content list\n3 Fireball|PHB\n1 Magic Missile|PHB"
                     )
                     output_path.write_text(content, encoding="utf-8")
-                    from studiorum.core.result import Success
+                    from studiorum.result import Success
 
                     return Success(2)
 

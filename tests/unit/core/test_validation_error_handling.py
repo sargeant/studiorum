@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import ValidationError
 
-from studiorum.core.config.unified_config import ApplicationConfig
+from studiorum.config import ApplicationConfig
 
 
 class TestValidationErrorDeduplication:

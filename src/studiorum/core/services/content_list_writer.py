@@ -11,11 +11,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..references.content_tracker import ContentTracker
-    from ..result import Result
+    from studiorum.result import Result
 
-from ..logging import get_logger
-from ..result import Error, Success
+    from ..references.content_tracker import ContentTracker
+
+from studiorum.log import get_logger
+from studiorum.result import Error, Success
 
 logger = get_logger(__name__)
 

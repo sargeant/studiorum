@@ -1,1 +1,0 @@
-"""Core LaTeX engine components."""

@@ -9,14 +9,13 @@ from rich import print as rprint
 
 from studiorum.cli.context import install_services, reset_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.unified_config import (
+from studiorum.config import (
     ConfigFileNotFoundError,
     load_config,
     reset_app_config,
     set_app_config,
 )
-from studiorum.core.logging import get_logger
-from studiorum.core.logging.logger import setup_logging
+from studiorum.log import get_logger, setup_logging
 from studiorum.services import build_services
 
 logger = get_logger(__name__)

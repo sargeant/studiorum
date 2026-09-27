@@ -12,7 +12,7 @@ from studiorum.core.error_types import (
     create_reference_tracking_error,
     create_template_composition_error,
 )
-from studiorum.core.result import Error, Success
+from studiorum.result import Error, Success
 
 
 class TestContentSourceError:

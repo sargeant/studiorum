@@ -17,7 +17,7 @@ from studiorum.core.models.creatures import (  # type: ignore
 from studiorum.core.models.items import Item  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.entries import EntryRenderer
+from studiorum.render.entries import EntryRenderer
 
 
 class TestModelValidationEdgeCases:
@@ -356,8 +356,8 @@ class TestModelValidationEdgeCases:
             assert ability.name == cast(dict, ability_data)["name"]
 
             # Test ability description extraction using template service
-            from studiorum.latex_engine.entries import EntryRenderer
-            from studiorum.renderers.context import RenderingContext
+            from studiorum.render.context import RenderingContext
+            from studiorum.render.entries import EntryRenderer
 
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
@@ -444,8 +444,8 @@ class TestModelValidationEdgeCases:
                 # Test item description extraction using modern RecursiveEntryProcessor
                 from studiorum.cli.context import get_services
                 from studiorum.core.references.content_tracker import ContentTracker
-                from studiorum.latex_engine.entries import EntryRenderer
-                from studiorum.renderers.context import RenderingContext
+                from studiorum.render.context import RenderingContext
+                from studiorum.render.entries import EntryRenderer
 
                 content_tracker = ContentTracker()
                 rendering_context = RenderingContext(

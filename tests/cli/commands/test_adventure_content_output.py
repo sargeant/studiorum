@@ -393,8 +393,8 @@ class TestAdventureContentOutput:
         mock_get_omnidexer.return_value = mock_omnidexer
 
         # Mock ContentListWriter to return error
-        from studiorum.core.result import Error
         from studiorum.core.services.content_list_writer import ContentListWriterError
+        from studiorum.result import Error
 
         mock_writer = Mock()
         mock_writer.write_content_list.return_value = Error(

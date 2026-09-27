@@ -9,7 +9,7 @@ import yaml
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.config.unified_config import reset_app_config
+from studiorum.config import reset_app_config
 
 
 class TestCLIConfigIntegration:

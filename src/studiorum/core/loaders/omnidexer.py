@@ -16,9 +16,10 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import TypeAdapter, ValidationError
 
-from ..config.unified_config import get_app_config
+from studiorum.config import get_app_config
+from studiorum.log import get_logger
+
 from ..interfaces import DeepIndexable
-from ..logging import get_logger
 from ..models.content import BaseContent, ContentType, Reprint
 from ..models.content_models import (
     CONTENT_MODELS,

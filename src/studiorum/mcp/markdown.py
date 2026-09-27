@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from studiorum.core.logging import get_logger
 from studiorum.core.models.content_models import TAG_TYPES
 from studiorum.core.text.tags import (
     display_part,
@@ -17,6 +16,7 @@ from studiorum.core.text.tags import (
     split_by_tags,
     split_tag,
 )
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 

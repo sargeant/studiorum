@@ -3,7 +3,7 @@ writing the .tex file, compiling and opening the PDF."""
 
 import os
 
-# Using subprocess securely with validated paths via studiorum.core.security
+# Using subprocess securely with validated paths via studiorum.render.security
 import subprocess  # nosec B404
 import sys
 import traceback
@@ -18,16 +18,16 @@ from rich import print as rprint
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.config import get_app_config
 from studiorum.core.loaders.content_sources import parse_enhanced_name_lines
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
-from studiorum.core.result import Error
-from studiorum.core.security import ExecutableNotFoundError, get_platform_file_opener
-from studiorum.latex_engine.latexmk import build_pdf
+from studiorum.render.latexmk import build_pdf
+from studiorum.render.security import ExecutableNotFoundError, get_platform_file_opener
+from studiorum.result import Error
 
 from .options import ConvertOptions
 

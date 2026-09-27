@@ -12,7 +12,7 @@ from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.document_metadata import DocumentType
 from studiorum.core.resolvers import ContentResolver
-from studiorum.latex_engine.document import render_document
+from studiorum.render.document import render_document
 
 from . import options as opt
 from .adventure import rendering_context

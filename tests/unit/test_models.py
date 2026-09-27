@@ -17,7 +17,7 @@ from studiorum.core.models.creatures import (  # type: ignore
 )
 from studiorum.core.models.spells import Spell, SpellComponent  # type: ignore
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.latex_engine.entries import EntryRenderer
+from studiorum.render.entries import EntryRenderer
 
 
 class TestSource:
@@ -657,8 +657,8 @@ class TestAbility:
         ]
         ability: Any = Ability(name="List Ability", entries=entries)
         # Test list entries using modern RecursiveEntryProcessor
-        from studiorum.latex_engine.entries import EntryRenderer
-        from studiorum.renderers.context import RenderingContext
+        from studiorum.render.context import RenderingContext
+        from studiorum.render.entries import EntryRenderer
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
@@ -687,8 +687,8 @@ class TestAbility:
         ability: Any = Ability(name="Nested Ability", entries=entries)
         # Test nested entries using modern RecursiveEntryProcessor
         from studiorum.core.references.content_tracker import ContentTracker
-        from studiorum.latex_engine.entries import EntryRenderer
-        from studiorum.renderers.context import RenderingContext
+        from studiorum.render.context import RenderingContext
+        from studiorum.render.entries import EntryRenderer
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(

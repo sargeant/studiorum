@@ -1,0 +1,748 @@
+"""EntryRenderer: 5etools entries to LaTeX."""
+
+from dataclasses import dataclass
+from unittest.mock import Mock
+
+import pytest
+
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.creatures import Ability, Creature
+from studiorum.core.models.deities import Deity
+from studiorum.core.models.fluff import CreatureFluff
+from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.core.models.variantrule import VariantRule
+from studiorum.core.models.vehicles import Vehicle
+from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.render.entries import (
+    LONG_TABLE_ROWS,
+    EntryError,
+    EntryRenderer,
+    Style,
+    column_spec,
+    creature_ac_text,
+    creature_senses_text,
+)
+from studiorum.render.template_engine import environment
+
+
+def render(entry: object, style: Style | None = None) -> str:
+    return EntryRenderer(style=style).entry(entry)
+
+
+def test_strings_render_tags_and_track_references() -> None:
+    tracker = ContentTracker()
+    out = EntryRenderer(tracker=tracker).entry("Cast {@spell fireball} & run")
+
+    assert out == "Cast \\textit{fireball} \\& run"
+    assert "spell" in tracker.export_for_appendix()
+
+
+def test_render_takes_a_list_a_thing_with_entries_or_one_entry() -> None:
+    renderer = EntryRenderer()
+
+    assert renderer.render(["a", "b"]) == "a\n\nb"
+    assert renderer.render({"type": "entries", "name": "X", "entries": ["a"]}) == "a"
+    assert renderer.render("a") == "a"
+
+
+@pytest.mark.parametrize(
+    ("style", "commands"),
+    [
+        (Style(), ["section", "subsubsection", "paragraph"]),
+        (Style(book=True), ["section", "subsection", "subsubsection"]),
+        (
+            Style(content_type="spell"),
+            ["subsubsection", "subparagraph", "subparagraph"],
+        ),
+        (Style(content_type="item"), ["subsubsection", "subparagraph", "subparagraph"]),
+        (Style(sidebar=True), ["subsubsection", "subparagraph", "subparagraph"]),
+    ],
+)
+def test_section_headings_follow_the_style(style: Style, commands: list[str]) -> None:
+    """A section heads at its depth, a named block one level below its own."""
+    tree = {
+        "type": "section",
+        "name": "A",
+        "entries": [
+            {
+                "type": "entries",
+                "name": "B",
+                "entries": [{"name": "C", "type": "entries"}],
+            }
+        ],
+    }
+    assert render(tree, style) == "\n\n".join(
+        f"\\{command}{{{name}}}" for command, name in zip(commands, "ABC", strict=True)
+    )
+
+
+def test_lists() -> None:
+    assert render({"type": "list", "items": ["a", "b"]}) == (
+        "\\begin{itemize}\n\\item a\n\\item b\n\\end{itemize}"
+    )
+    assert render({"type": "list", "style": "ordered", "items": ["a"]}).startswith(
+        "\\begin{enumerate}"
+    )
+    assert render({"type": "list", "items": []}) == ""
+
+
+def test_hanging_list_labels_items_by_name() -> None:
+    out = render(
+        {
+            "type": "list",
+            "style": "list-hang-notitle",
+            "items": [
+                {"type": "item", "name": "Fire", "entry": "Hot"},
+                {"type": "item", "name": "Ice:", "entry": "Cold"},
+                "plain",
+            ],
+        }
+    )
+    assert out == (
+        "\\begin{description}\n\\item[Fire.] Hot\n\\item[Ice:] Cold\n"
+        "\\item[\\mbox{}] plain\n\\end{description}"
+    )
+
+
+def test_an_unnamed_block_breaks_out_of_a_hanging_list() -> None:
+    out = render(
+        {
+            "type": "list",
+            "style": "list-hang",
+            "items": ["a", {"type": "entries", "entries": ["block"]}, "b"],
+        }
+    )
+    assert out == (
+        "\\begin{description}\n\\item[\\mbox{}] a\n\\end{description}\nblock\n"
+        "\\begin{description}\n\\item[\\mbox{}] b\n\\end{description}"
+    )
+
+
+def test_a_hanging_list_that_starts_with_an_unnamed_block_has_no_empty_list() -> None:
+    out = render(
+        {
+            "type": "list",
+            "style": "list-hang",
+            "items": [{"type": "entries", "entries": ["block"]}],
+        }
+    )
+    assert out == "block"
+
+
+def test_a_table_is_as_wide_as_its_widest_row() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Challenge", "Creature"],
+            "colStyles": ["col-2 text-center", "col-10"],
+            "rows": [["1/2", "Shadow", "MM"]],
+        }
+    )
+    assert "{cXl}" in out
+
+
+def test_credits_list_wraps_named_blocks_in_a_list() -> None:
+    out = render(
+        {
+            "type": "list",
+            "style": "list-hang-notitle",
+            "items": [
+                {"type": "list", "items": ["Lead"]},
+                {"type": "entries", "name": "Studio", "entries": ["Sam"]},
+            ],
+        }
+    )
+    assert out.startswith("\\begin{itemize}\n\\item Lead\n\\end{itemize}\n")
+    assert "\\begin{description}\n\\item[Studio.] " in out
+    assert out.endswith("\\end{description}")
+
+
+def test_table() -> None:
+    out = render(
+        {
+            "type": "table",
+            "caption": "Loot & More",
+            "colLabels": ["{@dice d6}", "Item"],
+            "colStyles": ["col-2 text-center", "col-10"],
+            "rows": [
+                ["1", "Gold"],
+                [{"type": "cell", "roll": {"min": 2, "max": 6}}, "Gems"],
+            ],
+        }
+    )
+    assert out == (
+        "% Table: Loot & More\n"
+        "\\begin{DndTable}[header={Loot \\& More}]{cX}\n"
+        "d6 & Item \\\\\n1 & Gold \\\\\n2–6 & Gems \\\\\n\\end{DndTable}"
+    )
+    assert render({"type": "table", "rows": []}) == "% Empty table"
+
+
+def test_column_spec_stretches_wide_tables() -> None:
+    assert column_spec([], 3) == "lll"
+    assert column_spec(["col-2 text-center", "col-10"], 2) == "cX"
+    assert column_spec(["col-3", "col-1 text-center", "col-1 text-center"] * 2, 6) == (
+        "lXXlXX"
+    )
+
+
+def test_insets_are_sidebars_with_deeper_headings() -> None:
+    out = render(
+        {
+            "type": "inset",
+            "name": "Note & Aside",
+            "entries": [{"type": "entries", "name": "Sub", "entries": ["x"]}],
+        }
+    )
+    assert out == (
+        "\\begin{DndSidebar}{Note \\& Aside}\n\\paragraph{Sub}\n\nx\n\\end{DndSidebar}"
+    )
+    assert render({"type": "insetReadaloud", "entries": ["Hush"]}) == (
+        "\\begin{DndReadAloud}\nHush\n\\end{DndReadAloud}"
+    )
+
+
+def test_quote() -> None:
+    assert render({"type": "quote", "entries": ["Hi"], "by": "Sam"}) == (
+        "\\begin{quotation}\n\\em\nHi\n\n\\hfill --- Sam\n\\end{quotation}"
+    )
+
+
+def test_a_quote_names_who_and_where_as_5etools_does() -> None:
+    tracker = ContentTracker()
+    quote = {
+        "type": "quote",
+        "entries": ["Hi"],
+        "by": "{@creature Strahd von Zarovich|CoS}",
+        "from": "{@i I, Strahd}",
+    }
+    out = EntryRenderer(tracker=tracker).entry(quote)
+
+    assert (
+        "\\hfill --- \\textbf{Strahd von Zarovich}, \\textit{\\textit{I, Strahd}}"
+        in out
+    )
+    assert "creature" in tracker.export_for_appendix()
+    assert render({"type": "quote", "entries": ["Hi"], "from": "Vows"}) == (
+        "\\begin{quotation}\n\\em\nHi\n\n\\hfill --- \\textit{Vows}\n\\end{quotation}"
+    )
+
+
+def test_run_in_entries() -> None:
+    assert render({"type": "actions", "name": "Dash", "entries": ["Go."]}) == (
+        "\\textbf{Dash.} Go."
+    )
+    assert render({"type": "item", "name": "Key", "entry": "Opens"}) == (
+        "\\textbf{Key.} Opens"
+    )
+    assert render({"type": "abilityDc", "attributes": ["int"]}) == (
+        "\\textbf{Save DC:} 8 + proficiency bonus + Intelligence modifier"
+    )
+    assert render({"type": "bonus", "value": 2}) == "+2"
+    assert render({"type": "bonusSpeed", "value": -5}) == "-5 ft."
+    assert render({"type": "dice", "toRoll": [{"number": 2, "faces": 6}]}) == "2d6"
+    assert render({"type": "attack", "name": "Bite", "entries": ["x"]}) == (
+        "\\textit{Bite.} x"
+    )
+    assert render({"type": "variantSub", "name": "Alt", "entries": ["x"]}) == (
+        "\\textit{Alt:} x"
+    )
+    assert render({"type": "variant", "name": "Rule", "entries": ["x"]}) == (
+        "\\textbf{Variant: Rule}\n\nx"
+    )
+    assert render({"type": "abilityGeneric", "name": "Note", "text": "x"}) == (
+        "\\textbf{Note:} x"
+    )
+    assert render({"type": "options", "entries": ["a", "b"]}) == "a\n\nb"
+    hanging = {
+        "type": "options",
+        "style": "list-hang-notitle",
+        "entries": [
+            {"type": "entries", "name": "Shot", "entries": ["s"]},
+            {"type": "entries", "name": "Arrow", "entries": ["a"]},
+        ],
+    }
+    assert render(hanging) == (
+        "\\begin{description}\n\\item[Arrow.] a\n\\item[Shot.] s\n\\end{description}"
+    )
+
+
+SPELLCASTING = {
+    "type": "spellcasting",
+    "name": "Spellcasting",
+    "headerEntries": ["It casts:"],
+    "spells": {"0": {"spells": ["light"]}, "1": {"slots": 2, "spells": ["shield"]}},
+    "daily": {"1e": ["{@spell fly}"]},
+}
+
+
+def test_spellcasting_uses_monster_macros_in_statblocks() -> None:
+    out = render(SPELLCASTING, Style(monster_spells=True))
+    assert out == (
+        "\\textbf{Spellcasting.}\nIt casts:\n"
+        "\\textbf{1e:} \\textit{fly}\n"
+        "\\begin{DndMonsterSpells}\n"
+        "  \\DndMonsterSpellLevel{light}\n"
+        "  \\DndMonsterSpellLevel[1][2]{shield}\n"
+        "\\end{DndMonsterSpells}"
+    )
+
+
+def test_spellcasting_uses_bold_labels_elsewhere() -> None:
+    out = render(SPELLCASTING)
+    assert "\\begin{DndMonsterSpells}" not in out
+    assert "\\textbf{Cantrips (at will):} light" in out
+    assert "\\textbf{1st level (2 slots):} shield" in out
+
+
+def test_generic_entries_render_name_and_text() -> None:
+    assert render({"type": "somethingNew", "name": "N", "text": "t"}) == (
+        "\\subsection{N}\n\nt\n\nt"
+    )
+
+
+def test_unresolved_statblock_is_a_heading() -> None:
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=None)))
+    assert renderer.entry(
+        {"type": "statblock", "tag": "creature", "name": "Nobody"}
+    ) == ("\\section{Nobody}")
+
+
+@pytest.mark.parametrize(
+    ("statblock", "lookup"),
+    [
+        ({"tag": "spell", "name": "Wish"}, (ContentType.SPELL, "Wish", "PHB")),
+        (
+            {"tag": "charoption", "name": "Echo", "source": "VRGR"},
+            (ContentType.CHAROPTION, "Echo", "VRGR"),
+        ),
+        (
+            {"prop": "monsterFluff", "tag": "creature", "name": "Orc", "source": "MM"},
+            (ContentType.CREATURE_FLUFF, "Orc", "MM"),
+        ),
+    ],
+)
+def test_statblocks_look_up_their_prop_or_tag(
+    statblock: dict[str, str], lookup: tuple[object, ...]
+) -> None:
+    find = Mock(return_value=None)
+    EntryRenderer(omnidexer=Mock(find=find)).entry({"type": "statblock", **statblock})
+
+    find.assert_called_once_with(*lookup)
+
+
+def test_statblocks_of_unknown_kinds_are_a_heading() -> None:
+    find = Mock()
+    out = EntryRenderer(omnidexer=Mock(find=find)).entry(
+        {"type": "statblock", "tag": "crochet", "name": "Cube"}
+    )
+
+    assert out == "\\section{Cube}"
+    find.assert_not_called()
+
+
+def test_models_and_dataclasses_render_as_their_dicts() -> None:
+    @dataclass
+    class Block:
+        type: str
+        entries: list[str]
+
+    assert render(Block("entries", ["x"])) == "x"
+    assert render(3) == "3"
+
+
+def test_a_failure_names_where_it_happened() -> None:
+    tree = {
+        "type": "section",
+        "name": "Chapter",
+        "entries": [{"type": "table", "name": "Loot", "rows": 5}],
+    }
+    with pytest.raises(EntryError, match="table entry at Chapter › Loot"):
+        render(tree)
+    with pytest.raises(EntryError, match="Cannot render a object"):
+        render(object())
+
+
+CREATURE = Creature.model_validate(
+    {
+        "name": "Knight",
+        "source": "MM",
+        "size": ["M"],
+        "type": "humanoid",
+        "alignment": ["N"],
+        "ac": [{"ac": 18, "from": ["{@item plate armor|phb}"]}, 12],
+        "hp": {"average": 52},
+        "speed": {"walk": 30},
+        "str": 16,
+        "dex": 11,
+        "con": 14,
+        "int": 11,
+        "wis": 11,
+        "cha": 15,
+        "cr": "3",
+        "senses": ["{@sense darkvision|XPHB} 60 ft."],
+    }
+)
+
+
+def test_ability_names_render_tags() -> None:
+    ability = Ability(name="Fire Breath {@recharge 5}", entries=[])
+    assert (
+        environment().filters["safe_processed_name"](ability)
+        == "Fire Breath (Recharge 5--6)"
+    )
+
+
+def test_armour_class_renders_its_sources() -> None:
+    assert creature_ac_text(CREATURE) == "18 (\\textit{plate armor}), 12"
+
+
+def test_senses_render_tags() -> None:
+    assert creature_senses_text(CREATURE) == "\\textit{darkvision} 60 ft."
+
+
+def _statblock_in_section(creature: Creature) -> str:
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=creature)), style=Style(book=True)
+    )
+    return renderer.entry(
+        {
+            "type": "section",
+            "name": "Knights",
+            "entries": [{"type": "statblock", "tag": "creature", "name": "Knight"}],
+        }
+    )
+
+
+def test_creature_statblocks_sit_in_the_text() -> None:
+    out = _statblock_in_section(CREATURE)
+
+    assert "\\begin{DndMonster}{Knight}" in out
+    assert "FloatBarrier" not in out
+
+
+def test_a_wide_statblock_floats_to_the_end_of_its_section() -> None:
+    legendary = CREATURE.model_copy(
+        update={"legendary": [Ability(name="Charge", entries=["It moves."])]}
+    )
+    out = _statblock_in_section(legendary)
+
+    assert "\\begin{DndMonster}[float*=tp" in out
+    assert out.endswith("\\FloatBarrier")
+
+
+def test_vehicle_statblocks_sit_in_the_text_in_the_vehicle_box() -> None:
+    vehicle = Vehicle.model_validate(
+        {
+            "name": "Devil's Ride",
+            "source": "BGDIA",
+            "vehicleType": "INFWAR",
+            "size": "L",
+            "weight": 500,
+            "capCreature": 1,
+            "capCargo": 100,
+            "speed": 120,
+            "str": 14,
+            "dex": 18,
+            "con": 12,
+            "hp": {"hp": 30, "dt": 5, "mt": 10},
+            "immune": ["fire"],
+            "trait": [{"name": "Jump", "entries": ["It clears 60 feet."]}],
+        }
+    )
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=vehicle)), style=Style(book=True)
+    )
+
+    out = renderer.entry(
+        {"type": "statblock", "tag": "vehicle", "name": "Devil's Ride"}
+    )
+
+    assert out.startswith("\\begin{DndVehicle}{Devil's Ride}")
+    assert "\\DndVehicleType{\\textit{Large vehicle (500 lb.)}}" in out
+    assert "\\noindent \\textbf{Speed} 120 ft.\\par" in out
+    assert "\\DndVehicleAbilityScores[str = 14, dex = 18, con = 12]" in out
+    assert "damage-immunities = {fire}" in out
+    assert "\\DndVehicleSection{Traits}\n\\DndVehicleAction{Jump}" in out
+    assert "float" not in out
+    assert out.endswith("\\end{DndVehicle}")
+
+
+def test_statblocks_take_their_display_name() -> None:
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=CREATURE)))
+    out = renderer.entry(
+        {
+            "type": "statblock",
+            "tag": "creature",
+            "name": "Knight",
+            "displayName": "Sir Knight",
+        }
+    )
+
+    assert "\\begin{DndMonster}{Sir Knight}" in out
+
+
+def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
+    fluff = CreatureFluff.model_validate(
+        {
+            "name": "Orc",
+            "source": "MM",
+            "entries": [{"type": "entries", "name": "Orc", "entries": ["Savage."]}],
+        }
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=fluff)))
+    statblock = {"type": "statblock", "prop": "monsterFluff", "name": "Orc"}
+    skip_root = {"data": {"renderCompact": {"isSkipRootName": True}}}
+
+    assert renderer.entry({**statblock, **skip_root}) == "Savage."
+    assert renderer.entry(statblock) == "\\subsection{Orc}\n\nSavage."
+
+
+def test_a_deitys_labelled_lines_are_flush_left_above_its_entries() -> None:
+    deity = Deity.model_validate(
+        {
+            "name": "Moradin",
+            "source": "PHB",
+            "pantheon": "Dwarven",
+            "alignment": ["L", "G"],
+            "domains": ["Knowledge"],
+            "entries": ["The Soul Forger."],
+        }
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=deity)))
+
+    out = renderer.entry({"type": "statblock", "tag": "deity", "name": "Moradin"})
+
+    assert out == (
+        "\\section{Moradin}\n\n"
+        "\\noindent \\textbf{Alignment:} Lawful Good\\par\n"
+        "\\noindent \\textbf{Domains:} Knowledge\\par\n"
+        "\\noindent \\textbf{Pantheon:} Dwarven\\par\n\n"
+        "The Soul Forger."
+    )
+
+
+def test_a_statblock_in_a_section_of_its_name_keeps_one_heading() -> None:
+    rule = VariantRule.model_validate(
+        {"name": "Fear", "source": "VRGR", "entries": ["Be afraid."]}
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=rule)))
+
+    def section(name: str) -> dict[str, object]:
+        block = {"type": "statblock", "tag": "variantrule", "name": "Fear"}
+        return {
+            "type": "entries",
+            "name": name,
+            "entries": ["Intro.", {"type": "entries", "entries": [block]}],
+        }
+
+    assert renderer.entry(section("Fear")).count("{Fear}") == 1
+    assert renderer.entry(section("Dread")).count("{Fear}") == 1
+    assert "Be afraid." in renderer.entry(section("Fear"))
+
+
+def test_item_statblocks_fall_back_to_generic_variants() -> None:
+    variant = MagicVariant.model_validate(
+        {
+            "name": "+1 Weapon",
+            "source": "DMG",
+            "type": "GV|DMG",
+            "requires": [{"weapon": True}],
+            "inherits": {
+                "source": "DMG",
+                "rarity": "uncommon",
+                "entries": ["You have a +1 bonus."],
+            },
+        }
+    )
+    lookups = {ContentType.ITEM: None, ContentType.MAGICVARIANT: variant}
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(side_effect=lambda kind, *_: lookups[kind]))
+    )
+    out = renderer.entry({"type": "statblock", "tag": "item", "name": "+1 Weapon"})
+
+    assert "\\dnditemheader{+1 weapon}{generic variant, uncommon}" in out.lower()
+    assert "You have a +1 bonus." in out
+
+
+def test_subclass_statblocks_look_up_their_uid() -> None:
+    find_uid = Mock(return_value=None)
+    EntryRenderer(omnidexer=Mock(find_uid=find_uid)).entry(
+        {
+            "type": "statblock",
+            "tag": "subclass",
+            "source": "AU",
+            "name": "Arcana Domain (Cleric)",
+            "shortName": "Arcana",
+            "className": "Cleric",
+            "classSource": "XPHB",
+        }
+    )
+
+    find_uid.assert_called_once_with(ContentType.SUBCLASS, "Arcana|Cleric|XPHB|AU")
+
+
+def test_an_ingredient_renders_its_entry() -> None:
+    assert render({"type": "ingredient", "entry": "½ cup {@b flour}"}) == (
+        "½ cup \\textbf{flour}"
+    )
+
+
+def test_table_rows_may_be_row_objects() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Armor", "Cost"],
+            "rows": [
+                [{"type": "entries", "entries": ["{@i Light Armor}"]}, ""],
+                {"type": "row", "style": "row-indent-first", "row": ["Padded", 5]},
+            ],
+        }
+    )
+
+    assert "Padded & 5" in out
+
+
+def test_a_table_in_a_cell_is_grouped_inside_it() -> None:
+    inner = {
+        "type": "table",
+        "caption": "Figurine",
+        "colLabels": ["d8", "Item"],
+        "rows": [["01", "Griffon"]],
+    }
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["d100", "Item"],
+            "rows": [["01-11", "Wand"], ["12-14", inner]],
+        }
+    )
+
+    # The outer table's body mustn't end at the inner table's \\end
+    start = out.index("12-14 & {")
+    assert out.index("\\end{DndTable}}", start) < out.rindex("\\end{DndTable}")
+    assert "01 & Griffon" in out
+
+
+def test_a_summary_table_wraps_in_even_columns() -> None:
+    out = EntryRenderer().entry(
+        {
+            "type": "table",
+            "style": "summary",
+            "colStyles": ["col-6", "col-6"],
+            "rows": [["{@b Speed:} fly 30 ft.", "{@b Cost:} 25,000 gp"]],
+        }
+    )
+
+    assert "\\begin{DndTable}{XX}" in out
+
+
+def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
+    fighter = Mock(model_copy=Mock())
+    renderer = EntryRenderer(
+        omnidexer=Mock(find=Mock(return_value=fighter)), style=Style(book=True)
+    )
+    table = {"type": "table", "colLabels": ["Level"], "rows": [["1st"]], "wide": True}
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(
+            "studiorum.render.entries.content_type_of",
+            lambda _: ContentType.CLASS,
+        )
+        patch.setattr(
+            "studiorum.render.entries.compact_parts",
+            lambda *_: (
+                [],
+                [table, {"type": "entries", "name": "Rage", "entries": ["x"]}],
+            ),
+        )
+        out = renderer.entry(
+            {
+                "type": "section",
+                "name": "Classes",
+                "entries": [{"type": "statblock", "tag": "class", "name": "Fighter"}],
+            }
+        )
+
+    assert "\\begin{table*}[tp]" in out
+    assert "width=\\textwidth]{l}" in out
+    assert out.count("\\FloatBarrier") == 1
+    assert out.endswith("\\FloatBarrier")
+
+
+@pytest.mark.parametrize(
+    ("style", "expected"),
+    [
+        ("list-hang-notitle", "\\item[Defensive Field.] Temporary hit points."),
+        ("", "\\item \\textbf{Defensive Field.} Temporary hit points."),
+    ],
+)
+def test_named_entries_in_a_list_run_in_without_a_heading(
+    style: str, expected: str
+) -> None:
+    feature = {
+        "type": "entries",
+        "name": "Defensive Field",
+        "entries": ["Temporary hit points."],
+    }
+    out = render({"type": "list", "style": style, "items": [feature]})
+
+    assert expected in out
+    assert "section" not in out and "paragraph" not in out
+
+
+def test_a_column_spec_covers_every_column() -> None:
+    assert column_spec(["col-2 text-center"] * 3, 4, stretch=False) == "cccl"
+
+
+def long_rows(count: int = LONG_TABLE_ROWS) -> list[list[str]]:
+    return [[str(n), f"Item {n}"] for n in range(1, count + 1)]
+
+
+def test_a_long_table_breaks_across_columns_with_its_labels() -> None:
+    out = render(
+        {
+            "type": "table",
+            "caption": "Loot & More",
+            "colLabels": ["{@dice d20}", "Item"],
+            "colStyles": ["col-2 text-center", "col-10"],
+            "rows": long_rows(),
+        }
+    )
+
+    assert out.startswith(
+        "% Table: Loot & More\n"
+        "\\begin{DndLongTable}[header={Loot \\& More}]{cX}{d20 & Item}\n"
+        "1 & Item 1 \\\\\n"
+    )
+    assert out.endswith("20 & Item 20 \\\\\n\\end{DndLongTable}")
+    assert "DndLongTable" not in render({"type": "table", "rows": long_rows(19)})
+
+
+def test_a_long_table_without_a_caption_or_labels() -> None:
+    out = render({"type": "table", "rows": long_rows()})
+
+    assert out.startswith("\\begin{DndLongTable}{ll}{}\n")
+
+
+def test_long_tables_in_a_cell_or_wide_stay_whole() -> None:
+    inner = {"type": "table", "rows": long_rows()}
+    out = render({"type": "table", "rows": [["12-14", inner]]})
+    wide = render({"type": "table", "wide": True, "rows": long_rows()})
+
+    assert "DndLongTable" not in out
+    assert "DndLongTable" not in wide and "\\begin{table*}" in wide
+
+
+def test_a_wide_table_stacks_the_words_of_its_plain_labels() -> None:
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["Level", "Proficiency Bonus", "{@i Rage Damage}"],
+            "rows": [["1st", "+2", "+2"]],
+            "wide": True,
+        }
+    )
+
+    assert (
+        "Level & \\shortstack{Proficiency\\\\Bonus} & \\textit{Rage Damage} \\\\" in out
+    )

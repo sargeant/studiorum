@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import click
 
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.config import get_app_config
 from studiorum.services import Services, build_services
 
 # Services for code that runs outside a CLI invocation: tests that call

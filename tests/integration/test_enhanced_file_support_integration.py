@@ -149,7 +149,7 @@ class TestEnhancedFileSupportIntegration:
                     f.write(f"{entry}\n")
 
             # Return success with entry count
-            from studiorum.core.result import Success
+            from studiorum.result import Success
 
             return Success(len(entries))
 
@@ -221,7 +221,7 @@ class TestEnhancedFileSupportIntegration:
                 )
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.config.unified_config.get_default_sources")
+    @patch("studiorum.config.get_default_sources")
     def test_content_list_to_spells_conversion_workflow(
         self, mock_get_default_sources, mock_get_omnidexer
     ):
@@ -309,7 +309,7 @@ class TestEnhancedFileSupportIntegration:
             assert mock_omnidexer.find_all.call_count == 3
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.config.unified_config.get_default_sources")
+    @patch("studiorum.config.get_default_sources")
     def test_content_list_to_creatures_conversion_workflow(
         self, mock_get_default_sources, mock_get_omnidexer
     ):
@@ -412,7 +412,7 @@ class TestEnhancedFileSupportIntegration:
             assert mock_omnidexer.find.call_count == 3
 
     @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.config.unified_config.get_default_sources")
+    @patch("studiorum.config.get_default_sources")
     def test_content_list_to_items_conversion_workflow(
         self, mock_get_default_sources, mock_get_omnidexer
     ):

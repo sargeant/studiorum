@@ -4,7 +4,8 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from ..logging import get_logger
+from studiorum.log import get_logger
+
 from ..models.spells import ClassReference, SpellClassList
 
 if TYPE_CHECKING:

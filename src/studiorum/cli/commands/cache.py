@@ -5,8 +5,8 @@ from rich.panel import Panel
 from rich.progress import BarColumn, Progress, TextColumn
 from rich.prompt import Confirm
 
+from studiorum.cache import CacheManager
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.cache import CacheManager
 
 app = typer.Typer(help="Manage disk cache")
 console = display_manager.console

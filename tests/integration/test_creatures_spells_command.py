@@ -48,9 +48,7 @@ def test_without_spells_nothing_is_tracked(run) -> None:
 
 
 def test_with_spells_the_appendix_generator_gets_the_tracker(run) -> None:
-    with patch(
-        "studiorum.core.services.appendix_generator.AppendixGenerator"
-    ) as generator:
+    with patch("studiorum.render.appendices.AppendixGenerator") as generator:
         generator.return_value.generate_appendices.return_value = []
         args = run("--spells")
         assert args[6]() == []

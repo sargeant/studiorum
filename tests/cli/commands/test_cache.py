@@ -5,8 +5,8 @@ from unittest.mock import patch
 import pytest
 from typer.testing import CliRunner
 
+from studiorum.cache import CacheManager
 from studiorum.cli.commands.cache import app
-from studiorum.core.cache import CacheManager
 
 
 @pytest.fixture

@@ -10,7 +10,7 @@ from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.creatures import Creature
-from studiorum.renderers.context import RenderingContext, Style
+from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
 from .fluff import (
@@ -34,7 +34,7 @@ from .run import (
 )
 
 if TYPE_CHECKING:
-    from studiorum.latex_engine.document import DocumentChapter
+    from studiorum.render.document import DocumentChapter
 
 SELECT = "Search & Selection"
 FILTER = "Advanced Filtering"
@@ -591,7 +591,7 @@ def _render_bestiary(
     appendices: Callable[[], list["DocumentChapter"]] | None = None,
 ) -> str:
     """Render creatures using the bestiary template with grouping."""
-    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+    from studiorum.render.template_engine import LaTeXTemplateEngine
 
     template_engine = LaTeXTemplateEngine()
     template_engine.update_latex_config(options.latex)
@@ -628,8 +628,8 @@ def _render_tokens(
     """Render a printable sheet of creature tokens."""
     from studiorum.cli.context import get_services
     from studiorum.core.models.tokens import TokenSheet
-    from studiorum.latex_engine.core.images.resolve import ImageResolver
-    from studiorum.renderers.latex.token_renderer import TokenRenderer
+    from studiorum.render.images.resolve import ImageResolver
+    from studiorum.render.token_renderer import TokenRenderer
 
     with display_manager.progress("Generating tokens") as _:
         task = display_manager.add_task("[green]Rendering token sheet...", total=None)
@@ -657,11 +657,11 @@ def _spell_appendix(
 
     def appendices() -> list["DocumentChapter"]:
         from studiorum.core.interfaces import DeepIndexable
-        from studiorum.core.services.appendix_generator import (
+        from studiorum.render.appendices import (
             AppendixFlags,
             AppendixGenerator,
         )
-        from studiorum.latex_engine.document import appendices_as_chapters
+        from studiorum.render.document import appendices_as_chapters
 
         with display_manager.progress("Extracting spell references") as _:
             for creature in creatures:

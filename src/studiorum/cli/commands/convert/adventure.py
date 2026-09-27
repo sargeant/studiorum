@@ -8,14 +8,14 @@ from rich import print as rprint
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.config import get_app_config
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import DocumentMetadata
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.result import Error, Success
-from studiorum.core.services.appendix_generator import AppendixFlags
-from studiorum.latex_engine.document import render_document as render_latex
-from studiorum.renderers.context import RenderingContext, Style
+from studiorum.render.appendices import AppendixFlags
+from studiorum.render.context import RenderingContext, Style
+from studiorum.render.document import render_document as render_latex
+from studiorum.result import Error, Success
 
 from . import options as opt
 from .options import ConvertOptions, option

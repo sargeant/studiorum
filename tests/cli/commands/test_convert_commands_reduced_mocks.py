@@ -8,7 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.commands.convert import app
-from studiorum.core.result import Success
+from studiorum.result import Success
 
 
 @pytest.mark.cli

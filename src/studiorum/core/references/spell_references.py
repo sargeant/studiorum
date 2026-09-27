@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field, field_validator
 
-from ..logging import get_logger
+from studiorum.log import get_logger
 
 if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer

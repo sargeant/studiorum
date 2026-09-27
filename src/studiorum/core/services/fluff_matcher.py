@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer
 
-from ..logging import get_logger
+from studiorum.log import get_logger
+
 from ..models.content import BaseContent
 from ..models.creatures import Creature
 from ..models.fluff import (

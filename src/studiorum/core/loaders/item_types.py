@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..logging import get_logger
+from studiorum.log import get_logger
 
 logger = get_logger(__name__)
 
@@ -45,7 +45,8 @@ def reset() -> None:
 
 
 def _load_from_config() -> None:
-    from ..config.unified_config import get_app_config
+    from studiorum.config import get_app_config
+
     from .data_dir import DataSet, read_json
 
     entities: list[dict[str, Any]] = []

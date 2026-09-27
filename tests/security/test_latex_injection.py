@@ -9,10 +9,10 @@ import time
 
 from hypothesis import given, strategies as st
 
-from studiorum.latex_engine.core.template_engine import environment
-from studiorum.latex_engine.document import render_models
-from studiorum.renderers.context import RenderingContext
-from studiorum.renderers.escape import escape
+from studiorum.render.context import RenderingContext
+from studiorum.render.document import render_models
+from studiorum.render.escape import escape
+from studiorum.render.template_engine import environment
 
 _COMMAND = re.compile(r"\\(newcommand|def|input|immediate|write18|end|begin)\b")
 

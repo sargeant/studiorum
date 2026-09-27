@@ -7,7 +7,7 @@ from typing import Annotated, Any
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.logging import get_logger
+from studiorum.log import get_logger
 
 from .options import option
 from .run import split_csv

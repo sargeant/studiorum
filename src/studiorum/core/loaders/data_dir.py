@@ -17,7 +17,8 @@ from typing import Any
 
 import orjson
 
-from ..config.data_sources import DataConfig
+from studiorum.config import DataConfig
+
 from ..models.content import ContentType
 
 # Subdirectories whose files are listed by index.json and fluff-index.json
