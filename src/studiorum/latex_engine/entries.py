@@ -57,6 +57,9 @@ ABILITIES = {
 # Content that statblocks render through its own macro (render_models)
 MODEL_KINDS = frozenset({"creature", "spell", "item", "vehicle"})
 
+# A table this long may not fit in a column, so it renders as a DndLongTable
+LONG_TABLE_ROWS = 20
+
 _warned_types: set[str] = set()
 _warned_statblocks: set[str] = set()
 
@@ -326,10 +329,10 @@ class EntryRenderer:
             return self.text(str(cell))
         if cell.get("type") == "table":
             # A table in a cell (DMG's Magic Item Table G)
-            return str(_macros().cell_table(self._table(cell)))
+            return str(_macros().cell_table(self._table(cell, in_cell=True)))
         return self.entry(cell)
 
-    def _table(self, entry: dict[str, Any]) -> str:
+    def _table(self, entry: dict[str, Any], *, in_cell: bool = False) -> str:
         caption = entry.get("caption", "")
         labels = entry.get("colLabels", [])
         col_styles = entry.get("colStyles", [])
@@ -347,19 +350,18 @@ class EntryRenderer:
         count = max(count, *(len(row) for row in cells))
         # "wide" is Studiorum's own, on tables it builds (a class table)
         wide = bool(entry.get("wide"))
+        labels_latex = [self.text(str(label)) for label in labels]
+        header = escape(caption) if caption else ""
         # A summary (a vehicle's) splits the width evenly and wraps, as on 5etools
         spec = (
             "X" * count
             if entry.get("style") == "summary"
             else column_spec(col_styles, count, stretch=not wide)
         )
-        table = _macros().table(
-            escape(caption) if caption else "",
-            spec,
-            [self.text(str(label)) for label in labels],
-            cells,
-            wide,
-        )
+        if len(rows) >= LONG_TABLE_ROWS and not wide and not in_cell:
+            table = _macros().long_table(header, spec, labels_latex, cells)
+        else:
+            table = _macros().table(header, spec, labels_latex, cells, wide)
         return f"% Table: {caption}\n{table}" if caption else str(table)
 
     def _quote(self, entry: dict[str, Any]) -> str:

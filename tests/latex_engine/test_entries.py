@@ -15,6 +15,7 @@ from studiorum.core.models.vehicles import Vehicle
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
 from studiorum.latex_engine.entries import (
+    LONG_TABLE_ROWS,
     EntryError,
     EntryRenderer,
     Style,
@@ -691,6 +692,45 @@ def test_named_entries_in_a_list_run_in_without_a_heading(
 
 def test_a_column_spec_covers_every_column() -> None:
     assert column_spec(["col-2 text-center"] * 3, 4, stretch=False) == "cccl"
+
+
+def long_rows(count: int = LONG_TABLE_ROWS) -> list[list[str]]:
+    return [[str(n), f"Item {n}"] for n in range(1, count + 1)]
+
+
+def test_a_long_table_breaks_across_columns_with_its_labels() -> None:
+    out = render(
+        {
+            "type": "table",
+            "caption": "Loot & More",
+            "colLabels": ["{@dice d20}", "Item"],
+            "colStyles": ["col-2 text-center", "col-10"],
+            "rows": long_rows(),
+        }
+    )
+
+    assert out.startswith(
+        "% Table: Loot & More\n"
+        "\\begin{DndLongTable}[header={Loot \\& More}]{cX}{d20 & Item}\n"
+        "1 & Item 1 \\\\\n"
+    )
+    assert out.endswith("20 & Item 20 \\\\\n\\end{DndLongTable}")
+    assert "DndLongTable" not in render({"type": "table", "rows": long_rows(19)})
+
+
+def test_a_long_table_without_a_caption_or_labels() -> None:
+    out = render({"type": "table", "rows": long_rows()})
+
+    assert out.startswith("\\begin{DndLongTable}{ll}{}\n")
+
+
+def test_long_tables_in_a_cell_or_wide_stay_whole() -> None:
+    inner = {"type": "table", "rows": long_rows()}
+    out = render({"type": "table", "rows": [["12-14", inner]]})
+    wide = render({"type": "table", "wide": True, "rows": long_rows()})
+
+    assert "DndLongTable" not in out
+    assert "DndLongTable" not in wide and "\\begin{table*}" in wide
 
 
 def test_a_wide_table_stacks_the_words_of_its_plain_labels() -> None:
