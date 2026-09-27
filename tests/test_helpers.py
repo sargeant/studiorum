@@ -47,7 +47,7 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         logger.debug("Entry type registry global instance reset")
 
         # 4. Reset disk-based cache
-        from studiorum.core.cache import CacheManager
+        from studiorum.cache import CacheManager
 
         CacheManager.reset()
 

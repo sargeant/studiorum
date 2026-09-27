@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from PIL import Image
 
-from studiorum.core.cache import cache_dir
+from studiorum.cache import cache_dir
 from studiorum.log import get_logger
 
 if TYPE_CHECKING:

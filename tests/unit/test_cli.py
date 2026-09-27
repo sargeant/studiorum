@@ -155,19 +155,19 @@ class TestCacheSystem:
     def setup_method(self) -> None:
         """Set up test fixtures and clear the cache."""
 
-        from studiorum.core.cache import CacheManager
+        from studiorum.cache import CacheManager
 
         CacheManager.clear()
 
     def teardown_method(self) -> None:
         """Tear down test fixtures and clear the cache."""
-        from studiorum.core.cache import CacheManager
+        from studiorum.cache import CacheManager
 
         CacheManager.clear()
 
     def test_cache_creation(self) -> None:
         """Test that the cache directory is created."""
-        from studiorum.core.cache import cache_dir, get_cache
+        from studiorum.cache import cache_dir, get_cache
 
         get_cache()
         assert cache_dir().exists()
@@ -178,14 +178,14 @@ class TestCacheSystem:
         """Without an override the cache lives in the user cache, not the cwd."""
         from platformdirs import user_cache_dir
 
-        from studiorum.core.cache import cache_dir
+        from studiorum.cache import cache_dir
 
         monkeypatch.delenv("STUDIORUM_CACHE_DIR", raising=False)
         assert cache_dir() == Path(user_cache_dir("studiorum"))
 
     def test_cache_set_get(self) -> None:
         """Test basic cache operations."""
-        from studiorum.core.cache import get_cache
+        from studiorum.cache import get_cache
 
         cache = get_cache()
         cache.set("test_key", "test_value")
@@ -196,7 +196,7 @@ class TestCacheSystem:
 
     def test_cache_clear(self) -> None:
         """Test cache clearing."""
-        from studiorum.core.cache import get_cache
+        from studiorum.cache import get_cache
 
         cache = get_cache()
         cache.set("key1", "value1")
@@ -207,7 +207,7 @@ class TestCacheSystem:
 
     def test_cache_stats(self) -> None:
         """Test cache statistics."""
-        from studiorum.core.cache import CacheManager, get_cache
+        from studiorum.cache import CacheManager, get_cache
 
         cache = get_cache()
         cache.set("test_key", "test_value")

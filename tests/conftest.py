@@ -30,7 +30,7 @@ def _isolated_disk_cache(tmp_path_factory: pytest.TempPathFactory) -> Any:
 
     Set through the environment so CLI subprocesses inherit it too.
     """
-    from studiorum.core.cache import CacheManager
+    from studiorum.cache import CacheManager
 
     with pytest.MonkeyPatch.context() as mp:
         mp.setenv(

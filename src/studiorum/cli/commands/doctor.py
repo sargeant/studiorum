@@ -9,10 +9,10 @@ from pathlib import Path
 import typer
 from rich.table import Table
 
+from studiorum.cache import CacheManager
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.config import get_default_config_path
-from studiorum.core.cache import CacheManager
 from studiorum.core.security import ExecutableNotFoundError, get_latex_utility
 
 OK, WARN, FAIL = "✅", "⚠️", "❌"

@@ -352,7 +352,7 @@ root_package = "studiorum"
 
 [[tool.importlinter.contracts]]
 id = "layers"
-name = "Layers: cli and mcp above services above latex_engine above renderers above core above config, log and result"
+name = "Layers: cli and mcp above services above latex_engine above renderers above core above cache, config, log and result"
 type = "layers"
 layers = [
     "studiorum.cli | studiorum.mcp",
@@ -360,7 +360,7 @@ layers = [
     "studiorum.latex_engine",
     "studiorum.renderers",
     "studiorum.core",
-    "studiorum.config | studiorum.log | studiorum.result",
+    "studiorum.cache | studiorum.config | studiorum.log | studiorum.result",
 ]
 ignore_imports = [
     "studiorum.cli.commands.mcp -> studiorum.mcp.server",
