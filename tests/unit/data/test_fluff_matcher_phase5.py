@@ -13,10 +13,10 @@ from studiorum.data.models.spells import Spell
 
 
 @pytest.fixture
-def mock_omnidexer():
-    """Create a mock omnidexer."""
-    omnidexer = Mock()
-    return omnidexer
+def mock_catalogue():
+    """Create a mock catalogue."""
+    catalogue = Mock()
+    return catalogue
 
 
 @pytest.fixture
@@ -73,11 +73,11 @@ class TestFluffMatcherPhase5:
     """Test Phase 5 enhancements to FluffMatcher."""
 
     def test_section_filtering(
-        self, mock_omnidexer, sample_creature, sample_creature_fluff
+        self, mock_catalogue, sample_creature, sample_creature_fluff
     ):
         """Test filtering fluff by specific sections."""
-        matcher = FluffMatcher(mock_omnidexer)
-        mock_omnidexer.get_all_by_type.return_value = [sample_creature_fluff]
+        matcher = FluffMatcher(mock_catalogue)
+        mock_catalogue.get_all_by_type.return_value = [sample_creature_fluff]
 
         # Test filtering to only lair-related sections
         result = matcher.match_creature_fluff(
@@ -95,9 +95,9 @@ class TestFluffMatcherPhase5:
             "regional" in entry.name.lower() for entry in result.entries if entry.name
         )
 
-    def test_source_filtering(self, mock_omnidexer, sample_creature):
+    def test_source_filtering(self, mock_catalogue, sample_creature):
         """Test filtering fluff by source."""
-        matcher = FluffMatcher(mock_omnidexer)
+        matcher = FluffMatcher(mock_catalogue)
 
         # Create fluff from different sources
         mm_source = Source(abbreviation="MM", full_name="Monster Manual")
@@ -115,7 +115,7 @@ class TestFluffMatcherPhase5:
             entries=[FluffEntry(content="VGM content")],
         )
 
-        mock_omnidexer.get_all_by_type.return_value = [mm_fluff, vgm_fluff]
+        mock_catalogue.get_all_by_type.return_value = [mm_fluff, vgm_fluff]
 
         # Test filtering to only MM sources
         result = matcher.match_creature_fluff(sample_creature, allowed_sources=["MM"])
@@ -124,11 +124,11 @@ class TestFluffMatcherPhase5:
         assert result.source.abbreviation == "MM"
 
     def test_combined_filtering(
-        self, mock_omnidexer, sample_creature, sample_creature_fluff
+        self, mock_catalogue, sample_creature, sample_creature_fluff
     ):
         """Test combining section and source filtering."""
-        matcher = FluffMatcher(mock_omnidexer)
-        mock_omnidexer.get_all_by_type.return_value = [sample_creature_fluff]
+        matcher = FluffMatcher(mock_catalogue)
+        mock_catalogue.get_all_by_type.return_value = [sample_creature_fluff]
 
         # Test filtering both by section and source
         result = matcher.match_creature_fluff(
@@ -140,9 +140,9 @@ class TestFluffMatcherPhase5:
         assert len(result.entries) == 1  # Should only include Lair Actions
         assert "lair" in result.entries[0].name.lower()
 
-    def test_get_fluff_sections(self, mock_omnidexer, sample_creature_fluff):
+    def test_get_fluff_sections(self, mock_catalogue, sample_creature_fluff):
         """Test extracting available section names."""
-        matcher = FluffMatcher(mock_omnidexer)
+        matcher = FluffMatcher(mock_catalogue)
 
         sections = matcher.get_fluff_sections(sample_creature_fluff)
 
@@ -155,11 +155,11 @@ class TestFluffMatcherPhase5:
         assert all(section in sections for section in expected_sections)
 
     def test_empty_section_filter_returns_all(
-        self, mock_omnidexer, sample_creature, sample_creature_fluff
+        self, mock_catalogue, sample_creature, sample_creature_fluff
     ):
         """Test that empty section filter returns all content."""
-        matcher = FluffMatcher(mock_omnidexer)
-        mock_omnidexer.get_all_by_type.return_value = [sample_creature_fluff]
+        matcher = FluffMatcher(mock_catalogue)
+        mock_catalogue.get_all_by_type.return_value = [sample_creature_fluff]
 
         result = matcher.match_creature_fluff(sample_creature, allowed_sections=[])
 
@@ -169,11 +169,11 @@ class TestFluffMatcherPhase5:
         )  # All entries included
 
     def test_no_matching_sections_returns_empty(
-        self, mock_omnidexer, sample_creature, sample_creature_fluff
+        self, mock_catalogue, sample_creature, sample_creature_fluff
     ):
         """Test that non-matching section filter returns empty content."""
-        matcher = FluffMatcher(mock_omnidexer)
-        mock_omnidexer.get_all_by_type.return_value = [sample_creature_fluff]
+        matcher = FluffMatcher(mock_catalogue)
+        mock_catalogue.get_all_by_type.return_value = [sample_creature_fluff]
 
         result = matcher.match_creature_fluff(
             sample_creature, allowed_sections=["nonexistent_section"]
@@ -182,7 +182,7 @@ class TestFluffMatcherPhase5:
         assert result is not None
         assert len(result.entries) == 0  # No matching entries
 
-    def test_spell_fluff_filtering(self, mock_omnidexer):
+    def test_spell_fluff_filtering(self, mock_catalogue):
         """Test section filtering works for spell fluff."""
         from studiorum.data.models.fluff import SpellFluff
 
@@ -212,8 +212,8 @@ class TestFluffMatcherPhase5:
             ],
         )
 
-        matcher = FluffMatcher(mock_omnidexer)
-        mock_omnidexer.get_all_by_type.return_value = [spell_fluff]
+        matcher = FluffMatcher(mock_catalogue)
+        mock_catalogue.get_all_by_type.return_value = [spell_fluff]
 
         result = matcher.match_spell_fluff(spell, allowed_sections=["history"])
 
@@ -224,7 +224,7 @@ class TestFluffMatcherPhase5:
             and "history" in result.entries[0].name.lower()
         )
 
-    def test_item_fluff_filtering(self, mock_omnidexer):
+    def test_item_fluff_filtering(self, mock_catalogue):
         """Test section filtering works for item fluff."""
         from studiorum.data.models.fluff import ItemFluff
 
@@ -244,8 +244,8 @@ class TestFluffMatcherPhase5:
             ],
         )
 
-        matcher = FluffMatcher(mock_omnidexer)
-        mock_omnidexer.get_all_by_type.return_value = [item_fluff]
+        matcher = FluffMatcher(mock_catalogue)
+        mock_catalogue.get_all_by_type.return_value = [item_fluff]
 
         result = matcher.match_item_fluff(item, allowed_sections=["lore"])
 
@@ -257,11 +257,11 @@ class TestFluffMatcherPhase5:
         )
 
     def test_backward_compatibility(
-        self, mock_omnidexer, sample_creature, sample_creature_fluff
+        self, mock_catalogue, sample_creature, sample_creature_fluff
     ):
         """Test that existing code without Phase 5 features still works."""
-        matcher = FluffMatcher(mock_omnidexer)
-        mock_omnidexer.get_all_by_type.return_value = [sample_creature_fluff]
+        matcher = FluffMatcher(mock_catalogue)
+        mock_catalogue.get_all_by_type.return_value = [sample_creature_fluff]
 
         # Call without any Phase 5 parameters
         result = matcher.match_creature_fluff(sample_creature)

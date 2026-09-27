@@ -18,7 +18,7 @@ from studiorum.log import get_logger
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
 
 
 class SkillBonus(BaseModel):
@@ -1176,7 +1176,7 @@ class Creature(BaseContent):
         cr_value = str(self.cr)
         return format_cr_with_xp(cr_value)
 
-    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+    def get_deep_index_entries(self, catalogue: "Catalogue") -> list[BaseContent]:
         """Extract spell references from creature traits and actions."""
         from studiorum.data.models.content import ContentType
         from studiorum.data.references import (
@@ -1184,10 +1184,10 @@ class Creature(BaseContent):
             SpellReferenceResolver,
         )
 
-        # Check if spells are available in the omnidexer before attempting resolution
+        # Check if spells are available in the catalogue before attempting resolution
         # During loading, spell references may be processed before spells are loaded
         try:
-            spell_count = len(omnidexer.get_all_by_type(ContentType.SPELL))
+            spell_count = len(catalogue.get_all_by_type(ContentType.SPELL))
             if spell_count == 0:
                 # Spells not loaded yet, skip resolution to avoid warnings
                 return []
@@ -1282,7 +1282,7 @@ class Creature(BaseContent):
 
         # Resolve spell references to actual spell objects
         if spell_references:
-            resolver = SpellReferenceResolver(omnidexer)
+            resolver = SpellReferenceResolver(catalogue)
             resolved_spells = resolver.resolve_spell_references(spell_references)
             return resolved_spells
 

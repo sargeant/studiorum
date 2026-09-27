@@ -37,19 +37,19 @@ class TestLaTeXEngineIntegration:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_adventure_pdf_uses_latex_compiler_with_config(
         self,
         mock_compile_pdf,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test that adventure PDF compilation uses LaTeXCompiler with proper configuration."""
-        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
-        mock_omnidexer = Mock()
-        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
-        mock_omnidexer.get_all_by_type = Mock(return_value=[])
-        mock_get_omnidexer.return_value = mock_omnidexer
+        # Mock catalogue and tag resolver to avoid loading 5etools data in CI
+        mock_catalogue = Mock()
+        mock_catalogue.find = Mock(return_value=None)  # No cross-references found
+        mock_catalogue.get_all_by_type = Mock(return_value=[])
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
         mock_compile_pdf.return_value = None
@@ -91,19 +91,19 @@ class TestLaTeXEngineIntegration:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_book_pdf_uses_configured_engine(
         self,
         mock_compile_pdf,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test that book PDF compilation uses configured LaTeX engine."""
-        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
-        mock_omnidexer = Mock()
-        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
-        mock_omnidexer.get_all_by_type = Mock(return_value=[])
-        mock_get_omnidexer.return_value = mock_omnidexer
+        # Mock catalogue and tag resolver to avoid loading 5etools data in CI
+        mock_catalogue = Mock()
+        mock_catalogue.find = Mock(return_value=None)  # No cross-references found
+        mock_catalogue.get_all_by_type = Mock(return_value=[])
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
         mock_compile_pdf.return_value = None

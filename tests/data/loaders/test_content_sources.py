@@ -8,18 +8,18 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.data.loaders.content_sources import (
+    CatalogueContentSource,
     ContentLoader,
     ContentSourceMetadata,
     FileContentSource,
     InlineContentSource,
     NameListFileSource,
-    OmnidexerContentSource,
     StdinContentSource,
     ValidationResult,
+    create_catalogue_source,
     create_file_source,
     create_inline_source,
     create_name_list_source,
-    create_omnidexer_source,
     create_stdin_source,
 )
 from studiorum.data.models.content import ContentType
@@ -271,46 +271,46 @@ class TestFileContentSource:
             file_path.unlink()
 
 
-class TestOmnidexerContentSource:
-    """Test OmnidexerContentSource implementation."""
+class TestCatalogueContentSource:
+    """Test CatalogueContentSource implementation."""
 
     def test_init(self):
-        """Test OmnidexerContentSource initialization."""
-        mock_omnidexer = Mock()
-        source = OmnidexerContentSource(mock_omnidexer, ContentType.CREATURE)
+        """Test CatalogueContentSource initialization."""
+        mock_catalogue = Mock()
+        source = CatalogueContentSource(mock_catalogue, ContentType.CREATURE)
 
-        assert source.omnidexer == mock_omnidexer
+        assert source.catalogue == mock_catalogue
         assert source.content_type == ContentType.CREATURE
-        assert "omnidexer:creature" in source.location
-        assert "Omnidexer content: creature" in source.description
+        assert "catalogue:creature" in source.location
+        assert "Catalogue content: creature" in source.description
 
     def test_get_metadata(self):
         """Test metadata retrieval."""
-        mock_omnidexer = Mock()
+        mock_catalogue = Mock()
         mock_content = [Mock(), Mock(), Mock()]
-        mock_omnidexer.find_all.return_value = mock_content
+        mock_catalogue.find_all.return_value = mock_content
 
-        source = OmnidexerContentSource(mock_omnidexer, ContentType.SPELL)
+        source = CatalogueContentSource(mock_catalogue, ContentType.SPELL)
         metadata = source.get_metadata()
 
-        assert metadata.source_type == "omnidexer"
+        assert metadata.source_type == "catalogue"
         assert metadata.content_count == 3
         assert "3 items" in metadata.estimated_size
 
-    def test_validate_valid_omnidexer(self):
-        """Test validation with valid omnidexer."""
-        mock_omnidexer = Mock()
-        mock_omnidexer.find_all.return_value = []
+    def test_validate_valid_catalogue(self):
+        """Test validation with valid catalogue."""
+        mock_catalogue = Mock()
+        mock_catalogue.find_all.return_value = []
 
-        source = OmnidexerContentSource(mock_omnidexer, ContentType.SPELL)
+        source = CatalogueContentSource(mock_catalogue, ContentType.SPELL)
         result = source.validate()
 
         assert result.is_valid is True
         assert result.errors == []
 
-    def test_validate_none_omnidexer(self):
-        """Test validation with None omnidexer."""
-        source = OmnidexerContentSource(None, ContentType.SPELL)
+    def test_validate_none_catalogue(self):
+        """Test validation with None catalogue."""
+        source = CatalogueContentSource(None, ContentType.SPELL)
         result = source.validate()
 
         assert result.is_valid is False
@@ -318,20 +318,20 @@ class TestOmnidexerContentSource:
 
     def test_load(self):
         """Test content loading."""
-        mock_omnidexer = Mock()
+        mock_catalogue = Mock()
         mock_content = [Mock(), Mock()]
-        mock_omnidexer.find_all.return_value = mock_content
+        mock_catalogue.find_all.return_value = mock_content
 
-        source = OmnidexerContentSource(mock_omnidexer, ContentType.ITEM)
+        source = CatalogueContentSource(mock_catalogue, ContentType.ITEM)
         content = source.load()
 
         assert content == mock_content
-        mock_omnidexer.find_all.assert_called_once_with(ContentType.ITEM)
+        mock_catalogue.find_all.assert_called_once_with(ContentType.ITEM)
 
     def test_supports_streaming(self):
         """Test streaming support."""
-        mock_omnidexer = Mock()
-        source = OmnidexerContentSource(mock_omnidexer, ContentType.SPELL)
+        mock_catalogue = Mock()
+        source = CatalogueContentSource(mock_catalogue, ContentType.SPELL)
 
         assert source.supports_streaming() is True
 
@@ -461,13 +461,13 @@ class TestFactoryFunctions:
         assert source.file_path == file_path
         assert source.content_type == ContentType.SPELL
 
-    def test_create_omnidexer_source(self):
-        """Test omnidexer source factory."""
-        mock_omnidexer = Mock()
-        source = create_omnidexer_source(mock_omnidexer, ContentType.CREATURE)
+    def test_create_catalogue_source(self):
+        """Test catalogue source factory."""
+        mock_catalogue = Mock()
+        source = create_catalogue_source(mock_catalogue, ContentType.CREATURE)
 
-        assert isinstance(source, OmnidexerContentSource)
-        assert source.omnidexer == mock_omnidexer
+        assert isinstance(source, CatalogueContentSource)
+        assert source.catalogue == mock_catalogue
         assert source.content_type == ContentType.CREATURE
 
     def test_create_stdin_source(self):
@@ -547,15 +547,15 @@ class TestContentSourceIntegration:
             file_path = Path(f.name)
 
         try:
-            # Create omnidexer source
-            mock_omnidexer = Mock()
-            mock_omnidexer.find_all.return_value = [Mock(), Mock()]
+            # Create catalogue source
+            mock_catalogue = Mock()
+            mock_catalogue.find_all.return_value = [Mock(), Mock()]
 
             # Set up loader with multiple sources
             loader = ContentLoader()
             loader.add_source(create_file_source(file_path, ContentType.SPELL))
             loader.add_source(
-                create_omnidexer_source(mock_omnidexer, ContentType.CREATURE)
+                create_catalogue_source(mock_catalogue, ContentType.CREATURE)
             )
 
             # Validate all
@@ -571,7 +571,7 @@ class TestContentSourceIntegration:
                 mock_create_content.return_value = mock_item
 
                 content = loader.load_all()
-                # 1 from file + 2 from omnidexer
+                # 1 from file + 2 from catalogue
                 assert len(content) == 3
         finally:
             file_path.unlink()

@@ -110,7 +110,7 @@ def _subclasses(
     """The loaded subclasses of a class, which 5etools keeps apart from it."""
     named = [
         (sub, sub.model_dump(by_alias=True).get("classSource"))
-        for sub in services.omnidexer.get_all_by_type(ContentType.SUBCLASS)
+        for sub in services.catalogue.get_all_by_type(ContentType.SUBCLASS)
         if getattr(sub, "class_name", None) == cls.name and (sub.is_srd or not srd_only)
     ]
     # The repo's SRD bundle points its subclasses at the PHB class
@@ -137,13 +137,13 @@ def _by_uid(services: Services, ctype: ContentType, uid: str) -> list[BaseConten
     The looser match finds features whose sources differ from their uid's,
     as in the repo's SRD bundle.
     """
-    exact = services.omnidexer.find_uid(ctype, uid)
+    exact = services.catalogue.find_uid(ctype, uid)
     found = [exact] if exact else []
     fields = _FEATURE_UID_FIELDS.get(ctype)
     if fields:
         parts = uid.split("|")
         wanted = {k: parts[i] for k, i in fields.items() if i < len(parts) and parts[i]}
-        for c in services.omnidexer.find_all(ctype, parts[0]):
+        for c in services.catalogue.find_all(ctype, parts[0]):
             raw = c.model_dump(by_alias=True)
             if c is not exact and all(
                 str(raw.get(k, "")).lower() == v.lower() for k, v in wanted.items()
@@ -160,19 +160,19 @@ def find_one(
     srd_only: bool,
 ) -> BaseContent:
     """The first entry with this type, name and source; a ToolError if none is allowed."""
-    omnidexer = services.omnidexer
+    catalogue = services.catalogue
     ctype = ContentType(content_type)
     matches = [
         c
         for c in (
             _by_uid(services, ctype, name)
             if "|" in name
-            else omnidexer.find_all(ctype, name)
+            else catalogue.find_all(ctype, name)
         )
         if source is None or c.source.abbreviation.lower() == source.lower()
     ]
     if not matches:
-        names = [c.name for c in omnidexer.get_all_by_type(ctype)]
+        names = [c.name for c in catalogue.get_all_by_type(ctype)]
         raise not_found(content_type, name, names)
     allowed = [c for c in matches if c.is_srd or not srd_only]
     if not allowed:
@@ -202,7 +202,7 @@ async def search_content(
     needle = query.lower()
     named = [
         c
-        for c in services.omnidexer.get_all_by_type(ContentType(content_type))
+        for c in services.catalogue.get_all_by_type(ContentType(content_type))
         if needle in c.name.lower()
     ]
     kept, hidden = split_srd(named, srd_only, latest_only)
@@ -234,7 +234,7 @@ def resolve_references(
     out = []
     for ref in found:
         if ref.get("source") and ref["type"] in ContentType._value2member_map_:
-            match = services.omnidexer.find(
+            match = services.catalogue.find(
                 ContentType(ref["type"]), ref["name"], ref["source"]
             )
             if match is not None:
@@ -283,7 +283,7 @@ async def list_publications(
     services: Services = Depends(get_services),
 ) -> Publications:
     """The books and adventures loaded, oldest first."""
-    omnidexer = services.omnidexer
+    catalogue = services.catalogue
     found: list[Publication] = []
     if kind in (None, "book"):
         found += [
@@ -295,7 +295,7 @@ async def list_publications(
                 published=b.published,
                 group=getattr(b, "group", None),
             )
-            for b in omnidexer.get_all_by_type(ContentType.BOOK)
+            for b in catalogue.get_all_by_type(ContentType.BOOK)
             if isinstance(b, Book)
         ]
     if kind in (None, "adventure"):
@@ -309,7 +309,7 @@ async def list_publications(
                 group=a.group,
                 storyline=a.storyline,
             )
-            for a in omnidexer.get_all_by_type(ContentType.ADVENTURE)
+            for a in catalogue.get_all_by_type(ContentType.ADVENTURE)
             if isinstance(a, Adventure)
         ]
     found.sort(key=lambda p: (p.published or "", p.name))

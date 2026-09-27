@@ -217,14 +217,14 @@ def test_recursive_appendices_add_what_appendix_entries_refer_to() -> None:
         }
     )
     content = {"mage": mage, "shield": shield}
-    omnidexer = Mock(
+    catalogue = Mock(
         find=Mock(side_effect=lambda _type, name, _source: content.get(name.lower()))
     )
 
     def titles(recursive: bool) -> list[str]:
         tracker = ContentTracker()
         tracker.add_content("creature", "Mage", "MM")
-        context = RenderingContext(content_tracker=tracker, omnidexer=omnidexer)
+        context = RenderingContext(content_tracker=tracker, catalogue=catalogue)
         flags = AppendixFlags(creatures=True, spells=True, recursive=recursive)
         return [chapter.title for chapter in appendix_chapters(context, flags)]
 

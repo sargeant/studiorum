@@ -16,15 +16,15 @@ class TestContentResolverOnDemand:
     """Test ContentResolver on-demand content loading."""
 
     @pytest.fixture
-    def mock_omnidexer(self):
-        """Create mock omnidexer."""
-        mock_omnidexer = Mock()
-        mock_omnidexer.hydrate.side_effect = lambda content: content
-        return mock_omnidexer
+    def mock_catalogue(self):
+        """Create mock catalogue."""
+        mock_catalogue = Mock()
+        mock_catalogue.hydrate.side_effect = lambda content: content
+        return mock_catalogue
 
     @pytest.fixture
     def mock_adventure_metadata(self):
-        """Mock adventure metadata from omnidexer."""
+        """Mock adventure metadata from catalogue."""
         adventure = Mock()
         adventure.name = "Test Adventure"
         adventure.id = "TestAdv"
@@ -65,9 +65,9 @@ class TestContentResolverOnDemand:
         }
 
     @pytest.fixture
-    def content_resolver(self, mock_omnidexer):
+    def content_resolver(self, mock_catalogue):
         """Create ContentResolver instance."""
-        return ContentResolver(mock_omnidexer)
+        return ContentResolver(mock_catalogue)
 
     def test_enrich_content_non_dual_file_type(self, content_resolver):
         """Test that non-dual-file content types are returned unchanged."""
@@ -78,24 +78,24 @@ class TestContentResolverOnDemand:
         assert result is spell  # Should return the same object
 
     def test_enrich_content_hydrates_adventures(self, content_resolver):
-        """Adventures and books get their text through Omnidexer.hydrate."""
+        """Adventures and books get their text through Catalogue.hydrate."""
         adventure = Adventure(name="A", source=Source(abbreviation="A"), id="A")
         hydrated = Adventure(name="A", source=Source(abbreviation="A"), id="A")
-        content_resolver.omnidexer.hydrate = Mock(return_value=hydrated)
+        content_resolver.catalogue.hydrate = Mock(return_value=hydrated)
 
         result = content_resolver._enrich_content_if_needed(
             adventure, ContentType.ADVENTURE
         )
 
         assert result is hydrated
-        content_resolver.omnidexer.hydrate.assert_called_once_with(adventure)
+        content_resolver.catalogue.hydrate.assert_called_once_with(adventure)
 
     def test_resolve_adventure_with_enrichment(
         self, content_resolver, mock_adventure_metadata, mock_content_data
     ):
         """Test that resolve_adventure enriches the result."""
-        # Mock omnidexer to return adventure
-        content_resolver.omnidexer.get_all_by_type = Mock(
+        # Mock catalogue to return adventure
+        content_resolver.catalogue.get_all_by_type = Mock(
             return_value=[mock_adventure_metadata]
         )
 
@@ -128,8 +128,8 @@ class TestContentResolverOnDemand:
         book.source = Mock()
         book.source.abbreviation = "tb"
 
-        # Mock omnidexer to return book
-        content_resolver.omnidexer.get_all_by_type = Mock(return_value=[book])
+        # Mock catalogue to return book
+        content_resolver.catalogue.get_all_by_type = Mock(return_value=[book])
 
         # Mock enrichment with proper Book instance
         enriched_book = Book(
@@ -161,7 +161,7 @@ class TestContentResolverOnDemand:
             source=Source(abbreviation="test", name="Test Adventure 2"),
         )
 
-        content_resolver.omnidexer.get_all_by_type = Mock(
+        content_resolver.catalogue.get_all_by_type = Mock(
             return_value=[adventure1, adventure2]
         )
         content_resolver._select_preferred_match = Mock(
@@ -192,7 +192,7 @@ class TestContentResolverOnDemand:
             source=Source(abbreviation="test", name="Test Adventure"),
         )
 
-        content_resolver.omnidexer.get_all_by_type = Mock(
+        content_resolver.catalogue.get_all_by_type = Mock(
             return_value=[adventure1, adventure2]
         )
 

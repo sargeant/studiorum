@@ -1,6 +1,5 @@
-"""Loading 5e content: data directories, _copy resolution and the index."""
+"""Loading 5e content: data directories, _copy resolution, and what 5etools builds on load."""
 
 from studiorum.data.loaders.data_dir import DataDir, DataSet
-from studiorum.data.loaders.omnidexer import Omnidexer
 
-__all__ = ["DataDir", "DataSet", "Omnidexer"]
+__all__ = ["DataDir", "DataSet"]

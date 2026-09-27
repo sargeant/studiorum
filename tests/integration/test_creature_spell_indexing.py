@@ -237,10 +237,10 @@ class TestCreatureSpellIndexing:
 @pytest.mark.asyncio
 @pytest.mark.integration
 class TestCreatureDeepIndexingIntegration:
-    """Test full deep indexing integration with mock omnidexer."""
+    """Test full deep indexing integration with mock catalogue."""
 
-    def test_creature_deep_indexing_with_mock_omnidexer(self):
-        """Test that creature deep indexing works with a mock omnidexer."""
+    def test_creature_deep_indexing_with_mock_catalogue(self):
+        """Test that creature deep indexing works with a mock catalogue."""
         from unittest.mock import MagicMock
 
         from studiorum.data.models.spells import Spell
@@ -280,14 +280,14 @@ class TestCreatureDeepIndexingIntegration:
             }
         )
 
-        # Create mock omnidexer
-        mock_omnidexer = MagicMock()
+        # Create mock catalogue
+        mock_catalogue = MagicMock()
         spell_type = ContentType("spell")
 
         # Mock get_all_by_type to return non-empty list so it doesn't exit early
-        mock_omnidexer.get_all_by_type.return_value = [mock_fireball, mock_shield]
+        mock_catalogue.get_all_by_type.return_value = [mock_fireball, mock_shield]
 
-        mock_omnidexer.find.side_effect = lambda content_type, name, source=None: {
+        mock_catalogue.find.side_effect = lambda content_type, name, source=None: {
             (spell_type, "fireball", "phb"): mock_fireball,
             (spell_type, "shield", "phb"): mock_shield,
         }.get((content_type, name.lower(), source.lower() if source else None))
@@ -321,7 +321,7 @@ class TestCreatureDeepIndexingIntegration:
         creature = Creature.model_validate(creature_data)
 
         # Test deep indexing
-        deep_entries = creature.get_deep_index_entries(mock_omnidexer)
+        deep_entries = creature.get_deep_index_entries(mock_catalogue)
 
         assert len(deep_entries) == 2
         assert mock_fireball in deep_entries
@@ -331,10 +331,10 @@ class TestCreatureDeepIndexingIntegration:
         """Test that deep indexing handles missing spells gracefully."""
         from unittest.mock import MagicMock
 
-        # Create mock omnidexer that finds nothing
-        mock_omnidexer = MagicMock()
-        mock_omnidexer.find.return_value = None
-        mock_omnidexer.search.return_value = []
+        # Create mock catalogue that finds nothing
+        mock_catalogue = MagicMock()
+        mock_catalogue.find.return_value = None
+        mock_catalogue.search.return_value = []
 
         # Create creature with spell references
         creature_data = {
@@ -363,6 +363,6 @@ class TestCreatureDeepIndexingIntegration:
         creature = Creature.model_validate(creature_data)
 
         # Test deep indexing doesn't crash on missing spells
-        deep_entries = creature.get_deep_index_entries(mock_omnidexer)
+        deep_entries = creature.get_deep_index_entries(mock_catalogue)
 
         assert len(deep_entries) == 0

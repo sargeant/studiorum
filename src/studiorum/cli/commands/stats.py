@@ -27,12 +27,12 @@ def show_overview() -> None:
 
     def _show_overview() -> None:
         try:
-            # Load omnidexer
+            # Load catalogue
             with display_manager.progress("Loading stats data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_services().omnidexer
+                catalogue = get_services().catalogue
 
                 display_manager.update_task(load_task, completed=100)
 
@@ -49,7 +49,7 @@ def show_overview() -> None:
             # Get stats for each content type
             for content_type in ContentType:
                 try:
-                    items = omnidexer.get_all_by_type(content_type)
+                    items = catalogue.get_all_by_type(content_type)
                     if items:
                         stats["by_type"][content_type.value] = len(items)
                         stats["total_items"] += len(items)
@@ -142,13 +142,13 @@ def show_content_stats(
 
     def _show_content_stats() -> None:
         try:
-            # Load omnidexer
+            # Load catalogue
             with display_manager.progress("Loading stats data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_services().omnidexer
-                omnidexer.load_all_data()
+                catalogue = get_services().catalogue
+                catalogue.load_all_data()
                 display_manager.update_task(load_task, completed=100)
 
             # Get content type
@@ -160,7 +160,7 @@ def show_content_stats(
                 raise typer.Exit(1)
 
             # Get all content of this type
-            content_items = omnidexer.get_all_by_type(ct)
+            content_items = catalogue.get_all_by_type(ct)
 
             if not content_items:
                 rprint(f"[yellow]No {content_type} content found[/yellow]")
@@ -208,12 +208,12 @@ def show_source_stats() -> None:
 
     def _show_source_stats() -> None:
         try:
-            # Load omnidexer
+            # Load catalogue
             with display_manager.progress("Loading stats data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_services().omnidexer
+                catalogue = get_services().catalogue
 
                 display_manager.update_task(load_task, completed=100)
 
@@ -230,7 +230,7 @@ def show_source_stats() -> None:
             # Get stats for each content type
             for content_type in ContentType:
                 try:
-                    items = omnidexer.get_all_by_type(content_type)
+                    items = catalogue.get_all_by_type(content_type)
                     if items:
                         stats["by_type"][content_type.value] = len(items)
                         stats["total_items"] += len(items)
@@ -274,7 +274,7 @@ def show_source_stats() -> None:
                 percentage = (count / total_items * 100) if total_items > 0 else 0
 
                 # Get primary content type for this source
-                source_items = omnidexer.get_all_by_source(source)
+                source_items = catalogue.get_all_by_source(source)
                 content_types: dict[str, int] = {}
                 for item in source_items:
                     try:

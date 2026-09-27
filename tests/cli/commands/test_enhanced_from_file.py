@@ -32,9 +32,9 @@ class TestEnhancedFromFileSupport:
         file_path.write_text(content, encoding="utf-8")
         return file_path
 
-    def create_mock_omnidexer(self):
-        """Create a mock omnidexer with test data."""
-        mock_omnidexer = Mock()
+    def create_mock_catalogue(self):
+        """Create a mock catalogue with test data."""
+        mock_catalogue = Mock()
 
         # Mock spell data with sortable functionality
         class SortableSpellMock(Mock):
@@ -120,7 +120,7 @@ class TestEnhancedFromFileSupport:
         mock_item_shortsword.source = Mock()
         mock_item_shortsword.source.abbreviation = "PHB"
 
-        # Set up omnidexer methods using find_all pattern (like the working integration tests)
+        # Set up catalogue methods using find_all pattern (like the working integration tests)
         def mock_find_all(content_type, name, source=None):
             if content_type == "spell":
                 if "fireball" in name.lower():
@@ -150,10 +150,10 @@ class TestEnhancedFromFileSupport:
             results = mock_find_all(content_type, name, source)
             return results[0] if results else None
 
-        mock_omnidexer.find_all = Mock(side_effect=mock_find_all)
-        mock_omnidexer.find = Mock(side_effect=mock_find)
+        mock_catalogue.find_all = Mock(side_effect=mock_find_all)
+        mock_catalogue.find = Mock(side_effect=mock_find)
 
-        return mock_omnidexer
+        return mock_catalogue
 
     def create_sortable_mock_spells(self, spell_data):
         """Create sortable mock spells for testing."""
@@ -199,7 +199,7 @@ class TestEnhancedFromFileSupport:
 
         return [MockItem(name, item_type) for name, item_type in item_data]
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
@@ -210,7 +210,7 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test spells command with simple format (backward compatibility)."""
         # Create test file with simple format
@@ -218,8 +218,8 @@ class TestEnhancedFromFileSupport:
         file_path = self.create_test_file(content, "spells_simple.txt")
 
         # Mock dependencies following working test pattern
-        mock_omnidexer_instance = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue_instance
 
         # Mock spell collector following working test pattern
         mock_collector = Mock()
@@ -276,7 +276,7 @@ class TestEnhancedFromFileSupport:
         assert result.exit_code == 0
         assert output_file.exists()
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
@@ -287,7 +287,7 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test spells command with enhanced format including counts."""
         # Create test file with enhanced format
@@ -295,8 +295,8 @@ class TestEnhancedFromFileSupport:
         file_path = self.create_test_file(content, "spells_enhanced.txt")
 
         # Mock dependencies following working test pattern
-        mock_omnidexer_instance = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue_instance
 
         # Set up config mocks
 
@@ -345,7 +345,7 @@ class TestEnhancedFromFileSupport:
         # Verify the collector was called
         assert mock_collector.collect_spells.call_count >= 1
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
@@ -356,7 +356,7 @@ class TestEnhancedFromFileSupport:
         mock_display,
         mock_render,
         mock_collector_class,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test spells command respects source specifications."""
         # Create test file with source specifications
@@ -364,8 +364,8 @@ class TestEnhancedFromFileSupport:
         file_path = self.create_test_file(content, "spells_sources.txt")
 
         # Mock dependencies following working test pattern
-        mock_omnidexer_instance = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue_instance
 
         # Set up config mocks
 
@@ -373,9 +373,9 @@ class TestEnhancedFromFileSupport:
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.spells = [
-            mock_omnidexer_instance.find_all("spell", "fireball")[0],
-            mock_omnidexer_instance.find_all("spell", "magic missile")[0],
-            mock_omnidexer_instance.find_all("spell", "shield")[0],
+            mock_catalogue_instance.find_all("spell", "fireball")[0],
+            mock_catalogue_instance.find_all("spell", "magic missile")[0],
+            mock_catalogue_instance.find_all("spell", "shield")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.suggestions = {}
@@ -415,9 +415,9 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.cli.commands.convert.creatures._render_bestiary")
     @patch("studiorum.data.collectors.creature_collector.CreatureCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_creatures_enhanced_format_with_counts(
-        self, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_catalogue, mock_collector_class, mock_render
     ):
         """Test creatures command with enhanced format and counts for statblocks."""
         # Create test file with counts (relevant for creatures as statblocks)
@@ -425,15 +425,15 @@ class TestEnhancedFromFileSupport:
         file_path = self.create_test_file(content, "creatures_enhanced.txt")
 
         # Mock dependencies
-        mock_omnidexer = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper CreatureCollectorResult
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.creatures = [
-            mock_omnidexer.find_all("creature", "goblin")[0],
-            mock_omnidexer.find_all("creature", "orc")[0],
+            mock_catalogue.find_all("creature", "goblin")[0],
+            mock_catalogue.find_all("creature", "orc")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.total_count = 2
@@ -475,9 +475,9 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.cli.commands.convert.items._render_itemcompendium")
     @patch("studiorum.data.collectors.item_collector.ItemCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_items_enhanced_format_with_counts(
-        self, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_catalogue, mock_collector_class, mock_render
     ):
         """Test items command with enhanced format and counts."""
         # Create test file with counts
@@ -485,15 +485,15 @@ class TestEnhancedFromFileSupport:
         file_path = self.create_test_file(content, "items_enhanced.txt")
 
         # Mock dependencies
-        mock_omnidexer = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper ItemCollectorResult
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.items = [
-            mock_omnidexer.find_all("item", "longsword")[0],
-            mock_omnidexer.find_all("item", "shortsword")[0],
+            mock_catalogue.find_all("item", "longsword")[0],
+            mock_catalogue.find_all("item", "shortsword")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.total_count = 2
@@ -570,9 +570,9 @@ class TestEnhancedFromFileSupport:
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_mixed_format_handling(
-        self, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_catalogue, mock_collector_class, mock_render
     ):
         """Test handling of mixed format lines in same file."""
         content = """# Mixed format test
@@ -584,16 +584,16 @@ Haste|PHB"""
         file_path = self.create_test_file(content, "mixed_format.txt")
 
         # Mock dependencies
-        mock_omnidexer = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.spells = [
-            mock_omnidexer.find_all("spell", "fireball")[0],
-            mock_omnidexer.find_all("spell", "magic missile")[0],
-            mock_omnidexer.find_all("spell", "shield")[0],
+            mock_catalogue.find_all("spell", "fireball")[0],
+            mock_catalogue.find_all("spell", "magic missile")[0],
+            mock_catalogue.find_all("spell", "shield")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.suggestions = {}
@@ -633,9 +633,9 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_comments_and_whitespace_handling(
-        self, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_catalogue, mock_collector_class, mock_render
     ):
         """Test proper handling of comments and whitespace."""
         content = """# This is a spell list
@@ -650,16 +650,16 @@ Haste|PHB"""
         file_path = self.create_test_file(content, "comments_whitespace.txt")
 
         # Mock dependencies
-        mock_omnidexer = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.spells = [
-            mock_omnidexer.find_all("spell", "fireball")[0],
-            mock_omnidexer.find_all("spell", "magic missile")[0],
-            mock_omnidexer.find_all("spell", "shield")[0],
+            mock_catalogue.find_all("spell", "fireball")[0],
+            mock_catalogue.find_all("spell", "magic missile")[0],
+            mock_catalogue.find_all("spell", "shield")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.suggestions = {}
@@ -699,25 +699,25 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_zero_count_handling(
-        self, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_catalogue, mock_collector_class, mock_render
     ):
         """Test handling of zero counts in enhanced format."""
         content = "0 Fireball|PHB\n3 Magic Missile|PHB\n0 Shield"
         file_path = self.create_test_file(content, "zero_counts.txt")
 
         # Mock dependencies
-        mock_omnidexer = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.spells = [
-            mock_omnidexer.find_all("spell", "fireball")[0],
-            mock_omnidexer.find_all("spell", "magic missile")[0],
-            mock_omnidexer.find_all("spell", "shield")[0],
+            mock_catalogue.find_all("spell", "fireball")[0],
+            mock_catalogue.find_all("spell", "magic missile")[0],
+            mock_catalogue.find_all("spell", "shield")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.suggestions = {}
@@ -760,25 +760,25 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_large_count_handling(
-        self, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_catalogue, mock_collector_class, mock_render
     ):
         """Test handling of large counts."""
         content = "100 Fireball|PHB\n999 Magic Missile|PHB"
         file_path = self.create_test_file(content, "large_counts.txt")
 
         # Mock dependencies
-        mock_omnidexer = self.create_mock_omnidexer()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = self.create_mock_catalogue()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.spells = [
-            mock_omnidexer.find_all("spell", "fireball")[0],
-            mock_omnidexer.find_all("spell", "magic missile")[0],
-            mock_omnidexer.find_all("spell", "shield")[0],
+            mock_catalogue.find_all("spell", "fireball")[0],
+            mock_catalogue.find_all("spell", "magic missile")[0],
+            mock_catalogue.find_all("spell", "shield")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.suggestions = {}
@@ -818,9 +818,9 @@ Haste|PHB"""
 
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.data.collectors.spell_collector.SpellCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_complex_names_with_special_characters(
-        self, mock_get_omnidexer, mock_collector_class, mock_render
+        self, mock_get_catalogue, mock_collector_class, mock_render
     ):
         """Test handling of complex names with special characters."""
         content = """Bigby's Hand|PHB
@@ -829,7 +829,7 @@ Mordenkainen's Magnificent Mansion|PHB"""
         file_path = self.create_test_file(content, "complex_names.txt")
 
         # Create more specific mock for complex names
-        mock_omnidexer = Mock()
+        mock_catalogue = Mock()
 
         def mock_find_all(content_type, name, source=None):
             # Return a sortable mock spell for any name
@@ -861,16 +861,16 @@ Mordenkainen's Magnificent Mansion|PHB"""
             mock_spell.source.abbreviation = "PHB"
             return [mock_spell]
 
-        mock_omnidexer.find_all = Mock(side_effect=mock_find_all)
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue.find_all = Mock(side_effect=mock_find_all)
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper SpellCollectorResult
         mock_collector = Mock()
         mock_result = Mock()
         mock_result.spells = [
-            mock_omnidexer.find_all("spell", "Bigby's Hand")[0],
-            mock_omnidexer.find_all("spell", "Tasha's Hideous Laughter")[0],
-            mock_omnidexer.find_all("spell", "Mordenkainen's Magnificent Mansion")[0],
+            mock_catalogue.find_all("spell", "Bigby's Hand")[0],
+            mock_catalogue.find_all("spell", "Tasha's Hideous Laughter")[0],
+            mock_catalogue.find_all("spell", "Mordenkainen's Magnificent Mansion")[0],
         ]
         mock_result.unresolved_names = []
         mock_result.suggestions = {}

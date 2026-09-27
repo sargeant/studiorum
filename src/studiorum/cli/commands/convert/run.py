@@ -19,8 +19,8 @@ from rich import print as rprint
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.config import get_app_config
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.loaders.content_sources import parse_enhanced_name_lines
-from studiorum.data.loaders.omnidexer import Omnidexer
 from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.data.progress import ProgressCallback
@@ -49,13 +49,13 @@ def conversion_errors() -> Iterator[None]:
         raise typer.Exit(1) from None
 
 
-def load_data(kind: str) -> Omnidexer:
-    """The omnidexer, loading the data set with a spinner."""
+def load_data(kind: str) -> Catalogue:
+    """The catalogue, loading the data set with a spinner."""
     with display_manager.progress("Loading content") as _:
         task = display_manager.add_task(f"[cyan]Loading {kind} data...", total=None)
-        omnidexer = get_services().omnidexer
+        catalogue = get_services().catalogue
         display_manager.update_task(task, completed=100)
-    return omnidexer
+    return catalogue
 
 
 def write_document(
@@ -254,8 +254,8 @@ def resolve_content_or_file(
             raise typer.Exit(1)
         return content_items, f"file: {path}"
 
-    omnidexer = get_services().load_omnidexer(progress_callback)
-    resolver = ContentResolver(omnidexer)
+    catalogue = get_services().load_catalogue(progress_callback)
+    resolver = ContentResolver(catalogue)
     if content_type == ContentType.ADVENTURE:
         result = resolver.resolve_adventure(source)
     elif content_type == ContentType.BOOK:

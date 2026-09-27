@@ -79,19 +79,19 @@ class TestContentReferenceManager:
 
     def test_init(self):
         """Test ContentReferenceManager initialization."""
-        mock_omnidexer = Mock()
-        manager = ContentReferenceManager(mock_omnidexer)
+        mock_catalogue = Mock()
+        manager = ContentReferenceManager(mock_catalogue)
 
-        assert manager.omnidexer == mock_omnidexer
+        assert manager.catalogue == mock_catalogue
         assert manager._references == []
         assert manager._reference_counts == {}
         assert manager._reference_keys == set()
 
-    def test_init_without_omnidexer(self):
-        """Test initialization without omnidexer."""
+    def test_init_without_catalogue(self):
+        """Test initialization without catalogue."""
         manager = ContentReferenceManager()
 
-        assert manager.omnidexer is None
+        assert manager.catalogue is None
         assert manager._references == []
 
     def test_track_reference_basic(self):
@@ -163,9 +163,9 @@ class TestContentReferenceManager:
         assert reference.reference_source.location == "spells.tex.j2"
         assert "Template tag:" in reference.reference_source.context
 
-    def test_track_deep_index_references_no_omnidexer(self):
-        """Test deep index tracking without omnidexer."""
-        manager = ContentReferenceManager()  # No omnidexer
+    def test_track_deep_index_references_no_catalogue(self):
+        """Test deep index tracking without catalogue."""
+        manager = ContentReferenceManager()  # No catalogue
 
         mock_content = Mock(spec=["name"])
         mock_content.name = "Test Content"
@@ -176,10 +176,10 @@ class TestContentReferenceManager:
         # Should not add any references
         assert len(manager._references) == 0
 
-    def test_track_deep_index_references_with_omnidexer(self):
-        """Test deep index tracking with omnidexer."""
-        mock_omnidexer = Mock()
-        manager = ContentReferenceManager(mock_omnidexer)
+    def test_track_deep_index_references_with_catalogue(self):
+        """Test deep index tracking with catalogue."""
+        mock_catalogue = Mock()
+        manager = ContentReferenceManager(mock_catalogue)
 
         # Mock content that implements DeepIndexable
         mock_spell = Mock()
@@ -218,8 +218,8 @@ class TestContentReferenceManager:
 
     def test_track_deep_index_references_with_error(self):
         """Test deep index tracking with error handling."""
-        mock_omnidexer = Mock()
-        manager = ContentReferenceManager(mock_omnidexer)
+        mock_catalogue = Mock()
+        manager = ContentReferenceManager(mock_catalogue)
 
         mock_content = Mock(spec=["name", "get_deep_index_entries"])
         mock_content.name = "Test Content"
@@ -377,8 +377,8 @@ class TestContentReferenceManagerIntegration:
 
     def test_full_reference_tracking_workflow(self):
         """Test complete reference tracking workflow."""
-        mock_omnidexer = Mock()
-        manager = ContentReferenceManager(mock_omnidexer)
+        mock_catalogue = Mock()
+        manager = ContentReferenceManager(mock_catalogue)
 
         # Track references from various sources
         manager.track_tag_reference("spell", "Fireball", "PHB", "spells.tex")

@@ -169,7 +169,7 @@ async def suggest_creatures(
     per = count * encounter.multiplier(count, len(party_levels), rules)
     each = (math.ceil(low / per), math.floor(high / per))
     fits: list[tuple[int, Creature]] = []
-    for c in services.omnidexer.get_all_by_type(ContentType.CREATURE):
+    for c in services.catalogue.get_all_by_type(ContentType.CREATURE):
         if not isinstance(c, Creature):
             continue
         xp = encounter.creature_xp(c.cr)

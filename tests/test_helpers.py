@@ -16,7 +16,7 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
     due to contaminated state.
 
     This should be called in setup_method() for any test class that:
-    - Uses Omnidexer instances
+    - Uses Catalogue instances
     - Tests that load actual data files
     """
     try:

@@ -14,8 +14,8 @@ import orjson
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.loaders.data_dir import DataDir, DataSet
-from studiorum.data.loaders.omnidexer import Omnidexer
 from studiorum.data.models.content import ContentType
 
 FIVETOOLS = Path(
@@ -35,29 +35,29 @@ pytestmark = [
 ]
 
 
-def _load() -> Omnidexer:
-    omnidexer = Omnidexer(DataSet((DataDir(FIVETOOLS / "data"),)))
-    omnidexer.load_all_data()
-    return omnidexer
+def _load() -> Catalogue:
+    catalogue = Catalogue(DataSet((DataDir(FIVETOOLS / "data"),)))
+    catalogue.load_all_data()
+    return catalogue
 
 
-def _dump(omnidexer: Omnidexer) -> list[bytes]:
+def _dump(catalogue: Catalogue) -> list[bytes]:
     return sorted(
         orjson.dumps(
             [ct.value, item.name, item.model_dump(mode="json")],
             option=orjson.OPT_SORT_KEYS,
         )
         for ct in ContentType
-        for item in omnidexer.get_all_by_type(ct)
+        for item in catalogue.get_all_by_type(ct)
     )
 
 
 @pytest.fixture(scope="module")
-def loaded() -> Omnidexer:
+def loaded() -> Catalogue:
     return _load()
 
 
-def test_two_fresh_loads_are_equal(loaded: Omnidexer) -> None:
+def test_two_fresh_loads_are_equal(loaded: Catalogue) -> None:
     again = _load()
 
     assert _dump(again) == _dump(loaded)
@@ -71,7 +71,7 @@ def test_two_fresh_loads_are_equal(loaded: Omnidexer) -> None:
 
 
 def test_a_named_npc_keeps_its_own_cr_and_actions(
-    loaded: Omnidexer, snapshot: SnapshotAssertion
+    loaded: Catalogue, snapshot: SnapshotAssertion
 ) -> None:
     # Fennor copies the Berserker (CR 2, Greataxe) with his own CR and actions
     fennor = loaded.find(ContentType.CREATURE, "Fennor", "PotA")

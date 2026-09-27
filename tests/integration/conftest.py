@@ -2,21 +2,21 @@
 
 import pytest
 
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.content import ContentType
 
 
 @pytest.fixture
 def book_data():
     """Fixture to provide book data, skipping test if unavailable."""
-    omnidexer = Omnidexer(enable_deep_indexing=True)
+    catalogue = Catalogue(enable_deep_indexing=True)
 
     try:
-        omnidexer.load_all_data()
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+        catalogue.load_all_data()
+        books = catalogue.get_all_by_type(ContentType.BOOK)
         if not books:
             pytest.skip("No books found in data sources")
-        return books, omnidexer
+        return books, catalogue
     except Exception as e:
         pytest.skip(f"Book data not available: {e}")
 
@@ -24,14 +24,14 @@ def book_data():
 @pytest.fixture
 def adventure_data():
     """Fixture to provide adventure data, skipping test if unavailable."""
-    omnidexer = Omnidexer(enable_deep_indexing=True)
+    catalogue = Catalogue(enable_deep_indexing=True)
 
     try:
-        omnidexer.load_all_data()
-        adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+        catalogue.load_all_data()
+        adventures = catalogue.get_all_by_type(ContentType.ADVENTURE)
         if not adventures:
             pytest.skip("No adventures found in data sources")
-        return adventures, omnidexer
+        return adventures, catalogue
     except Exception as e:
         pytest.skip(f"Adventure data not available: {e}")
 
@@ -39,14 +39,14 @@ def adventure_data():
 @pytest.fixture
 def full_dataset():
     """Fixture to provide full dataset, skipping test if unavailable."""
-    omnidexer = Omnidexer(enable_deep_indexing=True)
+    catalogue = Catalogue(enable_deep_indexing=True)
 
     try:
-        stats = omnidexer.load_all_data()
+        stats = catalogue.load_all_data()
         total_loaded = sum(stats.values())
         if total_loaded == 0:
             pytest.skip("No data loaded from sources")
-        return omnidexer, stats
+        return catalogue, stats
     except Exception as e:
         pytest.skip(f"Full dataset not available: {e}")
 
@@ -54,14 +54,14 @@ def full_dataset():
 @pytest.fixture
 def spell_data():
     """Fixture to provide spell data, skipping test if unavailable."""
-    omnidexer = Omnidexer()
+    catalogue = Catalogue()
 
     try:
-        omnidexer.load_all_data()
-        spells = omnidexer.get_all_by_type(ContentType.SPELL)
+        catalogue.load_all_data()
+        spells = catalogue.get_all_by_type(ContentType.SPELL)
         if not spells:
             pytest.skip("No spells found in data sources")
-        return spells, omnidexer
+        return spells, catalogue
     except Exception as e:
         pytest.skip(f"Spell data not available: {e}")
 
@@ -69,13 +69,13 @@ def spell_data():
 @pytest.fixture
 def creature_data():
     """Fixture to provide creature data, skipping test if unavailable."""
-    omnidexer = Omnidexer()
+    catalogue = Catalogue()
 
     try:
-        omnidexer.load_all_data()
-        creatures = omnidexer.get_all_by_type(ContentType.CREATURE)
+        catalogue.load_all_data()
+        creatures = catalogue.get_all_by_type(ContentType.CREATURE)
         if not creatures:
             pytest.skip("No creatures found in data sources")
-        return creatures, omnidexer
+        return creatures, catalogue
     except Exception as e:
         pytest.skip(f"Creature data not available: {e}")

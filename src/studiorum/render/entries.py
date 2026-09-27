@@ -39,7 +39,7 @@ from .images import emit
 from .images.resolve import ImageResolver
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
     from studiorum.data.references.content_tracker import ContentTracker
     from studiorum.render.context import RenderingContext
 
@@ -81,13 +81,13 @@ class EntryRenderer:
     def __init__(
         self,
         tracker: ContentTracker | None = None,
-        omnidexer: Omnidexer | None = None,
+        catalogue: Catalogue | None = None,
         style: Style | None = None,
         images: ImageResolver | None = None,
         context: RenderingContext | None = None,
     ) -> None:
         self.tracker = tracker
-        self.omnidexer = omnidexer
+        self.catalogue = catalogue
         self.style = style or Style()
         self._images = images
         # Statblocks render creatures and items through their templates
@@ -101,7 +101,7 @@ class EntryRenderer:
     def from_context(cls, context: RenderingContext) -> EntryRenderer:
         return cls(
             tracker=context.content_tracker,
-            omnidexer=context.omnidexer,
+            catalogue=context.catalogue,
             style=context.style,
             context=context,
         )
@@ -537,7 +537,7 @@ class EntryRenderer:
             if self._sections and self._sections[-1].lower() == name.lower()
             else self._heading(self._depth, name)
         )
-        lines, entries = compact_parts(found, self.omnidexer)
+        lines, entries = compact_parts(found, self.catalogue)
         if not lines and not entries:
             return self.text(name) if inset else heading
         body = "\n\n".join(
@@ -599,7 +599,7 @@ class EntryRenderer:
         self, content_type: ContentType, entry: dict[str, Any], source: str
     ) -> Any:
         """Content by name and source, or a subclass by its 5etools uid."""
-        if self.omnidexer is None:
+        if self.catalogue is None:
             return None
         if content_type == ContentType.SUBCLASS and entry.get("shortName"):
             uid = "|".join(
@@ -610,8 +610,8 @@ class EntryRenderer:
                     source,
                 )
             )
-            return self.omnidexer.find_uid(content_type, uid)
-        return self.omnidexer.find(content_type, entry.get("name", ""), source)
+            return self.catalogue.find_uid(content_type, uid)
+        return self.catalogue.find(content_type, entry.get("name", ""), source)
 
     def _render_model(self, kind: str, content: Any) -> str:
         """A creature, spell, item or vehicle through its macro, in the text."""
@@ -620,7 +620,7 @@ class EntryRenderer:
         from .document import render_models
 
         context = self._context or RenderingContext(
-            content_tracker=self.tracker, omnidexer=self.omnidexer
+            content_tracker=self.tracker, catalogue=self.catalogue
         )
         latex = render_models(kind, [content], context, floating=False)
         # A wide statblock still floats; its section ends with a float barrier

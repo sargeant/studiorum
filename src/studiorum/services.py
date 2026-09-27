@@ -13,9 +13,9 @@ from dataclasses import dataclass, field
 from functools import cached_property
 
 from studiorum.config import ApplicationConfig
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.content_list_writer import ContentListWriter
 from studiorum.data.loaders.data_dir import DataSet
-from studiorum.data.loaders.omnidexer import Omnidexer
 from studiorum.data.progress import ProgressCallback
 from studiorum.log import get_logger
 
@@ -39,27 +39,27 @@ class Services:
         return DataSet.from_config(self.config.data)
 
     @cached_property
-    def _omnidexer(self) -> Omnidexer:
-        return Omnidexer(self.data)
+    def _catalogue(self) -> Catalogue:
+        return Catalogue(self.data)
 
-    def load_omnidexer(
+    def load_catalogue(
         self, progress_callback: ProgressCallback | None = None
-    ) -> Omnidexer:
-        """The omnidexer with all data loaded.
+    ) -> Catalogue:
+        """The catalogue with all data loaded.
 
         The first call loads, reporting to ``progress_callback`` if one is
         given; later calls return the same instance.
         """
-        omnidexer = self._omnidexer
+        catalogue = self._catalogue
         with self._load_lock:
             if not self._loaded.is_set():
-                _load(omnidexer, progress_callback)
+                _load(catalogue, progress_callback)
                 self._loaded.set()
-        return omnidexer
+        return catalogue
 
     @property
-    def omnidexer(self) -> Omnidexer:
-        return self.load_omnidexer()
+    def catalogue(self) -> Catalogue:
+        return self.load_catalogue()
 
     @cached_property
     def content_list_writer(self) -> ContentListWriter:
@@ -71,15 +71,15 @@ def build_services(config: ApplicationConfig) -> Services:
     return Services(config=config)
 
 
-def _load(omnidexer: Omnidexer, progress_callback: ProgressCallback | None) -> None:
+def _load(catalogue: Catalogue, progress_callback: ProgressCallback | None) -> None:
     if progress_callback is None:
-        omnidexer.load_all_data()
+        catalogue.load_all_data()
     else:
         operation_id = progress_callback.start_operation(
             "Loading 5e content data", metadata={"stage": "lazy_loading"}
         )
         try:
-            omnidexer.load_all_data(progress_callback=progress_callback)
+            catalogue.load_all_data(progress_callback=progress_callback)
         except Exception as e:
             progress_callback.complete_operation(operation_id, error=e)
             raise

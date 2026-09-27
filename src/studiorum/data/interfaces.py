@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from studiorum.data.models.content import BaseContent
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
 
 
 @runtime_checkable
@@ -13,7 +13,7 @@ class DeepIndexable(Protocol):
     """
     Protocol for content that can expose nested content for deep indexing.
 
-    The DeepIndexable protocol enables the Omnidexer to discover and index nested
+    The DeepIndexable protocol enables the Catalogue to discover and index nested
     content within complex data structures. This includes class features within
     classes, adventure sections within adventures, spell references in creature
     abilities, and other hierarchical content.
@@ -21,12 +21,12 @@ class DeepIndexable(Protocol):
     Implementation Guidelines:
         - Return only immediate children, not deeply nested content
         - Handle errors gracefully with logging, don't fail completely
-        - Use the omnidexer parameter for reference resolution
+        - Use the catalogue parameter for reference resolution
         - Validate content structure before processing
 
     Examples:
         >>> class Adventure(BaseContent, DeepIndexable):
-        ...     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        ...     def get_deep_index_entries(self, catalogue: "Catalogue") -> list[BaseContent]:
         ...         nested_content = []
         ...         for chapter in self.contents:
         ...             parser = EntryParser(source=self.source, parent_name=f"{self.name} > {chapter.name}")
@@ -35,20 +35,20 @@ class DeepIndexable(Protocol):
         ...         return nested_content
 
     See Also:
-        - docs/omnidexer-deep-indexing.md for comprehensive implementation guide
-        - docs/api/omnidexer.md for API documentation
+        - docs/catalogue-deep-indexing.md for comprehensive implementation guide
+        - docs/api/catalogue.md for API documentation
     """
 
-    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+    def get_deep_index_entries(self, catalogue: "Catalogue") -> list[BaseContent]:
         """
         Return immediate child content items that should be indexed.
 
         This method allows content objects to expose their nested sub-entities
-        for indexing by the Omnidexer system. The omnidexer will recursively
+        for indexing by the Catalogue system. The catalogue will recursively
         process returned items if they also implement DeepIndexable.
 
         Args:
-            omnidexer: The omnidexer instance performing the indexing.
+            catalogue: The catalogue instance performing the indexing.
                       Can be used to resolve references during parsing.
 
         Returns:
@@ -59,15 +59,15 @@ class DeepIndexable(Protocol):
             - Return empty list rather than None if no nested content exists
             - Handle parsing errors gracefully with logging
             - Only return immediate children - recursion is handled automatically
-            - Use omnidexer parameter for reference resolution when needed
+            - Use catalogue parameter for reference resolution when needed
 
         Example:
-            >>> def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+            >>> def get_deep_index_entries(self, catalogue: "Catalogue") -> list[BaseContent]:
             ...     nested_content = []
             ...     try:
             ...         for item in self.nested_items:
             ...             try:
-            ...                 parsed_item = self._parse_item(item, omnidexer)
+            ...                 parsed_item = self._parse_item(item, catalogue)
             ...                 if parsed_item:
             ...                     nested_content.append(parsed_item)
             ...             except Exception as e:

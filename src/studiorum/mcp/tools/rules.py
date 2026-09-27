@@ -39,7 +39,7 @@ async def search_rules(
     words = query.lower().split()
     found: list[tuple[int, str, str, BaseContent]] = []
     for kind in (rule_type,) if rule_type else get_args(RuleType):
-        for rule in services.omnidexer.get_all_by_type(ContentType(kind)):
+        for rule in services.catalogue.get_all_by_type(ContentType(kind)):
             name = rule.name.lower()
             raw = rule.model_dump(mode="json", by_alias=True, exclude_none=True)
             text = render(raw.get("entries") or [])

@@ -44,7 +44,7 @@ from studiorum.data.text.strings import (
 if TYPE_CHECKING:
     from pydantic import BaseModel
 
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
 
 type Raw = dict[str, Any]
 
@@ -61,7 +61,7 @@ def raw(content: BaseModel | Raw) -> Raw:
     return content.model_dump(by_alias=True, exclude_none=True)
 
 
-def trap_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def trap_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.traphazard`` and ``Renderer.trap``: subtitle, then parts and entries."""
     data = raw(content)
     entries = list(data.get("entries") or [])
@@ -75,7 +75,7 @@ def trap_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
     return [*_subtitle(data), *body]
 
 
-def hazard_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def hazard_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     data = raw(content)
     return [*_subtitle(data), *(data.get("entries") or [])]
 
@@ -153,7 +153,7 @@ def _initiative(data: Raw) -> list[str] | None:
     return [f"The trap acts on {TRAP_INITIATIVES.get(initiative, initiative)}{note}."]
 
 
-def feat_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def feat_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.feat``: category and prerequisite, then entries with the increase."""
     data = raw(content)
     return [*_category_line(data), *_repeatable(data), *_full_entries(data)]
@@ -270,7 +270,7 @@ _DEITY_PARTS: tuple[tuple[str, str, Callable[[Any], str] | None], ...] = (
 )
 
 
-def deity_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def deity_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.deity``: labelled lines in alphabetical order, then entries."""
     return [*deity_lines(content), *(raw(content).get("entries") or [])]
 
@@ -297,7 +297,7 @@ def deity_heading(content: BaseModel, name: str) -> str:
     return f"{name}, {title_case(title)}" if title else name
 
 
-def optional_feature_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def optional_feature_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.optionalfeature``: prerequisite and cost, entries, then its type."""
     data = raw(content)
     prerequisite = prerequisite_entry(data.get("prerequisite"), style=STYLE)
@@ -338,7 +338,7 @@ _SPACE_COST_DAYS = {"cramped": (500, 20), "roomy": (1000, 45), "vast": (3000, 12
 _SPACES = ("cramped", "roomy", "vast")
 
 
-def facility_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def facility_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.facility``: level, prerequisite, space, hirelings, orders, entries."""
     data = raw(content)
     items: list[Raw] = []
@@ -409,7 +409,7 @@ def _hirelings(hirelings: list[Raw]) -> str:
     return join_conjunct(parts, ", ", " or ")
 
 
-def object_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def object_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.object``: size, attributes, entries, then actions."""
     data = raw(content)
     return [
@@ -479,7 +479,7 @@ def cargo_capacity(cargo: Any) -> str:
     )
 
 
-def race_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def race_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.race``: ability scores, creature type, size and speed, entries,
     then the height and weight table."""
     data = raw(content)
@@ -647,14 +647,14 @@ def _choose_from(choose: Raw, fixed: list[str]) -> str:
     return "Choose " + " ".join(parts)
 
 
-def background_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def background_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.generic``: the prerequisite, then entries."""
     data = raw(content)
     prerequisite = prerequisite_entry(data.get("prerequisite"), style=STYLE)
     return [*([prerequisite] if prerequisite else []), *(data.get("entries") or [])]
 
 
-def vehicle_upgrade_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def vehicle_upgrade_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.vehicleUpgrade``: its types and prerequisite, then entries."""
     data = raw(content)
     # 5etools joins the types as an array: with a bare comma
@@ -667,7 +667,7 @@ def vehicle_upgrade_entries(content: BaseModel, _: Omnidexer | None) -> list[Any
     return [*([f"{{@i {summary}}}"] if summary else []), *(data.get("entries") or [])]
 
 
-def language_entries(content: BaseModel, _: Omnidexer | None) -> list[Any]:
+def language_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.language``: its kind, speakers, origin and script, then entries."""
     data = raw(content)
     lines = [

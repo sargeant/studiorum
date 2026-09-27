@@ -8,12 +8,12 @@ import pytest
 from hypothesis import given, strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, rule
 
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.content import ContentType
 
 
-class OmnidexerStateMachine(RuleBasedStateMachine):
-    """Stateful testing for Omnidexer content management operations.
+class CatalogueStateMachine(RuleBasedStateMachine):
+    """Stateful testing for Catalogue content management operations.
 
     This tests complex sequences of operations to ensure system invariants
     are maintained across different interaction patterns.
@@ -21,33 +21,33 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
 
     def __init__(self):
         super().__init__()
-        self.omnidexer = None
+        self.catalogue = None
         self.initial_content_count = 0
         self.content_added = 0
         self.searches_performed = 0
 
     @initialize()
-    def setup_omnidexer(self):
-        """Initialize omnidexer for testing."""
-        # Create a fresh omnidexer instance
+    def setup_catalogue(self):
+        """Initialize catalogue for testing."""
+        # Create a fresh catalogue instance
         from studiorum.data.loaders.unified_source_manager import (
             UnifiedSourceManager,
         )
 
         source_manager = UnifiedSourceManager()
-        self.omnidexer = Omnidexer(source_manager)
+        self.catalogue = Catalogue(source_manager)
         self.initial_content_count = 0
         self.content_added = 0
         self.searches_performed = 0
 
     @rule()
-    def check_omnidexer_invariants(self):
-        """Verify omnidexer maintains basic invariants."""
-        # Omnidexer should always be in a consistent state
-        assert self.omnidexer is not None
+    def check_catalogue_invariants(self):
+        """Verify catalogue maintains basic invariants."""
+        # Catalogue should always be in a consistent state
+        assert self.catalogue is not None
 
         # Statistics should be non-negative
-        stats = self.omnidexer.get_statistics()
+        stats = self.catalogue.get_statistics()
         for content_type, count in stats.items():
             assert count >= 0, f"Content count for {content_type} should be >= 0"
 
@@ -59,14 +59,14 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
     def perform_search(self, search_term):
         """Perform search operations and verify results."""
         # Search operations should not modify system state
-        stats_before = self.omnidexer.get_statistics().copy()
+        stats_before = self.catalogue.get_statistics().copy()
 
         # Perform search (this would normally use content data)
         # For now, just verify the search doesn't break the system
         self.searches_performed += 1
 
         # Statistics should remain unchanged after search
-        stats_after = self.omnidexer.get_statistics()
+        stats_after = self.catalogue.get_statistics()
         assert stats_before == stats_after, "Search should not modify content counts"
 
     @rule()
@@ -74,20 +74,20 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
         """Verify searches don't interfere with each other."""
         if self.searches_performed > 0:
             # Multiple searches should be isolated from each other
-            stats = self.omnidexer.get_statistics()
+            stats = self.catalogue.get_statistics()
 
             # System should remain stable regardless of search history
             assert all(count >= 0 for count in stats.values())
 
-            # Omnidexer should still be operational
-            assert self.omnidexer is not None
+            # Catalogue should still be operational
+            assert self.catalogue is not None
 
     @rule()
     def check_memory_efficiency(self):
         """Verify system doesn't accumulate unnecessary memory."""
         # This is a placeholder for memory efficiency checks
         # In a real implementation, you'd check memory usage patterns
-        stats = self.omnidexer.get_statistics()
+        stats = self.catalogue.get_statistics()
 
         # System should not have unbounded growth
         total_items = sum(stats.values())
@@ -96,11 +96,11 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
     @rule()
     def verify_system_consistency(self):
         """Comprehensive system consistency check."""
-        # Verify the omnidexer is in a valid state
-        assert self.omnidexer is not None
+        # Verify the catalogue is in a valid state
+        assert self.catalogue is not None
 
         # Check that statistics are internally consistent
-        stats = self.omnidexer.get_statistics()
+        stats = self.catalogue.get_statistics()
 
         # All counts should be non-negative integers
         for content_type, count in stats.items():

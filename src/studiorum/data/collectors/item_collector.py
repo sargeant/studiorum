@@ -3,7 +3,7 @@
 import difflib
 from typing import Any
 
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.item_filters import ItemCollectionResult, ItemFilterCriteria
 from studiorum.data.models.items import Item
@@ -20,13 +20,13 @@ class ItemCollector:
     filtering capabilities.
     """
 
-    def __init__(self, omnidexer: Omnidexer):
-        """Initialize the item collector with an omnidexer instance.
+    def __init__(self, catalogue: Catalogue):
+        """Initialize the item collector with a catalogue instance.
 
         Args:
-            omnidexer: The omnidexer instance for content lookup
+            catalogue: The catalogue instance for content lookup
         """
-        self.omnidexer = omnidexer
+        self.catalogue = catalogue
 
     def collect_items(self, criteria: ItemFilterCriteria) -> ItemCollectionResult:
         """Collect items matching the given criteria.
@@ -67,7 +67,7 @@ class ItemCollector:
                 all_items = []
                 item_type = ContentType("item")
                 for source in criteria.sources:
-                    source_items = self.omnidexer.get_all_by_source(source)
+                    source_items = self.catalogue.get_all_by_source(source)
                     # Filter to only items of the correct type
                     for item in source_items:
                         if isinstance(item, Item):
@@ -75,11 +75,11 @@ class ItemCollector:
             else:
                 # Get all items from all sources
                 item_type = ContentType("item")
-                all_content = self.omnidexer.get_all_by_type(item_type)
+                all_content = self.catalogue.get_all_by_type(item_type)
                 all_items = [item for item in all_content if isinstance(item, Item)]
 
             if not all_items:
-                logger.warning("No items found in omnidexer")
+                logger.warning("No items found in catalogue")
                 return result
 
             logger.debug(f"Filtering {len(all_items)} items with criteria")
@@ -164,7 +164,7 @@ class ItemCollector:
 
         for name in names:
             # Try exact match first
-            matches = self.omnidexer.find_all(item_type, name)
+            matches = self.catalogue.find_all(item_type, name)
 
             if matches:
                 # Filter by sources (now always specified, either from parameter or default)
@@ -517,12 +517,12 @@ class ItemCollector:
         if sources:
             all_items = []
             for source in sources:
-                source_items = self.omnidexer.get_all_by_source(source)
+                source_items = self.catalogue.get_all_by_source(source)
                 for item in source_items:
                     if isinstance(item, Item):
                         all_items.append(item)
         else:
-            all_content = self.omnidexer.get_all_by_type(item_type)
+            all_content = self.catalogue.get_all_by_type(item_type)
             all_items = [item for item in all_content if isinstance(item, Item)]
 
         if not all_items:
@@ -546,7 +546,7 @@ class ItemCollector:
             List of item types
         """
         item_type = ContentType("item")
-        all_items = self.omnidexer.get_all_by_type(item_type)
+        all_items = self.catalogue.get_all_by_type(item_type)
 
         if not all_items:
             return []
@@ -565,7 +565,7 @@ class ItemCollector:
             List of item rarities
         """
         item_type = ContentType("item")
-        all_items = self.omnidexer.get_all_by_type(item_type)
+        all_items = self.catalogue.get_all_by_type(item_type)
 
         if not all_items:
             return []
@@ -586,7 +586,7 @@ class ItemCollector:
             Dictionary with item statistics
         """
         item_type = ContentType("item")
-        all_items = self.omnidexer.get_all_by_type(item_type)
+        all_items = self.catalogue.get_all_by_type(item_type)
 
         if not all_items:
             return {"total": 0}

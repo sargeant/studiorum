@@ -1,6 +1,6 @@
 """Tests for adventure deep indexing functionality."""
 
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.chapter import Chapter
 from studiorum.data.models.content import Source
@@ -30,8 +30,8 @@ class TestAdventureDeepIndexing:
             name="Empty Adventure", source=Source(abbreviation="TEST"), contents=[]
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         assert result == []
 
@@ -45,8 +45,8 @@ class TestAdventureDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         assert result == []
 
@@ -74,8 +74,8 @@ class TestAdventureDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         assert len(result) == 1
         assert isinstance(result[0], Section)
@@ -111,8 +111,8 @@ class TestAdventureDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         assert len(result) == 1
         assert isinstance(result[0], Table)
@@ -146,8 +146,8 @@ class TestAdventureDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         assert len(result) == 1
         assert isinstance(result[0], Inset)
@@ -185,8 +185,8 @@ class TestAdventureDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         # Should get both the parent section and the nested section
         assert len(result) == 2
@@ -229,8 +229,8 @@ class TestAdventureDeepIndexing:
             contents=[chapter1, chapter2],
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         assert len(result) == 2
 
@@ -261,9 +261,9 @@ class TestAdventureDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
+        catalogue = Catalogue()
         # Should not raise an exception
-        result = adventure.get_deep_index_entries(omnidexer)
+        result = adventure.get_deep_index_entries(catalogue)
 
         # Should still get the good section
         assert len(result) >= 1
@@ -291,8 +291,8 @@ class TestAdventureDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = adventure.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = adventure.get_deep_index_entries(catalogue)
 
         assert len(result) == 2
 

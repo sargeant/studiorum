@@ -3,7 +3,7 @@
 import difflib
 from typing import Any
 
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.spell_filters import (
     SpellCollectionResult,
@@ -23,13 +23,13 @@ class SpellCollector:
     filtering capabilities.
     """
 
-    def __init__(self, omnidexer: Omnidexer):
-        """Initialize the spell collector with an omnidexer instance.
+    def __init__(self, catalogue: Catalogue):
+        """Initialize the spell collector with a catalogue instance.
 
         Args:
-            omnidexer: The omnidexer instance for content lookup
+            catalogue: The catalogue instance for content lookup
         """
-        self.omnidexer = omnidexer
+        self.catalogue = catalogue
 
     def collect_spells(self, criteria: SpellFilterCriteria) -> SpellCollectionResult:
         """Collect spells matching the given criteria.
@@ -70,7 +70,7 @@ class SpellCollector:
                 all_spells = []
                 spell_type = ContentType("spell")
                 for source in criteria.sources:
-                    source_spells = self.omnidexer.get_all_by_source(source)
+                    source_spells = self.catalogue.get_all_by_source(source)
                     # Filter to only spells of the correct type
                     for spell in source_spells:
                         if isinstance(spell, Spell):
@@ -78,13 +78,13 @@ class SpellCollector:
             else:
                 # Get all spells from all sources
                 spell_type = ContentType("spell")
-                all_content = self.omnidexer.get_all_by_type(spell_type)
+                all_content = self.catalogue.get_all_by_type(spell_type)
                 all_spells = [
                     spell for spell in all_content if isinstance(spell, Spell)
                 ]
 
             if not all_spells:
-                logger.warning("No spells found in omnidexer")
+                logger.warning("No spells found in catalogue")
                 return result
 
             logger.debug(f"Filtering {len(all_spells)} spells with criteria")
@@ -154,7 +154,7 @@ class SpellCollector:
 
         for name in names:
             # Try exact match first
-            matches = self.omnidexer.find_all(spell_type, name)
+            matches = self.catalogue.find_all(spell_type, name)
 
             if matches:
                 # Filter by sources (now always specified, either from parameter or default)
@@ -371,12 +371,12 @@ class SpellCollector:
         if sources:
             all_spells = []
             for source in sources:
-                source_spells = self.omnidexer.get_all_by_source(source)
+                source_spells = self.catalogue.get_all_by_source(source)
                 for spell in source_spells:
                     if isinstance(spell, Spell):
                         all_spells.append(spell)
         else:
-            all_content = self.omnidexer.get_all_by_type(spell_type)
+            all_content = self.catalogue.get_all_by_type(spell_type)
             all_spells = [spell for spell in all_content if isinstance(spell, Spell)]
 
         if not all_spells:
@@ -400,7 +400,7 @@ class SpellCollector:
             List of class names that can cast spells
         """
         spell_type = ContentType("spell")
-        all_spells = self.omnidexer.get_all_by_type(spell_type)
+        all_spells = self.catalogue.get_all_by_type(spell_type)
 
         if not all_spells:
             return []
@@ -424,7 +424,7 @@ class SpellCollector:
             List of spell schools
         """
         spell_type = ContentType("spell")
-        all_spells = self.omnidexer.get_all_by_type(spell_type)
+        all_spells = self.catalogue.get_all_by_type(spell_type)
 
         if not all_spells:
             return []
@@ -443,7 +443,7 @@ class SpellCollector:
             Dictionary with spell statistics
         """
         spell_type = ContentType("spell")
-        all_spells = self.omnidexer.get_all_by_type(spell_type)
+        all_spells = self.catalogue.get_all_by_type(spell_type)
 
         if not all_spells:
             return {"total": 0}

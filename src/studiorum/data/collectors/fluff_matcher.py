@@ -4,7 +4,7 @@ import re
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
 
 from studiorum.data.models.content import BaseContent
 from studiorum.data.models.creatures import Creature
@@ -33,13 +33,13 @@ class FluffMatcher:
     - Enhanced image extraction capabilities
     """
 
-    def __init__(self, omnidexer: "Omnidexer") -> None:
-        """Initialize the FluffMatcher with an omnidexer instance.
+    def __init__(self, catalogue: "Catalogue") -> None:
+        """Initialize the FluffMatcher with a catalogue instance.
 
         Args:
-            omnidexer: The omnidexer instance for content lookup
+            catalogue: The catalogue instance for content lookup
         """
-        self.omnidexer = omnidexer
+        self.catalogue = catalogue
         self._copy_cache: dict[str, BaseFluff] = {}
 
     def match_creature_fluff(
@@ -54,7 +54,7 @@ class FluffMatcher:
         Args:
             creature: The creature to find fluff for
             fluff_entries: Optional list of fluff entries to search in.
-                          If None, will retrieve all creature fluff from omnidexer.
+                          If None, will retrieve all creature fluff from catalogue.
             allowed_sections: Optional list of section names to include (e.g., ['lair', 'tactics'])
             allowed_sources: Optional list of source abbreviations to filter by
 
@@ -62,7 +62,7 @@ class FluffMatcher:
             The matching CreatureFluff entry, or None if no match found
         """
         if fluff_entries is None:
-            all_fluff = self.omnidexer.get_all_by_type("creatureFluff")
+            all_fluff = self.catalogue.get_all_by_type("creatureFluff")
             fluff_entries = [f for f in all_fluff if isinstance(f, CreatureFluff)]
 
         # Apply source filtering if requested
@@ -99,7 +99,7 @@ class FluffMatcher:
         Args:
             spell: The spell to find fluff for
             fluff_entries: Optional list of fluff entries to search in.
-                          If None, will retrieve all spell fluff from omnidexer.
+                          If None, will retrieve all spell fluff from catalogue.
             allowed_sections: Optional list of section names to include
             allowed_sources: Optional list of source abbreviations to filter by
 
@@ -107,7 +107,7 @@ class FluffMatcher:
             The matching SpellFluff entry, or None if no match found
         """
         if fluff_entries is None:
-            all_fluff = self.omnidexer.get_all_by_type("spellFluff")
+            all_fluff = self.catalogue.get_all_by_type("spellFluff")
             fluff_entries = [f for f in all_fluff if isinstance(f, SpellFluff)]
 
         # Apply source filtering if requested
@@ -144,7 +144,7 @@ class FluffMatcher:
         Args:
             item: The item to find fluff for
             fluff_entries: Optional list of fluff entries to search in.
-                          If None, will retrieve all item fluff from omnidexer.
+                          If None, will retrieve all item fluff from catalogue.
             allowed_sections: Optional list of section names to include
             allowed_sources: Optional list of source abbreviations to filter by
 
@@ -152,7 +152,7 @@ class FluffMatcher:
             The matching ItemFluff entry, or None if no match found
         """
         if fluff_entries is None:
-            all_fluff = self.omnidexer.get_all_by_type("itemFluff")
+            all_fluff = self.catalogue.get_all_by_type("itemFluff")
             fluff_entries = [f for f in all_fluff if isinstance(f, ItemFluff)]
 
         # Apply source filtering if requested
@@ -399,7 +399,7 @@ class FluffMatcher:
         fluff_type = type(fluff).__name__.replace("Fluff", "").lower() + "Fluff"
 
         try:
-            all_fluff = self.omnidexer.get_all_by_type(fluff_type)
+            all_fluff = self.catalogue.get_all_by_type(fluff_type)
             referenced_fluff_candidates = [
                 f
                 for f in all_fluff

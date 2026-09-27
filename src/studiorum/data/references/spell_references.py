@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 from studiorum.log import get_logger
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
     from studiorum.data.models.content import BaseContent
 
 logger = get_logger(__name__)
@@ -129,8 +129,8 @@ class SpellReferenceParser:
 class SpellReferenceResolver:
     """Resolves spell references to actual spell objects."""
 
-    def __init__(self, omnidexer: "Omnidexer"):
-        self.omnidexer = omnidexer
+    def __init__(self, catalogue: "Catalogue"):
+        self.catalogue = catalogue
 
     def resolve_spell_references(
         self, references: list[SpellReference]
@@ -150,7 +150,7 @@ class SpellReferenceResolver:
         for ref in references:
             try:
                 # Try exact match first
-                spell = self.omnidexer.find(ContentType.SPELL, ref.name, ref.source)
+                spell = self.catalogue.find(ContentType.SPELL, ref.name, ref.source)
 
                 if spell:
                     resolved_spells.append(spell)
@@ -158,14 +158,14 @@ class SpellReferenceResolver:
                 else:
                     # Try without source if we had one
                     if ref.source:
-                        spell = self.omnidexer.find(ContentType.SPELL, ref.name)
+                        spell = self.catalogue.find(ContentType.SPELL, ref.name)
                         if spell:
                             resolved_spells.append(spell)
                             logger.debug(f"Resolved spell reference (no source): {ref}")
                             continue
 
                     # Try fuzzy matching
-                    fuzzy_matches = self.omnidexer.search(
+                    fuzzy_matches = self.catalogue.search(
                         ref.name, ContentType.SPELL, limit=1
                     )
                     if fuzzy_matches:

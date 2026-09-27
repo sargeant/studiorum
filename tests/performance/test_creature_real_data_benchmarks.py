@@ -10,8 +10,8 @@ import time
 
 import pytest
 
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.collectors.creature_collector import CreatureCollector
-from studiorum.data.loaders.omnidexer import Omnidexer
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.creatures import Creature
 from tests.test_data_helpers import (
@@ -32,24 +32,24 @@ class TestCreatureRealDataPerformanceBenchmarks:
 
     def setup_method(self):
         """Set up performance test fixtures."""
-        self.omnidexer = None
+        self.catalogue = None
         self.all_creatures = []
 
     @pytest.fixture(autouse=True)
     def load_real_creatures_for_benchmarks(self):
         """Load real creature data for benchmarking."""
         try:
-            self.omnidexer = Omnidexer()
+            self.catalogue = Catalogue()
 
             # Measure loading time
             load_start = time.perf_counter()
-            self.omnidexer.load_all_data()
+            self.catalogue.load_all_data()
             load_end = time.perf_counter()
 
             self.load_time = load_end - load_start
 
             creature_type = ContentType("creature")
-            all_content = self.omnidexer.get_all_by_type(creature_type)
+            all_content = self.catalogue.get_all_by_type(creature_type)
             self.all_creatures = [
                 creature for creature in all_content if isinstance(creature, Creature)
             ]
@@ -256,7 +256,7 @@ class TestCreatureRealDataPerformanceBenchmarks:
 
     def test_real_data_collection_performance_scalability(self):
         """Test collection performance scalability with real data."""
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
 
         # Test different collection scenarios
         test_scenarios = [
@@ -351,7 +351,7 @@ class TestCreatureRealDataPerformanceBenchmarks:
         """Test filtering performance based on creature complexity."""
         from studiorum.data.models.creature_filters import CreatureFilterCriteria
 
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
 
         # Test filters of increasing complexity
         filter_scenarios = [

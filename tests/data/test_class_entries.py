@@ -83,7 +83,7 @@ FEATURES = {
 }
 
 
-def _omnidexer() -> Mock:
+def _catalogue() -> Mock:
     return Mock(find_uid=Mock(side_effect=lambda _kind, uid: FEATURES.get(uid)))
 
 
@@ -114,7 +114,7 @@ FIGHTER = Class.model_validate(
 
 
 def test_a_class_has_core_traits_a_table_and_its_features() -> None:
-    entries = class_entries(FIGHTER, _omnidexer())
+    entries = class_entries(FIGHTER, _catalogue())
     texts = [e for e in entries if isinstance(e, str)]
     table = next(e for e in entries if isinstance(e, dict) and e["type"] == "table")
     features = [e for e in entries if isinstance(e, dict) and e["type"] == "entries"]
@@ -162,7 +162,7 @@ def test_a_subclass_is_its_features_with_levels_on_the_nested_ones() -> None:
         }
     )
 
-    entries = subclass_entries(champion, _omnidexer())
+    entries = subclass_entries(champion, _catalogue())
 
     assert "name" not in entries[0]
     assert entries[0]["entries"][1]["name"] == "Level 3: Improved Critical"
@@ -170,10 +170,10 @@ def test_a_subclass_is_its_features_with_levels_on_the_nested_ones() -> None:
 
 
 def test_features_are_looked_up_by_uid() -> None:
-    omnidexer = _omnidexer()
-    class_entries(FIGHTER, omnidexer)
+    catalogue = _catalogue()
+    class_entries(FIGHTER, catalogue)
 
-    omnidexer.find_uid.assert_any_call(
+    catalogue.find_uid.assert_any_call(
         ContentType.CLASS_FEATURE, "Fighting Style|Fighter||1"
     )
-    omnidexer.find_uid.assert_any_call(ContentType.OPTIONALFEATURE, "Archery|PHB")
+    catalogue.find_uid.assert_any_call(ContentType.OPTIONALFEATURE, "Archery|PHB")

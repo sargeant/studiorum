@@ -52,7 +52,7 @@ class FluffResult:
 
 
 def collect_fluff(
-    omnidexer: Any,
+    catalogue: Any,
     content: Sequence[Any],
     kind: str,
     *,
@@ -68,7 +68,7 @@ def collect_fluff(
     """
     from studiorum.data.collectors.fluff_matcher import FluffMatcher
 
-    matcher = FluffMatcher(omnidexer)
+    matcher = FluffMatcher(catalogue)
     match: Callable[..., Any] = getattr(matcher, f"match_{kind}_fluff")
     section_list = split_csv(sections)
     source_list = split_csv(sources, upper=True)

@@ -310,30 +310,30 @@ class FileContentSource(BaseContentSource):
         return count
 
 
-class OmnidexerContentSource(BaseContentSource):
-    """Load content from the omnidexer."""
+class CatalogueContentSource(BaseContentSource):
+    """Load content from the catalogue."""
 
-    def __init__(self, omnidexer: Any, content_type: ContentType) -> None:
+    def __init__(self, catalogue: Any, content_type: ContentType) -> None:
         super().__init__(
-            f"omnidexer:{content_type.value}",
-            f"Omnidexer content: {content_type.value}",
+            f"catalogue:{content_type.value}",
+            f"Catalogue content: {content_type.value}",
         )
-        self.omnidexer = omnidexer
+        self.catalogue = catalogue
         self.content_type = content_type
 
     def get_metadata(self) -> ContentSourceMetadata:
-        """Get metadata about this omnidexer source."""
+        """Get metadata about this catalogue source."""
         content_count = 0
         try:
-            # Get count from omnidexer
-            all_content = self.omnidexer.find_all(self.content_type)
+            # Get count from catalogue
+            all_content = self.catalogue.find_all(self.content_type)
             content_count = len(all_content)
         # Optional metadata counting, graceful degradation
         except Exception:  # nosec B110
             pass
 
         return ContentSourceMetadata(
-            source_type="omnidexer",
+            source_type="catalogue",
             location=self.location,
             description=self.description,
             content_count=content_count,
@@ -341,27 +341,27 @@ class OmnidexerContentSource(BaseContentSource):
         )
 
     def validate(self) -> ValidationResult:
-        """Validate the omnidexer source."""
+        """Validate the catalogue source."""
         result = ValidationResult(is_valid=True)
 
-        if self.omnidexer is None:
-            result.add_error("Omnidexer is not available")
+        if self.catalogue is None:
+            result.add_error("Catalogue is not available")
             return result
 
         # Check if content type is supported
         try:
-            self.omnidexer.find_all(self.content_type)
+            self.catalogue.find_all(self.content_type)
         except Exception as e:
-            result.add_error(f"Omnidexer error for {self.content_type}: {e}")
+            result.add_error(f"Catalogue error for {self.content_type}: {e}")
 
         return result
 
     def load(self) -> Any:  # type: ignore[override]
-        """Load content from the omnidexer."""
-        return self.omnidexer.find_all(self.content_type)
+        """Load content from the catalogue."""
+        return self.catalogue.find_all(self.content_type)
 
     def supports_streaming(self) -> bool:
-        """Omnidexer supports efficient access patterns."""
+        """Catalogue supports efficient access patterns."""
         return True
 
 
@@ -740,11 +740,11 @@ def create_file_source(
     return FileContentSource(file_path, content_type)
 
 
-def create_omnidexer_source(
-    omnidexer: Any, content_type: ContentType
-) -> OmnidexerContentSource:
-    """Factory function to create an omnidexer content source."""
-    return OmnidexerContentSource(omnidexer, content_type)
+def create_catalogue_source(
+    catalogue: Any, content_type: ContentType
+) -> CatalogueContentSource:
+    """Factory function to create a catalogue content source."""
+    return CatalogueContentSource(catalogue, content_type)
 
 
 def create_stdin_source(content_type: ContentType | None = None) -> StdinContentSource:

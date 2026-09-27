@@ -177,7 +177,7 @@ ignore = [
 "src/studiorum/cli/main.py" = ["B904", "PTH123"]
 "src/studiorum/data/error_types.py" = ["UP042"]
 "src/studiorum/data/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
-"src/studiorum/data/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
+"src/studiorum/data/catalogue.py" = ["B007", "PERF102", "S110", "SIM102"]
 "src/studiorum/log.py" = ["T201"]
 "src/studiorum/data/models/adventures.py" = ["PERF402", "SIM102"]
 "src/studiorum/data/models/books.py" = ["PERF402"]
@@ -370,18 +370,18 @@ name = "data sub-packages are acyclic"
 type = "acyclic_siblings"
 ancestors = ["studiorum.data"]
 ignore_imports = [
-    "studiorum.data.interfaces -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.interfaces -> studiorum.data.catalogue",
     "studiorum.data.interfaces -> studiorum.data.models.content",
-    "studiorum.data.models.adventures -> studiorum.data.loaders.omnidexer",
-    "studiorum.data.models.books -> studiorum.data.loaders.omnidexer",
-    "studiorum.data.models.creatures -> studiorum.data.loaders.omnidexer",
-    "studiorum.data.loaders.omnidexer -> studiorum.data.collectors.fluff_matcher",
+    "studiorum.data.models.adventures -> studiorum.data.catalogue",
+    "studiorum.data.models.books -> studiorum.data.catalogue",
+    "studiorum.data.models.creatures -> studiorum.data.catalogue",
+    "studiorum.data.catalogue -> studiorum.data.collectors.fluff_matcher",
     "studiorum.data.models.items -> studiorum.data.loaders.item_types",
-    "studiorum.data.references.content_reference_manager -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.references.content_reference_manager -> studiorum.data.catalogue",
     "studiorum.data.references.content_reference_manager -> studiorum.data.models.content",
-    "studiorum.data.references.spell_references -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.references.spell_references -> studiorum.data.catalogue",
     "studiorum.data.references.spell_references -> studiorum.data.models.content",
-    "studiorum.data.resolvers.content_resolver -> studiorum.data.loaders.omnidexer",
+    "studiorum.data.resolvers.content_resolver -> studiorum.data.catalogue",
     "studiorum.data.resolvers.content_resolver -> studiorum.data.collectors.item_collector",
     "studiorum.data.resolvers.content_resolver -> studiorum.data.collectors.spell_collector",
 ]

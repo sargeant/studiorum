@@ -662,7 +662,7 @@ class TestAbility:
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
-            omnidexer=get_services().omnidexer,
+            catalogue=get_services().catalogue,
             content_tracker=content_tracker,
         )
         processed_entries = EntryRenderer.from_context(rendering_context).entries(
@@ -692,7 +692,7 @@ class TestAbility:
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
-            omnidexer=get_services().omnidexer,
+            catalogue=get_services().catalogue,
             content_tracker=content_tracker,
         )
         processed_entries = EntryRenderer.from_context(rendering_context).entries(

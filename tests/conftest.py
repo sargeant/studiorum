@@ -15,8 +15,8 @@ os.environ["STUDIORUM_CONFIG_FILE"] = str(Path(__file__).parent / "test-config.y
 
 import pytest
 
+from studiorum.data.catalogue import Catalogue  # type: ignore
 from studiorum.data.loaders.data_dir import DataDir, DataSet
-from studiorum.data.loaders.omnidexer import Omnidexer  # type: ignore
 from studiorum.data.models.creatures import Creature  # type: ignore
 from studiorum.data.models.spells import Spell  # type: ignore
 
@@ -228,10 +228,10 @@ def make_temp_data_dir(tmp_path: Path):
 
 
 @pytest.fixture
-def loaded_omnidexer(
+def loaded_catalogue(
     temp_data_dir: Any, sample_spell_data: Any, sample_creature_data: Any
-) -> Omnidexer:
-    """Create an omnidexer with loaded test data."""
+) -> Catalogue:
+    """Create a catalogue with loaded test data."""
     import json
 
     # Use full reset sequence for complete isolation
@@ -248,21 +248,21 @@ def loaded_omnidexer(
     creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
 
-    omnidexer = Omnidexer(DataSet((DataDir(temp_data_dir),)))
-    omnidexer.load_all_data()
+    catalogue = Catalogue(DataSet((DataDir(temp_data_dir),)))
+    catalogue.load_all_data()
 
-    return omnidexer
+    return catalogue
 
 
 @pytest.fixture
-def make_omnidexer():
-    """Factory for creating omnidexers with custom data and configurations."""
+def make_catalogue():
+    """Factory for creating catalogues with custom data and configurations."""
 
-    def _make_omnidexer(
+    def _make_catalogue(
         temp_data_dir: Path = None,
         spell_data: list[dict[str, Any]] = None,
         creature_data: list[dict[str, Any]] = None,
-    ) -> Omnidexer:
+    ) -> Catalogue:
         import json
 
         if temp_data_dir is None:
@@ -280,49 +280,49 @@ def make_omnidexer():
             creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
             creature_file.write_text(json.dumps({"monster": creature_data}))
 
-        omnidexer = Omnidexer(DataSet((DataDir(temp_data_dir),)))
-        omnidexer.load_all_data()
+        catalogue = Catalogue(DataSet((DataDir(temp_data_dir),)))
+        catalogue.load_all_data()
 
-        return omnidexer
+        return catalogue
 
-    return _make_omnidexer
+    return _make_catalogue
 
 
 @pytest.fixture
-def test_data_omnidexer() -> Omnidexer:
-    """Omnidexer using test-data and srd-data sources."""
+def test_data_catalogue() -> Catalogue:
+    """Catalogue using test-data and srd-data sources."""
 
     reset_test_environment()
 
-    # Get omnidexer - create directly for test compatibility
-    omnidexer = Omnidexer()
-    omnidexer.load_all_data()
+    # Get catalogue - create directly for test compatibility
+    catalogue = Catalogue()
+    catalogue.load_all_data()
 
     # NOTE: There is a known issue where books fail to load in test environment
     # due to complex global state corruption. This affects multiple test files.
     # The container loads adventures correctly but books fail to load.
-    # This needs deeper investigation but is documented in private/omnidexer-dup.md
+    # This needs deeper investigation but is documented in private/catalogue-dup.md
 
     # NOTE: Book loading issue was resolved as of 2025-08-19
     # The environmental issue that prevented books from loading in the test
-    # environment appears to have been fixed. See private/omnidexer-dup.md
+    # environment appears to have been fixed. See private/catalogue-dup.md
     # for the full investigation history. The workaround has been removed.
 
-    return omnidexer
+    return catalogue
 
 
 @pytest.fixture
-def content_availability(test_data_omnidexer: Omnidexer) -> dict[str, bool]:
+def content_availability(test_data_catalogue: Catalogue) -> dict[str, bool]:
     """Check what content types are available for testing."""
     return {
-        "adventures": len(test_data_omnidexer.get_all_by_type("adventure")) > 0,
-        "books": len(test_data_omnidexer.get_all_by_type("book")) > 0,
-        "vehicles": len(test_data_omnidexer.get_all_by_type("vehicle")) > 0,
-        "spells": len(test_data_omnidexer.get_all_by_type("spell")) > 0,
-        "creatures": len(test_data_omnidexer.get_all_by_type("monster")) > 0,
-        "items": len(test_data_omnidexer.get_all_by_type("item")) > 0,
-        "classes": len(test_data_omnidexer.get_all_by_type("class")) > 0,
-        "backgrounds": len(test_data_omnidexer.get_all_by_type("background")) > 0,
-        "races": len(test_data_omnidexer.get_all_by_type("race")) > 0,
-        "feats": len(test_data_omnidexer.get_all_by_type("feat")) > 0,
+        "adventures": len(test_data_catalogue.get_all_by_type("adventure")) > 0,
+        "books": len(test_data_catalogue.get_all_by_type("book")) > 0,
+        "vehicles": len(test_data_catalogue.get_all_by_type("vehicle")) > 0,
+        "spells": len(test_data_catalogue.get_all_by_type("spell")) > 0,
+        "creatures": len(test_data_catalogue.get_all_by_type("monster")) > 0,
+        "items": len(test_data_catalogue.get_all_by_type("item")) > 0,
+        "classes": len(test_data_catalogue.get_all_by_type("class")) > 0,
+        "backgrounds": len(test_data_catalogue.get_all_by_type("background")) > 0,
+        "races": len(test_data_catalogue.get_all_by_type("race")) > 0,
+        "feats": len(test_data_catalogue.get_all_by_type("feat")) > 0,
     }

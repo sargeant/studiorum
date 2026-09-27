@@ -15,10 +15,10 @@ import pytest
 from studiorum.data.resolvers.content_resolver import ContentResolver
 
 
-def load_all_data_sync(omnidexer):
-    """Synchronous wrapper for omnidexer.load_all_data() for testing."""
+def load_all_data_sync(catalogue):
+    """Synchronous wrapper for catalogue.load_all_data() for testing."""
 
-    return omnidexer.load_all_data()
+    return catalogue.load_all_data()
 
 
 def resolve_book_sync(resolver, book_id):
@@ -207,12 +207,12 @@ class TestBookConversion:
                 f"Test book conversion took too long: {conversion_time:.2f}s"
             )
 
-    def test_book_omnidexer_loading(self, test_data_omnidexer):
-        """Verify omnidexer loads books correctly."""
-        omnidexer = test_data_omnidexer
+    def test_book_catalogue_loading(self, test_data_catalogue):
+        """Verify catalogue loads books correctly."""
+        catalogue = test_data_catalogue
 
         # Get book count
-        books = omnidexer.get_all_by_type("book")
+        books = catalogue.get_all_by_type("book")
 
         # Should have books loaded
         assert len(books) > 0, f"Expected books to be loaded, got {len(books)}"
@@ -235,11 +235,11 @@ class TestBookConversion:
             f"Unexpected test source: {test_metadata.source}"
         )
 
-    def test_book_content_resolver_enrichment(self, test_data_omnidexer):
+    def test_book_content_resolver_enrichment(self, test_data_catalogue):
         """Test that ContentResolver properly enriches books with content."""
-        omnidexer = test_data_omnidexer
+        catalogue = test_data_catalogue
 
-        resolver = ContentResolver(omnidexer)
+        resolver = ContentResolver(catalogue)
 
         # Resolve test book
         resolution_result = resolve_book_sync(resolver, "test")
@@ -269,11 +269,11 @@ class TestBookConversion:
             "Test book should have sections with content (found empty sections)"
         )
 
-    def test_book_content_loading_caching(self, test_data_omnidexer):
+    def test_book_content_loading_caching(self, test_data_catalogue):
         """Test that book content loading uses caching effectively."""
-        omnidexer = test_data_omnidexer
+        catalogue = test_data_catalogue
 
-        resolver = ContentResolver(omnidexer)
+        resolver = ContentResolver(catalogue)
 
         # Resolve the same book twice
         resolution_result1 = resolve_book_sync(resolver, "test")
@@ -539,16 +539,16 @@ class TestBookConversion:
             f"Excessive memory usage for test book: {memory_increase:.2f} MB increase"
         )
 
-    def test_book_vs_adventure_consistency(self, test_data_omnidexer):
+    def test_book_vs_adventure_consistency(self, test_data_catalogue):
         """Test that books and adventures follow the same architectural patterns."""
         # This test ensures both content types work through the same dual-file architecture
-        omnidexer = test_data_omnidexer
+        catalogue = test_data_catalogue
 
         def check_content_type(content_type, item_id, expected_name_substring):
-            resolver = ContentResolver(omnidexer)
+            resolver = ContentResolver(catalogue)
 
             # Get all items of this type
-            all_items = omnidexer.get_all_by_type(content_type)
+            all_items = catalogue.get_all_by_type(content_type)
             assert len(all_items) > 0, f"Should have {content_type}s loaded"
 
             # Resolve specific item

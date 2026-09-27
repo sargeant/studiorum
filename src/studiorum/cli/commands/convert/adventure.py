@@ -216,7 +216,7 @@ def rendering_context(
     """The context an adventure or book renders its entries with."""
     return RenderingContext(
         content_tracker=tracker,
-        omnidexer=get_services().omnidexer,
+        catalogue=get_services().catalogue,
         style=Style(
             book=True,
             images=options.images,

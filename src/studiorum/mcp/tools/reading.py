@@ -173,11 +173,11 @@ def _own(node: Node) -> Node:
 
 
 def _publication(services: Services, wanted: str) -> Adventure | Book:
-    omnidexer = services.omnidexer
+    catalogue = services.catalogue
     found = [
         p
         for ctype in (ContentType.ADVENTURE, ContentType.BOOK)
-        for p in omnidexer.get_all_by_type(ctype)
+        for p in catalogue.get_all_by_type(ctype)
         if isinstance(p, Adventure | Book)
     ]
     key = wanted.lower()
@@ -185,7 +185,7 @@ def _publication(services: Services, wanted: str) -> Adventure | Book:
     for field in (_pub_id, lambda p: p.name, lambda p: p.source.abbreviation):
         for p in found:
             if field(p).lower() == key:
-                hydrated = omnidexer.hydrate(p)
+                hydrated = catalogue.hydrate(p)
                 return hydrated if isinstance(hydrated, Adventure | Book) else p
     raise not_found(
         "book or adventure",

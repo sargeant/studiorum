@@ -100,13 +100,13 @@ class TestCreatureLaTeXRendering:
             ],
         }
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_creature_stat_block_latex_generation(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_creature_stat_block_latex_generation(self, mock_get_catalogue):
         """Test LaTeX generation for creature stat blocks."""
         # Setup mocks
 
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Create creature model
         creature = Creature.model_validate(self.test_creature_data)
@@ -119,12 +119,12 @@ class TestCreatureLaTeXRendering:
         assert "Large dragon (chromatic)" in creature.get_size_type_alignment()
         assert "chaotic evil" in creature.get_size_type_alignment()
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_creature_abilities_latex_processing(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_creature_abilities_latex_processing(self, mock_get_catalogue):
         """Test LaTeX processing of creature abilities with 5etools markup."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         creature = Creature.model_validate(self.test_creature_data)
 
@@ -139,7 +139,7 @@ class TestCreatureLaTeXRendering:
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
-            omnidexer=get_services().omnidexer,
+            catalogue=get_services().catalogue,
             content_tracker=content_tracker,
         )
         processed_entries = EntryRenderer.from_context(rendering_context).entries(
@@ -162,7 +162,7 @@ class TestCreatureLaTeXRendering:
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
-            omnidexer=get_services().omnidexer,
+            catalogue=get_services().catalogue,
             content_tracker=content_tracker,
         )
 
@@ -261,12 +261,12 @@ class TestCreatureLaTeXRendering:
             else spellcasting_data.get("headerEntries", [""])[0]
         )
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_creature_complex_markup_integration(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_creature_complex_markup_integration(self, mock_get_catalogue):
         """Test integration of complex 5etools markup processing."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         creature = Creature.model_validate(self.test_creature_data)
 
@@ -282,7 +282,7 @@ class TestCreatureLaTeXRendering:
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
-            omnidexer=get_services().omnidexer,
+            catalogue=get_services().catalogue,
             content_tracker=content_tracker,
         )
 
@@ -420,12 +420,12 @@ class TestCreatureRenderingParityPhase3:
     5. Empty sections handling
     """
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_named_creature_pronouns_and_headers(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_named_creature_pronouns_and_headers(self, mock_get_catalogue):
         """Test that named creatures use 'they/them/their' and no 'the' prefix."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         named_creature_data = {
             "name": "Strahd von Zarovich",
@@ -482,12 +482,12 @@ class TestCreatureRenderingParityPhase3:
         assert "their turn" in header_text  # Named creature uses "their"
         assert "its turn" not in header_text  # Should not use generic pronoun
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_generic_creature_pronouns_and_headers(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_generic_creature_pronouns_and_headers(self, mock_get_catalogue):
         """Test that generic creatures use 'it/its/its' and 'the' prefix."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         generic_creature_data = {
             "name": "Ancient Red Dragon",
@@ -541,12 +541,12 @@ class TestCreatureRenderingParityPhase3:
         assert "its turn" in header_text  # Generic creature uses "its"
         assert "their turn" not in header_text  # Should not use named creature pronoun
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_lair_variant_parenthetical(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_lair_variant_parenthetical(self, mock_get_catalogue):
         """Test lair variant parenthetical when counts differ."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         lair_dragon_data = {
             "name": "Lair Dragon",
@@ -591,12 +591,12 @@ class TestCreatureRenderingParityPhase3:
             in header_text
         )
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_structured_headers_rendering(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_structured_headers_rendering(self, mock_get_catalogue):
         """Test structured headers (dict/tag content) render via smart_render_entry."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         structured_header_data = {
             "name": "Structured Header Creature",
@@ -645,12 +645,12 @@ class TestCreatureRenderingParityPhase3:
             "@spell fireball" in structured_entry.entries[0]
         )  # Should contain markup for processing
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_empty_sections_handling(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_empty_sections_handling(self, mock_get_catalogue):
         """Test sections omitted when both entries and spells are empty."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         minimal_creature_data = {
             "name": "Minimal Creature",
@@ -689,12 +689,12 @@ class TestCreatureRenderingParityPhase3:
         assert creature.get_section_header("legendary") is None
         assert creature.get_section_header("reaction") is None
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_integration_rendering_pipeline_with_new_helpers(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_integration_rendering_pipeline_with_new_helpers(self, mock_get_catalogue):
         """Test that new helpers integrate properly with the rendering pipeline."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         pipeline_test_data = {
             "name": "Pipeline Test Dragon",

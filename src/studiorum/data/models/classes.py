@@ -225,7 +225,7 @@ class Class(BaseContent):
 
         return self
 
-    def get_deep_index_entries(self, omnidexer: Any) -> list[BaseContent]:
+    def get_deep_index_entries(self, catalogue: Any) -> list[BaseContent]:
         """Return class features and subclass features for deep indexing."""
 
         nested_content: list[BaseContent] = []

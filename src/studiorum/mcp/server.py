@@ -41,7 +41,7 @@ options = ServerOptions()
 @asynccontextmanager
 async def lifespan(server: FastMCP[Any]) -> AsyncIterator[dict[str, Any]]:
     services = build_services(get_app_config())
-    services.omnidexer  # noqa: B018 - load before the first call, not during it
+    services.catalogue  # noqa: B018 - load before the first call, not during it
     yield {"services": services, "srd_only": not options.all_content}
 
 

@@ -143,15 +143,15 @@ class TestCreatureCollector:
     def setup_method(self):
         """Set up test fixtures."""
 
-        # Create mock omnidexer
-        self.mock_omnidexer = Mock()
-        self.collector = CreatureCollector(self.mock_omnidexer)
+        # Create mock catalogue
+        self.mock_catalogue = Mock()
+        self.collector = CreatureCollector(self.mock_catalogue)
 
         # Create test creature data
         self.test_creatures = self._create_test_creature_data()
 
         # Set up common mock methods
-        self._setup_omnidexer_mocks()
+        self._setup_catalogue_mocks()
 
     def _create_test_creature_data(self) -> list[Creature]:
         """Create test creature data for filtering tests."""
@@ -245,9 +245,9 @@ class TestCreatureCollector:
 
         return [Creature.model_validate(data) for data in creatures_data]
 
-    def _setup_omnidexer_mocks(self):
-        """Set up common omnidexer mock methods."""
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+    def _setup_catalogue_mocks(self):
+        """Set up common catalogue mock methods."""
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         # Mock find_all to return matching creatures based on name
         def mock_find_all(content_type, name):
@@ -255,7 +255,7 @@ class TestCreatureCollector:
                 creature for creature in self.test_creatures if creature.name == name
             ]
 
-        self.mock_omnidexer.find_all.side_effect = mock_find_all
+        self.mock_catalogue.find_all.side_effect = mock_find_all
 
         # Mock get_all_by_source to return creatures filtered by source
         def mock_get_all_by_source(source):
@@ -265,7 +265,7 @@ class TestCreatureCollector:
                 if hasattr(creature, "source") and creature.source == source
             ]
 
-        self.mock_omnidexer.get_all_by_source.side_effect = mock_get_all_by_source
+        self.mock_catalogue.get_all_by_source.side_effect = mock_get_all_by_source
 
     def test_collect_by_names_only(self):
         """Test collection by creature names only."""
@@ -278,7 +278,7 @@ class TestCreatureCollector:
 
     def test_collect_by_cr_range(self):
         """Test collection by challenge rating range."""
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         criteria = CreatureFilterCriteria(min_cr=0.25, max_cr=1.0)  # 1/4 to 1
         result = self.collector.collect_creatures(criteria)
@@ -287,7 +287,7 @@ class TestCreatureCollector:
 
     def test_collect_by_creature_type(self):
         """Test collection by creature type."""
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         criteria = CreatureFilterCriteria(creature_types=["humanoid"])
         result = self.collector.collect_creatures(criteria)
@@ -296,7 +296,7 @@ class TestCreatureCollector:
 
     def test_collect_by_size(self):
         """Test collection by creature size."""
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         criteria = CreatureFilterCriteria(sizes=["M", "L"])
         result = self.collector.collect_creatures(criteria)
@@ -305,7 +305,7 @@ class TestCreatureCollector:
 
     def test_collect_by_source(self):
         """Test collection by source book."""
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         criteria = CreatureFilterCriteria(sources=["MM"])
         result = self.collector.collect_creatures(criteria)
@@ -314,7 +314,7 @@ class TestCreatureCollector:
 
     def test_collect_with_complex_criteria(self):
         """Test collection with multiple filtering criteria."""
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         criteria = CreatureFilterCriteria(
             min_cr=0.25,
@@ -329,7 +329,7 @@ class TestCreatureCollector:
 
     def test_collect_with_empty_results(self):
         """Test collection when no creatures match criteria."""
-        self.mock_omnidexer.get_all_by_type.return_value = []
+        self.mock_catalogue.get_all_by_type.return_value = []
 
         criteria = CreatureFilterCriteria(creature_names=["Nonexistent Creature"])
         result = self.collector.collect_creatures(criteria)
@@ -339,7 +339,7 @@ class TestCreatureCollector:
 
     def test_collect_with_sorting(self):
         """Test collection with different sorting options."""
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         sort_modes = [
             CreatureSortMode.CR,
@@ -355,21 +355,21 @@ class TestCreatureCollector:
             result = self.collector.collect_creatures(criteria)
             assert isinstance(result, CreatureCollectionResult)
 
-    def test_omnidexer_integration(self):
-        """Test integration with omnidexer service."""
-        # Test that collector properly calls omnidexer methods
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_creatures
+    def test_catalogue_integration(self):
+        """Test integration with catalogue service."""
+        # Test that collector properly calls catalogue methods
+        self.mock_catalogue.get_all_by_type.return_value = self.test_creatures
 
         criteria = CreatureFilterCriteria(creature_types=["humanoid"])
         self.collector.collect_creatures(criteria)
 
-        # Should call omnidexer to get creatures
-        self.mock_omnidexer.get_all_by_type.assert_called()
+        # Should call catalogue to get creatures
+        self.mock_catalogue.get_all_by_type.assert_called()
 
     def test_error_handling(self):
         """Test error handling in collection process."""
-        # Test with omnidexer that raises exception
-        self.mock_omnidexer.get_all_by_type.side_effect = RuntimeError("Test error")
+        # Test with catalogue that raises exception
+        self.mock_catalogue.get_all_by_type.side_effect = RuntimeError("Test error")
 
         criteria = CreatureFilterCriteria(min_cr=1.0, max_cr=5.0)
 
@@ -510,8 +510,8 @@ class TestCreatureFilteringIntegration:
 
         # Create comprehensive test dataset
         self.test_dataset = self._create_comprehensive_dataset()
-        self.mock_omnidexer = Mock()
-        self.mock_omnidexer.get_all_by_type.return_value = self.test_dataset
+        self.mock_catalogue = Mock()
+        self.mock_catalogue.get_all_by_type.return_value = self.test_dataset
 
         # Set up additional mock methods for proper functionality
         def mock_get_all_by_source(source):
@@ -521,14 +521,14 @@ class TestCreatureFilteringIntegration:
                 if hasattr(creature, "source") and creature.source == source
             ]
 
-        self.mock_omnidexer.get_all_by_source.side_effect = mock_get_all_by_source
+        self.mock_catalogue.get_all_by_source.side_effect = mock_get_all_by_source
 
         def mock_find_all(content_type, name):
             return [creature for creature in self.test_dataset if creature.name == name]
 
-        self.mock_omnidexer.find_all.side_effect = mock_find_all
+        self.mock_catalogue.find_all.side_effect = mock_find_all
 
-        self.collector = CreatureCollector(self.mock_omnidexer)
+        self.collector = CreatureCollector(self.mock_catalogue)
 
     def _create_comprehensive_dataset(self) -> list[Creature]:
         """Create a comprehensive dataset for integration testing."""

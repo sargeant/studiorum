@@ -47,7 +47,7 @@ from studiorum.data.type_lines import (
 )
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
     from studiorum.data.models.content import BaseContent
 
 type Raw = dict[str, Any]
@@ -64,19 +64,19 @@ _TABLE_PROPS = (
 )
 
 
-def compact_entries(content: BaseContent, omnidexer: Omnidexer | None) -> list[Any]:
+def compact_entries(content: BaseContent, catalogue: Catalogue | None) -> list[Any]:
     """The entries to render for ``content`` in place of a statblock."""
     for kind, build in _BUILDERS:
         if isinstance(content, kind):
-            return build(content, omnidexer)
+            return build(content, catalogue)
     return list(content.model_dump().get("entries") or [])
 
 
 def compact_parts(
-    content: BaseContent, omnidexer: Omnidexer | None
+    content: BaseContent, catalogue: Catalogue | None
 ) -> tuple[list[str], list[Any]]:
     """``compact_entries`` split into the lines set flush above the rest, if any."""
-    entries = compact_entries(content, omnidexer)
+    entries = compact_entries(content, catalogue)
     for kind, lines in _LINES:
         if isinstance(content, kind):
             head = lines(content)
@@ -89,12 +89,12 @@ def compact_heading(content: BaseContent, name: str) -> str:
     return deity_heading(content, name) if isinstance(content, Deity) else name
 
 
-def _table(table: Table, _: Omnidexer | None) -> list[Any]:
+def _table(table: Table, _: Catalogue | None) -> list[Any]:
     data = table.model_dump(by_alias=True, exclude_none=True)
     return [*(table.intro or []), _table_entry(data, table.name), *(table.outro or [])]
 
 
-def _table_group(group: TableGroup, _: Omnidexer | None) -> list[Any]:
+def _table_group(group: TableGroup, _: Catalogue | None) -> list[Any]:
     return [_table_entry(t, group.name) for t in group.tables]
 
 
@@ -106,7 +106,7 @@ def _table_entry(data: Raw, name: str) -> Raw:
     return entry
 
 
-def _recipe(recipe: Recipe, _: Omnidexer | None) -> list[Any]:
+def _recipe(recipe: Recipe, _: Catalogue | None) -> list[Any]:
     """Recipe.getBodyHtml: servings, ingredients and equipment, notes, instructions."""
     data = recipe.model_dump(by_alias=True, exclude_none=True)
     out: list[Any] = []
@@ -147,7 +147,7 @@ def _listed(items: list[Any]) -> list[Any]:
 
 
 _BUILDERS: tuple[
-    tuple[type[Any], Callable[[Any, Omnidexer | None], list[Any]]], ...
+    tuple[type[Any], Callable[[Any, Catalogue | None], list[Any]]], ...
 ] = (
     (Table, _table),
     (TableGroup, _table_group),

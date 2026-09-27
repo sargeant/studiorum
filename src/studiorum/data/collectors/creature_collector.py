@@ -3,7 +3,7 @@
 import difflib
 from typing import Any
 
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.creature_filters import (
     CreatureCollectionResult,
@@ -24,13 +24,13 @@ class CreatureCollector:
     filtering capabilities.
     """
 
-    def __init__(self, omnidexer: Omnidexer):
-        """Initialize the creature collector with an omnidexer instance.
+    def __init__(self, catalogue: Catalogue):
+        """Initialize the creature collector with a catalogue instance.
 
         Args:
-            omnidexer: The omnidexer instance for content lookup
+            catalogue: The catalogue instance for content lookup
         """
-        self.omnidexer = omnidexer
+        self.catalogue = catalogue
 
     def collect_creatures(
         self, criteria: CreatureFilterCriteria
@@ -79,8 +79,8 @@ class CreatureCollector:
 
                 # Get all creatures first, then filter by source case-insensitively
                 # This fixes the case sensitivity mismatch where criteria.sources are normalized to uppercase
-                # but omnidexer sources maintain their original case
-                all_content = self.omnidexer.get_all_by_type(creature_type)
+                # but catalogue sources maintain their original case
+                all_content = self.catalogue.get_all_by_type(creature_type)
                 for creature in all_content:
                     if isinstance(creature, Creature) and self._matches_sources(
                         creature, criteria.sources
@@ -89,7 +89,7 @@ class CreatureCollector:
             else:
                 # Get all creatures from all sources
                 creature_type = ContentType("creature")
-                all_content = self.omnidexer.get_all_by_type(creature_type)
+                all_content = self.catalogue.get_all_by_type(creature_type)
                 all_creatures = [
                     creature
                     for creature in all_content
@@ -97,7 +97,7 @@ class CreatureCollector:
                 ]
 
             if not all_creatures:
-                logger.warning("No creatures found in omnidexer")
+                logger.warning("No creatures found in catalogue")
                 return result
 
             logger.debug(f"Filtering {len(all_creatures)} creatures with criteria")
@@ -206,7 +206,7 @@ class CreatureCollector:
             # Try exact match with specific source if available
             if specific_source:
                 # Use find() with specific source for targeted lookup
-                creature = self.omnidexer.find(creature_type, name, specific_source)
+                creature = self.catalogue.find(creature_type, name, specific_source)
                 if creature and isinstance(creature, Creature):
                     source_abbrev = None
                     if hasattr(creature.source, "abbreviation"):
@@ -224,7 +224,7 @@ class CreatureCollector:
                 # or the configured defaults). Only one creature is added per
                 # name to avoid duplicate statblocks when the same creature
                 # appears in multiple enabled sources (e.g. MM and XMM).
-                matches = self.omnidexer.find_all(creature_type, name)
+                matches = self.catalogue.find_all(creature_type, name)
 
                 if matches:
                     creature_matches = [
@@ -880,12 +880,12 @@ class CreatureCollector:
         if sources:
             all_creatures = []
             for source in sources:
-                source_creatures = self.omnidexer.get_all_by_source(source)
+                source_creatures = self.catalogue.get_all_by_source(source)
                 for creature in source_creatures:
                     if isinstance(creature, Creature):
                         all_creatures.append(creature)
         else:
-            all_content = self.omnidexer.get_all_by_type(creature_type)
+            all_content = self.catalogue.get_all_by_type(creature_type)
             all_creatures = [
                 creature for creature in all_content if isinstance(creature, Creature)
             ]
@@ -911,7 +911,7 @@ class CreatureCollector:
             List of creature types
         """
         creature_type = ContentType("creature")
-        all_creatures = self.omnidexer.get_all_by_type(creature_type)
+        all_creatures = self.catalogue.get_all_by_type(creature_type)
 
         if not all_creatures:
             return []
@@ -934,7 +934,7 @@ class CreatureCollector:
             Dictionary with creature statistics
         """
         creature_type = ContentType("creature")
-        all_creatures = self.omnidexer.get_all_by_type(creature_type)
+        all_creatures = self.catalogue.get_all_by_type(creature_type)
 
         if not all_creatures:
             return {"total": 0}
@@ -980,7 +980,7 @@ class CreatureCollector:
 
         # Get all legendary groups
         try:
-            legendary_groups = self.omnidexer.get_all_by_type(
+            legendary_groups = self.catalogue.get_all_by_type(
                 ContentType.LEGENDARYGROUP
             )
         except Exception as e:

@@ -9,7 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 
 
 @pytest.mark.cli
@@ -21,12 +21,12 @@ class TestErrorHandlingPaths:
 
         self.runner = CliRunner()
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_json_decode_error(self, mock_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_json_decode_error(self, mock_catalogue):
         """Test handling of invalid JSON files."""
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Create temporary file with invalid JSON (use real file instead of mocking)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -44,11 +44,11 @@ class TestErrorHandlingPaths:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("builtins.open")
     def test_renderer_exception(
-        self, mock_builtin_open, mock_engine_factory, mock_omnidexer
+        self, mock_builtin_open, mock_engine_factory, mock_catalogue
     ):
         """Test handling of renderer exceptions."""
         # Mock file operations
@@ -72,8 +72,8 @@ class TestErrorHandlingPaths:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Mock engine to raise exception
         mock_engine_factory.side_effect = Exception("Renderer error")
@@ -104,8 +104,8 @@ class TestSpecialCases:
 
         self.runner = CliRunner()
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.load_omnidexer")
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.load_catalogue")
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
@@ -117,8 +117,8 @@ class TestSpecialCases:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_shared_omnidexer,
-        mock_omnidexer,
+        mock_shared_catalogue,
+        mock_catalogue,
     ):
         """Test PHB abbreviation fallback to content resolver."""
         # Mock book data for file loading
@@ -138,13 +138,13 @@ class TestSpecialCases:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies - use proper mocks instead of real instances
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_catalogue_instance = Mock(spec=Catalogue)
         # Add the missing source_manager attribute
-        mock_omnidexer_instance.source_manager = Mock()
-        mock_omnidexer_instance.get_all_by_type.return_value = []  # Return empty list for any content type
-        mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_shared_omnidexer.return_value = (
-            mock_omnidexer_instance  # Use same mock instance
+        mock_catalogue_instance.source_manager = Mock()
+        mock_catalogue_instance.get_all_by_type.return_value = []  # Return empty list for any content type
+        mock_catalogue.return_value = mock_catalogue_instance
+        mock_shared_catalogue.return_value = (
+            mock_catalogue_instance  # Use same mock instance
         )
 
         # Mock LaTeX engine

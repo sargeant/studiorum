@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.loaders.data_dir import DataDir, DataSet
-from studiorum.data.loaders.omnidexer import Omnidexer
 from studiorum.data.loaders.subraces import merge, subrace_name
 from studiorum.data.models.content import ContentType
 
@@ -115,12 +115,12 @@ def test_the_loader_adds_merged_subraces_as_races(tmp_path: Path) -> None:
     (tmp_path / "races.json").write_text(
         json.dumps({"race": [HALF_ELF], "subrace": [MARK]})
     )
-    omnidexer = Omnidexer(DataSet((DataDir(tmp_path),)))
-    omnidexer.load_all_data()
+    catalogue = Catalogue(DataSet((DataDir(tmp_path),)))
+    catalogue.load_all_data()
 
-    found = omnidexer.find(
+    found = catalogue.find(
         ContentType.RACE, "Half-Elf (Variant; Mark of Detection)", "ERLW"
     )
 
     assert found is not None
-    assert omnidexer.find(ContentType.RACE, "Half-Elf", "PHB") is not None
+    assert catalogue.find(ContentType.RACE, "Half-Elf", "PHB") is not None

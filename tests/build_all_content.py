@@ -59,7 +59,7 @@ from pathlib import Path
 from typing import Any
 
 from studiorum.cli.commands.convert import resolve_content_or_file
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.render.context import RenderingContext, Style
@@ -174,10 +174,10 @@ class ContentBuilder:
             # Create a simple render context (minimal requirements)
             from studiorum.cli.context import get_services
 
-            omnidexer = get_services().omnidexer
+            catalogue = get_services().catalogue
 
             context = RenderingContext(
-                omnidexer=omnidexer, style=Style(images=not self.no_images)
+                catalogue=catalogue, style=Style(images=not self.no_images)
             )
             metadata = DocumentMetadata(
                 title=content_name,
@@ -372,14 +372,14 @@ def main():
     try:
         # Load all content
         if not args.summary_only:
-            print("Loading content from omnidexer...")
+            print("Loading content from catalogue...")
 
-        omnidexer = Omnidexer()
-        omnidexer.load_all_data()
+        catalogue = Catalogue()
+        catalogue.load_all_data()
 
         # Get content lists
-        adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+        adventures = catalogue.get_all_by_type(ContentType.ADVENTURE)
+        books = catalogue.get_all_by_type(ContentType.BOOK)
 
         # Filter out test content
         adventures = [

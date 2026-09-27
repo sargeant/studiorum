@@ -10,7 +10,7 @@ from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.log import get_logger
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
     from studiorum.data.models.item_filters import ItemFilterCriteria
     from studiorum.data.models.spell_filters import SpellFilterCriteria
 
@@ -97,10 +97,10 @@ class ContentResolutionResult(BaseModel):
 
 
 class ContentResolver:
-    """Resolves user abbreviations to content objects using omnidexer."""
+    """Resolves user abbreviations to content objects using catalogue."""
 
-    def __init__(self, omnidexer: "Omnidexer") -> None:
-        self.omnidexer = omnidexer
+    def __init__(self, catalogue: "Catalogue") -> None:
+        self.catalogue = catalogue
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to an adventure.
@@ -236,7 +236,7 @@ class ContentResolver:
             List of suggested abbreviations
         """
         # Protocol guarantees this method exists
-        all_content = self.omnidexer.get_all_by_type(content_type)
+        all_content = self.catalogue.get_all_by_type(content_type)
         if not all_content:
             return []
 
@@ -278,7 +278,7 @@ class ContentResolver:
 
         # Get all content of this type
         # Protocol guarantees this method exists
-        all_content = self.omnidexer.get_all_by_type(content_type)
+        all_content = self.catalogue.get_all_by_type(content_type)
         if not all_content:
             return ContentResolutionResult(
                 status=ResolutionStatus.NO_MATCH, query=abbreviation
@@ -324,19 +324,19 @@ class ContentResolver:
             )
 
         # Try fuzzy search by name if no exact abbreviation match
-        if hasattr(self.omnidexer, "search") and hasattr(
-            self.omnidexer, "get_all_by_type"
+        if hasattr(self.catalogue, "search") and hasattr(
+            self.catalogue, "get_all_by_type"
         ):
             # Cast to concrete type for extended search interface
-            from studiorum.data.loaders.omnidexer import Omnidexer
+            from studiorum.data.catalogue import Catalogue
 
-            concrete_omnidexer = cast(Omnidexer, self.omnidexer)
-            search_results = concrete_omnidexer.search(
+            concrete_catalogue = cast(Catalogue, self.catalogue)
+            search_results = concrete_catalogue.search(
                 abbreviation, content_type, limit=10
             )
         else:
             # Fallback to protocol interface
-            protocol_results = self.omnidexer.search(abbreviation)
+            protocol_results = self.catalogue.search(abbreviation)
             search_results = cast(list[BaseContent], protocol_results)[:10]
         if search_results:
             # Check if any search result has a source abbreviation that closely matches
@@ -457,7 +457,7 @@ class ContentResolver:
         """Adventures and books with their text merged in; other content unchanged."""
         if content_type not in (ContentType.ADVENTURE, ContentType.BOOK):
             return content
-        return self.omnidexer.hydrate(content)
+        return self.catalogue.hydrate(content)
 
     def resolve_spells_by_names(self, names: list[str]) -> SpellResolutionResult:
         """Resolve multiple spells by name with fuzzy matching.
@@ -473,7 +473,7 @@ class ContentResolver:
 
         for name in names:
             # Try exact match first - protocol guarantees this method exists
-            matches = self.omnidexer.find_all(spell_type, name)
+            matches = self.catalogue.find_all(spell_type, name)
 
             if matches:
                 # Add all exact matches
@@ -509,7 +509,7 @@ class ContentResolver:
         # Import here to avoid circular imports
         from studiorum.data.collectors.spell_collector import SpellCollector
 
-        collector = SpellCollector(cast("Omnidexer", self.omnidexer))
+        collector = SpellCollector(cast("Catalogue", self.catalogue))
         result = collector.collect_spells(criteria)
 
         return result.spells
@@ -525,7 +525,7 @@ class ContentResolver:
         """
         spell_type = ContentType("spell")
         # Protocol guarantees this method exists
-        all_spells = self.omnidexer.get_all_by_type(spell_type)
+        all_spells = self.catalogue.get_all_by_type(spell_type)
 
         if not all_spells:
             return []
@@ -554,7 +554,7 @@ class ContentResolver:
 
         for name in names:
             # Try exact match first - protocol guarantees this method exists
-            matches = self.omnidexer.find_all(item_type, name)
+            matches = self.catalogue.find_all(item_type, name)
 
             if matches and len(matches) == 1:
                 results.append(
@@ -599,7 +599,7 @@ class ContentResolver:
         # Import here to avoid circular imports
         from studiorum.data.collectors.item_collector import ItemCollector
 
-        collector = ItemCollector(cast("Omnidexer", self.omnidexer))
+        collector = ItemCollector(cast("Catalogue", self.catalogue))
         result = collector.collect_items(criteria)
 
         return result.items
@@ -615,7 +615,7 @@ class ContentResolver:
         """
         item_type = ContentType("item")
         # Protocol guarantees this method exists
-        all_items = self.omnidexer.get_all_by_type(item_type)
+        all_items = self.catalogue.get_all_by_type(item_type)
 
         if not all_items:
             return []

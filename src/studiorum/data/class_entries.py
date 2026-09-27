@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 from studiorum.data.models.content import ContentType
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
     from studiorum.data.models.classes import Class
     from studiorum.data.models.subclasses import Subclass
 
@@ -35,11 +35,11 @@ _FEATURE_PROPS = ("name", "entries", "level")
 _SKILL_COUNT = 18  # a choice from every skill
 
 
-def class_entries(cls: Class, omnidexer: Omnidexer | None) -> list[Any]:
+def class_entries(cls: Class, catalogue: Catalogue | None) -> list[Any]:
     """Core traits, the class table, then every class feature, "Level N: Name"."""
     data = cls.model_dump(by_alias=True, exclude_none=True)
     features = [
-        _feature(uid, ContentType.CLASS_FEATURE, omnidexer)
+        _feature(uid, ContentType.CLASS_FEATURE, catalogue)
         for uid in _uids(data.get("classFeatures", []), "classFeature")
     ]
     found = [f for f in features if f is not None]
@@ -49,13 +49,13 @@ def class_entries(cls: Class, omnidexer: Omnidexer | None) -> list[Any]:
     return [*_core_traits(data), _class_table(data), *found]
 
 
-def subclass_entries(subclass: Subclass, omnidexer: Omnidexer | None) -> list[Any]:
+def subclass_entries(subclass: Subclass, catalogue: Catalogue | None) -> list[Any]:
     """Every subclass feature; features within one are "Level N: Name"."""
     data = subclass.model_dump(by_alias=True, exclude_none=True)
     features = [
         f
         for uid in _uids(data.get("subclassFeatures", []), "subclassFeature")
-        if (f := _feature(uid, ContentType.SUBCLASS_FEATURE, omnidexer)) is not None
+        if (f := _feature(uid, ContentType.SUBCLASS_FEATURE, catalogue)) is not None
     ]
     for feature in features:
         feature["entries"] = [_level_named(e) for e in feature.get("entries", [])]
@@ -79,33 +79,33 @@ def _level_named(entry: Any) -> Any:
     return entry
 
 
-def _feature(uid: str, kind: ContentType, omnidexer: Omnidexer | None) -> Raw | None:
+def _feature(uid: str, kind: ContentType, catalogue: Catalogue | None) -> Raw | None:
     """A feature by uid as an entries entry, its own references resolved."""
-    if omnidexer is None:
+    if catalogue is None:
         return None
-    found = omnidexer.find_uid(kind, uid)
+    found = catalogue.find_uid(kind, uid)
     if found is None:
         return None
     data = found.model_dump(by_alias=True, exclude_none=True)
     entry = {"type": "entries", **{k: data[k] for k in _FEATURE_PROPS if k in data}}
-    entry["entries"] = _dereferenced(entry.get("entries", []), omnidexer)
+    entry["entries"] = _dereferenced(entry.get("entries", []), catalogue)
     return entry
 
 
-def _dereferenced(entries: Any, omnidexer: Omnidexer) -> Any:
+def _dereferenced(entries: Any, catalogue: Catalogue) -> Any:
     """Entries with each feature reference replaced by the feature."""
     if isinstance(entries, list):
-        return [_dereferenced(e, omnidexer) for e in entries]
+        return [_dereferenced(e, catalogue) for e in entries]
     if not isinstance(entries, dict):
         return entries
     ref = _REFS.get(str(entries.get("type")))
     if ref is None:
-        return {k: _dereferenced(v, omnidexer) for k, v in entries.items()}
+        return {k: _dereferenced(v, catalogue) for k, v in entries.items()}
     key, kind = ref
     uid = str(entries.get(key, ""))
     if kind in _DEFAULT_SOURCE and "|" not in uid:
         uid = f"{uid}|{_DEFAULT_SOURCE[kind]}"
-    feature = _feature(uid, kind, omnidexer)
+    feature = _feature(uid, kind, catalogue)
     if feature is None:
         return {"type": "entries", "entries": []}
     if entries.get("name"):

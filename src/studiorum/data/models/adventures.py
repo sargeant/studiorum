@@ -8,7 +8,7 @@ from studiorum.data.models.chapter import Chapter
 from studiorum.data.models.content import BaseContent
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
 
 
 class AdventureMetadata(BaseModel):
@@ -383,7 +383,7 @@ class Adventure(BaseContent):
             "expected_content_file": self.get_content_file_path(),
         }
 
-    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+    def get_deep_index_entries(self, catalogue: "Catalogue") -> list[BaseContent]:
         """Return nested content for deep indexing.
 
         Extracts indexable content from adventure chapters including:
@@ -394,7 +394,7 @@ class Adventure(BaseContent):
         - NPCs
 
         Args:
-            omnidexer: The omnidexer instance doing the indexing
+            catalogue: The catalogue instance doing the indexing
 
         Returns:
             List of nested content objects for indexing

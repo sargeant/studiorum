@@ -17,11 +17,11 @@ class TestCreatureSourceMapping:
     def setup_method(self):
         """Set up test fixtures."""
 
-        # Create mock omnidexer
-        self.mock_omnidexer = Mock()
+        # Create mock catalogue
+        self.mock_catalogue = Mock()
         # Mock get_all_by_type to return empty list (for lair actions)
-        self.mock_omnidexer.get_all_by_type.return_value = []
-        self.collector = CreatureCollector(self.mock_omnidexer)
+        self.mock_catalogue.get_all_by_type.return_value = []
+        self.collector = CreatureCollector(self.mock_catalogue)
 
         # Create mock creatures for testing
         self.mock_creature_mm = Mock(spec=Creature)
@@ -65,7 +65,7 @@ class TestCreatureSourceMapping:
     def test_collect_by_names_with_source_mapping(self):
         """Test that collect_by_names uses per-creature source specifications."""
         # Setup mock to return specific creature when called with source
-        self.mock_omnidexer.find.return_value = self.mock_creature_mm
+        self.mock_catalogue.find.return_value = self.mock_creature_mm
 
         # Test collection with source mapping
         result = self.collector.collect_by_names(
@@ -73,7 +73,7 @@ class TestCreatureSourceMapping:
         )
 
         # Verify find was called with specific source
-        self.mock_omnidexer.find.assert_called_once_with(
+        self.mock_catalogue.find.assert_called_once_with(
             ContentType.CREATURE, "Goblin", "MM"
         )
 
@@ -84,7 +84,7 @@ class TestCreatureSourceMapping:
     def test_collect_by_names_without_source_mapping(self):
         """Test that collect_by_names falls back to find_all without source mapping."""
         # Setup mock to return multiple creatures
-        self.mock_omnidexer.find_all.return_value = [
+        self.mock_catalogue.find_all.return_value = [
             self.mock_creature_mm,
             self.mock_creature_vgm,
         ]
@@ -93,18 +93,18 @@ class TestCreatureSourceMapping:
         self.collector.collect_by_names(names=["Goblin"], sources=["MM", "VGM"])
 
         # Verify find_all was called
-        self.mock_omnidexer.find_all.assert_called_once_with(
+        self.mock_catalogue.find_all.assert_called_once_with(
             ContentType.CREATURE, "Goblin"
         )
 
         # find_all should have been called, not find
-        self.mock_omnidexer.find.assert_not_called()
+        self.mock_catalogue.find.assert_not_called()
 
     def test_collect_by_names_mixed_source_mapping(self):
         """Test collection with some creatures having specific sources and others not."""
         # Setup mocks
-        self.mock_omnidexer.find.return_value = self.mock_creature_mm
-        self.mock_omnidexer.find_all.return_value = [self.mock_creature_vgm]
+        self.mock_catalogue.find.return_value = self.mock_creature_mm
+        self.mock_catalogue.find_all.return_value = [self.mock_creature_vgm]
 
         # Test with mixed mapping (one creature with specific source, one without)
         self.collector.collect_by_names(
@@ -114,10 +114,10 @@ class TestCreatureSourceMapping:
         )
 
         # Verify both methods were called appropriately
-        self.mock_omnidexer.find.assert_called_once_with(
+        self.mock_catalogue.find.assert_called_once_with(
             ContentType.CREATURE, "Goblin", "MM"
         )
-        self.mock_omnidexer.find_all.assert_called_once_with(
+        self.mock_catalogue.find_all.assert_called_once_with(
             ContentType.CREATURE, "Orc"
         )
 
@@ -146,7 +146,7 @@ class TestCreatureSourceMapping:
     def test_collect_creatures_passes_source_map(self):
         """Test that collect_creatures passes source_map to _collect_by_names."""
         # Setup mock
-        self.mock_omnidexer.find.return_value = self.mock_creature_mm
+        self.mock_catalogue.find.return_value = self.mock_creature_mm
 
         # Create criteria with source mapping
         criteria = CreatureFilterCriteria(
@@ -157,7 +157,7 @@ class TestCreatureSourceMapping:
         result = self.collector.collect_creatures(criteria)
 
         # Verify the source-specific find was called
-        self.mock_omnidexer.find.assert_called_once_with(
+        self.mock_catalogue.find.assert_called_once_with(
             ContentType.CREATURE, "Goblin", "MM"
         )
 

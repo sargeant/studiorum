@@ -94,18 +94,18 @@ class TestContentResolver:
     """Test ContentResolver."""
 
     @pytest.fixture
-    def mock_omnidexer(self) -> Mock:
-        """Create mock omnidexer."""
-        omnidexer = Mock()
-        omnidexer.get_all_by_type.return_value = []
-        omnidexer.search.return_value = []
-        omnidexer.hydrate.side_effect = lambda content: content
-        return omnidexer
+    def mock_catalogue(self) -> Mock:
+        """Create mock catalogue."""
+        catalogue = Mock()
+        catalogue.get_all_by_type.return_value = []
+        catalogue.search.return_value = []
+        catalogue.hydrate.side_effect = lambda content: content
+        return catalogue
 
     @pytest.fixture
-    def resolver(self, mock_omnidexer: Mock) -> ContentResolver:
-        """Create ContentResolver with mock omnidexer."""
-        return ContentResolver(mock_omnidexer)
+    def resolver(self, mock_catalogue: Mock) -> ContentResolver:
+        """Create ContentResolver with mock catalogue."""
+        return ContentResolver(mock_catalogue)
 
     @pytest.fixture
     def sample_adventure(self) -> Adventure:
@@ -137,29 +137,29 @@ class TestContentResolver:
             cover=None,
         )
 
-    def test_init(self, mock_omnidexer) -> None:
+    def test_init(self, mock_catalogue) -> None:
         """Test ContentResolver initialization."""
-        resolver = ContentResolver(mock_omnidexer)
-        assert resolver.omnidexer == mock_omnidexer
+        resolver = ContentResolver(mock_catalogue)
+        assert resolver.catalogue == mock_catalogue
 
     def test_resolve_adventure_exact_match(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test resolving adventure with exact match."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
+        mock_catalogue.get_all_by_type.return_value = [sample_adventure]
 
         result = resolver.resolve_adventure("cos")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_adventure
         assert result.query == "cos"
-        mock_omnidexer.get_all_by_type.assert_called_with(ContentType("adventure"))
+        mock_catalogue.get_all_by_type.assert_called_with(ContentType("adventure"))
 
     def test_resolve_adventure_case_insensitive(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test resolving adventure is case insensitive."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
+        mock_catalogue.get_all_by_type.return_value = [sample_adventure]
 
         result = resolver.resolve_adventure("COS")
 
@@ -167,26 +167,26 @@ class TestContentResolver:
         assert result.content == sample_adventure
 
     def test_resolve_book_exact_match(
-        self, resolver, mock_omnidexer, sample_book
+        self, resolver, mock_catalogue, sample_book
     ) -> None:
         """Test resolving book with exact match."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_book]
+        mock_catalogue.get_all_by_type.return_value = [sample_book]
 
         result = resolver.resolve_book("phb")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_book
         assert result.query == "phb"
-        mock_omnidexer.get_all_by_type.assert_called_with(ContentType("book"))
+        mock_catalogue.get_all_by_type.assert_called_with(ContentType("book"))
 
-    def test_resolve_book_by_its_5etools_id(self, resolver, mock_omnidexer) -> None:
+    def test_resolve_book_by_its_5etools_id(self, resolver, mock_catalogue) -> None:
         """A book whose id differs from its source ("PS-Z", "PSZ") matches both."""
         book = Book(
             name="Plane Shift: Zendikar",
             source=Source(abbreviation="PSZ", name="PSZ"),
             id="PS-Z",
         )
-        mock_omnidexer.get_all_by_type.return_value = [book]
+        mock_catalogue.get_all_by_type.return_value = [book]
 
         for query in ("PS-Z", "ps-z", "psz"):
             result = resolver.resolve_book(query)
@@ -194,7 +194,7 @@ class TestContentResolver:
             assert result.content == book
 
     def test_resolve_adventure_multiple_matches_picks_preferred(
-        self, resolver, mock_omnidexer
+        self, resolver, mock_catalogue
     ) -> None:
         """Test resolving adventure with multiple exact matches picks preferred one."""
         source1 = Source(abbreviation="TEST", name="Test Adventure 1")
@@ -220,7 +220,7 @@ class TestContentResolver:
             cover=None,
         )
 
-        mock_omnidexer.get_all_by_type.return_value = [adventure1, adventure2]
+        mock_catalogue.get_all_by_type.return_value = [adventure1, adventure2]
 
         result = resolver.resolve_adventure("test")
 
@@ -232,10 +232,10 @@ class TestContentResolver:
         assert result.content == adventure1
 
     def test_resolve_adventure_no_match_with_suggestions(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test resolving adventure with no match but suggestions."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
+        mock_catalogue.get_all_by_type.return_value = [sample_adventure]
 
         result = resolver.resolve_adventure("co")  # Close to "cos"
 
@@ -244,17 +244,17 @@ class TestContentResolver:
         assert "cos" in result.suggestions
 
     def test_resolve_adventure_empty_abbreviation(
-        self, resolver, mock_omnidexer
+        self, resolver, mock_catalogue
     ) -> None:
         """Test resolving with empty abbreviation."""
         result = resolver.resolve_adventure("")
 
         assert result.status == ResolutionStatus.NO_MATCH
         assert result.query == ""
-        mock_omnidexer.get_all_by_type.assert_not_called()
+        mock_catalogue.get_all_by_type.assert_not_called()
 
     def test_resolve_adventure_whitespace_abbreviation(
-        self, resolver, mock_omnidexer
+        self, resolver, mock_catalogue
     ) -> None:
         """Test resolving with whitespace-only abbreviation."""
         result = resolver.resolve_adventure("   ")
@@ -263,10 +263,10 @@ class TestContentResolver:
         assert result.query == "   "
 
     def test_resolve_adventure_no_content_available(
-        self, resolver, mock_omnidexer
+        self, resolver, mock_catalogue
     ) -> None:
         """Test resolving when no content is available."""
-        mock_omnidexer.get_all_by_type.return_value = []
+        mock_catalogue.get_all_by_type.return_value = []
 
         result = resolver.resolve_adventure("cos")
 
@@ -275,11 +275,11 @@ class TestContentResolver:
         assert result.suggestions == []
 
     def test_resolve_adventure_fuzzy_match(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test resolving adventure with fuzzy matching."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
-        mock_omnidexer.search.return_value = [sample_adventure]
+        mock_catalogue.get_all_by_type.return_value = [sample_adventure]
+        mock_catalogue.search.return_value = [sample_adventure]
 
         result = resolver.resolve_adventure("cs")  # Close to "cos"
 
@@ -288,10 +288,10 @@ class TestContentResolver:
         assert result.content == sample_adventure
 
     def test_resolve_any_with_content_type(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test resolve_any with specific content type."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
+        mock_catalogue.get_all_by_type.return_value = [sample_adventure]
 
         result = resolver.resolve_any("cos", ContentType("adventure"))
 
@@ -299,10 +299,10 @@ class TestContentResolver:
         assert result.content == sample_adventure
 
     def test_resolve_any_without_content_type(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test resolve_any without content type specified."""
-        mock_omnidexer.get_all_by_type.side_effect = lambda ct: (
+        mock_catalogue.get_all_by_type.side_effect = lambda ct: (
             [sample_adventure] if ct == ContentType("adventure") else []
         )
 
@@ -312,25 +312,25 @@ class TestContentResolver:
         assert result.content == sample_adventure
 
     def test_find_suggestions_basic(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test find_suggestions basic functionality."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
+        mock_catalogue.get_all_by_type.return_value = [sample_adventure]
 
         suggestions = resolver.find_suggestions("co", ContentType("adventure"))
 
         assert "cos" in suggestions
         assert len(suggestions) <= 5
 
-    def test_find_suggestions_no_content(self, resolver, mock_omnidexer) -> None:
+    def test_find_suggestions_no_content(self, resolver, mock_catalogue) -> None:
         """Test find_suggestions with no content available."""
-        mock_omnidexer.get_all_by_type.return_value = []
+        mock_catalogue.get_all_by_type.return_value = []
 
         suggestions = resolver.find_suggestions("cos", ContentType("adventure"))
 
         assert suggestions == []
 
-    def test_find_suggestions_limit(self, resolver, mock_omnidexer) -> None:
+    def test_find_suggestions_limit(self, resolver, mock_catalogue) -> None:
         """Test find_suggestions respects limit parameter."""
         # Create many adventures with similar abbreviations
         adventures = []
@@ -348,7 +348,7 @@ class TestContentResolver:
             )
             adventures.append(adventure)
 
-        mock_omnidexer.get_all_by_type.return_value = adventures
+        mock_catalogue.get_all_by_type.return_value = adventures
 
         suggestions = resolver.find_suggestions(
             "test", ContentType("adventure"), limit=3
@@ -357,7 +357,7 @@ class TestContentResolver:
         assert len(suggestions) <= 3
 
     def test_resolve_content_source_without_abbreviation(
-        self, resolver, mock_omnidexer
+        self, resolver, mock_catalogue
     ) -> None:
         """Test resolving content where source doesn't have abbreviation attribute."""
         # Create content with source that doesn't have abbreviation
@@ -374,13 +374,13 @@ class TestContentResolver:
             cover=None,
         )
 
-        mock_omnidexer.get_all_by_type.return_value = [adventure]
+        mock_catalogue.get_all_by_type.return_value = [adventure]
 
         result = resolver.resolve_adventure("test")
 
         assert result.status == ResolutionStatus.NO_MATCH
 
-    def test_fuzzy_matching_multiple_results(self, resolver, mock_omnidexer) -> None:
+    def test_fuzzy_matching_multiple_results(self, resolver, mock_catalogue) -> None:
         """Test fuzzy matching with multiple results."""
         source1 = Source(abbreviation="COS1", name="Test 1")
         source2 = Source(abbreviation="COS2", name="Test 2")
@@ -405,8 +405,8 @@ class TestContentResolver:
             cover=None,
         )
 
-        mock_omnidexer.get_all_by_type.return_value = [adventure1, adventure2]
-        mock_omnidexer.search.return_value = [adventure1, adventure2]
+        mock_catalogue.get_all_by_type.return_value = [adventure1, adventure2]
+        mock_catalogue.search.return_value = [adventure1, adventure2]
 
         result = resolver.resolve_adventure("cos")
 
@@ -414,7 +414,7 @@ class TestContentResolver:
         assert len(result.matches) == 2
 
     def test_search_fallback_no_fuzzy_matches(
-        self, resolver, mock_omnidexer, sample_adventure
+        self, resolver, mock_catalogue, sample_adventure
     ) -> None:
         """Test search fallback when no fuzzy matches are found."""
         different_source = Source(abbreviation="DMG", name="Dungeon Master's Guide")
@@ -429,11 +429,11 @@ class TestContentResolver:
             cover=None,
         )
 
-        mock_omnidexer.get_all_by_type.return_value = [
+        mock_catalogue.get_all_by_type.return_value = [
             sample_adventure,
             different_adventure,
         ]
-        mock_omnidexer.search.return_value = [
+        mock_catalogue.search.return_value = [
             different_adventure
         ]  # Search returns different content
 
@@ -457,10 +457,10 @@ class TestContentResolver:
         ],
     )
     def test_various_input_formats(
-        self, resolver, mock_omnidexer, sample_adventure, input_abbrev, expected_match
+        self, resolver, mock_catalogue, sample_adventure, input_abbrev, expected_match
     ) -> None:
         """Test various input formats for abbreviations."""
-        mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
+        mock_catalogue.get_all_by_type.return_value = [sample_adventure]
 
         result = resolver.resolve_adventure(input_abbrev)
 

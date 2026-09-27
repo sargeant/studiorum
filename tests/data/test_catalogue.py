@@ -1,4 +1,4 @@
-"""The Omnidexer loads a data set once, resolving _copy before it validates."""
+"""The Catalogue loads a data set once, resolving _copy before it validates."""
 
 import json
 from pathlib import Path
@@ -8,13 +8,13 @@ import pytest
 from pydantic import ValidationError
 
 from studiorum.config import ApplicationConfig, set_app_config
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.loaders.data_dir import DataDir, DataSet
-from studiorum.data.loaders.omnidexer import Omnidexer
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.creatures import Creature
 from studiorum.data.models.items import Item
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _srd_creature(name: str) -> dict[str, Any]:
@@ -28,10 +28,10 @@ def _write(path: Path, data: object) -> Path:
     return path
 
 
-def _load(root: Path, *homebrew: Path) -> Omnidexer:
-    omnidexer = Omnidexer(DataSet((DataDir(root),), homebrew))
-    omnidexer.load_all_data()
-    return omnidexer
+def _load(root: Path, *homebrew: Path) -> Catalogue:
+    catalogue = Catalogue(DataSet((DataDir(root),), homebrew))
+    catalogue.load_all_data()
+    return catalogue
 
 
 def test_a_variant_keeps_its_own_cr_and_actions(tmp_path: Path) -> None:
@@ -75,10 +75,10 @@ def test_a_copy_with_no_parent_is_not_loaded(tmp_path: Path) -> None:
         {"monster": [orphan, _srd_creature("Goblin")]},
     )
 
-    omnidexer = _load(tmp_path)
+    catalogue = _load(tmp_path)
 
-    assert omnidexer.find(ContentType.CREATURE, "Orphan") is None
-    assert omnidexer.find(ContentType.CREATURE, "Goblin") is not None
+    assert catalogue.find(ContentType.CREATURE, "Orphan") is None
+    assert catalogue.find(ContentType.CREATURE, "Goblin") is not None
 
 
 def test_a_reprint_alias_never_replaces_the_reprint(tmp_path: Path) -> None:
@@ -105,10 +105,10 @@ def test_the_first_directory_wins_a_clash(tmp_path: Path) -> None:
         {"monster": [_srd_creature("Goblin")]},
     )
 
-    omnidexer = Omnidexer(DataSet((DataDir(tmp_path / "a"), DataDir(tmp_path / "b"))))
-    omnidexer.load_all_data()
+    catalogue = Catalogue(DataSet((DataDir(tmp_path / "a"), DataDir(tmp_path / "b"))))
+    catalogue.load_all_data()
 
-    assert omnidexer.find(ContentType.CREATURE, "Goblin").hp.average == 1  # type: ignore[union-attr]
+    assert catalogue.find(ContentType.CREATURE, "Goblin").hp.average == 1  # type: ignore[union-attr]
 
 
 def test_invalid_entities_are_skipped_unless_strict(tmp_path: Path) -> None:
@@ -118,9 +118,9 @@ def test_invalid_entities_are_skipped_unless_strict(tmp_path: Path) -> None:
         {"monster": [bad, _srd_creature("Goblin")]},
     )
 
-    omnidexer = _load(tmp_path)
-    assert omnidexer.find(ContentType.CREATURE, "Goblin") is not None
-    assert omnidexer.find(ContentType.CREATURE, "Bad") is None
+    catalogue = _load(tmp_path)
+    assert catalogue.find(ContentType.CREATURE, "Goblin") is not None
+    assert catalogue.find(ContentType.CREATURE, "Bad") is None
 
     config = ApplicationConfig()
     config.validation.strictness = "strict"
@@ -151,13 +151,13 @@ def test_adventure_text_loads_when_asked_for(tmp_path: Path) -> None:
     }
     _write(tmp_path / "adventure/adventure-tt.json", text)
 
-    omnidexer = _load(tmp_path)
-    listed = omnidexer.get_all_by_type(ContentType.ADVENTURE)
-    found = omnidexer.find(ContentType.ADVENTURE, "The Test")
+    catalogue = _load(tmp_path)
+    listed = catalogue.get_all_by_type(ContentType.ADVENTURE)
+    found = catalogue.find(ContentType.ADVENTURE, "The Test")
 
     assert listed[0].contents[0].entries == []  # type: ignore[attr-defined]
     assert found.contents[0].entries == ["It begins."]  # type: ignore[union-attr]
-    assert omnidexer.get_all_by_type(ContentType.ADVENTURE) == [found]
+    assert catalogue.get_all_by_type(ContentType.ADVENTURE) == [found]
 
 
 def test_homebrew_adventure_text_loads_from_adventure_data(tmp_path: Path) -> None:
@@ -196,9 +196,9 @@ def test_magic_variants_take_their_source_from_inherits(tmp_path: Path) -> None:
     }
     _write(tmp_path / "magicvariants.json", {"magicvariant": [variant]})
 
-    omnidexer = _load(tmp_path)
+    catalogue = _load(tmp_path)
 
-    assert omnidexer.find(ContentType.MAGICVARIANT, "+1 Test", "DMG") is not None
+    assert catalogue.find(ContentType.MAGICVARIANT, "+1 Test", "DMG") is not None
 
 
 def test_item_groups_load_as_items_that_list_their_variations(
@@ -238,9 +238,9 @@ def test_an_item_property_is_named_after_its_first_entry(tmp_path: Path) -> None
     }
     _write(tmp_path / "items-base.json", {"itemProperty": [prop]})
 
-    omnidexer = _load(tmp_path)
+    catalogue = _load(tmp_path)
 
-    assert omnidexer.find(ContentType.ITEM_PROPERTY, "Two-Handed", "XPHB") is not None
+    assert catalogue.find(ContentType.ITEM_PROPERTY, "Two-Handed", "XPHB") is not None
 
 
 def test_a_nameless_subrace_is_left_to_its_race(tmp_path: Path) -> None:
@@ -248,9 +248,9 @@ def test_a_nameless_subrace_is_left_to_its_race(tmp_path: Path) -> None:
     named = {**default, "name": "Variant", "entries": ["..."]}
     _write(tmp_path / "races.json", {"subrace": [default, named]})
 
-    omnidexer = _load(tmp_path)
+    catalogue = _load(tmp_path)
 
-    assert [s.name for s in omnidexer.get_all_by_type(ContentType.SUBRACE)] == [
+    assert [s.name for s in catalogue.get_all_by_type(ContentType.SUBRACE)] == [
         "Variant"
     ]
 
@@ -273,12 +273,12 @@ def test_same_named_features_of_different_classes_are_all_indexed(
     _write(tmp_path / "class/class-test.json", {"classFeature": features})
     _write(tmp_path / "class/index.json", {"test": "class-test.json"})
 
-    omnidexer = _load(tmp_path)
-    found = omnidexer.find_all(ContentType.CLASS_FEATURE, "Ability Score Improvement")
+    catalogue = _load(tmp_path)
+    found = catalogue.find_all(ContentType.CLASS_FEATURE, "Ability Score Improvement")
 
     assert [f.entries for f in found] == [["Fighter 4"], ["Fighter 6"], ["Rogue 4"]]  # type: ignore[attr-defined]
     # find() still gives the first loaded
-    first = omnidexer.find(
+    first = catalogue.find(
         ContentType.CLASS_FEATURE, "Ability Score Improvement", "PHB"
     )
     assert first is found[0]
@@ -337,15 +337,15 @@ def test_a_subclass_reprint_is_aliased_only_when_the_reprint_is_missing(
     )
     _write(tmp_path / "class/index.json", {"test": "class-test.json"})
 
-    omnidexer = _load(tmp_path)
+    catalogue = _load(tmp_path)
     xphb = [
         s.name
-        for s in omnidexer.get_all_by_type(ContentType.SUBCLASS)
+        for s in catalogue.get_all_by_type(ContentType.SUBCLASS)
         if s.source.abbreviation == "XPHB"
     ]
 
     assert sorted(xphb) == ["Path of the Berserker", "Path of the Wild Heart"]
-    alias = omnidexer.find_uid(ContentType.SUBCLASS, "Berserker|Barbarian|XPHB|XPHB")
+    alias = catalogue.find_uid(ContentType.SUBCLASS, "Berserker|Barbarian|XPHB|XPHB")
     assert alias is not None
     assert alias.class_source == "XPHB"  # type: ignore[attr-defined]
 
@@ -360,9 +360,9 @@ def test_a_reprint_tagged_as_another_type_is_not_aliased(tmp_path: Path) -> None
     }
     _write(tmp_path / "optionalfeatures.json", {"optionalfeature": [style]})
 
-    omnidexer = _load(tmp_path)
+    catalogue = _load(tmp_path)
 
-    assert omnidexer.find(ContentType.OPTIONALFEATURE, "Archery", "XPHB") is None
+    assert catalogue.find(ContentType.OPTIONALFEATURE, "Archery", "XPHB") is None
 
 
 def test_an_item_property_reprint_is_read_by_abbreviation(tmp_path: Path) -> None:
@@ -373,12 +373,12 @@ def test_an_item_property_reprint_is_read_by_abbreviation(tmp_path: Path) -> Non
     old = prop("PHB", reprintedAs=["2H|XPHB"])
     _write(tmp_path / "items-base.json", {"itemProperty": [old, prop("XPHB")]})
 
-    omnidexer = _load(tmp_path)
+    catalogue = _load(tmp_path)
 
     assert [
         (p.name, p.source.abbreviation)
-        for p in omnidexer.get_all_by_type(ContentType.ITEM_PROPERTY)
+        for p in catalogue.get_all_by_type(ContentType.ITEM_PROPERTY)
     ] == [("Two-Handed", "PHB"), ("Two-Handed", "XPHB")]
-    found = omnidexer.find_uid(ContentType.ITEM_PROPERTY, "2H|XPHB")
+    found = catalogue.find_uid(ContentType.ITEM_PROPERTY, "2H|XPHB")
     assert found is not None
     assert found.entries[0].entries == ["XPHB"]  # type: ignore[attr-defined]

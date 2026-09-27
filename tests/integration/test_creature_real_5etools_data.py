@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.collectors.creature_collector import CreatureCollector
-from studiorum.data.loaders.omnidexer import Omnidexer
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.creatures import Creature
 from tests.test_data_helpers import (
@@ -36,19 +36,19 @@ class TestCreatureReal5etoolsDataIntegration:
         env_path = os.getenv("STUDIORUM_FULL_DATA_PATH", "")
         self.data_root = Path(env_path) if env_path else None
 
-        # Initialize omnidexer with real data
-        self.omnidexer = None
+        # Initialize catalogue with real data
+        self.catalogue = None
         self.loaded_creatures = []
 
     @pytest.fixture(autouse=True)
     def load_real_creature_data(self):
         """Load actual creature data from 5etools files."""
         # Class decorators ensure we have the required data sources
-        self.omnidexer = Omnidexer()
-        self.omnidexer.load_all_data()
+        self.catalogue = Catalogue()
+        self.catalogue.load_all_data()
 
         creature_type = ContentType("creature")
-        all_creatures = self.omnidexer.get_all_by_type(creature_type)
+        all_creatures = self.catalogue.get_all_by_type(creature_type)
         self.loaded_creatures = [
             creature for creature in all_creatures if isinstance(creature, Creature)
         ]
@@ -233,7 +233,7 @@ class TestCreatureReal5etoolsDataIntegration:
 
     def test_real_data_collection_and_filtering_integration(self):
         """Test creature collection service with real data."""
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
 
         # Test collection by CR range
         low_cr_result = collector.collect_by_cr_range(0.0, 1.0)
@@ -262,7 +262,7 @@ class TestCreatureReal5etoolsDataIntegration:
         # we'll test name collection differently by verifying the collector has access
         # to the same creatures as our test data
 
-        collector_creatures = collector.omnidexer.get_all_by_type(
+        collector_creatures = collector.catalogue.get_all_by_type(
             ContentType("creature")
         )
         test_creature_names = [
@@ -401,17 +401,17 @@ class TestCreatureOutputQualityValidation:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.omnidexer = None
+        self.catalogue = None
 
     @pytest.fixture(autouse=True)
     def load_sample_creatures(self):
         """Load a sample of creatures for quality testing."""
         try:
-            self.omnidexer = Omnidexer()
-            self.omnidexer.load_all_data()
+            self.catalogue = Catalogue()
+            self.catalogue.load_all_data()
 
             creature_type = ContentType("creature")
-            all_creatures = self.omnidexer.get_all_by_type(creature_type)
+            all_creatures = self.catalogue.get_all_by_type(creature_type)
             self.sample_creatures = [
                 creature
                 for creature in all_creatures[:20]  # First 20 creatures
@@ -579,18 +579,18 @@ class TestCreatureRegressionSuite:
 
     def setup_method(self):
         """Set up regression test fixtures."""
-        self.omnidexer = None
+        self.catalogue = None
         self.baseline_creatures = []
 
     @pytest.fixture(autouse=True)
     def load_baseline_creatures(self):
         """Load baseline creatures for regression testing."""
         try:
-            self.omnidexer = Omnidexer()
-            self.omnidexer.load_all_data()
+            self.catalogue = Catalogue()
+            self.catalogue.load_all_data()
 
             creature_type = ContentType("creature")
-            all_creatures = self.omnidexer.get_all_by_type(creature_type)
+            all_creatures = self.catalogue.get_all_by_type(creature_type)
 
             # Select a few known creatures for baseline testing
             baseline_names = {"Goblin", "Orc", "Dragon", "Wolf", "Skeleton"}
@@ -666,7 +666,7 @@ class TestCreatureRegressionSuite:
         start_time = time.perf_counter()
 
         # Re-load creatures to test loading performance
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
         result = collector.collect_by_cr_range(0.0, 30.0)
 
         end_time = time.perf_counter()
@@ -705,7 +705,7 @@ class TestCreatureRegressionSuite:
 
                             content_tracker = ContentTracker()
                             rendering_context = RenderingContext(
-                                omnidexer=get_services().omnidexer,
+                                catalogue=get_services().catalogue,
                                 content_tracker=content_tracker,
                             )
                             processed_entries = EntryRenderer.from_context(

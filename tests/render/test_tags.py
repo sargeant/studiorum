@@ -120,7 +120,7 @@ def test_references_are_tracked_including_nested_ones() -> None:
 
 def test_rendering_loads_no_data() -> None:
     with patch(
-        "studiorum.services.Services.load_omnidexer",
+        "studiorum.services.Services.load_catalogue",
         side_effect=AssertionError("loaded"),
     ):
         latex = render("{@spell fireball}")

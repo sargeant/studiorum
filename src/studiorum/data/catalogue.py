@@ -1,6 +1,6 @@
 """The index of every loaded 5e entity, by type, name and source.
 
-``Omnidexer.load_all_data()`` reads each file of a ``DataSet`` once with
+``Catalogue.load_all_data()`` reads each file of a ``DataSet`` once with
 orjson, gathers the entities by their 5etools property, resolves ``_copy``
 with ``merge_copy`` (as 5etools does), then validates each content type's
 entities with one ``TypeAdapter``. Adventures and books load their metadata;
@@ -48,7 +48,7 @@ _HOMEBREW_TEXT = {"adventureData": ContentType.ADVENTURE, "bookData": ContentTyp
 Raw = dict[str, Any]
 
 
-class Omnidexer:
+class Catalogue:
     """Every entity of a data set, looked up by type, name and source.
 
     Each type is keyed as 5etools keys it: by name and source, and for class
@@ -97,7 +97,7 @@ class Omnidexer:
             operation = progress_callback.start_operation(
                 "Loading 5e content types",
                 total=len(files),
-                metadata={"component": "omnidexer"},
+                metadata={"component": "catalogue"},
             )
 
         raw: dict[str, list[Raw]] = defaultdict(list)

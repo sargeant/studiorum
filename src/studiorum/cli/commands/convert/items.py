@@ -186,13 +186,13 @@ def items(
 
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
-        omnidexer = load_data("item")
+        catalogue = load_data("item")
 
         names = read_names(item_names, from_file, from_stdin, "item")
         types = _parse(ItemInputParser.parse_type_list, item_types)
         parsed_rarities = _parse(ItemInputParser.parse_rarity_list, rarities)
         collector, result = _collect(
-            omnidexer, ctx.params, names, types, parsed_rarities
+            catalogue, ctx.params, names, types, parsed_rarities
         )
         report_collection(result, result.items, "item")
         found = _sort_items(result.items, sort, collector)
@@ -214,7 +214,7 @@ def items(
 
         found_fluff = (
             collect_fluff(
-                omnidexer,
+                catalogue,
                 found,
                 "item",
                 sections=fluff_sections,
@@ -225,7 +225,7 @@ def items(
             else None
         )
         context = RenderingContext(
-            omnidexer=omnidexer,
+            catalogue=catalogue,
             style=Style(
                 content_type="item",
                 images=options.images,
@@ -253,7 +253,7 @@ def _parse(parser: Any, values: list[str] | None) -> list[Any] | None:
 
 
 def _collect(
-    omnidexer: Any,
+    catalogue: Any,
     params: dict[str, Any],
     names: NameList,
     types: list[Any] | None,
@@ -302,7 +302,7 @@ def _collect(
         rprint(f"[red]Error:[/red] Invalid filter criteria: {e}")
         raise typer.Exit(1) from None
 
-    collector = ItemCollector(omnidexer)
+    collector = ItemCollector(catalogue)
     with display_manager.progress("Collecting items") as _:
         task = display_manager.add_task("[cyan]Filtering items...", total=None)
         result = collector.collect_items(criteria)

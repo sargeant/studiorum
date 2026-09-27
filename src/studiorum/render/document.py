@@ -177,10 +177,10 @@ def appendix_chapters(
     every reference. Recursive flags also add what the appendix entries
     refer to.
     """
-    tracker, omnidexer = context.content_tracker, context.omnidexer
-    if not flags.has_any_enabled() or tracker is None or omnidexer is None:
+    tracker, catalogue = context.content_tracker, context.catalogue
+    if not flags.has_any_enabled() or tracker is None or catalogue is None:
         return []
-    generator = AppendixGenerator(omnidexer)
+    generator = AppendixGenerator(catalogue)
     appendices = generator.generate_appendices(tracker, flags)
     if flags.recursive:
         appendices = _follow_references(appendices, generator, tracker, flags, context)

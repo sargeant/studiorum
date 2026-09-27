@@ -59,8 +59,8 @@ class TestHybridParameterDetection:
         finally:
             Path(file_path).unlink()  # Clean up
 
-    @patch("studiorum.services.Services.load_omnidexer")
-    def test_resolve_content_or_file_with_abbreviation(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.load_catalogue")
+    def test_resolve_content_or_file_with_abbreviation(self, mock_get_catalogue):
         """Test that non-file strings are treated as abbreviations."""
         # Create a proper Adventure instance instead of Mock
         mock_adventure = Adventure(
@@ -69,12 +69,12 @@ class TestHybridParameterDetection:
             source=Source(abbreviation="SAMP", name="Sample Adventure"),
         )
 
-        # Mock omnidexer with comprehensive mocking for enrichment
-        mock_omnidexer = Mock()
+        # Mock catalogue with comprehensive mocking for enrichment
+        mock_catalogue = Mock()
         # Mock all methods that might be called during enrichment
-        mock_omnidexer.get_all_by_type.return_value = []  # Return empty list for enrichment calls
-        mock_omnidexer.find.return_value = None  # No cross-references found
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue.get_all_by_type.return_value = []  # Return empty list for enrichment calls
+        mock_catalogue.find.return_value = None  # No cross-references found
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock successful resolution
         with patch(

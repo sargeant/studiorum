@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
     from studiorum.data.references.content_tracker import ContentTracker
 
 # Sectioning commands by nesting depth; the last repeats below it
@@ -59,7 +59,7 @@ class RenderingContext:
     """
 
     content_tracker: ContentTracker | None = None
-    omnidexer: Omnidexer | None = None
+    catalogue: Catalogue | None = None
     style: Style = field(default_factory=Style)
     fluff: Mapping[str, Any] = field(default_factory=dict)
     fluff_images: Mapping[str, list[Any]] | None = None

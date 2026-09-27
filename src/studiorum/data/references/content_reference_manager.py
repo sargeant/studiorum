@@ -15,7 +15,7 @@ from studiorum.data.models.content import BaseContent
 from studiorum.data.references.content_tracker import ContentTracker, TrackedContent
 
 if TYPE_CHECKING:
-    from studiorum.data.loaders.omnidexer import Omnidexer
+    from studiorum.data.catalogue import Catalogue
 
 
 class ReferenceSource(BaseModel):
@@ -60,8 +60,8 @@ class ContentReferenceManager:
     It automatically manages deduplication and provides unified appendix generation.
     """
 
-    def __init__(self, omnidexer: Omnidexer | None = None) -> None:
-        self.omnidexer = omnidexer
+    def __init__(self, catalogue: Catalogue | None = None) -> None:
+        self.catalogue = catalogue
         self._references: list[ContentReference] = []
         self._reference_counts: dict[tuple[str, str, str | None], int] = {}
 
@@ -153,11 +153,11 @@ class ContentReferenceManager:
             content: Content that implements DeepIndexable
             context: Context description for tracking
         """
-        if not self.omnidexer:
+        if not self.catalogue:
             return
 
         try:
-            deep_entries = content.get_deep_index_entries(self.omnidexer)
+            deep_entries = content.get_deep_index_entries(self.catalogue)
 
             for entry in deep_entries:
                 # Determine content type from the entry

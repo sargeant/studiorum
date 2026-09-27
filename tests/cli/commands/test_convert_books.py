@@ -9,7 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.data.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 
 
 @pytest.mark.cli
@@ -30,8 +30,8 @@ class TestConvertBookCommand:
             ]
         }
 
-    @patch("studiorum.services.Services.load_omnidexer")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.load_catalogue")
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
@@ -43,8 +43,8 @@ class TestConvertBookCommand:
         mock_builtin_open,
         mock_display,
         mock_engine_factory,
-        mock_omnidexer,
-        mock_shared_omnidexer,
+        mock_catalogue,
+        mock_shared_catalogue,
     ):
         """Test converting book from file path."""
         # Mock file operations
@@ -53,11 +53,11 @@ class TestConvertBookCommand:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies - create a mock that passes isinstance checks
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer_instance.source_manager = Mock()  # Add source_manager attribute
-        mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_shared_omnidexer.return_value = (
-            mock_omnidexer_instance  # Use same mock for shared module
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue_instance.source_manager = Mock()  # Add source_manager attribute
+        mock_catalogue.return_value = mock_catalogue_instance
+        mock_shared_catalogue.return_value = (
+            mock_catalogue_instance  # Use same mock for shared module
         )
 
         # Mock LaTeX engine

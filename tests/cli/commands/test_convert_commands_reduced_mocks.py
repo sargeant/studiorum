@@ -44,19 +44,19 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.build_pdf")
     def test_adventure_conversion_with_real_data_latex_only(
         self,
         mock_build_pdf,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test adventure conversion using real test data, only mocking LaTeX compiler."""
-        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
-        mock_omnidexer = Mock()
-        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
-        mock_omnidexer.get_all_by_type = Mock(return_value=[])
-        mock_get_omnidexer.return_value = mock_omnidexer
+        # Mock catalogue and tag resolver to avoid loading 5etools data in CI
+        mock_catalogue = Mock()
+        mock_catalogue.find = Mock(return_value=None)  # No cross-references found
+        mock_catalogue.get_all_by_type = Mock(return_value=[])
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Only mock LaTeX compilation (an external dependency)
         mock_build_pdf.return_value = Success(Path("/tmp/test.pdf"))
@@ -93,19 +93,19 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.build_pdf")
     def test_book_conversion_with_real_data_latex_only(
         self,
         mock_build_pdf,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test book conversion using real test data, only mocking LaTeX compiler."""
-        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
-        mock_omnidexer = Mock()
-        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
-        mock_omnidexer.get_all_by_type = Mock(return_value=[])
-        mock_get_omnidexer.return_value = mock_omnidexer
+        # Mock catalogue and tag resolver to avoid loading 5etools data in CI
+        mock_catalogue = Mock()
+        mock_catalogue.find = Mock(return_value=None)  # No cross-references found
+        mock_catalogue.get_all_by_type = Mock(return_value=[])
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Only mock LaTeX compilation (an external dependency)
         mock_build_pdf.return_value = Success(Path("/tmp/test.pdf"))
@@ -141,19 +141,19 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @pytest.mark.requires_latex
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
     def test_pdf_compilation_uses_configured_compiler(
         self,
         mock_compile_pdf,
-        mock_get_omnidexer,
+        mock_get_catalogue,
     ):
         """Test that PDF compilation uses the configured LaTeX compiler."""
-        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
-        mock_omnidexer = Mock()
-        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
-        mock_omnidexer.get_all_by_type = Mock(return_value=[])
-        mock_get_omnidexer.return_value = mock_omnidexer
+        # Mock catalogue and tag resolver to avoid loading 5etools data in CI
+        mock_catalogue = Mock()
+        mock_catalogue.find = Mock(return_value=None)  # No cross-references found
+        mock_catalogue.get_all_by_type = Mock(return_value=[])
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the compile_pdf function to avoid actual LaTeX compilation
         mock_compile_pdf.return_value = None

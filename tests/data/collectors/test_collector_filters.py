@@ -21,10 +21,10 @@ def _entries(path: Path, key: str, names: set[str]) -> list[dict[str, Any]]:
     return [e for e in json.loads(path.read_text())[key] if e["name"] in names]
 
 
-def _omnidexer(content: list[Any]) -> Mock:
-    omnidexer = Mock()
-    omnidexer.get_all_by_type.return_value = content
-    return omnidexer
+def _catalogue(content: list[Any]) -> Mock:
+    catalogue = Mock()
+    catalogue.get_all_by_type.return_value = content
+    return catalogue
 
 
 def test_ritual_filters_spells() -> None:
@@ -34,7 +34,7 @@ def test_ritual_filters_spells() -> None:
             SRD_DATA / "spells" / "spells-srd.json", "spell", {"Alarm", "Fireball"}
         )
     ]
-    collector = SpellCollector(_omnidexer(spells))
+    collector = SpellCollector(_catalogue(spells))
 
     rituals = collector.collect_spells(SpellFilterCriteria(ritual=True)).spells
     others = collector.collect_spells(SpellFilterCriteria(ritual=False)).spells
@@ -52,7 +52,7 @@ def test_type_filter_reads_a_type_with_tags() -> None:
             {"Goblin", "Young Red Dragon"},
         )
     ]
-    collector = CreatureCollector(_omnidexer(creatures))
+    collector = CreatureCollector(_catalogue(creatures))
 
     criteria = CreatureFilterCriteria(creature_types=["humanoid"])
     found = collector.collect_creatures(criteria).creatures

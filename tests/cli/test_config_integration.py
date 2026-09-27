@@ -54,7 +54,7 @@ class TestCLIConfigIntegration:
         try:
             # Mock the commands to avoid full execution
             with patch("studiorum.cli.main.reset_cli_globals"):
-                with patch("studiorum.data.loaders.omnidexer.Omnidexer"):
+                with patch("studiorum.data.catalogue.Catalogue"):
                     result = self.runner.invoke(
                         app,
                         [
@@ -137,7 +137,7 @@ class TestCLIConfigIntegration:
         try:
             # Mock to avoid full command execution
             with patch("studiorum.cli.main.reset_cli_globals"):
-                with patch("studiorum.data.loaders.omnidexer.Omnidexer"):
+                with patch("studiorum.data.catalogue.Catalogue"):
                     result = self.runner.invoke(app, ["--debug", "list", "adventures"])
 
                     # Should execute successfully with env config
