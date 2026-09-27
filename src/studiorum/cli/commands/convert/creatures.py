@@ -421,8 +421,8 @@ def _fluff(
 
 def _collect(omnidexer: Any, params: dict[str, Any], names: NameList) -> Any:
     """Build the filter criteria from the command's parameters and collect."""
+    from studiorum.cli.parsers.creature_input import parse_cr_range
     from studiorum.core.models.creature_filters import CreatureFilterCriteria
-    from studiorum.core.parsers.creature_input import parse_cr_range
     from studiorum.core.services.creature_collector import CreatureCollector
 
     min_cr, max_cr = None, None

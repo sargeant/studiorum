@@ -182,7 +182,7 @@ def items(
       studiorum convert items --magic --attunement --sources DMG,XGE
       studiorum convert items --type armor --sort rarity
     """
-    from studiorum.core.parsers.item_input import ItemInputParser
+    from studiorum.cli.parsers.item_input import ItemInputParser
 
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
@@ -260,8 +260,8 @@ def _collect(
     rarities: list[Any] | None,
 ) -> tuple[Any, Any]:
     """Build the filter criteria from the command's parameters and collect."""
+    from studiorum.cli.parsers.item_input import ItemInputParser
     from studiorum.core.models.item_filters import ItemFilterCriteria
-    from studiorum.core.parsers.item_input import ItemInputParser
     from studiorum.core.services.item_collector import ItemCollector
 
     min_value, max_value = None, None

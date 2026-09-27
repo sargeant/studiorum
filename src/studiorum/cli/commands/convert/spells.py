@@ -192,7 +192,7 @@ def spells(
       studiorum convert spells --class wizard --school evocation --sort name
       studiorum convert spells --damage-type fire --no-material
     """
-    from studiorum.core.parsers.spell_input import SpellInputParser
+    from studiorum.cli.parsers.spell_input import SpellInputParser
 
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
@@ -304,8 +304,8 @@ def _collect(
     omnidexer: Any, params: dict[str, Any], names: NameList, classes: list[str] | None
 ) -> Any:
     """Build the filter criteria from the command's parameters and collect."""
+    from studiorum.cli.parsers.spell_input import SpellInputParser
     from studiorum.core.models.spell_filters import SpellFilterCriteria
-    from studiorum.core.parsers.spell_input import SpellInputParser
     from studiorum.core.services.spell_collector import SpellCollector
 
     min_level, max_level = None, None
