@@ -67,11 +67,14 @@
 \end{DndSidebar}
 <@- endmacro @>
 
-<@ macro quote(body, by) @>
+<@ macro quote(body, by, source) @>
 \begin{quotation}
 \em
 <# body | safe #>
-<@ if by @>
+<@ if source @>
+
+\hfill --- <# by | safe #><@ if by @>, <@ endif @>\textit{<# source | safe #>}
+<@ elif by @>
 
 \hfill --- <# by | safe #>
 <@ endif @>

@@ -124,9 +124,16 @@ def render(entry: Any, depth: int = 1) -> str:
             body = _join([f"**{name}**" if name else "", _children(entry, depth + 1)])
             return _quote(body)
         case "quote":
-            by = entry.get("by")
+            # 5etools' "— by, from", with the work in italics
+            by = strip_tags(entry.get("by") or "")
+            source = strip_tags(entry.get("from") or "")
+            attribution = ", ".join(
+                p for p in (by, f"*{source}*" if source else "") if p
+            )
             return _quote(
-                _join([_children(entry, depth), f"— {strip_tags(by)}" if by else ""])
+                _join(
+                    [_children(entry, depth), f"— {attribution}" if attribution else ""]
+                )
             )
         case "list":
             return "\n".join(_item(item, depth) for item in entry.get("items", []))

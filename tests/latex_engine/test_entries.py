@@ -206,6 +206,26 @@ def test_quote() -> None:
     )
 
 
+def test_a_quote_names_who_and_where_as_5etools_does() -> None:
+    tracker = ContentTracker()
+    quote = {
+        "type": "quote",
+        "entries": ["Hi"],
+        "by": "{@creature Strahd von Zarovich|CoS}",
+        "from": "{@i I, Strahd}",
+    }
+    out = EntryRenderer(tracker=tracker).entry(quote)
+
+    assert (
+        "\\hfill --- \\textbf{Strahd von Zarovich}, \\textit{\\textit{I, Strahd}}"
+        in out
+    )
+    assert "creature" in tracker.export_for_appendix()
+    assert render({"type": "quote", "entries": ["Hi"], "from": "Vows"}) == (
+        "\\begin{quotation}\n\\em\nHi\n\n\\hfill --- \\textit{Vows}\n\\end{quotation}"
+    )
+
+
 def test_run_in_entries() -> None:
     assert render({"type": "actions", "name": "Dash", "entries": ["Go."]}) == (
         "\\textbf{Dash.} Go."

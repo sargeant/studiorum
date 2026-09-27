@@ -354,8 +354,12 @@ class EntryRenderer:
 
     def _quote(self, entry: dict[str, Any]) -> str:
         body = "\n\n".join(self.entries(entry.get("entries", [])))
-        by = entry.get("by", "")
-        return str(_macros().quote(body, escape(by) if by else ""))
+        by, source = entry.get("by", ""), entry.get("from", "")
+        return str(
+            _macros().quote(
+                body, self.text(by) if by else "", self.text(source) if source else ""
+            )
+        )
 
     def _generic(self, entry: dict[str, Any]) -> str:
         name = entry.get("name", "")
