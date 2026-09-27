@@ -224,3 +224,36 @@ PROP_TYPES: dict[str, ContentType] = {
     "vehicleUpgrade": ContentType.VEHICLE_UPGRADE,
     "language": ContentType.LANGUAGE,
 }
+
+# What each 5etools tag names, and the source when it gives none: 5etools'
+# Parser.TAG_TO_PROPS and each tag's defaultSource
+TAG_TYPES: dict[str, tuple[ContentType, str]] = {
+    "action": (ContentType.ACTION, "PHB"),
+    "background": (ContentType.BACKGROUND, "PHB"),
+    "charoption": (ContentType.CHAROPTION, "MOT"),
+    "class": (ContentType.CLASS, "PHB"),
+    "condition": (ContentType.CONDITION, "PHB"),
+    "creature": (ContentType.CREATURE, "MM"),
+    "deck": (ContentType.DECK, "DMG"),
+    "deity": (ContentType.DEITY, "PHB"),
+    "disease": (ContentType.DISEASE, "DMG"),
+    "facility": (ContentType.FACILITY, "XDMG"),
+    "feat": (ContentType.FEAT, "PHB"),
+    "hazard": (ContentType.HAZARD, "DMG"),
+    "item": (ContentType.ITEM, "DMG"),
+    "language": (ContentType.LANGUAGE, "PHB"),
+    "object": (ContentType.OBJECT, "DMG"),
+    "optfeature": (ContentType.OPTIONALFEATURE, "PHB"),
+    "race": (ContentType.RACE, "PHB"),
+    "recipe": (ContentType.RECIPE, "HF"),
+    "reward": (ContentType.REWARD, "DMG"),
+    "sense": (ContentType.SENSE, "PHB"),
+    "spell": (ContentType.SPELL, "PHB"),
+    "status": (ContentType.STATUS, "PHB"),
+    "subclass": (ContentType.SUBCLASS, "PHB"),
+    "table": (ContentType.TABLE, "DMG"),
+    "trap": (ContentType.TRAP, "DMG"),
+    "variantrule": (ContentType.VARIANTRULE, "DMG"),
+    "vehicle": (ContentType.VEHICLE, "GoS"),
+    "vehupgrade": (ContentType.VEHICLE_UPGRADE, "GoS"),
+}

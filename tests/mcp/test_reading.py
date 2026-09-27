@@ -8,7 +8,7 @@ import pytest
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
-from studiorum.mcp.markdown import strip_tags
+from studiorum.mcp.markdown import render, strip_tags
 from studiorum.mcp.server import mcp
 
 pytestmark = pytest.mark.usefixtures("mcp_data")
@@ -123,6 +123,19 @@ async def test_reading_errors() -> None:
 )
 def test_strip_tags(text: str, plain: str) -> None:
     assert strip_tags(text) == plain
+
+
+def test_a_quote_names_who_and_where() -> None:
+    quote = {
+        "type": "quote",
+        "entries": ["Hi"],
+        "by": "{@creature Strahd von Zarovich|CoS}",
+        "from": "I, Strahd",
+    }
+    assert render(quote) == "> Hi\n>\n> — Strahd von Zarovich, *I, Strahd*"
+    assert render({"type": "quote", "entries": ["Hi"], "from": "Vows"}) == (
+        "> Hi\n>\n> — *Vows*"
+    )
 
 
 @pytest.mark.asyncio

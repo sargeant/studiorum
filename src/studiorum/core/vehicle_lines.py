@@ -82,8 +82,7 @@ class VehicleBlock:
 
 def vehicle_block(content: BaseModel | Raw) -> VehicleBlock:
     """The statblock for a vehicle, by its ``vehicleType`` (ships by default)."""
-    # The model gives absent lists (ac, size, entries) as empty ones
-    data = {k: v for k, v in raw(content).items() if v != []}
+    data = raw(content)
     match data.get("vehicleType") or "SHIP":
         case "SPELLJAMMER":
             return _spelljammer(data)

@@ -39,6 +39,12 @@
 <@- endif @>
 <@- endmacro @>
 
+<#-- A table in another table's cell, grouped so the outer table's body
+     doesn't end at the inner one's \end --#>
+<@ macro cell_table(table) @>
+{<# table | safe #>}
+<@- endmacro @>
+
 <#-- A wide table's plain label of several words, one word a line --#>
 <@ macro column_label(label) @>
 <@- if ' ' in label and '\\' not in label -@>
@@ -67,11 +73,14 @@
 \end{DndSidebar}
 <@- endmacro @>
 
-<@ macro quote(body, by) @>
+<@ macro quote(body, by, source) @>
 \begin{quotation}
 \em
 <# body | safe #>
-<@ if by @>
+<@ if source @>
+
+\hfill --- <# by | safe #><@ if by @>, <@ endif @>\textit{<# source | safe #>}
+<@ elif by @>
 
 \hfill --- <# by | safe #>
 <@ endif @>

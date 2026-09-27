@@ -32,7 +32,13 @@ class TestNoUnresolvedTags:
             "source": {"abbreviation": "TST", "name": "Test Source"},
             "level": 1,
             "school": "E",
-            "time": [{"number": 1, "unit": "action"}],
+            "time": [
+                {
+                    "number": 1,
+                    "unit": "reaction",
+                    "condition": "which you take when targeted by {@spell magic missile}",
+                }
+            ],
             "range": {"type": "point", "distance": {"type": "feet", "amount": 60}},
             "components": {"v": True, "s": True, "m": False},
             "duration": [{"type": "instant"}],
@@ -54,6 +60,7 @@ class TestNoUnresolvedTags:
 
         latex = render_models("spell", [spell], ctx)
         assert latex and not _has_unresolved_tags(latex)
+        assert "targeted by \\textit{magic missile}" in latex
 
     def test_creature_no_unresolved_tags(self) -> None:
         from studiorum.core.models.creatures import Creature
@@ -65,7 +72,7 @@ class TestNoUnresolvedTags:
             "type": "humanoid",
             "alignment": ["neutral"],
             "ac": [12],
-            "hp": {"average": 7, "formula": "2d6"},
+            "hp": {"special": "127 ({@dice 17d8 + 51}) reduced to 107"},
             "speed": {"walk": 30},
             "str": 8,
             "dex": 14,
@@ -96,6 +103,7 @@ class TestNoUnresolvedTags:
 
         latex = render_models("creature", [creature], ctx)
         assert latex and not _has_unresolved_tags(latex)
+        assert "hit-points = {127 (17d8 + 51) reduced to 107}" in latex
 
     def test_items_no_unresolved_tags(self) -> None:
         from studiorum.core.models.items import Item
@@ -106,6 +114,7 @@ class TestNoUnresolvedTags:
                 "source": {"abbreviation": "TST", "name": "Test Source"},
                 "type": "wand",
                 "rarity": "uncommon",
+                "reqAttune": "by a creature attuned to a {@item Belt of Dwarvenkind}",
                 "value": 500,
                 "entries": ["This wand hums softly when held."],
             },

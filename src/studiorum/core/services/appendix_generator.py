@@ -9,16 +9,16 @@ from pydantic import BaseModel, Field
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
-from studiorum.core.models.content import ContentType
+from studiorum.core.models.content_models import TAG_TYPES
 from studiorum.core.references.content_tracker import ContentTracker
 
 logger = get_logger(__name__)
 
-# Each appendix's title and label, and the source 5etools gives its tag by default
+# Each appendix's title and label
 APPENDICES = {
-    "creature": ("Creatures", "ch:appendix-creatures", "MM"),
-    "item": ("Magic Items", "ch:appendix-items", "DMG"),
-    "spell": ("Spells", "ch:appendix-spells", "PHB"),
+    "creature": ("Creatures", "ch:appendix-creatures"),
+    "item": ("Magic Items", "ch:appendix-items"),
+    "spell": ("Spells", "ch:appendix-spells"),
 }
 
 
@@ -65,7 +65,7 @@ class AppendixGenerator:
             "spell": flags.spells,
         }
         appendices = []
-        for kind, (title, label, _) in APPENDICES.items():
+        for kind, (title, label) in APPENDICES.items():
             if wanted[kind] and (items := self._resolve(kind, tracked.get(kind, []))):
                 appendices.append(Appendix(title, label, kind, items))
         return appendices
@@ -76,8 +76,7 @@ class AppendixGenerator:
         A name is looked up with the source a reference gave, else 5etools'
         default source for the tag, else by name alone.
         """
-        content_type = ContentType(kind)
-        default_source = APPENDICES[kind][2]
+        content_type, default_source = TAG_TYPES[kind]
         sources: dict[str, tuple[str, str]] = {}
         for ref in tracked:
             name = str(ref["name"])

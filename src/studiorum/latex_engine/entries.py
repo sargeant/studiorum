@@ -26,6 +26,7 @@ from studiorum.core.models.content import ContentType
 from studiorum.core.models.content_models import (
     FLUFF_TYPES,
     PROP_TYPES,
+    TAG_TYPES,
     content_type_of,
 )
 from studiorum.core.models.creatures import ArmorClass, Creature
@@ -51,40 +52,6 @@ ABILITIES = {
     "int": "Intelligence",
     "wis": "Wisdom",
     "cha": "Charisma",
-}
-
-# What a statblock's tag looks up, and the source when it gives none: 5etools'
-# Parser.TAG_TO_PROPS and each tag's defaultSource. An item may also be a
-# generic variant, which renders as an item.
-STATBLOCK_TAGS: dict[str, tuple[ContentType, str]] = {
-    "action": (ContentType.ACTION, "PHB"),
-    "background": (ContentType.BACKGROUND, "PHB"),
-    "charoption": (ContentType.CHAROPTION, "MOT"),
-    "class": (ContentType.CLASS, "PHB"),
-    "condition": (ContentType.CONDITION, "PHB"),
-    "creature": (ContentType.CREATURE, "MM"),
-    "deck": (ContentType.DECK, "DMG"),
-    "deity": (ContentType.DEITY, "PHB"),
-    "disease": (ContentType.DISEASE, "DMG"),
-    "facility": (ContentType.FACILITY, "XDMG"),
-    "feat": (ContentType.FEAT, "PHB"),
-    "hazard": (ContentType.HAZARD, "DMG"),
-    "item": (ContentType.ITEM, "DMG"),
-    "language": (ContentType.LANGUAGE, "PHB"),
-    "object": (ContentType.OBJECT, "DMG"),
-    "optfeature": (ContentType.OPTIONALFEATURE, "PHB"),
-    "race": (ContentType.RACE, "PHB"),
-    "recipe": (ContentType.RECIPE, "HF"),
-    "reward": (ContentType.REWARD, "DMG"),
-    "sense": (ContentType.SENSE, "PHB"),
-    "spell": (ContentType.SPELL, "PHB"),
-    "status": (ContentType.STATUS, "PHB"),
-    "subclass": (ContentType.SUBCLASS, "PHB"),
-    "table": (ContentType.TABLE, "DMG"),
-    "trap": (ContentType.TRAP, "DMG"),
-    "variantrule": (ContentType.VARIANTRULE, "DMG"),
-    "vehicle": (ContentType.VEHICLE, "GoS"),
-    "vehupgrade": (ContentType.VEHICLE_UPGRADE, "GoS"),
 }
 
 # Content that statblocks render through its own macro (render_models)
@@ -124,6 +91,7 @@ class EntryRenderer:
         self._context = context
         self._depth = 0
         self._path: list[str] = []
+        self._sections: list[str] = []
         self._wide_float = False
 
     @classmethod
@@ -238,8 +206,12 @@ class EntryRenderer:
         if name := entry.get("name", ""):
             result.append(self._heading(heading_depth, name))
         if entries := entry.get("entries", []):
-            with self._deeper():
-                result.extend(self.entries(entries))
+            self._sections.append(name or (self._sections or [""])[-1])
+            try:
+                with self._deeper():
+                    result.extend(self.entries(entries))
+            finally:
+                self._sections.pop()
         if name and self._wide_float:
             result.append("\\FloatBarrier")
             self._wide_float = False
@@ -349,6 +321,14 @@ class EntryRenderer:
             return empty, f"\\textbf{{{label}}} {body}"
         return label, body
 
+    def _table_cell(self, cell: Any) -> str:
+        if not isinstance(cell, dict):
+            return self.text(str(cell))
+        if cell.get("type") == "table":
+            # A table in a cell (DMG's Magic Item Table G)
+            return str(_macros().cell_table(self._table(cell)))
+        return self.entry(cell)
+
     def _table(self, entry: dict[str, Any]) -> str:
         caption = entry.get("caption", "")
         labels = entry.get("colLabels", [])
@@ -362,10 +342,7 @@ class EntryRenderer:
             count = len(col_styles)
         else:
             count = len(_row_cells(rows[0])) or 2
-        cells = [
-            [self.entry(c) if isinstance(c, dict) else self.text(str(c)) for c in row]
-            for row in map(_row_cells, rows)
-        ]
+        cells = [[self._table_cell(c) for c in row] for row in map(_row_cells, rows)]
         # Rows can have more cells than the table has labels (MOT's monster lists)
         count = max(count, *(len(row) for row in cells))
         # "wide" is Studiorum's own, on tables it builds (a class table)
@@ -387,8 +364,12 @@ class EntryRenderer:
 
     def _quote(self, entry: dict[str, Any]) -> str:
         body = "\n\n".join(self.entries(entry.get("entries", [])))
-        by = entry.get("by", "")
-        return str(_macros().quote(body, escape(by) if by else ""))
+        by, source = entry.get("by", ""), entry.get("from", "")
+        return str(
+            _macros().quote(
+                body, self.text(by) if by else "", self.text(source) if source else ""
+            )
+        )
 
     def _generic(self, entry: dict[str, Any]) -> str:
         name = entry.get("name", "")
@@ -548,9 +529,15 @@ class EntryRenderer:
             return self._fluff(entry, found)
         inset = entry.get("style", "") == "inset"
         name = compact_heading(found, name)
+        # In a section of the same name (HF's recipes) the section's heading serves
+        heading = (
+            ""
+            if self._sections and self._sections[-1].lower() == name.lower()
+            else self._heading(self._depth, name)
+        )
         lines, entries = compact_parts(found, self.omnidexer)
         if not lines and not entries:
-            return self.text(name) if inset else self._heading(self._depth, name)
+            return self.text(name) if inset else heading
         body = "\n\n".join(
             [
                 *(
@@ -566,7 +553,7 @@ class EntryRenderer:
             self._wide_float = True
         if inset:
             return str(_macros().sidebar(self.text(name), body))
-        return f"{self._heading(self._depth, name)}\n\n{body}"
+        return f"{heading}\n\n{body}" if heading else body
 
     def _fluff(self, entry: dict[str, Any], fluff: Any) -> str:
         """Fluff in the text, as 5etools' getCompactRenderedFluffString."""
@@ -584,7 +571,7 @@ class EntryRenderer:
         """The content a statblock names by its prop, or else its tag."""
         name = entry.get("name", "")
         tag, prop = entry.get("tag", ""), entry.get("prop", "")
-        known = STATBLOCK_TAGS.get(tag)
+        known = TAG_TYPES.get(tag)
         content_type = PROP_TYPES.get(prop) if prop else known and known[0]
         if content_type is None:
             kind = prop or tag
@@ -594,6 +581,7 @@ class EntryRenderer:
             return None
         source = entry.get("source") or (known[1] if known else "")
         found = self._find(content_type, entry, source)
+        # An item may be a generic variant, which renders as an item
         if found is None and content_type == ContentType.ITEM:
             found = self._find(ContentType.MAGICVARIANT, entry, source)
         if isinstance(found, MagicVariant):

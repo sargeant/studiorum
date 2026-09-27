@@ -284,12 +284,15 @@ class ContentResolver:
                 status=ResolutionStatus.NO_MATCH, query=abbreviation
             )
 
-        # Look for exact matches by source abbreviation
+        # Look for exact matches by source abbreviation, or 5etools' id ("PS-Z")
         exact_matches = [
             content
             for content in all_content
-            if hasattr(content.source, "abbreviation")
-            and content.source.abbreviation.lower() == norm_abbrev
+            if (
+                hasattr(content.source, "abbreviation")
+                and content.source.abbreviation.lower() == norm_abbrev
+            )
+            or str(getattr(content, "id", None) or "").lower() == norm_abbrev
         ]
 
         if len(exact_matches) == 1:

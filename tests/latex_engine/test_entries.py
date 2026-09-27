@@ -10,6 +10,7 @@ from studiorum.core.models.creatures import Ability, Creature
 from studiorum.core.models.deities import Deity
 from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.core.models.variantrule import VariantRule
 from studiorum.core.models.vehicles import Vehicle
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.latex_engine.core.template_engine import environment
@@ -203,6 +204,26 @@ def test_insets_are_sidebars_with_deeper_headings() -> None:
 def test_quote() -> None:
     assert render({"type": "quote", "entries": ["Hi"], "by": "Sam"}) == (
         "\\begin{quotation}\n\\em\nHi\n\n\\hfill --- Sam\n\\end{quotation}"
+    )
+
+
+def test_a_quote_names_who_and_where_as_5etools_does() -> None:
+    tracker = ContentTracker()
+    quote = {
+        "type": "quote",
+        "entries": ["Hi"],
+        "by": "{@creature Strahd von Zarovich|CoS}",
+        "from": "{@i I, Strahd}",
+    }
+    out = EntryRenderer(tracker=tracker).entry(quote)
+
+    assert (
+        "\\hfill --- \\textbf{Strahd von Zarovich}, \\textit{\\textit{I, Strahd}}"
+        in out
+    )
+    assert "creature" in tracker.export_for_appendix()
+    assert render({"type": "quote", "entries": ["Hi"], "from": "Vows"}) == (
+        "\\begin{quotation}\n\\em\nHi\n\n\\hfill --- \\textit{Vows}\n\\end{quotation}"
     )
 
 
@@ -500,6 +521,25 @@ def test_a_deitys_labelled_lines_are_flush_left_above_its_entries() -> None:
     )
 
 
+def test_a_statblock_in_a_section_of_its_name_keeps_one_heading() -> None:
+    rule = VariantRule.model_validate(
+        {"name": "Fear", "source": "VRGR", "entries": ["Be afraid."]}
+    )
+    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=rule)))
+
+    def section(name: str) -> dict[str, object]:
+        block = {"type": "statblock", "tag": "variantrule", "name": "Fear"}
+        return {
+            "type": "entries",
+            "name": name,
+            "entries": ["Intro.", {"type": "entries", "entries": [block]}],
+        }
+
+    assert renderer.entry(section("Fear")).count("{Fear}") == 1
+    assert renderer.entry(section("Dread")).count("{Fear}") == 1
+    assert "Be afraid." in renderer.entry(section("Fear"))
+
+
 def test_item_statblocks_fall_back_to_generic_variants() -> None:
     variant = MagicVariant.model_validate(
         {
@@ -560,6 +600,27 @@ def test_table_rows_may_be_row_objects() -> None:
     )
 
     assert "Padded & 5" in out
+
+
+def test_a_table_in_a_cell_is_grouped_inside_it() -> None:
+    inner = {
+        "type": "table",
+        "caption": "Figurine",
+        "colLabels": ["d8", "Item"],
+        "rows": [["01", "Griffon"]],
+    }
+    out = render(
+        {
+            "type": "table",
+            "colLabels": ["d100", "Item"],
+            "rows": [["01-11", "Wand"], ["12-14", inner]],
+        }
+    )
+
+    # The outer table's body mustn't end at the inner table's \\end
+    start = out.index("12-14 & {")
+    assert out.index("\\end{DndTable}}", start) < out.rindex("\\end{DndTable}")
+    assert "01 & Griffon" in out
 
 
 def test_a_summary_table_wraps_in_even_columns() -> None:

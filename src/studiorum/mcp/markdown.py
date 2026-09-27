@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from studiorum.core.logging import get_logger
+from studiorum.core.models.content_models import TAG_TYPES
 from studiorum.core.text.tags import (
     display_part,
     is_tag,
@@ -123,9 +124,16 @@ def render(entry: Any, depth: int = 1) -> str:
             body = _join([f"**{name}**" if name else "", _children(entry, depth + 1)])
             return _quote(body)
         case "quote":
-            by = entry.get("by")
+            # 5etools' "— by, from", with the work in italics
+            by = strip_tags(entry.get("by") or "")
+            source = strip_tags(entry.get("from") or "")
+            attribution = ", ".join(
+                p for p in (by, f"*{source}*" if source else "") if p
+            )
             return _quote(
-                _join([_children(entry, depth), f"— {strip_tags(by)}" if by else ""])
+                _join(
+                    [_children(entry, depth), f"— {attribution}" if attribution else ""]
+                )
             )
         case "list":
             return "\n".join(_item(item, depth) for item in entry.get("items", []))
@@ -239,28 +247,30 @@ def _join(parts: Any) -> str:
     return "\n\n".join(p for p in parts if p)
 
 
-# Tags that name content get_content can read, with 5etools' default source
-_CONTENT_TAGS = {
-    "action": ("action", "PHB"),
-    "background": ("background", "PHB"),
-    "class": ("class", "PHB"),
-    "condition": ("condition", "PHB"),
-    "creature": ("creature", "MM"),
-    "disease": ("disease", "DMG"),
-    "feat": ("feat", "PHB"),
-    "hazard": ("hazard", "DMG"),
-    "item": ("item", "DMG"),
-    "language": ("language", "PHB"),
-    "optfeature": ("optionalfeature", "PHB"),
-    "race": ("race", "PHB"),
-    "sense": ("sense", "PHB"),
-    "spell": ("spell", "PHB"),
-    "status": ("status", "PHB"),
-    "trap": ("trap", "DMG"),
-    "variantrule": ("variantrule", "DMG"),
-    "vehicle": ("vehicle", "GoS"),
-    "vehupgrade": ("vehicleUpgrade", "GoS"),
-}
+# Tags that name content get_content can read, as name then source
+_CONTENT_TAGS = frozenset(
+    {
+        "action",
+        "background",
+        "class",
+        "condition",
+        "creature",
+        "disease",
+        "feat",
+        "hazard",
+        "item",
+        "language",
+        "optfeature",
+        "race",
+        "sense",
+        "spell",
+        "status",
+        "trap",
+        "variantrule",
+        "vehicle",
+        "vehupgrade",
+    }
+)
 _FEATURE_TAGS = {"classFeature": 5, "subclassFeature": 7}
 
 
@@ -283,9 +293,15 @@ def references(value: Any) -> list[dict[str, str]]:
             tag, args = split_tag(part)
             parts = split_by_pipe(args) or [""]
             if tag in _CONTENT_TAGS and parts[0]:
-                kind, default = _CONTENT_TAGS[tag]
+                content_type, default = TAG_TYPES[tag]
                 source = parts[1] if len(parts) > 1 and parts[1] else default
-                add({"type": kind, "name": strip_tags(parts[0]), "source": source})
+                add(
+                    {
+                        "type": content_type.value,
+                        "name": strip_tags(parts[0]),
+                        "source": source,
+                    }
+                )
             elif tag in _FEATURE_TAGS and parts[0]:
                 uid = "|".join(parts[: _FEATURE_TAGS[tag]])
                 add({"type": tag, "name": uid})
@@ -336,8 +352,7 @@ def references(value: Any) -> list[dict[str, str]]:
                         {
                             "type": kind,
                             "name": name,
-                            "source": source.split("|")[0]
-                            or ("DMG" if kind == "item" else "PHB"),
+                            "source": source.split("|")[0] or TAG_TYPES[kind][1],
                         }
                     )
             for item in v.values():
