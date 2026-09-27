@@ -13,7 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from studiorum.core.text.tags import (
+from studiorum.data.text.tags import (
     display_part,
     is_tag,
     plain_text,
@@ -25,7 +25,7 @@ from studiorum.log import get_logger
 from studiorum.render.escape import escape, escape_url
 
 if TYPE_CHECKING:
-    from studiorum.core.references.content_tracker import ContentTracker
+    from studiorum.data.references.content_tracker import ContentTracker
 
 logger = get_logger(__name__)
 

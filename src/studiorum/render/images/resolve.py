@@ -25,7 +25,7 @@ from studiorum.log import get_logger
 
 if TYPE_CHECKING:
     from studiorum.config import ImageConfig
-    from studiorum.core.models.creatures import Creature
+    from studiorum.data.models.creatures import Creature
 
 logger = get_logger(__name__)
 

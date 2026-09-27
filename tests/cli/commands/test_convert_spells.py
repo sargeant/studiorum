@@ -7,7 +7,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 
 
 @pytest.mark.cli
@@ -85,8 +85,8 @@ class TestConvertSpellsCommand:
             },
         ]
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells._render_spellbook")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     @patch("pathlib.Path.mkdir")
@@ -96,12 +96,12 @@ class TestConvertSpellsCommand:
         mock_display,
         mock_render_spellbook,
         mock_spell_collector_class,
-        mock_omnidexer,
+        mock_catalogue,
     ):
         """Test converting specific spells by name."""
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Mock spell collector
         mock_collector = Mock()
@@ -172,18 +172,18 @@ class TestConvertSpellsCommand:
         assert result.exit_code == 1
         assert "File does not exist" in result.stdout
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
     @patch("studiorum.cli.commands.convert.spells.display_manager")
     def test_convert_spells_no_spells_found(
         self,
         mock_display,
         mock_spell_collector_class,
-        mock_omnidexer,
+        mock_catalogue,
     ):
         """Test error handling when no spells are found."""
         # Mock dependencies
-        mock_omnidexer.return_value = Mock(spec=Omnidexer)
+        mock_catalogue.return_value = Mock(spec=Catalogue)
 
         # Mock spell collector with no results
         mock_collector = Mock()
@@ -219,7 +219,7 @@ def test_material_flag_filters_both_ways(
     flag: str, has_material: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """--material and --no-material set one tri-state filter."""
-    from studiorum.core.services.spell_collector import SpellCollector
+    from studiorum.data.collectors.spell_collector import SpellCollector
 
     monkeypatch.chdir(Path(__file__).resolve().parents[3])
     collected = []

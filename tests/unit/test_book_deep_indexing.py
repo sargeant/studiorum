@@ -1,10 +1,10 @@
 """Tests for book deep indexing functionality."""
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.books import Book
-from studiorum.core.models.chapter import Chapter
-from studiorum.core.models.content import Source
-from studiorum.core.models.nested_content import (
+from studiorum.data.catalogue import Catalogue
+from studiorum.data.models.books import Book
+from studiorum.data.models.chapter import Chapter
+from studiorum.data.models.content import Source
+from studiorum.data.models.nested_content import (
     Inset,
     Section,
     Table,
@@ -34,7 +34,7 @@ class TestBookDeepIndexing:
                     "page": 10,
                     "id": "char-creation",
                     "entries": [
-                        "Creating a character is the first step in D&D.",
+                        "Creating a character is the first step in 5e.",
                         "Choose your race and class carefully.",
                     ],
                 }
@@ -47,8 +47,8 @@ class TestBookDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         assert len(result) == 1
         assert isinstance(result[0], Section)
@@ -80,8 +80,8 @@ class TestBookDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         assert len(result) == 1
         assert isinstance(result[0], VariantRule)
@@ -120,8 +120,8 @@ class TestBookDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         assert len(result) == 2
 
@@ -154,8 +154,8 @@ class TestBookDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         assert len(result) == 1
         assert isinstance(result[0], Table)
@@ -187,8 +187,8 @@ class TestBookDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         assert len(result) == 1
         assert isinstance(result[0], Inset)
@@ -206,7 +206,7 @@ class TestBookDeepIndexing:
                     "name": "Combat",
                     "page": 189,
                     "entries": [
-                        "Combat in D&D is cyclical.",
+                        "Combat in 5e is cyclical.",
                         {
                             "type": "entries",
                             "name": "Variant: Initiative Scoring",
@@ -233,8 +233,8 @@ class TestBookDeepIndexing:
             contents=[chapter],
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         # Should get: Combat section, Initiative Scoring variant rule, Initiative Order table
         assert len(result) == 3
@@ -269,7 +269,7 @@ class TestBookDeepIndexing:
                             "type": "section",
                             "name": "Introduction",
                             "page": 5,
-                            "entries": ["Welcome to D&D!"],
+                            "entries": ["Welcome to 5e!"],
                         }
                     ],
                 }
@@ -279,8 +279,8 @@ class TestBookDeepIndexing:
         # The Book model should handle this format
         book = Book(**book_data)
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         # Should parse the chapter entries
         assert len(result) == 1
@@ -312,8 +312,8 @@ class TestBookDeepIndexing:
             name="Test Book", source=Source(abbreviation="TEST"), contents=[chapter]
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         assert len(result) == 2
 
@@ -358,8 +358,8 @@ class TestBookDeepIndexing:
             contents=[chapter1, appendix],
         )
 
-        omnidexer = Omnidexer()
-        result = book.get_deep_index_entries(omnidexer)
+        catalogue = Catalogue()
+        result = book.get_deep_index_entries(catalogue)
 
         assert len(result) == 2
 

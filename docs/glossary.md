@@ -26,6 +26,9 @@ Technical terms, acronyms, and concepts used throughout Studiorum documentation.
 
 ## C
 
+**Catalogue**
+: The index that loads and provides access to all 5e content data.
+
 **CDN (Content Delivery Network)**
 : A distributed network of servers that deliver web content. Used for serving images and fonts in documentation.
 
@@ -108,9 +111,6 @@ Technical terms, acronyms, and concepts used throughout Studiorum documentation.
 : Additional information about content (source book, page numbers, etc.) used for attribution and organization.
 
 ## O
-
-**Omnidexer**
-: Studiorum's core service that indexes and provides access to all 5e content data.
 
 **Observability**
 : The practice of monitoring system performance, errors, and behavior through logging, metrics, and tracing.

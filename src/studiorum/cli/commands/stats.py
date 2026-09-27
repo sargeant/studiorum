@@ -9,8 +9,8 @@ from rich.table import Table
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import content_type_of
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import content_type_of
 
 app: typer.Typer = typer.Typer(help="Show content statistics and analysis")
 console = display_manager.console
@@ -27,12 +27,12 @@ def show_overview() -> None:
 
     def _show_overview() -> None:
         try:
-            # Load omnidexer
+            # Load catalogue
             with display_manager.progress("Loading stats data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_services().omnidexer
+                catalogue = get_services().catalogue
 
                 display_manager.update_task(load_task, completed=100)
 
@@ -49,7 +49,7 @@ def show_overview() -> None:
             # Get stats for each content type
             for content_type in ContentType:
                 try:
-                    items = omnidexer.get_all_by_type(content_type)
+                    items = catalogue.get_all_by_type(content_type)
                     if items:
                         stats["by_type"][content_type.value] = len(items)
                         stats["total_items"] += len(items)
@@ -142,13 +142,13 @@ def show_content_stats(
 
     def _show_content_stats() -> None:
         try:
-            # Load omnidexer
+            # Load catalogue
             with display_manager.progress("Loading stats data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_services().omnidexer
-                omnidexer.load_all_data()
+                catalogue = get_services().catalogue
+                catalogue.load_all_data()
                 display_manager.update_task(load_task, completed=100)
 
             # Get content type
@@ -160,7 +160,7 @@ def show_content_stats(
                 raise typer.Exit(1)
 
             # Get all content of this type
-            content_items = omnidexer.get_all_by_type(ct)
+            content_items = catalogue.get_all_by_type(ct)
 
             if not content_items:
                 rprint(f"[yellow]No {content_type} content found[/yellow]")
@@ -208,12 +208,12 @@ def show_source_stats() -> None:
 
     def _show_source_stats() -> None:
         try:
-            # Load omnidexer
+            # Load catalogue
             with display_manager.progress("Loading stats data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_services().omnidexer
+                catalogue = get_services().catalogue
 
                 display_manager.update_task(load_task, completed=100)
 
@@ -230,7 +230,7 @@ def show_source_stats() -> None:
             # Get stats for each content type
             for content_type in ContentType:
                 try:
-                    items = omnidexer.get_all_by_type(content_type)
+                    items = catalogue.get_all_by_type(content_type)
                     if items:
                         stats["by_type"][content_type.value] = len(items)
                         stats["total_items"] += len(items)
@@ -274,7 +274,7 @@ def show_source_stats() -> None:
                 percentage = (count / total_items * 100) if total_items > 0 else 0
 
                 # Get primary content type for this source
-                source_items = omnidexer.get_all_by_source(source)
+                source_items = catalogue.get_all_by_source(source)
                 content_types: dict[str, int] = {}
                 for item in source_items:
                     try:
@@ -306,7 +306,7 @@ def show_source_stats() -> None:
 
 def _analyze_spells(spells: list) -> dict:
     """Analyze spell-specific statistics."""
-    from studiorum.core.models.spells import Spell
+    from studiorum.data.models.spells import Spell
 
     # Level distribution
     level_counts: dict[int, int] = {}
@@ -350,7 +350,7 @@ def _analyze_spells(spells: list) -> dict:
 
 def _analyze_creatures(creatures: list) -> dict:
     """Analyze creature-specific statistics."""
-    from studiorum.core.models.creatures import Creature
+    from studiorum.data.models.creatures import Creature
 
     # CR distribution
     cr_counts: dict[str, int] = {}
@@ -424,7 +424,7 @@ def _analyze_creatures(creatures: list) -> dict:
 
 def _analyze_items(items: list) -> dict:
     """Analyze item-specific statistics."""
-    from studiorum.core.models.items import Item
+    from studiorum.data.models.items import Item
 
     # Type and rarity distribution
     type_counts: dict[str, int] = {}

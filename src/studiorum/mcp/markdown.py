@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from studiorum.core.models.content_models import TAG_TYPES
-from studiorum.core.text.tags import (
+from studiorum.data.models.content_models import TAG_TYPES
+from studiorum.data.text.tags import (
     display_part,
     is_tag,
     split_by_pipe,

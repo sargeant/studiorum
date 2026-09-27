@@ -9,8 +9,8 @@ from rich.table import Table
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import content_type_of
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import content_type_of
 
 app: typer.Typer = typer.Typer(help="List available 5e content")
 console = display_manager.console
@@ -85,30 +85,30 @@ def list_content(
     """
     📋 List loaded content items
 
-    Shows content that has been loaded into the omnidexer system.
+    Shows content that has been loaded into the catalogue system.
     Useful for finding specific spells, creatures, items, etc.
     """
 
     def _list_content() -> None:
         try:
-            # Load omnidexer
-            omnidexer = get_services().omnidexer
+            # Load catalogue
+            catalogue = get_services().catalogue
 
             # Filter content
             if content_type:
                 try:
                     ct = ContentType(content_type.lower())
-                    content_items = omnidexer.get_all_by_type(ct)
+                    content_items = catalogue.get_all_by_type(ct)
                 except ValueError:
                     rprint(f"[red]Error:[/red] Unknown content type: {content_type}")
                     rprint("Available types: spell, creature, item, adventure, book")
                     raise typer.Exit(1)
             else:
                 # Get all content
-                omnidexer.get_statistics()
+                catalogue.get_statistics()
                 content_items = []
                 for ct in ContentType:
-                    content_items.extend(omnidexer.get_all_by_type(ct))
+                    content_items.extend(catalogue.get_all_by_type(ct))
 
             # Apply filters
             if source:
@@ -169,11 +169,11 @@ def list_sources() -> None:
 
     def _list_sources() -> None:
         try:
-            # Load omnidexer
-            omnidexer = get_services().omnidexer
+            # Load catalogue
+            catalogue = get_services().catalogue
 
             # Get statistics
-            stats = omnidexer.get_statistics()
+            stats = catalogue.get_statistics()
 
             if "by_source" not in stats:
                 rprint("[yellow]No source information available[/yellow]")
@@ -208,11 +208,11 @@ def list_adventures() -> None:
 
     def _list_adventures() -> None:
         try:
-            # Load omnidexer
-            omnidexer = get_services().omnidexer
+            # Load catalogue
+            catalogue = get_services().catalogue
 
             # Get all adventures
-            adventures = omnidexer.get_all_by_type(ContentType("adventure"))
+            adventures = catalogue.get_all_by_type(ContentType("adventure"))
 
             if not adventures:
                 rprint("[yellow]No adventures found in the system[/yellow]")
@@ -254,11 +254,11 @@ def list_books() -> None:
 
     def _list_books() -> None:
         try:
-            # Load omnidexer
-            omnidexer = get_services().omnidexer
+            # Load catalogue
+            catalogue = get_services().catalogue
 
             # Get all books
-            books = omnidexer.get_all_by_type(ContentType("book"))
+            books = catalogue.get_all_by_type(ContentType("book"))
 
             if not books:
                 rprint("[yellow]No books found in the system[/yellow]")
@@ -298,9 +298,9 @@ def _format_file_size(size_bytes: int) -> str:
 
 def _get_content_details(item: Any) -> str:
     """Get brief details about a content item."""
-    from studiorum.core.models.creatures import Creature
-    from studiorum.core.models.items import Item
-    from studiorum.core.models.spells import Spell
+    from studiorum.data.models.creatures import Creature
+    from studiorum.data.models.items import Item
+    from studiorum.data.models.spells import Spell
 
     if isinstance(item, Spell):
         return f"Level {item.level} {item.school}"

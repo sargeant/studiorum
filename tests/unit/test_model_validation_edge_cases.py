@@ -7,16 +7,16 @@ that might cause validation issues.
 from typing import Any, cast
 
 from studiorum.cli.context import get_services
-from studiorum.core.models.creatures import (  # type: ignore
+from studiorum.data.models.creatures import (  # type: ignore
     Ability,
     ArmorClass,
     Creature,
     CreatureType,
     HitPoints,
 )
-from studiorum.core.models.items import Item  # type: ignore
-from studiorum.core.models.spells import Spell  # type: ignore
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.items import Item  # type: ignore
+from studiorum.data.models.spells import Spell  # type: ignore
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import EntryRenderer
 
 
@@ -361,7 +361,7 @@ class TestModelValidationEdgeCases:
 
             content_tracker = ContentTracker()
             rendering_context = RenderingContext(
-                omnidexer=get_services().omnidexer,
+                catalogue=get_services().catalogue,
                 content_tracker=content_tracker,
             )
             processed_entries = EntryRenderer.from_context(rendering_context).entries(
@@ -443,13 +443,13 @@ class TestModelValidationEdgeCases:
             if item.entries:
                 # Test item description extraction using modern RecursiveEntryProcessor
                 from studiorum.cli.context import get_services
-                from studiorum.core.references.content_tracker import ContentTracker
+                from studiorum.data.references.content_tracker import ContentTracker
                 from studiorum.render.context import RenderingContext
                 from studiorum.render.entries import EntryRenderer
 
                 content_tracker = ContentTracker()
                 rendering_context = RenderingContext(
-                    omnidexer=get_services().omnidexer,
+                    catalogue=get_services().catalogue,
                     content_tracker=content_tracker,
                 )
                 processed_entries = EntryRenderer.from_context(
@@ -464,7 +464,7 @@ class TestModelValidationEdgeCases:
 
     def test_source_format_variations(self) -> None:
         """Test that various source formats are handled correctly."""
-        from studiorum.core.models.content import Source  # type: ignore
+        from studiorum.data.models.content import Source  # type: ignore
 
         test_cases = [
             # String source

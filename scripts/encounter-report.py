@@ -69,9 +69,9 @@ def parse_creature_file(filepath: Path) -> list[tuple[int, str, str | None]]:
     return creatures
 
 
-def find_creature(omnidexer, name: str, source: str | None):
+def find_creature(catalogue, name: str, source: str | None):
     """Find creature by name, optionally filtered by source."""
-    results = list(omnidexer.find_all("creature", name))
+    results = list(catalogue.find_all("creature", name))
 
     if source:
         filtered = [
@@ -166,7 +166,7 @@ def main():
         print("No creatures found in file.")
         sys.exit(1)
 
-    omnidexer = build_services(load_config()).omnidexer
+    catalogue = build_services(load_config()).catalogue
 
     print(f"\n{'=' * 60}")
     print("ENCOUNTER REPORT")
@@ -177,7 +177,7 @@ def main():
     print("-" * 60)
 
     for count, name, source in creatures:
-        creature = find_creature(omnidexer, name, source)
+        creature = find_creature(catalogue, name, source)
         if creature:
             xp = get_xp(creature)
             line_xp = xp * count

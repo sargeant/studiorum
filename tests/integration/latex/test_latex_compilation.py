@@ -15,10 +15,10 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
-from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.data.catalogue import Catalogue
+from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.data.references.content_tracker import ContentTracker
+from studiorum.data.resolvers.content_resolver import ContentResolver
 from studiorum.render.appendices import AppendixFlags
 from studiorum.render.context import RenderingContext
 from studiorum.render.document import render_document
@@ -128,10 +128,10 @@ This section contains basic text to ensure the DND template is working correctly
     def test_test_book_renders_and_compiles(self):
         """Test that test book content renders to LaTeX and compiles successfully."""
         # Load test data
-        omnidexer = Omnidexer()
-        omnidexer.load_all_data()
+        catalogue = Catalogue()
+        catalogue.load_all_data()
 
-        resolver = ContentResolver(omnidexer)
+        resolver = ContentResolver(catalogue)
         result = resolver.resolve_book("test")
 
         if not result.is_success:
@@ -148,7 +148,7 @@ This section contains basic text to ensure the DND template is working correctly
             include_toc=True,
         )
 
-        context = RenderingContext(omnidexer=omnidexer, content_tracker=content_tracker)
+        context = RenderingContext(catalogue=catalogue, content_tracker=content_tracker)
 
         latex_content = render_document([book], context, document_metadata)
 
@@ -188,10 +188,10 @@ This section contains basic text to ensure the DND template is working correctly
     def test_test_adventure_renders_and_compiles(self):
         """Test that test adventure content renders to LaTeX and compiles successfully."""
         # Load test data
-        omnidexer = Omnidexer()
-        omnidexer.load_all_data()
+        catalogue = Catalogue()
+        catalogue.load_all_data()
 
-        resolver = ContentResolver(omnidexer)
+        resolver = ContentResolver(catalogue)
         result = resolver.resolve_adventure("test")
 
         if not result.is_success:
@@ -208,7 +208,7 @@ This section contains basic text to ensure the DND template is working correctly
             include_toc=True,
         )
 
-        context = RenderingContext(omnidexer=omnidexer, content_tracker=content_tracker)
+        context = RenderingContext(catalogue=catalogue, content_tracker=content_tracker)
 
         latex_content = render_document(
             [adventure],

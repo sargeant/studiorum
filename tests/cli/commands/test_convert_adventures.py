@@ -9,7 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 
 
 @pytest.mark.cli
@@ -35,19 +35,19 @@ class TestConvertAdventureCommand:
             ]
         }
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     def test_convert_adventure_with_file_path(
         self,
         mock_display,
         mock_engine_factory,
-        mock_omnidexer,
+        mock_catalogue,
     ):
         """Test converting adventure from file path."""
         # Mock dependencies - create a mock that passes isinstance checks
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Mock LaTeX engine
         mock_engine_factory.return_value = (
@@ -80,9 +80,9 @@ class TestConvertAdventureCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch(
-        "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
+        "studiorum.data.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
@@ -93,12 +93,12 @@ class TestConvertAdventureCommand:
         mock_display,
         mock_engine_factory,
         mock_enrich_content,
-        mock_omnidexer,
+        mock_catalogue,
     ):
         """Test converting adventure from abbreviation."""
         # Create a proper Adventure instance instead of Mock
-        from studiorum.core.models.adventures import Adventure
-        from studiorum.core.models.content import Source
+        from studiorum.data.models.adventures import Adventure
+        from studiorum.data.models.content import Source
 
         mock_adventure = Adventure(
             name="Test Adventure",
@@ -110,13 +110,13 @@ class TestConvertAdventureCommand:
         )
 
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer_instance.get_all_by_type.return_value = [mock_adventure]
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue_instance.get_all_by_type.return_value = [mock_adventure]
 
         # Mock the source_manager to avoid file loading
         mock_source_manager = Mock()
-        mock_omnidexer_instance.source_manager = mock_source_manager
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance.source_manager = mock_source_manager
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Mock content enrichment to return content unchanged (avoid file loading)
         mock_enrich_content.side_effect = lambda content, content_type: content
@@ -132,8 +132,8 @@ class TestConvertAdventureCommand:
         mock_latex.two_column = None
         mock_latex.justified = None
 
-        # Mock resolver - no longer needed since we're using the real resolver with mocked omnidexer
-        # The ContentResolver will be instantiated with our mocked omnidexer
+        # Mock resolver - no longer needed since we're using the real resolver with mocked catalogue
+        # The ContentResolver will be instantiated with our mocked catalogue
         # and will find the mock_adventure through get_all_by_type
 
         # Mock LaTeX engine
@@ -179,19 +179,19 @@ class TestConvertAdventureCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.core.resolvers.ContentResolver")
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    @patch("studiorum.data.resolvers.ContentResolver")
     def test_convert_adventure_resolution_failure(
-        self, mock_resolver_class, mock_omnidexer
+        self, mock_resolver_class, mock_catalogue
     ):
         """Test error handling when content resolution fails."""
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Mock failed resolution
         mock_resolver = Mock()
-        from studiorum.core.resolvers.content_resolver import (
+        from studiorum.data.resolvers.content_resolver import (
             ContentResolutionResult,
             ResolutionStatus,
         )
@@ -210,8 +210,8 @@ class TestConvertAdventureCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout or "Did you mean?" in result.stdout
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.load_omnidexer")
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.load_catalogue")
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("studiorum.cli.commands.convert.run.compile_pdf")
@@ -220,15 +220,15 @@ class TestConvertAdventureCommand:
         mock_compile_pdf,
         mock_display,
         mock_engine_factory,
-        mock_shared_omnidexer,
-        mock_omnidexer,
+        mock_shared_catalogue,
+        mock_catalogue,
     ):
         """Test adventure conversion with PDF compilation."""
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_shared_omnidexer.return_value = (
-            mock_omnidexer_instance  # Use same mock instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
+        mock_shared_catalogue.return_value = (
+            mock_catalogue_instance  # Use same mock instance
         )
 
         # Mock LaTeX engine

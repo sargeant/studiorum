@@ -8,7 +8,7 @@ from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.requires_data
@@ -251,12 +251,12 @@ class TestCreatureRealDataIntegration:
         assert "0" in spells_dict  # Cantrips
         assert "9" in spells_dict  # 9th level spells
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
-    def test_real_data_markup_processing(self, mock_get_omnidexer):
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
+    def test_real_data_markup_processing(self, mock_get_catalogue):
         """Test markup processing with real data patterns."""
         # Setup mocks for tag processing
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Real orc data with typical markup
         real_orc_data = {
@@ -306,13 +306,13 @@ class TestCreatureRealDataIntegration:
         # Test markup processing in actions
         greataxe_action = orc.action[0]
         from studiorum.cli.context import get_services
-        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.data.references.content_tracker import ContentTracker
         from studiorum.render.context import RenderingContext
         from studiorum.render.entries import EntryRenderer
 
         content_tracker = ContentTracker()
         rendering_context = RenderingContext(
-            omnidexer=get_services().omnidexer,
+            catalogue=get_services().catalogue,
             content_tracker=content_tracker,
         )
         processed_entries = EntryRenderer.from_context(rendering_context).entries(

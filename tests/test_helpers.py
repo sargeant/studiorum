@@ -16,7 +16,7 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
     due to contaminated state.
 
     This should be called in setup_method() for any test class that:
-    - Uses Omnidexer instances
+    - Uses Catalogue instances
     - Tests that load actual data files
     """
     try:
@@ -31,7 +31,7 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         # Reset app config to pick up environment changes
         reset_app_config()
 
-        from studiorum.core.loaders import item_types
+        from studiorum.data.loaders import item_types
 
         item_types.reset()
 
@@ -41,7 +41,7 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         reset_services()
 
         # 2.1. Reset the entry type registry global instance
-        from studiorum.core.entry_registry import reset_global_registry
+        from studiorum.data.models.entry_registry import reset_global_registry
 
         reset_global_registry()
         logger.debug("Entry type registry global instance reset")

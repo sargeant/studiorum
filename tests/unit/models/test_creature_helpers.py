@@ -11,7 +11,7 @@ Tests the six new helper methods:
 These tests ensure 5etools parity for creature text generation and template rendering.
 """
 
-from studiorum.core.models.creatures import Ability, Creature
+from studiorum.data.models.creatures import Ability, Creature
 
 
 class TestCreaturePronounHelpers:

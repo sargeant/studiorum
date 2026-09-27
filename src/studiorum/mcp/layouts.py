@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from studiorum.core import encounter
-from studiorum.core.loaders import item_types
-from studiorum.core.models.items import variation_entries
-from studiorum.core.text.parser import feat_category
-from studiorum.core.text.prerequisites import prerequisite_entry
-from studiorum.core.text.stats import speed_text
-from studiorum.core.type_lines import ability_text
-from studiorum.core.vehicle_lines import VehicleSection, vehicle_block
+from studiorum.data import encounter
+from studiorum.data.loaders import item_types
+from studiorum.data.models.items import variation_entries
+from studiorum.data.text.parser import feat_category
+from studiorum.data.text.prerequisites import prerequisite_entry
+from studiorum.data.text.stats import speed_text
+from studiorum.data.type_lines import ability_text
+from studiorum.data.vehicle_lines import VehicleSection, vehicle_block
 from studiorum.mcp.markdown import render, strip_tags
 
 type Raw = dict[str, Any]
@@ -581,7 +581,7 @@ def _race(data: Raw, _: str) -> list[str]:
 
 
 def _vehicle(data: Raw, content_type: str) -> list[str]:
-    """``Renderer.vehicle``'s layouts (``core.vehicle_lines``); a creature as one."""
+    """``Renderer.vehicle``'s layouts (``data.vehicle_lines``); a creature as one."""
     if data.get("vehicleType") == "CREATURE":
         return _creature(data, content_type)
     block = vehicle_block(data)

@@ -18,18 +18,18 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
-from studiorum.core.compact import compact_heading, compact_parts
-from studiorum.core.entry_registry import KNOWN_ENTRY_TYPES
-from studiorum.core.loaders.magic_variants import generic_item
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.content_models import (
+from studiorum.data.compact import compact_heading, compact_parts
+from studiorum.data.loaders.magic_variants import generic_item
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import (
     FLUFF_TYPES,
     PROP_TYPES,
     TAG_TYPES,
     content_type_of,
 )
-from studiorum.core.models.creatures import ArmorClass, Creature
-from studiorum.core.models.magicvariant import MagicVariant
+from studiorum.data.models.creatures import ArmorClass, Creature
+from studiorum.data.models.entry_registry import KNOWN_ENTRY_TYPES
+from studiorum.data.models.magicvariant import MagicVariant
 from studiorum.log import get_logger
 from studiorum.render.context import Style
 from studiorum.render.escape import escape
@@ -39,8 +39,8 @@ from .images import emit
 from .images.resolve import ImageResolver
 
 if TYPE_CHECKING:
-    from studiorum.core.loaders.omnidexer import Omnidexer
-    from studiorum.core.references.content_tracker import ContentTracker
+    from studiorum.data.catalogue import Catalogue
+    from studiorum.data.references.content_tracker import ContentTracker
     from studiorum.render.context import RenderingContext
 
 logger = get_logger(__name__)
@@ -81,13 +81,13 @@ class EntryRenderer:
     def __init__(
         self,
         tracker: ContentTracker | None = None,
-        omnidexer: Omnidexer | None = None,
+        catalogue: Catalogue | None = None,
         style: Style | None = None,
         images: ImageResolver | None = None,
         context: RenderingContext | None = None,
     ) -> None:
         self.tracker = tracker
-        self.omnidexer = omnidexer
+        self.catalogue = catalogue
         self.style = style or Style()
         self._images = images
         # Statblocks render creatures and items through their templates
@@ -101,7 +101,7 @@ class EntryRenderer:
     def from_context(cls, context: RenderingContext) -> EntryRenderer:
         return cls(
             tracker=context.content_tracker,
-            omnidexer=context.omnidexer,
+            catalogue=context.catalogue,
             style=context.style,
             context=context,
         )
@@ -537,7 +537,7 @@ class EntryRenderer:
             if self._sections and self._sections[-1].lower() == name.lower()
             else self._heading(self._depth, name)
         )
-        lines, entries = compact_parts(found, self.omnidexer)
+        lines, entries = compact_parts(found, self.catalogue)
         if not lines and not entries:
             return self.text(name) if inset else heading
         body = "\n\n".join(
@@ -599,7 +599,7 @@ class EntryRenderer:
         self, content_type: ContentType, entry: dict[str, Any], source: str
     ) -> Any:
         """Content by name and source, or a subclass by its 5etools uid."""
-        if self.omnidexer is None:
+        if self.catalogue is None:
             return None
         if content_type == ContentType.SUBCLASS and entry.get("shortName"):
             uid = "|".join(
@@ -610,8 +610,8 @@ class EntryRenderer:
                     source,
                 )
             )
-            return self.omnidexer.find_uid(content_type, uid)
-        return self.omnidexer.find(content_type, entry.get("name", ""), source)
+            return self.catalogue.find_uid(content_type, uid)
+        return self.catalogue.find(content_type, entry.get("name", ""), source)
 
     def _render_model(self, kind: str, content: Any) -> str:
         """A creature, spell, item or vehicle through its macro, in the text."""
@@ -620,7 +620,7 @@ class EntryRenderer:
         from .document import render_models
 
         context = self._context or RenderingContext(
-            content_tracker=self.tracker, omnidexer=self.omnidexer
+            content_tracker=self.tracker, catalogue=self.catalogue
         )
         latex = render_models(kind, [content], context, floating=False)
         # A wide statblock still floats; its section ends with a float barrier

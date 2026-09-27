@@ -9,18 +9,18 @@ from fastmcp.dependencies import Depends
 from fastmcp.exceptions import ToolError
 from pydantic import Field
 
-from studiorum.core.loaders.omnidexer import parse_uid
-from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.core.models.content_models import content_type_of
-from studiorum.core.models.creature_filters import CreatureFilterCriteria
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.item_filters import ItemFilterCriteria
-from studiorum.core.models.items import Item
-from studiorum.core.models.spell_filters import SpellFilterCriteria
-from studiorum.core.models.spells import Spell
-from studiorum.core.services.creature_collector import CreatureCollector
-from studiorum.core.services.item_collector import ItemCollector
-from studiorum.core.services.spell_collector import SpellCollector
+from studiorum.data.catalogue import parse_uid
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.collectors.item_collector import ItemCollector
+from studiorum.data.collectors.spell_collector import SpellCollector
+from studiorum.data.models.content import BaseContent, ContentType
+from studiorum.data.models.content_models import content_type_of
+from studiorum.data.models.creature_filters import CreatureFilterCriteria
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.item_filters import ItemFilterCriteria
+from studiorum.data.models.items import Item
+from studiorum.data.models.spell_filters import SpellFilterCriteria
+from studiorum.data.models.spells import Spell
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.layouts import item_kind
 from studiorum.mcp.models import (
@@ -78,7 +78,7 @@ def as_sources(services: Services, sources: list[str] | None) -> list[str] | Non
     by_id = {
         str(getattr(p, "id", "") or "").lower(): p.source.abbreviation
         for ctype in (ContentType.BOOK, ContentType.ADVENTURE)
-        for p in services.omnidexer.get_all_by_type(ctype)
+        for p in services.catalogue.get_all_by_type(ctype)
     }
     return [by_id.get(s.lower(), s) for s in sources]
 
@@ -92,7 +92,7 @@ def _all[T: BaseContent](
     services: Services, ctype: ContentType, model: type[T]
 ) -> list[T]:
     return [
-        c for c in services.omnidexer.get_all_by_type(ctype) if isinstance(c, model)
+        c for c in services.catalogue.get_all_by_type(ctype) if isinstance(c, model)
     ]
 
 
@@ -180,7 +180,7 @@ async def search_spells(
     srd_only = default_srd if srd_only is None else srd_only
     if spell_class:
         classes = sorted(
-            {c.name for c in services.omnidexer.get_all_by_type(ContentType.CLASS)}
+            {c.name for c in services.catalogue.get_all_by_type(ContentType.CLASS)}
         )
         if spell_class.lower() not in {c.lower() for c in classes}:
             raise ToolError(
@@ -195,7 +195,7 @@ async def search_spells(
         sources=as_sources(services, sources),
     )
     found: list[Spell] = (
-        SpellCollector(services.omnidexer)
+        SpellCollector(services.catalogue)
         .collect_spells(SpellFilterCriteria(**filters))
         .spells
         if filters
@@ -249,7 +249,7 @@ async def search_creatures(
         sources=as_sources(services, sources),
     )
     found: list[Creature] = (
-        CreatureCollector(services.omnidexer)
+        CreatureCollector(services.catalogue)
         .collect_creatures(CreatureFilterCriteria(**filters))
         .creatures
         if filters
@@ -295,7 +295,7 @@ async def search_items(
         sources=as_sources(services, sources),
     )
     found: list[Item] = (
-        ItemCollector(services.omnidexer)
+        ItemCollector(services.catalogue)
         .collect_items(ItemFilterCriteria(**filters))
         .items
         if filters

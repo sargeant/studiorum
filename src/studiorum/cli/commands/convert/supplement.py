@@ -7,7 +7,7 @@ from typing import Annotated, Any
 import typer
 from rich import print as rprint
 
-from studiorum.core.models.document_metadata import DocumentType
+from studiorum.data.models.document_metadata import DocumentType
 from studiorum.render.appendices import AppendixFlags
 
 from . import options as opt
@@ -17,9 +17,9 @@ from .run import conversion_errors, document_metadata, write_document
 
 
 def _models() -> dict[str, Any]:
-    from studiorum.core.models.creatures import Creature
-    from studiorum.core.models.items import Item
-    from studiorum.core.models.spells import Spell
+    from studiorum.data.models.creatures import Creature
+    from studiorum.data.models.items import Item
+    from studiorum.data.models.spells import Spell
 
     return {
         "spell": Spell,

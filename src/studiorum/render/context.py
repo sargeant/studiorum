@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
-    from studiorum.core.loaders.omnidexer import Omnidexer
-    from studiorum.core.references.content_tracker import ContentTracker
+    from studiorum.data.catalogue import Catalogue
+    from studiorum.data.references.content_tracker import ContentTracker
 
 # Sectioning commands by nesting depth; the last repeats below it
 SPELL_HEADINGS = ("subsubsection", "paragraph", "subparagraph")
@@ -59,7 +59,7 @@ class RenderingContext:
     """
 
     content_tracker: ContentTracker | None = None
-    omnidexer: Omnidexer | None = None
+    catalogue: Catalogue | None = None
     style: Style = field(default_factory=Style)
     fluff: Mapping[str, Any] = field(default_factory=dict)
     fluff_images: Mapping[str, list[Any]] | None = None

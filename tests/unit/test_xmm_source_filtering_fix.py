@@ -2,8 +2,8 @@
 
 import pytest
 
-from studiorum.core.models.creature_filters import CreatureFilterCriteria
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.models.creature_filters import CreatureFilterCriteria
 
 
 class MockCreature:
@@ -25,8 +25,8 @@ class MockSource:
 @pytest.fixture
 def mock_collector():
     """Create a mock creature collector for testing."""
-    # We don't need a real omnidexer for these unit tests
-    return CreatureCollector(omnidexer=None)  # type: ignore
+    # We don't need a real catalogue for these unit tests
+    return CreatureCollector(catalogue=None)  # type: ignore
 
 
 class TestXMMSourceFilteringFix:

@@ -2,8 +2,8 @@
 
 import pytest
 
-from studiorum.core.models.item_filters import ItemFilterCriteria
-from studiorum.core.models.items import Item
+from studiorum.data.models.item_filters import ItemFilterCriteria
+from studiorum.data.models.items import Item
 
 
 def _item(**data: object) -> Item:

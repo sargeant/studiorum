@@ -6,8 +6,8 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.models.content import ContentType
-from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.data.models.content import ContentType
+from studiorum.data.resolvers.content_resolver import ContentResolver
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 

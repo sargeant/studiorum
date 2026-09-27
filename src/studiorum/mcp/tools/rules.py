@@ -7,7 +7,7 @@ from typing import Annotated, Literal, get_args
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
-from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.markdown import render, snippet
 from studiorum.mcp.models import RuleResults, RuleSummary
@@ -39,7 +39,7 @@ async def search_rules(
     words = query.lower().split()
     found: list[tuple[int, str, str, BaseContent]] = []
     for kind in (rule_type,) if rule_type else get_args(RuleType):
-        for rule in services.omnidexer.get_all_by_type(ContentType(kind)):
+        for rule in services.catalogue.get_all_by_type(ContentType(kind)):
             name = rule.name.lower()
             raw = rule.model_dump(mode="json", by_alias=True, exclude_none=True)
             text = render(raw.get("entries") or [])

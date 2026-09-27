@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from studiorum.log import get_logger
 
 if TYPE_CHECKING:
-    from studiorum.core.models.tokens import TokenSheet
+    from studiorum.data.models.tokens import TokenSheet
 
 logger = get_logger(__name__)
 

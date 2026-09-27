@@ -1,6 +1,6 @@
 """Tests for Challenge Rating variants with XP values (xpLair, xpCoven, etc.)."""
 
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 
 
 def create_test_creature(**kwargs):

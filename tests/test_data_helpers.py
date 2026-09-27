@@ -4,16 +4,16 @@ import pytest
 
 
 # Lazy imports to avoid slow collection
-def _get_omnidexer():
-    """Lazy omnidexer import and creation."""
-    from studiorum.core.loaders.omnidexer import Omnidexer
+def _get_catalogue():
+    """Lazy catalogue import and creation."""
+    from studiorum.data.catalogue import Catalogue
 
-    return Omnidexer()
+    return Catalogue()
 
 
 def _get_content_type(name: str):
     """Lazy ContentType import."""
-    from studiorum.core.models.content import ContentType
+    from studiorum.data.models.content import ContentType
 
     return ContentType(name)
 
@@ -25,12 +25,12 @@ def get_available_sources() -> set[str]:
         Set of source abbreviations available in test data
     """
     try:
-        omnidexer = _get_omnidexer()
-        omnidexer.load_all_data()
+        catalogue = _get_catalogue()
+        catalogue.load_all_data()
 
         # Get all creatures to check what sources are available
         creature_type = _get_content_type("creature")
-        creatures = omnidexer.get_all_by_type(creature_type)
+        creatures = catalogue.get_all_by_type(creature_type)
 
         sources = {creature.source.abbreviation.lower() for creature in creatures}
         return sources
@@ -65,7 +65,7 @@ def _has_full_dataset_available(min_file_threshold: int = 50) -> bool:
     import os
     from pathlib import Path
 
-    from studiorum.core.loaders.data_dir import DataDir
+    from studiorum.data.loaders.data_dir import DataDir
 
     root = Path(
         os.environ.get("STUDIORUM_5ETOOLS_DIR", Path.home() / "Code/5etools-src")
@@ -113,11 +113,11 @@ def requires_full_5etools_data(
 def _has_enough_creatures(min_count: int) -> bool:
     """Check if enough creatures are available (called during test execution)."""
     try:
-        omnidexer = _get_omnidexer()
-        omnidexer.load_all_data()
+        catalogue = _get_catalogue()
+        catalogue.load_all_data()
 
         creature_type = _get_content_type("creature")
-        creatures = omnidexer.get_all_by_type(creature_type)
+        creatures = catalogue.get_all_by_type(creature_type)
         return len(creatures) >= min_count
 
     except Exception:

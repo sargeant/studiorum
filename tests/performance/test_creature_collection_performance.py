@@ -11,9 +11,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from studiorum.core.models.creature_filters import CreatureFilterCriteria
-from studiorum.core.models.creatures import Creature
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.models.creature_filters import CreatureFilterCriteria
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.performance
@@ -24,8 +24,8 @@ class TestCreatureCollectionPerformance:
     def setup_method(self):
         """Set up test fixtures."""
 
-        # Create mock omnidexer with performance data
-        self.mock_omnidexer = Mock()
+        # Create mock catalogue with performance data
+        self.mock_catalogue = Mock()
 
         # Create test creature data at different scales
         self.small_dataset = self._create_test_creatures(50)
@@ -37,15 +37,15 @@ class TestCreatureCollectionPerformance:
             # Return empty list for performance tests - we control data via get_all_by_type
             return []
 
-        self.mock_omnidexer.get_all_by_source.side_effect = mock_get_all_by_source
+        self.mock_catalogue.get_all_by_source.side_effect = mock_get_all_by_source
 
         def mock_find_all(content_type, name):
             # Return empty list for performance tests - we control data via get_all_by_type
             return []
 
-        self.mock_omnidexer.find_all.side_effect = mock_find_all
+        self.mock_catalogue.find_all.side_effect = mock_find_all
 
-        self.collector = CreatureCollector(self.mock_omnidexer)
+        self.collector = CreatureCollector(self.mock_catalogue)
 
     def _create_test_creatures(self, count: int) -> list[dict]:
         """Create test creature data for performance testing."""
@@ -137,7 +137,7 @@ class TestCreatureCollectionPerformance:
         """Test collection performance with small dataset (50 creatures)."""
         # Setup mock to return small dataset
         mock_creatures = [Creature.model_validate(data) for data in self.small_dataset]
-        self.mock_omnidexer.get_all_by_type.return_value = mock_creatures
+        self.mock_catalogue.get_all_by_type.return_value = mock_creatures
 
         # Test various filtering scenarios
         criteria = CreatureFilterCriteria(
@@ -165,7 +165,7 @@ class TestCreatureCollectionPerformance:
         """Test collection performance with medium dataset (200 creatures)."""
         # Setup mock to return medium dataset
         mock_creatures = [Creature.model_validate(data) for data in self.medium_dataset]
-        self.mock_omnidexer.get_all_by_type.return_value = mock_creatures
+        self.mock_catalogue.get_all_by_type.return_value = mock_creatures
 
         criteria = CreatureFilterCriteria(cr_range="1-5", creature_types=["humanoid"])
 
@@ -192,7 +192,7 @@ class TestCreatureCollectionPerformance:
         """Test collection performance with large dataset (1000 creatures)."""
         # Setup mock to return large dataset
         mock_creatures = [Creature.model_validate(data) for data in self.large_dataset]
-        self.mock_omnidexer.get_all_by_type.return_value = mock_creatures
+        self.mock_catalogue.get_all_by_type.return_value = mock_creatures
 
         criteria = CreatureFilterCriteria(min_cr=5.0, max_cr=15.0)
 
@@ -219,7 +219,7 @@ class TestCreatureCollectionPerformance:
     def test_filtering_performance_comparison(self):
         """Compare performance of different filtering strategies."""
         mock_creatures = [Creature.model_validate(data) for data in self.medium_dataset]
-        self.mock_omnidexer.get_all_by_type.return_value = mock_creatures
+        self.mock_catalogue.get_all_by_type.return_value = mock_creatures
 
         # Test different filtering scenarios
         test_cases = [
@@ -307,7 +307,7 @@ class TestCreatureCollectionPerformance:
 
         # Create and process large dataset
         mock_creatures = [Creature.model_validate(data) for data in self.large_dataset]
-        self.mock_omnidexer.get_all_by_type.return_value = mock_creatures
+        self.mock_catalogue.get_all_by_type.return_value = mock_creatures
 
         criteria = CreatureFilterCriteria(min_cr=1.0, max_cr=20.0)
 
@@ -340,7 +340,7 @@ class TestCreatureCollectionPerformance:
             # Create dataset of specified size
             test_data = self._create_test_creatures(size)
             mock_creatures = [Creature.model_validate(data) for data in test_data]
-            self.mock_omnidexer.get_all_by_type.return_value = mock_creatures
+            self.mock_catalogue.get_all_by_type.return_value = mock_creatures
 
             criteria = CreatureFilterCriteria(min_cr=1.0, max_cr=10.0)
 

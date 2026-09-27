@@ -9,7 +9,7 @@ import typer
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.creatures import Creature
+from studiorum.data.models.creatures import Creature
 from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
@@ -305,7 +305,7 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
     """
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
-        omnidexer = load_data("creature")
+        catalogue = load_data("creature")
 
         names = read_names(
             creature_names,
@@ -316,7 +316,7 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
         )
         if tokens and names.total:
             rprint(f"[blue]ℹ[/blue] Total tokens to generate: {names.total}")
-        result = _collect(omnidexer, ctx.params, names)
+        result = _collect(catalogue, ctx.params, names)
         report_collection(result, result.creatures, "creature")
         _print_summary(result)
         if dry_run:
@@ -342,16 +342,16 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
 
         references = None
         if spells:
-            from studiorum.core.references.content_reference_manager import (
+            from studiorum.data.references.content_reference_manager import (
                 ContentReferenceManager,
             )
 
-            references = ContentReferenceManager(omnidexer=omnidexer)
+            references = ContentReferenceManager(catalogue=catalogue)
         tracker = references.get_content_tracker() if references else None
-        found_fluff = _fluff(omnidexer, found, ctx.params, tracker) if fluff else None
+        found_fluff = _fluff(catalogue, found, ctx.params, tracker) if fluff else None
         context = RenderingContext(
             content_tracker=tracker,
-            omnidexer=omnidexer,
+            catalogue=catalogue,
             style=Style(
                 monster_spells=True,
                 images=options.images,
@@ -364,7 +364,7 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
             creature_level=creature_level,
         )
         appendices = (
-            _spell_appendix(context, omnidexer, references, found)
+            _spell_appendix(context, catalogue, references, found)
             if references
             else None
         )
@@ -395,12 +395,12 @@ def _heading(options: ConvertOptions, creature_types: list[str] | None) -> str:
 
 
 def _fluff(
-    omnidexer: Any, creatures: list[Creature], params: dict[str, Any], tracker: Any
+    catalogue: Any, creatures: list[Creature], params: dict[str, Any], tracker: Any
 ) -> FluffResult:
     """Fluff by creature name, with shared fluff such as lairs included once."""
     deduplicator = None
     if params["deduplicate_fluff"]:
-        from studiorum.core.services.fluff_deduplicator import (
+        from studiorum.data.collectors.fluff_deduplicator import (
             DeduplicationStrategy,
             FluffDeduplicator,
         )
@@ -409,7 +409,7 @@ def _fluff(
             strategy=DeduplicationStrategy.STRICT, content_tracker=tracker
         )
     return collect_fluff(
-        omnidexer,
+        catalogue,
         creatures,
         "creature",
         sections=params["fluff_sections"],
@@ -419,11 +419,11 @@ def _fluff(
     )
 
 
-def _collect(omnidexer: Any, params: dict[str, Any], names: NameList) -> Any:
+def _collect(catalogue: Any, params: dict[str, Any], names: NameList) -> Any:
     """Build the filter criteria from the command's parameters and collect."""
-    from studiorum.core.models.creature_filters import CreatureFilterCriteria
-    from studiorum.core.parsers.creature_input import parse_cr_range
-    from studiorum.core.services.creature_collector import CreatureCollector
+    from studiorum.cli.parsers.creature_input import parse_cr_range
+    from studiorum.data.collectors.creature_collector import CreatureCollector
+    from studiorum.data.models.creature_filters import CreatureFilterCriteria
 
     min_cr, max_cr = None, None
     if params["cr_range"]:
@@ -471,7 +471,7 @@ def _collect(omnidexer: Any, params: dict[str, Any], names: NameList) -> Any:
 
     with display_manager.progress("Collecting creatures") as _:
         task = display_manager.add_task("[cyan]Filtering creatures...", total=None)
-        result = CreatureCollector(omnidexer).collect_creatures(criteria)
+        result = CreatureCollector(catalogue).collect_creatures(criteria)
         display_manager.update_task(task, completed=100)
     return result
 
@@ -627,7 +627,7 @@ def _render_tokens(
 ) -> str:
     """Render a printable sheet of creature tokens."""
     from studiorum.cli.context import get_services
-    from studiorum.core.models.tokens import TokenSheet
+    from studiorum.data.models.tokens import TokenSheet
     from studiorum.render.images.resolve import ImageResolver
     from studiorum.render.token_renderer import TokenRenderer
 
@@ -649,14 +649,14 @@ def _render_tokens(
 
 def _spell_appendix(
     context: RenderingContext,
-    omnidexer: Any,
+    catalogue: Any,
     references: Any,
     creatures: list[Creature],
 ) -> Callable[[], list["DocumentChapter"]]:
     """The appendix of spells the creatures cast, built once the body is rendered."""
 
     def appendices() -> list["DocumentChapter"]:
-        from studiorum.core.interfaces import DeepIndexable
+        from studiorum.data.interfaces import DeepIndexable
         from studiorum.render.appendices import (
             AppendixFlags,
             AppendixGenerator,
@@ -669,7 +669,7 @@ def _spell_appendix(
                     references.track_deep_index_references(
                         creature, "creature spellcasting abilities"
                     )
-        found = AppendixGenerator(omnidexer=omnidexer).generate_appendices(
+        found = AppendixGenerator(catalogue=catalogue).generate_appendices(
             references.get_content_tracker(), AppendixFlags(spells=True)
         )
         return appendices_as_chapters(found, context)

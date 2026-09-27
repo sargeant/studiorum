@@ -52,7 +52,7 @@ class FluffResult:
 
 
 def collect_fluff(
-    omnidexer: Any,
+    catalogue: Any,
     content: Sequence[Any],
     kind: str,
     *,
@@ -66,9 +66,9 @@ def collect_fluff(
     ``kind`` is creature, spell or item. A deduplicator, when given, drops fluff
     already included for another piece of content (for example a shared lair).
     """
-    from studiorum.core.services.fluff_matcher import FluffMatcher
+    from studiorum.data.collectors.fluff_matcher import FluffMatcher
 
-    matcher = FluffMatcher(omnidexer)
+    matcher = FluffMatcher(catalogue)
     match: Callable[..., Any] = getattr(matcher, f"match_{kind}_fluff")
     section_list = split_csv(sections)
     source_list = split_csv(sources, upper=True)

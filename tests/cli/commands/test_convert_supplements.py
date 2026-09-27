@@ -9,7 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.data.catalogue import Catalogue
 
 
 @pytest.mark.cli
@@ -39,19 +39,19 @@ class TestConvertSupplementCommand:
             ]
         }
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.render_latex")
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     def test_convert_supplement_with_spells(
         self,
         mock_display,
         mock_engine_factory,
-        mock_omnidexer,
+        mock_catalogue,
     ):
         """Test converting supplement with spells."""
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Mock LaTeX engine
         mock_engine_factory.return_value = (
@@ -93,14 +93,14 @@ class TestConvertSupplementCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     def test_convert_supplement_empty_content(
         self,
         mock_builtin_open,
         mock_display,
-        mock_omnidexer,
+        mock_catalogue,
     ):
         """Test error handling for supplement with no valid content."""
         # Mock file operations - empty content
@@ -109,8 +109,8 @@ class TestConvertSupplementCommand:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer_instance = Mock(spec=Omnidexer)
-        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_catalogue_instance = Mock(spec=Catalogue)
+        mock_catalogue.return_value = mock_catalogue_instance
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()

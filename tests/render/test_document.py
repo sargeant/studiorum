@@ -3,13 +3,13 @@
 from typing import Any
 from unittest.mock import Mock
 
-from studiorum.core.models.adventures import Adventure
-from studiorum.core.models.chapter import Chapter
-from studiorum.core.models.content import Source
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
-from studiorum.core.models.spells import Spell
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.adventures import Adventure
+from studiorum.data.models.chapter import Chapter
+from studiorum.data.models.content import Source
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.data.models.spells import Spell
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.appendices import AppendixFlags
 from studiorum.render.context import RenderingContext, Style
 from studiorum.render.document import (
@@ -217,14 +217,14 @@ def test_recursive_appendices_add_what_appendix_entries_refer_to() -> None:
         }
     )
     content = {"mage": mage, "shield": shield}
-    omnidexer = Mock(
+    catalogue = Mock(
         find=Mock(side_effect=lambda _type, name, _source: content.get(name.lower()))
     )
 
     def titles(recursive: bool) -> list[str]:
         tracker = ContentTracker()
         tracker.add_content("creature", "Mage", "MM")
-        context = RenderingContext(content_tracker=tracker, omnidexer=omnidexer)
+        context = RenderingContext(content_tracker=tracker, catalogue=catalogue)
         flags = AppendixFlags(creatures=True, spells=True, recursive=recursive)
         return [chapter.title for chapter in appendix_chapters(context, flags)]
 

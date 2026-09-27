@@ -9,10 +9,10 @@ from fastmcp.dependencies import Depends
 from fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
-from studiorum.core import encounter
-from studiorum.core.encounter import Rules
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.creatures import Creature
+from studiorum.data import encounter
+from studiorum.data.encounter import Rules
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.creatures import Creature
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.models import (
     CreatureSuggestions,
@@ -169,7 +169,7 @@ async def suggest_creatures(
     per = count * encounter.multiplier(count, len(party_levels), rules)
     each = (math.ceil(low / per), math.floor(high / per))
     fits: list[tuple[int, Creature]] = []
-    for c in services.omnidexer.get_all_by_type(ContentType.CREATURE):
+    for c in services.catalogue.get_all_by_type(ContentType.CREATURE):
         if not isinstance(c, Creature):
             continue
         xp = encounter.creature_xp(c.cr)

@@ -12,9 +12,9 @@ from unittest.mock import Mock
 import psutil
 import pytest
 
-from studiorum.core.models.creature_filters import CreatureFilterCriteria
-from studiorum.core.models.creatures import Creature
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.models.creature_filters import CreatureFilterCriteria
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.performance
@@ -174,9 +174,9 @@ class TestCreatureDatasetScaling:
         self.process.memory_info().rss / 1024 / 1024
 
         # Test collection performance
-        mock_omnidexer = Mock()
-        mock_omnidexer.get_all_by_type.return_value = creatures
-        collector = CreatureCollector(mock_omnidexer)
+        mock_catalogue = Mock()
+        mock_catalogue.get_all_by_type.return_value = creatures
+        collector = CreatureCollector(mock_catalogue)
 
         criteria = CreatureFilterCriteria(min_cr=1.0, max_cr=5.0)
 
@@ -216,9 +216,9 @@ class TestCreatureDatasetScaling:
         validation_time = time.perf_counter() - start_time
 
         # Test multiple collection scenarios
-        mock_omnidexer = Mock()
-        mock_omnidexer.get_all_by_type.return_value = creatures
-        collector = CreatureCollector(mock_omnidexer)
+        mock_catalogue = Mock()
+        mock_catalogue.get_all_by_type.return_value = creatures
+        collector = CreatureCollector(mock_catalogue)
 
         collection_scenarios = [
             ("CR filter", CreatureFilterCriteria(min_cr=1.0, max_cr=10.0)),
@@ -284,9 +284,9 @@ class TestCreatureDatasetScaling:
             creatures.extend(batch_creatures)
 
         # Test collection performance
-        mock_omnidexer = Mock()
-        mock_omnidexer.get_all_by_type.return_value = creatures
-        collector = CreatureCollector(mock_omnidexer)
+        mock_catalogue = Mock()
+        mock_catalogue.get_all_by_type.return_value = creatures
+        collector = CreatureCollector(mock_catalogue)
 
         criteria = CreatureFilterCriteria(min_cr=1.0, max_cr=15.0)
 
@@ -331,9 +331,9 @@ class TestCreatureDatasetScaling:
             validation_time = time.perf_counter() - start_time
 
             # Time collection
-            mock_omnidexer = Mock()
-            mock_omnidexer.get_all_by_type.return_value = creatures
-            collector = CreatureCollector(mock_omnidexer)
+            mock_catalogue = Mock()
+            mock_catalogue.get_all_by_type.return_value = creatures
+            collector = CreatureCollector(mock_catalogue)
 
             criteria = CreatureFilterCriteria(min_cr=1.0, max_cr=10.0)
             start_time = time.perf_counter()

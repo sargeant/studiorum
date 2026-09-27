@@ -7,10 +7,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from studiorum.core.loaders.content_sources import NameListFileSource
-from studiorum.core.models.content import ContentType
-from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.content_list_writer import ContentListWriter
+from studiorum.data.content_list_writer import ContentListWriter
+from studiorum.data.loaders.content_sources import NameListFileSource
+from studiorum.data.models.content import ContentType
+from studiorum.data.references.content_tracker import ContentTracker
 
 
 @pytest.mark.performance

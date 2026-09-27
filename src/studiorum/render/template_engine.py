@@ -23,8 +23,8 @@ from studiorum.config import (
     LaTeXDocumentConfig,
     get_app_config,
 )
-from studiorum.core.models.creatures import Ability, Spellcasting
-from studiorum.core.vehicle_lines import vehicle_block
+from studiorum.data.models.creatures import Ability, Spellcasting
+from studiorum.data.vehicle_lines import vehicle_block
 from studiorum.render.entries import (
     EntryRenderer,
     creature_ac_text,

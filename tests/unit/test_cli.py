@@ -138,11 +138,11 @@ class TestCLIErrorHandling:
     def test_info_content_not_found(self) -> None:
         """Test info content command with non-existent content."""
         with patch(
-            "studiorum.services.Services.omnidexer", new_callable=PropertyMock
-        ) as mock_omnidexer:
+            "studiorum.services.Services.catalogue", new_callable=PropertyMock
+        ) as mock_catalogue:
             mock_omni: Any = Mock()
             mock_omni.find.return_value = None
-            mock_omnidexer.return_value = mock_omni
+            mock_catalogue.return_value = mock_omni
 
             result = self.runner.invoke(app, ["info", "content", "Nonexistent Spell"])
             # Should handle gracefully

@@ -6,12 +6,12 @@ from rich.panel import Panel
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.core.models.content_models import content_type_of
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.items import Item
-from studiorum.core.models.spells import Spell
-from studiorum.core.resolvers import ContentResolver
+from studiorum.data.models.content import BaseContent, ContentType
+from studiorum.data.models.content_models import content_type_of
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.items import Item
+from studiorum.data.models.spells import Spell
+from studiorum.data.resolvers import ContentResolver
 
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
 console = display_manager.console
@@ -53,18 +53,18 @@ def show_content_info(
 
     def _show_info() -> None:
         try:
-            # Load omnidexer
+            # Load catalogue
             with display_manager.progress("Loading info data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = get_services().omnidexer
+                catalogue = get_services().catalogue
                 display_manager.update_task(
                     load_task, completed=TASK_COMPLETION_PERCENT
                 )
 
             # Create resolver for abbreviation lookup
-            resolver = ContentResolver(omnidexer)
+            resolver = ContentResolver(catalogue)
             content_item = None
 
             # First try abbreviation-based lookup for adventures and books
@@ -91,7 +91,7 @@ def show_content_info(
                 if content_type:
                     try:
                         ct = ContentType(content_type.lower())
-                        content_item = omnidexer.find(ct, name_or_abbreviation, source)
+                        content_item = catalogue.find(ct, name_or_abbreviation, source)
                     except ValueError:
                         rprint(
                             f"[red]Error:[/red] Unknown content type: {content_type}"
@@ -103,7 +103,7 @@ def show_content_info(
                 else:
                     # Search all types by name
                     for ct in ContentType:
-                        content_item = omnidexer.find(ct, name_or_abbreviation, source)
+                        content_item = catalogue.find(ct, name_or_abbreviation, source)
                         if content_item:
                             break
 

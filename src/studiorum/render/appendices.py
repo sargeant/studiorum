@@ -7,9 +7,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content_models import TAG_TYPES
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.catalogue import Catalogue
+from studiorum.data.models.content_models import TAG_TYPES
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.log import get_logger
 
 logger = get_logger(__name__)
@@ -51,8 +51,8 @@ class AppendixFlags(BaseModel):
 class AppendixGenerator:
     """Builds appendices from the references a ContentTracker holds."""
 
-    def __init__(self, omnidexer: Omnidexer):
-        self.omnidexer = omnidexer
+    def __init__(self, catalogue: Catalogue):
+        self.catalogue = catalogue
 
     def generate_appendices(
         self, content_tracker: ContentTracker, flags: AppendixFlags
@@ -86,9 +86,9 @@ class AppendixGenerator:
                 sources[name.lower()] = (name, source)
         found = []
         for name, source in sources.values():
-            item = self.omnidexer.find(content_type, name, source or default_source)
+            item = self.catalogue.find(content_type, name, source or default_source)
             if item is None:
-                item = next(iter(self.omnidexer.find_all(content_type, name)), None)
+                item = next(iter(self.catalogue.find_all(content_type, name)), None)
             if item is None:
                 logger.warning(f"No {kind} named {name!r} for the appendix")
                 continue

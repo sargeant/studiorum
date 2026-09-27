@@ -96,10 +96,10 @@ def build_cache() -> dict[str, dict]:
     from studiorum.services import build_services
 
     print("Building creature XP cache (one-time operation)...")
-    omnidexer = build_services(load_config()).omnidexer
+    catalogue = build_services(load_config()).catalogue
 
     cache: dict[str, dict] = {}
-    creatures = list(omnidexer.get_all_by_type("creature"))
+    creatures = list(catalogue.get_all_by_type("creature"))
 
     for creature in creatures:
         cr_str = str(creature.cr).lower().strip() if creature.cr else "0"

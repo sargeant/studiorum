@@ -17,8 +17,8 @@ from typing import Any
 import orjson
 import pytest
 
-from studiorum.core.loaders.magic_variants import expand
-from studiorum.core.loaders.merge_copy import resolve_copies
+from studiorum.data.loaders.magic_variants import expand
+from studiorum.data.loaders.merge_copy import resolve_copies
 
 FIVETOOLS = Path(
     os.environ.get("STUDIORUM_5ETOOLS_DIR", Path.home() / "Code/5etools-src")

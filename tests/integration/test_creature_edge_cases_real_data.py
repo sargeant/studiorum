@@ -8,10 +8,10 @@ import re
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.creatures import Creature
-from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.data.catalogue import Catalogue
+from studiorum.data.collectors.creature_collector import CreatureCollector
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.creatures import Creature
 
 
 @pytest.mark.requires_data
@@ -21,18 +21,18 @@ class TestCreatureEdgeCasesRealData:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.omnidexer = None
+        self.catalogue = None
         self.loaded_creatures = []
 
     @pytest.fixture(autouse=True)
     def load_edge_case_creatures(self):
         """Load creatures and identify edge cases."""
         try:
-            self.omnidexer = Omnidexer()
-            self.omnidexer.load_all_data()
+            self.catalogue = Catalogue()
+            self.catalogue.load_all_data()
 
             creature_type = ContentType("creature")
-            all_creatures = self.omnidexer.get_all_by_type(creature_type)
+            all_creatures = self.catalogue.get_all_by_type(creature_type)
             self.loaded_creatures = [
                 creature for creature in all_creatures if isinstance(creature, Creature)
             ]
@@ -411,7 +411,7 @@ class TestCreatureEdgeCasesRealData:
                     for action in creature.action:
                         if hasattr(action, "entries") and action.entries:
                             from studiorum.cli.context import get_services
-                            from studiorum.core.references.content_tracker import (
+                            from studiorum.data.references.content_tracker import (
                                 ContentTracker,
                             )
                             from studiorum.render.context import RenderingContext
@@ -419,7 +419,7 @@ class TestCreatureEdgeCasesRealData:
 
                             content_tracker = ContentTracker()
                             rendering_context = RenderingContext(
-                                omnidexer=get_services().omnidexer,
+                                catalogue=get_services().catalogue,
                                 content_tracker=content_tracker,
                             )
                             processed_entries = EntryRenderer.from_context(
@@ -558,17 +558,17 @@ class TestCreatureCollectionEdgeCases:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.omnidexer = None
+        self.catalogue = None
 
     @pytest.fixture(autouse=True)
     def load_creatures_for_collection(self):
         """Load creatures for collection testing."""
         try:
-            self.omnidexer = Omnidexer()
-            self.omnidexer.load_all_data()
+            self.catalogue = Catalogue()
+            self.catalogue.load_all_data()
 
             creature_type = ContentType("creature")
-            all_creatures = self.omnidexer.get_all_by_type(creature_type)
+            all_creatures = self.catalogue.get_all_by_type(creature_type)
             self.all_creatures = [
                 creature for creature in all_creatures if isinstance(creature, Creature)
             ]
@@ -581,7 +581,7 @@ class TestCreatureCollectionEdgeCases:
 
     def test_collection_with_extreme_cr_ranges(self):
         """Test collection with extreme CR ranges."""
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
 
         # Test very low CR range
         low_result = collector.collect_by_cr_range(0.0, 0.125)  # CR 0 to 1/8
@@ -597,7 +597,7 @@ class TestCreatureCollectionEdgeCases:
 
     def test_collection_with_unusual_type_filters(self):
         """Test collection with unusual creature types."""
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
 
         # Find all unique types in the dataset
         all_types = set()
@@ -620,7 +620,7 @@ class TestCreatureCollectionEdgeCases:
 
     def test_collection_with_nonexistent_criteria(self):
         """Test collection with criteria that match nothing."""
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
 
         # Test with impossible CR range (within valid bounds but unlikely to match)
         # Use a very specific fractional range that's unlikely to exist
@@ -640,7 +640,7 @@ class TestCreatureCollectionEdgeCases:
         """Test collection performance with very broad filters."""
         import time
 
-        collector = CreatureCollector(self.omnidexer)
+        collector = CreatureCollector(self.catalogue)
 
         start_time = time.perf_counter()
 

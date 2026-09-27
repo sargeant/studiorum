@@ -4,7 +4,7 @@ These tests focus on proper formatting of creature stat block text,
 including alignment processing, size abbreviations, and complex text structures.
 """
 
-from studiorum.core.models.creatures import Creature, CreatureType
+from studiorum.data.models.creatures import Creature, CreatureType
 
 
 class TestCreatureSizeFormatting:

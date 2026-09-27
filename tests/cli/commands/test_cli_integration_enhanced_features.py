@@ -104,19 +104,19 @@ class TestCLIIntegrationEnhancedFeatures:
         return file_path
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_adventure_conversion_with_and_without_content_output(
-        self, mock_get_omnidexer, mock_get_writer
+        self, mock_get_catalogue, mock_get_writer
     ):
         """Test that adventure conversion works normally with or without content output options."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_omnidexer.get_adventure.return_value = {
+        mock_catalogue = Mock()
+        mock_catalogue.get_adventure.return_value = {
             "name": "Simple Test Adventure",
             "source": "TEST",
             "data": [],
         }
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_get_catalogue.return_value = mock_catalogue
 
         mock_writer = Mock()
         mock_writer.write_content_list.return_value = Mock(unwrap=lambda: 1)
@@ -180,15 +180,15 @@ class TestCLIIntegrationEnhancedFeatures:
                 # Content list writer should have been called
                 mock_writer.write_content_list.assert_called_once()
 
-    @patch("studiorum.core.services.spell_collector.SpellCollector")
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.data.collectors.spell_collector.SpellCollector")
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_spell_conversion_with_traditional_and_enhanced_files(
-        self, mock_get_omnidexer, mock_collector_class
+        self, mock_get_catalogue, mock_collector_class
     ):
         """Test that spell conversion works with both traditional and enhanced file formats."""
         # Setup mocks using the working pattern from enhanced from file tests
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue = Mock()
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock the collector with proper SpellCollectorResult like the working tests
         mock_collector = Mock()
@@ -271,8 +271,8 @@ class TestCLIIntegrationEnhancedFeatures:
                 new_callable=PropertyMock,
             ) as mock_get_writer:
                 # Setup resolve_content_or_file mock
-                from studiorum.core.models.adventures import Adventure
-                from studiorum.core.models.content import Source
+                from studiorum.data.models.adventures import Adventure
+                from studiorum.data.models.content import Source
 
                 test_adventure = Adventure(
                     name="Test Adventure",
@@ -377,8 +377,8 @@ class TestCLIIntegrationEnhancedFeatures:
                 new_callable=PropertyMock,
             ) as mock_get_writer:
                 # Setup resolve_content_or_file mock
-                from studiorum.core.models.adventures import Adventure
-                from studiorum.core.models.content import Source
+                from studiorum.data.models.adventures import Adventure
+                from studiorum.data.models.content import Source
 
                 test_adventure = Adventure(
                     name="Test Adventure",
@@ -397,7 +397,7 @@ class TestCLIIntegrationEnhancedFeatures:
                 )
 
                 # Mock ContentListWriter to return an error
-                from studiorum.core.services.content_list_writer import (
+                from studiorum.data.content_list_writer import (
                     ContentListWriterError,
                 )
                 from studiorum.result import Error
@@ -454,17 +454,17 @@ class TestCLIIntegrationEnhancedFeatures:
 
         # Test with spell conversion
         with patch(
-            "studiorum.core.services.spell_collector.SpellCollector"
+            "studiorum.data.collectors.spell_collector.SpellCollector"
         ) as mock_spell_collector:
             with patch(
-                "studiorum.services.Services.omnidexer", new_callable=PropertyMock
-            ) as mock_get_omnidexer:
+                "studiorum.services.Services.catalogue", new_callable=PropertyMock
+            ) as mock_get_catalogue:
                 with patch(
                     "studiorum.cli.commands.convert.spells._render_spellbook"
                 ) as mock_render_spellbook:
-                    # Setup omnidexer and tag resolver mocks
-                    mock_omnidexer_instance = Mock()
-                    mock_get_omnidexer.return_value = mock_omnidexer_instance
+                    # Setup catalogue and tag resolver mocks
+                    mock_catalogue_instance = Mock()
+                    mock_get_catalogue.return_value = mock_catalogue_instance
 
                     # Setup spell collector mock
                     def _create_mock_spell(name, source="PHB"):
@@ -533,8 +533,8 @@ class TestCLIIntegrationEnhancedFeatures:
                 "studiorum.services.Services.content_list_writer",
                 new_callable=PropertyMock,
             ) as mock_get_writer:
-                from studiorum.core.models.adventures import Adventure
-                from studiorum.core.models.content import Source
+                from studiorum.data.models.adventures import Adventure
+                from studiorum.data.models.content import Source
 
                 test_adventure = Adventure(
                     name="Test Adventure",
@@ -602,17 +602,17 @@ class TestCLIIntegrationEnhancedFeatures:
 
         # Step 2: Use generated content list for spell conversion
         with patch(
-            "studiorum.core.services.spell_collector.SpellCollector"
+            "studiorum.data.collectors.spell_collector.SpellCollector"
         ) as mock_spell_collector:
             with patch(
-                "studiorum.services.Services.omnidexer", new_callable=PropertyMock
-            ) as mock_get_omnidexer:
+                "studiorum.services.Services.catalogue", new_callable=PropertyMock
+            ) as mock_get_catalogue:
                 with patch(
                     "studiorum.cli.commands.convert.spells._render_spellbook"
                 ) as mock_render_spellbook:
-                    # Setup omnidexer and tag resolver mocks
-                    mock_omnidexer_instance = Mock()
-                    mock_get_omnidexer.return_value = mock_omnidexer_instance
+                    # Setup catalogue and tag resolver mocks
+                    mock_catalogue_instance = Mock()
+                    mock_get_catalogue.return_value = mock_catalogue_instance
 
                     # Setup spell collector mock with spells from the generated file
                     def _create_mock_spell(name, source="PHB"):

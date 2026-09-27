@@ -5,8 +5,8 @@ from unittest.mock import patch
 import pytest
 
 from studiorum.cli.context import get_services
-from studiorum.core.models.content import ContentType
-from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.data.models.content import ContentType
+from studiorum.data.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
 # Tests converted to sync after async removal migration
 
@@ -15,14 +15,14 @@ from studiorum.core.resolvers.content_resolver import ContentResolver, Resolutio
 class TestBookResolution:
     """Test book resolution with dual-file architecture using real data."""
 
-    def test_omnidexer_loads_book_with_enriched_content(self):
+    def test_catalogue_loads_book_with_enriched_content(self):
         """find() merges a book's text from its content file into its metadata."""
-        omnidexer = get_services().omnidexer
+        catalogue = get_services().catalogue
         book_type = ContentType("book")
-        books = omnidexer.get_all_by_type(book_type)
+        books = catalogue.get_all_by_type(book_type)
         assert len(books) > 0
 
-        test_book = omnidexer.find(book_type, "Test Sourcebook", "TEST")
+        test_book = catalogue.find(book_type, "Test Sourcebook", "TEST")
         if test_book:  # Test book should be available
             assert test_book.name == "Test Sourcebook"
             assert len(test_book.contents) > 0  # Has metadata structure
@@ -32,8 +32,8 @@ class TestBookResolution:
 
     def test_resolve_book_phb_success(self):
         """Test successful book resolution with content loading."""
-        omnidexer = get_services().omnidexer
-        resolver = ContentResolver(omnidexer)
+        catalogue = get_services().catalogue
+        resolver = ContentResolver(catalogue)
         result = resolver.resolve_book("TEST")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
@@ -49,8 +49,8 @@ class TestBookResolution:
 
     def test_resolve_book_test_success(self):
         """Test test book resolution."""
-        omnidexer = get_services().omnidexer
-        resolver = ContentResolver(omnidexer)
+        catalogue = get_services().catalogue
+        resolver = ContentResolver(catalogue)
         result = resolver.resolve_book("TEST")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
@@ -68,8 +68,8 @@ class TestBookResolution:
 
     def test_resolve_nonexistent_book(self):
         """Test resolving a book that doesn't exist."""
-        omnidexer = get_services().omnidexer
-        resolver = ContentResolver(omnidexer)
+        catalogue = get_services().catalogue
+        resolver = ContentResolver(catalogue)
         result = resolver.resolve_book("nonexistent")
 
         assert result.status == ResolutionStatus.NO_MATCH
@@ -77,8 +77,8 @@ class TestBookResolution:
 
     def test_book_metadata_preservation(self):
         """Test that book metadata is preserved during content merging."""
-        omnidexer = get_services().omnidexer
-        resolver = ContentResolver(omnidexer)
+        catalogue = get_services().catalogue
+        resolver = ContentResolver(catalogue)
         result = resolver.resolve_book("TEST")
 
         assert result.content is not None
@@ -92,8 +92,8 @@ class TestBookResolution:
 
     def test_book_vs_adventure_architecture_consistency(self):
         """Test that books and adventures follow the same dual-file architecture."""
-        omnidexer = get_services().omnidexer
-        resolver = ContentResolver(omnidexer)
+        catalogue = get_services().catalogue
+        resolver = ContentResolver(catalogue)
 
         # Test book resolution
         book_result = resolver.resolve_book("TEST")
@@ -115,24 +115,24 @@ class TestBookResolution:
 
     def test_content_cache_functionality(self):
         """Test that content caching works for books."""
-        omnidexer = get_services().omnidexer
-        resolver = ContentResolver(omnidexer)
+        catalogue = get_services().catalogue
+        resolver = ContentResolver(catalogue)
 
         # The first load reads the content file; the second must not
         result1 = resolver.resolve_book("TEST")
         assert result1.content is not None
-        with patch("studiorum.core.loaders.omnidexer.read_json") as read_json:
+        with patch("studiorum.data.catalogue.read_json") as read_json:
             result2 = resolver.resolve_book("TEST")
         read_json.assert_not_called()
         assert result2.content is result1.content
 
     def test_missing_content_file_handling(self):
         """Test graceful handling when content file is missing."""
-        omnidexer = get_services().omnidexer
+        catalogue = get_services().catalogue
 
         # Try to find a book that has metadata but might not have content
         book_type = ContentType("book")
-        books = omnidexer.get_all_by_type(book_type)
+        books = catalogue.get_all_by_type(book_type)
         assert len(books) > 0
 
         # All books from metadata should be present
@@ -147,8 +147,8 @@ class TestBookResolution:
 
     def test_end_to_end_book_conversion_ready(self):
         """Test that book resolution produces content suitable for conversion."""
-        omnidexer = get_services().omnidexer
-        resolver = ContentResolver(omnidexer)
+        catalogue = get_services().catalogue
+        resolver = ContentResolver(catalogue)
         result = resolver.resolve_book("TEST")
 
         # Verify complete pipeline worked for conversion

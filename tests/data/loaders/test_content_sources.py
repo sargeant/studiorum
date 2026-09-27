@@ -1,0 +1,795 @@
+"""Tests for Content Source Abstraction."""
+
+import json
+import tempfile
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
+
+from studiorum.data.loaders.content_sources import (
+    CatalogueContentSource,
+    ContentLoader,
+    ContentSourceMetadata,
+    FileContentSource,
+    InlineContentSource,
+    NameListFileSource,
+    StdinContentSource,
+    ValidationResult,
+    create_catalogue_source,
+    create_file_source,
+    create_inline_source,
+    create_name_list_source,
+    create_stdin_source,
+)
+from studiorum.data.models.content import ContentType
+
+
+class TestValidationResult:
+    """Test ValidationResult model."""
+
+    def test_init_valid(self):
+        """Test initialization of valid result."""
+        result = ValidationResult(is_valid=True)
+        assert result.is_valid is True
+        assert result.errors == []
+        assert result.warnings == []
+
+    def test_add_error(self):
+        """Test adding error makes result invalid."""
+        result = ValidationResult(is_valid=True)
+        result.add_error("Something went wrong")
+
+        assert result.is_valid is False
+        assert "Something went wrong" in result.errors
+
+    def test_add_warning(self):
+        """Test adding warning keeps result valid."""
+        result = ValidationResult(is_valid=True)
+        result.add_warning("This is a warning")
+
+        assert result.is_valid is True
+        assert "This is a warning" in result.warnings
+
+
+class TestContentSourceMetadata:
+    """Test ContentSourceMetadata model."""
+
+    def test_creation(self):
+        """Test metadata creation."""
+        metadata = ContentSourceMetadata(
+            source_type="file",
+            location="/path/to/file.json",
+            description="Test file",
+            content_count=5,
+            estimated_size="1 KB",
+        )
+
+        assert metadata.source_type == "file"
+        assert metadata.location == "/path/to/file.json"
+        assert metadata.description == "Test file"
+        assert metadata.content_count == 5
+        assert metadata.estimated_size == "1 KB"
+
+
+class TestFileContentSource:
+    """Test FileContentSource implementation."""
+
+    def test_init(self):
+        """Test FileContentSource initialization."""
+        file_path = Path("/test/file.json")
+        source = FileContentSource(file_path, ContentType.SPELL)
+
+        assert source.file_path == file_path
+        assert source.content_type == ContentType.SPELL
+        assert source.location == str(file_path)
+        assert "JSON file: file.json" in source.description
+
+    def test_get_metadata_nonexistent_file(self):
+        """Test metadata for non-existent file."""
+        file_path = Path("/nonexistent/file.json")
+        source = FileContentSource(file_path)
+
+        metadata = source.get_metadata()
+        assert metadata.source_type == "file"
+        assert metadata.location == str(file_path)
+        assert metadata.content_count == 0
+        assert metadata.estimated_size == "unknown"
+
+    def test_get_metadata_existing_file(self):
+        """Test metadata for existing file."""
+        test_data = {
+            "spell": [
+                {"name": "Fireball", "level": 3},
+                {"name": "Magic Missile", "level": 1},
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(test_data, f)
+            file_path = Path(f.name)
+
+        try:
+            source = FileContentSource(file_path)
+            metadata = source.get_metadata()
+
+            assert metadata.source_type == "file"
+            assert metadata.content_count == 2
+            assert "bytes" in metadata.estimated_size or "KB" in metadata.estimated_size
+        finally:
+            file_path.unlink()
+
+    def test_validate_nonexistent_file(self):
+        """Test validation of non-existent file."""
+        file_path = Path("/nonexistent/file.json")
+        source = FileContentSource(file_path)
+
+        result = source.validate()
+        assert result.is_valid is False
+        assert any("does not exist" in error for error in result.errors)
+
+    def test_validate_valid_file(self):
+        """Test validation of valid JSON file."""
+        test_data = {"spell": [{"name": "Test", "level": 1}]}
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(test_data, f)
+            file_path = Path(f.name)
+
+        try:
+            source = FileContentSource(file_path)
+            result = source.validate()
+
+            assert result.is_valid is True
+            assert result.errors == []
+        finally:
+            file_path.unlink()
+
+    def test_validate_invalid_json(self):
+        """Test validation of invalid JSON file."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            f.write("{ invalid json")
+            file_path = Path(f.name)
+
+        try:
+            source = FileContentSource(file_path)
+            result = source.validate()
+
+            assert result.is_valid is False
+            assert any("Invalid JSON format" in error for error in result.errors)
+        finally:
+            file_path.unlink()
+
+    def test_load_with_specific_content_type(self):
+        """Test loading with specific content type."""
+        test_data = {
+            "spell": [
+                {"name": "Fireball", "level": 3, "source": {"abbreviation": "PHB"}},
+                {
+                    "name": "Magic Missile",
+                    "level": 1,
+                    "source": {"abbreviation": "PHB"},
+                },
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(test_data, f)
+            file_path = Path(f.name)
+
+        try:
+            source = FileContentSource(file_path, ContentType.SPELL)
+
+            # Make create_content return mock objects
+            with patch(
+                "studiorum.data.loaders.content_sources.create_content"
+            ) as mock_create_content:
+                mock_spell1 = Mock()
+                mock_spell1.name = "Fireball"
+                mock_spell2 = Mock()
+                mock_spell2.name = "Magic Missile"
+                mock_create_content.side_effect = [mock_spell1, mock_spell2]
+
+                content = source.load()
+
+                assert len(content) == 2
+                assert content[0].name == "Fireball"
+                assert content[1].name == "Magic Missile"
+                assert mock_create_content.call_count == 2
+        finally:
+            file_path.unlink()
+
+    def test_load_auto_detect_content_type(self):
+        """Test loading with auto-detection of content types."""
+        test_data = {
+            "spell": [
+                {"name": "Fireball", "level": 3, "source": {"abbreviation": "PHB"}}
+            ],
+            "monster": [
+                {"name": "Dragon", "cr": "10", "source": {"abbreviation": "MM"}}
+            ],
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(test_data, f)
+            file_path = Path(f.name)
+
+        try:
+            source = FileContentSource(file_path)  # No content type specified
+
+            with patch(
+                "studiorum.data.loaders.content_sources.create_content"
+            ) as mock_create_content:
+                mock_spell = Mock()
+                mock_spell.name = "Fireball"
+                mock_creature = Mock()
+                mock_creature.name = "Dragon"
+                mock_create_content.side_effect = [mock_spell, mock_creature]
+
+                content = source.load()
+
+                assert len(content) == 2
+                assert mock_create_content.call_count == 2
+        finally:
+            file_path.unlink()
+
+    def test_caching_behavior(self):
+        """Test that content is cached properly."""
+        test_data = {
+            "spell": [{"name": "Test", "level": 1, "source": {"abbreviation": "PHB"}}]
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(test_data, f)
+            file_path = Path(f.name)
+
+        try:
+            source = FileContentSource(file_path)
+
+            # First load should populate cache
+            with patch(
+                "studiorum.data.loaders.content_sources.create_content"
+            ) as mock_create_content:
+                mock_spell = Mock()
+                mock_spell.name = "Test"
+                mock_create_content.return_value = mock_spell
+                content1 = source.load()
+                first_call_count = mock_create_content.call_count
+
+            # Second load should use cache (no additional create_content calls)
+            with patch(
+                "studiorum.data.loaders.content_sources.create_content"
+            ) as mock_create_content:
+                mock_create_content.return_value = Mock()
+                content2 = source.load()
+                second_call_count = mock_create_content.call_count
+
+            assert len(content1) == len(content2)
+            assert first_call_count > 0
+            assert second_call_count == 0  # Should use cache
+        finally:
+            file_path.unlink()
+
+
+class TestCatalogueContentSource:
+    """Test CatalogueContentSource implementation."""
+
+    def test_init(self):
+        """Test CatalogueContentSource initialization."""
+        mock_catalogue = Mock()
+        source = CatalogueContentSource(mock_catalogue, ContentType.CREATURE)
+
+        assert source.catalogue == mock_catalogue
+        assert source.content_type == ContentType.CREATURE
+        assert "catalogue:creature" in source.location
+        assert "Catalogue content: creature" in source.description
+
+    def test_get_metadata(self):
+        """Test metadata retrieval."""
+        mock_catalogue = Mock()
+        mock_content = [Mock(), Mock(), Mock()]
+        mock_catalogue.find_all.return_value = mock_content
+
+        source = CatalogueContentSource(mock_catalogue, ContentType.SPELL)
+        metadata = source.get_metadata()
+
+        assert metadata.source_type == "catalogue"
+        assert metadata.content_count == 3
+        assert "3 items" in metadata.estimated_size
+
+    def test_validate_valid_catalogue(self):
+        """Test validation with valid catalogue."""
+        mock_catalogue = Mock()
+        mock_catalogue.find_all.return_value = []
+
+        source = CatalogueContentSource(mock_catalogue, ContentType.SPELL)
+        result = source.validate()
+
+        assert result.is_valid is True
+        assert result.errors == []
+
+    def test_validate_none_catalogue(self):
+        """Test validation with None catalogue."""
+        source = CatalogueContentSource(None, ContentType.SPELL)
+        result = source.validate()
+
+        assert result.is_valid is False
+        assert any("not available" in error for error in result.errors)
+
+    def test_load(self):
+        """Test content loading."""
+        mock_catalogue = Mock()
+        mock_content = [Mock(), Mock()]
+        mock_catalogue.find_all.return_value = mock_content
+
+        source = CatalogueContentSource(mock_catalogue, ContentType.ITEM)
+        content = source.load()
+
+        assert content == mock_content
+        mock_catalogue.find_all.assert_called_once_with(ContentType.ITEM)
+
+    def test_supports_streaming(self):
+        """Test streaming support."""
+        mock_catalogue = Mock()
+        source = CatalogueContentSource(mock_catalogue, ContentType.SPELL)
+
+        assert source.supports_streaming() is True
+
+
+class TestContentLoader:
+    """Test ContentLoader unified loader."""
+
+    def test_init(self):
+        """Test ContentLoader initialization."""
+        loader = ContentLoader()
+        assert loader._sources == []
+
+    def test_add_source(self):
+        """Test adding content sources."""
+        loader = ContentLoader()
+        mock_source = Mock()
+
+        loader.add_source(mock_source)
+        assert len(loader._sources) == 1
+        assert loader._sources[0] == mock_source
+
+    def test_validate_all(self):
+        """Test validation of all sources."""
+        loader = ContentLoader()
+
+        mock_source1 = Mock()
+        mock_source1.validate.return_value = ValidationResult(is_valid=True)
+
+        mock_source2 = Mock()
+        invalid_result = ValidationResult(is_valid=False)
+        invalid_result.add_error("Test error")
+        mock_source2.validate.return_value = invalid_result
+
+        loader.add_source(mock_source1)
+        loader.add_source(mock_source2)
+
+        results = loader.validate_all()
+
+        assert len(results) == 2
+        assert results["source_0"].is_valid is True
+        assert results["source_1"].is_valid is False
+
+    def test_load_all(self):
+        """Test loading content from all sources."""
+        loader = ContentLoader()
+
+        mock_content1 = [Mock(), Mock()]
+        mock_source1 = Mock()
+        mock_source1.load.return_value = mock_content1
+
+        mock_content2 = [Mock()]
+        mock_source2 = Mock()
+        mock_source2.load.return_value = mock_content2
+
+        loader.add_source(mock_source1)
+        loader.add_source(mock_source2)
+
+        all_content = loader.load_all()
+
+        assert len(all_content) == 3
+        assert all_content[:2] == mock_content1
+        assert all_content[2:] == mock_content2
+
+    def test_load_all_with_error(self):
+        """Test loading with one source failing."""
+        loader = ContentLoader()
+
+        mock_content = [Mock()]
+        mock_source1 = Mock()
+        mock_source1.load.return_value = mock_content
+
+        mock_source2 = Mock()
+        mock_source2.load.side_effect = Exception("Load failed")
+        mock_source2.get_metadata.return_value = Mock(location="test_source")
+
+        loader.add_source(mock_source1)
+        loader.add_source(mock_source2)
+
+        # Should not raise exception, but log error
+        all_content = loader.load_all()
+
+        assert len(all_content) == 1
+        assert all_content == mock_content
+
+    def test_get_source_metadata(self):
+        """Test getting metadata for all sources."""
+        loader = ContentLoader()
+
+        mock_metadata1 = Mock()
+        mock_source1 = Mock()
+        mock_source1.get_metadata.return_value = mock_metadata1
+
+        mock_metadata2 = Mock()
+        mock_source2 = Mock()
+        mock_source2.get_metadata.return_value = mock_metadata2
+
+        loader.add_source(mock_source1)
+        loader.add_source(mock_source2)
+
+        metadata = loader.get_source_metadata()
+
+        assert len(metadata) == 2
+        assert metadata[0] == mock_metadata1
+        assert metadata[1] == mock_metadata2
+
+    def test_clear(self):
+        """Test clearing all sources."""
+        loader = ContentLoader()
+        loader.add_source(Mock())
+        loader.add_source(Mock())
+
+        assert len(loader._sources) == 2
+
+        loader.clear()
+        assert len(loader._sources) == 0
+
+
+class TestFactoryFunctions:
+    """Test factory functions for content sources."""
+
+    def test_create_file_source(self):
+        """Test file source factory."""
+        file_path = Path("/test/file.json")
+        source = create_file_source(file_path, ContentType.SPELL)
+
+        assert isinstance(source, FileContentSource)
+        assert source.file_path == file_path
+        assert source.content_type == ContentType.SPELL
+
+    def test_create_catalogue_source(self):
+        """Test catalogue source factory."""
+        mock_catalogue = Mock()
+        source = create_catalogue_source(mock_catalogue, ContentType.CREATURE)
+
+        assert isinstance(source, CatalogueContentSource)
+        assert source.catalogue == mock_catalogue
+        assert source.content_type == ContentType.CREATURE
+
+    def test_create_stdin_source(self):
+        """Test stdin source factory."""
+        source = create_stdin_source(ContentType.ITEM)
+
+        assert isinstance(source, StdinContentSource)
+        assert source.content_type == ContentType.ITEM
+
+    def test_create_inline_source(self):
+        """Test inline source factory."""
+        adventure_data = {"data": []}
+        source = create_inline_source(adventure_data, ContentType.CREATURE)
+
+        assert isinstance(source, InlineContentSource)
+        assert source.adventure_data == adventure_data
+        assert source.content_type == ContentType.CREATURE
+
+
+@pytest.mark.integration
+class TestContentSourceIntegration:
+    """Integration tests for content sources."""
+
+    def test_file_to_loader_integration(self):
+        """Test full integration from file source to loader."""
+        test_data = {
+            "spell": [
+                {"name": "Fireball", "level": 3, "source": {"abbreviation": "PHB"}},
+                {
+                    "name": "Magic Missile",
+                    "level": 1,
+                    "source": {"abbreviation": "PHB"},
+                },
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(test_data, f)
+            file_path = Path(f.name)
+
+        try:
+            # Create loader with file source
+            loader = ContentLoader()
+            file_source = create_file_source(file_path, ContentType.SPELL)
+            loader.add_source(file_source)
+
+            # Validate all sources
+            validation_results = loader.validate_all()
+            assert all(result.is_valid for result in validation_results.values())
+
+            # Get metadata
+            metadata_list = loader.get_source_metadata()
+            assert len(metadata_list) == 1
+            assert metadata_list[0].content_count == 2
+
+            # Load content
+            with patch(
+                "studiorum.data.loaders.content_sources.create_content"
+            ) as mock_create_content:
+                mock_spell = Mock()
+                mock_spell.name = "Test Spell"
+                mock_create_content.return_value = mock_spell
+
+                content = loader.load_all()
+                assert len(content) == 2
+                assert all(item.name == "Test Spell" for item in content)
+        finally:
+            file_path.unlink()
+
+    def test_multiple_sources_integration(self):
+        """Test integration with multiple content sources."""
+        # Create file source
+        test_data = {"spell": [{"name": "Test Spell", "level": 1}]}
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(test_data, f)
+            file_path = Path(f.name)
+
+        try:
+            # Create catalogue source
+            mock_catalogue = Mock()
+            mock_catalogue.find_all.return_value = [Mock(), Mock()]
+
+            # Set up loader with multiple sources
+            loader = ContentLoader()
+            loader.add_source(create_file_source(file_path, ContentType.SPELL))
+            loader.add_source(
+                create_catalogue_source(mock_catalogue, ContentType.CREATURE)
+            )
+
+            # Validate all
+            validation_results = loader.validate_all()
+            assert len(validation_results) == 2
+
+            # Load all content
+            with patch(
+                "studiorum.data.loaders.content_sources.create_content"
+            ) as mock_create_content:
+                mock_item = Mock()
+                mock_item.name = "Test Item"
+                mock_create_content.return_value = mock_item
+
+                content = loader.load_all()
+                # 1 from file + 2 from catalogue
+                assert len(content) == 3
+        finally:
+            file_path.unlink()
+
+
+class TestNameListFileSource:
+    """Test NameListFileSource functionality."""
+
+    def test_init(self):
+        """Test NameListFileSource initialization."""
+        test_file = Path("/tmp/test.txt")
+        source = NameListFileSource(test_file, ContentType.CREATURE)
+
+        assert source.file_path == test_file
+        assert source.content_type == ContentType.CREATURE
+        assert str(test_file) in source.location
+        assert "Name list:" in source.description
+
+    def test_load_simple_names(self):
+        """Test loading simple names (backward compatibility)."""
+        content = """# Simple names
+Goblin
+Ogre
+
+# Comment only
+Strahd von Zarovich"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            names = source.load()
+
+            assert len(names) == 3
+            assert names == ["Goblin", "Ogre", "Strahd von Zarovich"]
+        finally:
+            file_path.unlink()
+
+    def test_load_structured_with_counts(self):
+        """Test loading structured data with counts."""
+        content = """# With counts
+3 Goblin
+1 Ogre
+5 Orc"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            structured = source.load_structured()
+
+            assert len(structured) == 3
+            assert structured == [
+                (3, "Goblin", None),
+                (1, "Ogre", None),
+                (5, "Orc", None),
+            ]
+        finally:
+            file_path.unlink()
+
+    def test_load_structured_with_sources(self):
+        """Test loading structured data with sources."""
+        content = """# With sources
+Goblin|MM
+Strahd von Zarovich|CoS
+Xorranax|FleeMortals"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            structured = source.load_structured()
+
+            assert len(structured) == 3
+            assert structured == [
+                (1, "Goblin", "MM"),
+                (1, "Strahd von Zarovich", "CoS"),
+                (1, "Xorranax", "FleeMortals"),
+            ]
+        finally:
+            file_path.unlink()
+
+    def test_load_structured_mixed_formats(self):
+        """Test loading mixed format data."""
+        content = """# Mixed formats
+Goblin
+3 Hobgoblin
+Strahd|CoS
+2 Bugbear|MM
+
+# Comments and empty lines
+0 Zero Count|TEST
+Trailing Spaces   |   MM   """
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            structured = source.load_structured()
+
+            assert len(structured) == 6
+            assert structured == [
+                (1, "Goblin", None),
+                (3, "Hobgoblin", None),
+                (1, "Strahd", "CoS"),
+                (2, "Bugbear", "MM"),
+                (0, "Zero Count", "TEST"),
+                (1, "Trailing Spaces", "MM"),
+            ]
+        finally:
+            file_path.unlink()
+
+    def test_backward_compatibility_load_method(self):
+        """Test that load() method extracts names correctly from structured data."""
+        content = """# Mixed format test
+3 Goblin|MM
+1 Ogre
+Strahd|CoS
+Dragon Turtle"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            names = source.load()
+
+            # Should extract just the names, ignoring counts and sources
+            assert len(names) == 4
+            assert names == ["Goblin", "Ogre", "Strahd", "Dragon Turtle"]
+        finally:
+            file_path.unlink()
+
+    def test_metadata_counting(self):
+        """Test metadata counting includes quantities."""
+        content = """# Count test
+3 Goblin
+5 Orc
+1 Dragon"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            metadata = source.get_metadata()
+
+            # Should count total items: 3 + 5 + 1 = 9
+            assert metadata.content_count == 9
+            assert metadata.source_type == "name_list"
+            assert str(file_path) in metadata.location
+        finally:
+            file_path.unlink()
+
+    def test_validation_nonexistent_file(self):
+        """Test validation of nonexistent file."""
+        source = NameListFileSource(Path("/nonexistent/file.txt"), ContentType.CREATURE)
+        result = source.validate()
+
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert "does not exist" in result.errors[0]
+
+    def test_validation_empty_file(self):
+        """Test validation of empty file."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write("# Only comments\n\n# Nothing else")
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            result = source.validate()
+
+            assert not result.is_valid
+            assert len(result.errors) == 1
+            assert "No names found" in result.errors[0]
+        finally:
+            file_path.unlink()
+
+    def test_caching_behavior(self):
+        """Test that results are cached properly."""
+        content = """Goblin\nOgre"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+
+            # First load should populate cache
+            names1 = source.load()
+            structured1 = source.load_structured()
+
+            # Second load should use cache (same objects)
+            names2 = source.load()
+            structured2 = source.load_structured()
+
+            assert names1 is names2  # Same object, from cache
+            assert structured1 is structured2  # Same object, from cache
+        finally:
+            file_path.unlink()
+
+    def test_factory_function(self):
+        """Test the factory function for creating name list sources."""
+        test_file = Path("/tmp/test.txt")
+        source = create_name_list_source(test_file, ContentType.SPELL)
+
+        assert isinstance(source, NameListFileSource)
+        assert source.file_path == test_file
+        assert source.content_type == ContentType.SPELL

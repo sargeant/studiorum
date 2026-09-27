@@ -8,10 +8,10 @@ from rich import print as rprint
 
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.adventures import Adventure
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.document_metadata import DocumentType
-from studiorum.core.resolvers import ContentResolver
+from studiorum.data.models.adventures import Adventure
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.document_metadata import DocumentType
+from studiorum.data.resolvers import ContentResolver
 from studiorum.render.document import render_document
 
 from . import options as opt
@@ -60,8 +60,8 @@ def bulk(
     with conversion_errors():
         with display_manager.progress("Initializing") as _:
             task = display_manager.add_task("[cyan]Loading content data...", total=None)
-            omnidexer = get_services().omnidexer
-            resolver = ContentResolver(omnidexer)
+            catalogue = get_services().catalogue
+            resolver = ContentResolver(catalogue)
             display_manager.update_task(task, completed=100)
 
         if content_type == "adventure":
@@ -72,7 +72,7 @@ def bulk(
             # A book's id, like PHB, marks it as a book; anything else is an adventure
             books = {
                 str(book_id).lower()
-                for book in omnidexer.get_all_by_type(ContentType.BOOK)
+                for book in catalogue.get_all_by_type(ContentType.BOOK)
                 if (book_id := getattr(book, "id", None))
             }
             results = resolver.resolve_multiple(

@@ -2,27 +2,27 @@
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
+from studiorum.data.catalogue import Catalogue
+from studiorum.data.models.content import ContentType
 
 
 @pytest.mark.integration
 class TestRealBookDeepIndexing:
     """Integration tests with real book data."""
 
-    def test_omnidexer_book_deep_indexing_integration(self):
-        """Test that omnidexer correctly performs deep indexing on real book data."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+    def test_catalogue_book_deep_indexing_integration(self):
+        """Test that catalogue correctly performs deep indexing on real book data."""
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         # Load some book data
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Book data not available or failed to load")
 
         # Check that books are loaded
         book_type = ContentType("book")
-        books = omnidexer.get_all_by_type(book_type)
+        books = catalogue.get_all_by_type(book_type)
         if not books:
             pytest.skip("No books found in data sources")
 
@@ -33,7 +33,7 @@ class TestRealBookDeepIndexing:
         assert hasattr(book, "get_deep_index_entries")
 
         # Test deep indexing
-        deep_entries = book.get_deep_index_entries(omnidexer)
+        deep_entries = book.get_deep_index_entries(catalogue)
 
         # Note: nested content like Section, Table, Inset, VariantRule are not registered
         # as full content types, so they won't be indexed. This test verifies that
@@ -63,22 +63,22 @@ class TestRealBookDeepIndexing:
                 assert entry.source is not None
                 assert entry.source.abbreviation is not None
 
-    def test_omnidexer_indexes_book_nested_content(self):
-        """Test that omnidexer doesn't crash when encountering nested content during deep indexing."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+    def test_catalogue_indexes_book_nested_content(self):
+        """Test that catalogue doesn't crash when encountering nested content during deep indexing."""
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
 
         # Since nested content types (Section, VariantRule, etc.) are not registered
-        # as full content types, they won't be indexed in the omnidexer.
+        # as full content types, they won't be indexed in the catalogue.
         # This test verifies that deep indexing completes without errors.
 
         # Verify that books are loaded
         book_type = ContentType("book")
-        books = omnidexer.get_all_by_type(book_type)
+        books = catalogue.get_all_by_type(book_type)
         assert len(books) > 0, "Should have books loaded"
 
         # Verify that deep indexing doesn't crash when processing books with nested content
@@ -86,24 +86,24 @@ class TestRealBookDeepIndexing:
         if hasattr(book, "get_deep_index_entries"):
             # This should not raise an exception even if the book contains
             # unregistered nested content types
-            deep_entries = book.get_deep_index_entries(omnidexer)
+            deep_entries = book.get_deep_index_entries(catalogue)
             # Since nested content types aren't registered, we expect no indexed entries
             # but the operation should complete successfully
             assert isinstance(deep_entries, list)
 
     def test_variant_rule_detection_on_real_data(self):
         """Test that variant rules are correctly detected in real book data."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
 
         # Check for variant rules - skip if content type doesn't exist
         try:
             variant_rule_type = ContentType("variantrule")
-            variant_rules = omnidexer.get_all_by_type(variant_rule_type)
+            variant_rules = catalogue.get_all_by_type(variant_rule_type)
         except ValueError:
             pytest.skip("variantrule is not a registered ContentType")
 
@@ -135,10 +135,10 @@ class TestRealBookDeepIndexing:
 
     def test_book_content_findable_by_name(self):
         """Test that book nested content can be found by name."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
 
@@ -149,13 +149,13 @@ class TestRealBookDeepIndexing:
             pytest.skip("book_section is not a registered ContentType")
 
         # Get all book sections
-        sections = omnidexer.get_all_by_type(book_section_type)
+        sections = catalogue.get_all_by_type(book_section_type)
         if not sections:
             pytest.skip("No book sections found")
 
         # Try to find a section by name
         first_section = sections[0]
-        found_section = omnidexer.find(book_section_type, first_section.name)
+        found_section = catalogue.find(book_section_type, first_section.name)
 
         assert found_section is not None
         assert found_section.name == first_section.name
@@ -166,18 +166,18 @@ class TestRealBookDeepIndexing:
         import time
 
         # Test without deep indexing
-        omnidexer_normal = Omnidexer(enable_deep_indexing=False)
+        catalogue_normal = Catalogue(enable_deep_indexing=False)
         start_time = time.time()
         try:
-            omnidexer_normal.load_all_data()
+            catalogue_normal.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
         normal_time = time.time() - start_time
 
         # Test with deep indexing
-        omnidexer_deep = Omnidexer(enable_deep_indexing=True)
+        catalogue_deep = Catalogue(enable_deep_indexing=True)
         start_time = time.time()
-        omnidexer_deep.load_all_data()
+        catalogue_deep.load_all_data()
         deep_time = time.time() - start_time
 
         # Calculate performance impact
@@ -195,10 +195,10 @@ class TestRealBookDeepIndexing:
 
     def test_mixed_adventure_book_deep_indexing(self):
         """Test deep indexing with both adventures and books loaded."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Full data loading not available")
 
@@ -220,13 +220,13 @@ class TestRealBookDeepIndexing:
 
         # Check if any book content types are found (for potential future assertions)
         _book_found = any(
-            omnidexer.get_all_by_type(content_type)
+            catalogue.get_all_by_type(content_type)
             for content_type in book_content_types
         )
 
         # Should find content from books (if available)
         try:
-            books = omnidexer.get_all_by_type(ContentType("book"))
+            books = catalogue.get_all_by_type(ContentType("book"))
         except ValueError:
             # If book ContentType doesn't exist, skip this test
             pytest.skip("Book ContentType not available as static enum member")
@@ -250,10 +250,10 @@ class TestRealBookDeepIndexing:
 
     def test_content_hierarchy_preservation(self):
         """Test that content hierarchy is preserved in parent names."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Book data not available")
 
@@ -269,7 +269,7 @@ class TestRealBookDeepIndexing:
         for type_str in nested_type_strings:
             try:
                 content_type = ContentType(type_str)
-                all_nested.extend(omnidexer.get_all_by_type(content_type))
+                all_nested.extend(catalogue.get_all_by_type(content_type))
             except ValueError:
                 # Skip content types that don't exist as enum members
                 continue
@@ -287,7 +287,7 @@ class TestRealBookDeepIndexing:
             )
 
             # First part should be the book name
-            books = omnidexer.get_all_by_type(ContentType("book"))
+            books = catalogue.get_all_by_type(ContentType("book"))
             book_names = [book.name for book in books]
 
             assert any(book_name in parent_parts[0] for book_name in book_names), (

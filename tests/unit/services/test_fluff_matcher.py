@@ -2,12 +2,12 @@
 
 from unittest.mock import Mock
 
-from studiorum.core.models.content import Source
-from studiorum.core.models.creatures import Creature
-from studiorum.core.models.fluff import CreatureFluff, ItemFluff, SpellFluff
-from studiorum.core.models.items import Item
-from studiorum.core.models.spells import Spell
-from studiorum.core.services.fluff_matcher import FluffMatcher
+from studiorum.data.collectors.fluff_matcher import FluffMatcher
+from studiorum.data.models.content import Source
+from studiorum.data.models.creatures import Creature
+from studiorum.data.models.fluff import CreatureFluff, ItemFluff, SpellFluff
+from studiorum.data.models.items import Item
+from studiorum.data.models.spells import Spell
 
 
 class TestFluffMatcher:
@@ -15,12 +15,12 @@ class TestFluffMatcher:
 
     def setup_method(self) -> None:
         """Set up test environment for each test."""
-        self.mock_omnidexer = Mock()
-        self.matcher = FluffMatcher(self.mock_omnidexer)
+        self.mock_catalogue = Mock()
+        self.matcher = FluffMatcher(self.mock_catalogue)
 
     def test_initialization(self) -> None:
         """Test FluffMatcher initializes correctly."""
-        assert self.matcher.omnidexer is self.mock_omnidexer
+        assert self.matcher.catalogue is self.mock_catalogue
         assert isinstance(self.matcher._copy_cache, dict)
         assert len(self.matcher._copy_cache) == 0
 
@@ -213,8 +213,8 @@ class TestFluffMatcher:
         assert match.name == "Test Dragon"
         assert match.source.abbreviation == "TEST"
 
-    def test_match_creature_fluff_with_omnidexer(self) -> None:
-        """Test creature fluff matching using omnidexer."""
+    def test_match_creature_fluff_with_catalogue(self) -> None:
+        """Test creature fluff matching using catalogue."""
         creature = Creature(
             name="Test Dragon",
             source=Source(abbreviation="TEST", name="Test Source"),
@@ -237,13 +237,13 @@ class TestFluffMatcher:
             name="Test Dragon", source=Source(abbreviation="TEST", name="Test Source")
         )
 
-        # Mock omnidexer to return our test data
-        self.mock_omnidexer.get_all_by_type.return_value = [fluff_entry]
+        # Mock catalogue to return our test data
+        self.mock_catalogue.get_all_by_type.return_value = [fluff_entry]
 
         match = self.matcher.match_creature_fluff(creature)
         assert match is not None
         assert match.name == "Test Dragon"
-        self.mock_omnidexer.get_all_by_type.assert_called_once_with("creatureFluff")
+        self.mock_catalogue.get_all_by_type.assert_called_once_with("creatureFluff")
 
     def test_match_spell_fluff(self) -> None:
         """Test spell fluff matching."""

@@ -9,9 +9,9 @@ from rich import print as rprint
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.config import get_app_config
-from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.core.models.document_metadata import DocumentMetadata
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.content import BaseContent, ContentType
+from studiorum.data.models.document_metadata import DocumentMetadata
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.appendices import AppendixFlags
 from studiorum.render.context import RenderingContext, Style
 from studiorum.render.document import render_document as render_latex
@@ -216,7 +216,7 @@ def rendering_context(
     """The context an adventure or book renders its entries with."""
     return RenderingContext(
         content_tracker=tracker,
-        omnidexer=get_services().omnidexer,
+        catalogue=get_services().catalogue,
         style=Style(
             book=True,
             images=options.images,
@@ -273,11 +273,11 @@ def _filter_chapters(
     content_items: list[Any], chapters: str, with_introduction: bool
 ) -> list[int]:
     """Replace the adventure with the chosen chapters; return their numbers."""
-    from studiorum.core.models.adventures import Adventure
-    from studiorum.core.utils.chapters import (
+    from studiorum.data.chapters import (
         filter_adventure_chapters,
         parse_chapter_spec,
     )
+    from studiorum.data.models.adventures import Adventure
 
     try:
         numbers = parse_chapter_spec(chapters)

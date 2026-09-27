@@ -8,13 +8,13 @@ import pytest
 from hypothesis import example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from studiorum.core.models.spells import (
+from studiorum.data.models.spells import (
     Spell,
     SpellComponent,
     SpellDuration,
     SpellTime,
 )
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import EntryRenderer
 
 # ==== Hypothesis Strategies for 5e Domain Objects ====

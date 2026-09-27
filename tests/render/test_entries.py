@@ -5,14 +5,14 @@ from unittest.mock import Mock
 
 import pytest
 
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.creatures import Ability, Creature
-from studiorum.core.models.deities import Deity
-from studiorum.core.models.fluff import CreatureFluff
-from studiorum.core.models.magicvariant import MagicVariant
-from studiorum.core.models.variantrule import VariantRule
-from studiorum.core.models.vehicles import Vehicle
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.creatures import Ability, Creature
+from studiorum.data.models.deities import Deity
+from studiorum.data.models.fluff import CreatureFluff
+from studiorum.data.models.magicvariant import MagicVariant
+from studiorum.data.models.variantrule import VariantRule
+from studiorum.data.models.vehicles import Vehicle
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import (
     LONG_TABLE_ROWS,
     EntryError,
@@ -302,7 +302,7 @@ def test_generic_entries_render_name_and_text() -> None:
 
 
 def test_unresolved_statblock_is_a_heading() -> None:
-    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=None)))
+    renderer = EntryRenderer(catalogue=Mock(find=Mock(return_value=None)))
     assert renderer.entry(
         {"type": "statblock", "tag": "creature", "name": "Nobody"}
     ) == ("\\section{Nobody}")
@@ -326,14 +326,14 @@ def test_statblocks_look_up_their_prop_or_tag(
     statblock: dict[str, str], lookup: tuple[object, ...]
 ) -> None:
     find = Mock(return_value=None)
-    EntryRenderer(omnidexer=Mock(find=find)).entry({"type": "statblock", **statblock})
+    EntryRenderer(catalogue=Mock(find=find)).entry({"type": "statblock", **statblock})
 
     find.assert_called_once_with(*lookup)
 
 
 def test_statblocks_of_unknown_kinds_are_a_heading() -> None:
     find = Mock()
-    out = EntryRenderer(omnidexer=Mock(find=find)).entry(
+    out = EntryRenderer(catalogue=Mock(find=find)).entry(
         {"type": "statblock", "tag": "crochet", "name": "Cube"}
     )
 
@@ -403,7 +403,7 @@ def test_senses_render_tags() -> None:
 
 def _statblock_in_section(creature: Creature) -> str:
     renderer = EntryRenderer(
-        omnidexer=Mock(find=Mock(return_value=creature)), style=Style(book=True)
+        catalogue=Mock(find=Mock(return_value=creature)), style=Style(book=True)
     )
     return renderer.entry(
         {
@@ -451,7 +451,7 @@ def test_vehicle_statblocks_sit_in_the_text_in_the_vehicle_box() -> None:
         }
     )
     renderer = EntryRenderer(
-        omnidexer=Mock(find=Mock(return_value=vehicle)), style=Style(book=True)
+        catalogue=Mock(find=Mock(return_value=vehicle)), style=Style(book=True)
     )
 
     out = renderer.entry(
@@ -469,7 +469,7 @@ def test_vehicle_statblocks_sit_in_the_text_in_the_vehicle_box() -> None:
 
 
 def test_statblocks_take_their_display_name() -> None:
-    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=CREATURE)))
+    renderer = EntryRenderer(catalogue=Mock(find=Mock(return_value=CREATURE)))
     out = renderer.entry(
         {
             "type": "statblock",
@@ -490,7 +490,7 @@ def test_fluff_statblocks_render_their_entries_without_the_root_name() -> None:
             "entries": [{"type": "entries", "name": "Orc", "entries": ["Savage."]}],
         }
     )
-    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=fluff)))
+    renderer = EntryRenderer(catalogue=Mock(find=Mock(return_value=fluff)))
     statblock = {"type": "statblock", "prop": "monsterFluff", "name": "Orc"}
     skip_root = {"data": {"renderCompact": {"isSkipRootName": True}}}
 
@@ -509,7 +509,7 @@ def test_a_deitys_labelled_lines_are_flush_left_above_its_entries() -> None:
             "entries": ["The Soul Forger."],
         }
     )
-    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=deity)))
+    renderer = EntryRenderer(catalogue=Mock(find=Mock(return_value=deity)))
 
     out = renderer.entry({"type": "statblock", "tag": "deity", "name": "Moradin"})
 
@@ -526,7 +526,7 @@ def test_a_statblock_in_a_section_of_its_name_keeps_one_heading() -> None:
     rule = VariantRule.model_validate(
         {"name": "Fear", "source": "VRGR", "entries": ["Be afraid."]}
     )
-    renderer = EntryRenderer(omnidexer=Mock(find=Mock(return_value=rule)))
+    renderer = EntryRenderer(catalogue=Mock(find=Mock(return_value=rule)))
 
     def section(name: str) -> dict[str, object]:
         block = {"type": "statblock", "tag": "variantrule", "name": "Fear"}
@@ -557,7 +557,7 @@ def test_item_statblocks_fall_back_to_generic_variants() -> None:
     )
     lookups = {ContentType.ITEM: None, ContentType.MAGICVARIANT: variant}
     renderer = EntryRenderer(
-        omnidexer=Mock(find=Mock(side_effect=lambda kind, *_: lookups[kind]))
+        catalogue=Mock(find=Mock(side_effect=lambda kind, *_: lookups[kind]))
     )
     out = renderer.entry({"type": "statblock", "tag": "item", "name": "+1 Weapon"})
 
@@ -567,7 +567,7 @@ def test_item_statblocks_fall_back_to_generic_variants() -> None:
 
 def test_subclass_statblocks_look_up_their_uid() -> None:
     find_uid = Mock(return_value=None)
-    EntryRenderer(omnidexer=Mock(find_uid=find_uid)).entry(
+    EntryRenderer(catalogue=Mock(find_uid=find_uid)).entry(
         {
             "type": "statblock",
             "tag": "subclass",
@@ -640,7 +640,7 @@ def test_a_summary_table_wraps_in_even_columns() -> None:
 def test_a_wide_table_in_a_statblock_floats_to_the_end_of_its_section() -> None:
     fighter = Mock(model_copy=Mock())
     renderer = EntryRenderer(
-        omnidexer=Mock(find=Mock(return_value=fighter)), style=Style(book=True)
+        catalogue=Mock(find=Mock(return_value=fighter)), style=Style(book=True)
     )
     table = {"type": "table", "colLabels": ["Level"], "rows": [["1st"]], "wide": True}
     with pytest.MonkeyPatch.context() as patch:

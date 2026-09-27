@@ -1,12 +1,12 @@
 """Integration tests for fluff deduplication functionality."""
 
-from studiorum.core.models.content import Source
-from studiorum.core.models.fluff import CreatureFluff
-from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.fluff_deduplicator import (
+from studiorum.data.collectors.fluff_deduplicator import (
     DeduplicationStrategy,
     FluffDeduplicator,
 )
+from studiorum.data.models.content import Source
+from studiorum.data.models.fluff import CreatureFluff
+from studiorum.data.references.content_tracker import ContentTracker
 
 
 class TestFluffDeduplication:

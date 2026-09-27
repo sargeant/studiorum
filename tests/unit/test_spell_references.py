@@ -1,6 +1,6 @@
 """Tests for spell reference parsing."""
 
-from studiorum.core.references import SpellReference, SpellReferenceParser
+from studiorum.data.references import SpellReference, SpellReferenceParser
 
 
 class TestSpellReferenceParser:

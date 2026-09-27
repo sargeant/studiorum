@@ -41,4 +41,4 @@ The LaTeX output of four sample documents is pinned by snapshot tests in `tests/
 - Commit messages follow `<type>(<scope>): <description>`.
 - Functions that can fail return `Result` values. Check them with `isinstance(result, Error)` before calling `unwrap()`.
 - Read `TYPES.md` before adding or removing a `# type: ignore`.
-- Import layering is enforced by import-linter. The contracts are in `pyproject.toml`, and a new import from `studiorum.core` into a higher layer fails `make check`.
+- Import layering is enforced by import-linter. The contracts are in `pyproject.toml`, and an import that points up a layer (from `studiorum.data` into `studiorum.render`, say) fails `make check`.

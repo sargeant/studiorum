@@ -12,13 +12,13 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.data.resolvers.content_resolver import ContentResolver
 
 
-def load_all_data_sync(omnidexer):
-    """Synchronous wrapper for omnidexer.load_all_data() for testing."""
+def load_all_data_sync(catalogue):
+    """Synchronous wrapper for catalogue.load_all_data() for testing."""
 
-    return omnidexer.load_all_data()
+    return catalogue.load_all_data()
 
 
 def resolve_adventure_sync(resolver, adventure_id):
@@ -206,12 +206,12 @@ class TestAdventureConversion:
                 f"Conversion took too long: {conversion_time:.2f}s"
             )
 
-    def test_omnidexer_adventure_loading(self, test_data_omnidexer):
-        """Verify omnidexer loads adventures correctly."""
-        omnidexer = test_data_omnidexer
+    def test_catalogue_adventure_loading(self, test_data_catalogue):
+        """Verify catalogue loads adventures correctly."""
+        catalogue = test_data_catalogue
 
         # Get adventure count
-        adventures = omnidexer.get_all_by_type("adventure")
+        adventures = catalogue.get_all_by_type("adventure")
 
         # Should have adventures loaded
         assert len(adventures) > 0, (
@@ -232,11 +232,11 @@ class TestAdventureConversion:
             f"Unexpected source: {test_metadata.source}"
         )
 
-    def test_content_resolver_enrichment(self, test_data_omnidexer):
+    def test_content_resolver_enrichment(self, test_data_catalogue):
         """Test that ContentResolver properly enriches adventures with content."""
-        omnidexer = test_data_omnidexer
+        catalogue = test_data_catalogue
 
-        resolver = ContentResolver(omnidexer)
+        resolver = ContentResolver(catalogue)
 
         # Resolve test adventure
         resolution_result = resolve_adventure_sync(resolver, "test")
@@ -266,11 +266,11 @@ class TestAdventureConversion:
             "Adventure should have sections with actual content"
         )
 
-    def test_content_loading_caching(self, test_data_omnidexer):
+    def test_content_loading_caching(self, test_data_catalogue):
         """Test that content loading uses caching effectively."""
-        omnidexer = test_data_omnidexer
+        catalogue = test_data_catalogue
 
-        resolver = ContentResolver(omnidexer)
+        resolver = ContentResolver(catalogue)
 
         # Resolve the same adventure twice
         resolution_result1 = resolve_adventure_sync(resolver, "test")

@@ -106,19 +106,19 @@ class TestEnhancedFileSupportIntegration:
             )
 
     @patch("studiorum.services.Services.content_list_writer", new_callable=PropertyMock)
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     def test_adventure_to_content_lists_workflow(
-        self, mock_get_omnidexer, mock_get_writer
+        self, mock_get_catalogue, mock_get_writer
     ):
         """Test complete workflow from adventure conversion to content list generation."""
         # Setup mocks
-        mock_omnidexer = Mock()
-        mock_omnidexer.get_adventure.return_value = {
+        mock_catalogue = Mock()
+        mock_catalogue.get_adventure.return_value = {
             "name": "The Goblin Hideout",
             "source": "TEST",
             "data": [],
         }
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock ContentListWriter to simulate real file writing
         mock_writer = Mock()
@@ -220,10 +220,10 @@ class TestEnhancedFileSupportIntegration:
                     items_output, [(2, "Shortsword", "PHB"), (1, "Longsword", "PHB")]
                 )
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.config.get_default_sources")
     def test_content_list_to_spells_conversion_workflow(
-        self, mock_get_default_sources, mock_get_omnidexer
+        self, mock_get_default_sources, mock_get_catalogue
     ):
         """Test workflow from content list file to spell conversion."""
         # Create enhanced format content list
@@ -238,11 +238,11 @@ class TestEnhancedFileSupportIntegration:
         spells_file = self.temp_dir / "spells.txt"
         spells_file.write_text(spells_content, encoding="utf-8")
 
-        # Mock omnidexer
-        mock_omnidexer = Mock()
+        # Mock catalogue
+        mock_catalogue = Mock()
 
         def mock_get_spell(name):
-            from studiorum.core.models.spells import Spell
+            from studiorum.data.models.spells import Spell
 
             # Create a more realistic mock that behaves like a Spell
             mock_spell = Mock(spec=Spell)
@@ -271,9 +271,9 @@ class TestEnhancedFileSupportIntegration:
             # Return a list containing one mock spell for the given name
             return [mock_get_spell(name)]
 
-        mock_omnidexer.get_spell.side_effect = mock_get_spell
-        mock_omnidexer.find_all.side_effect = mock_find_all
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_catalogue.get_spell.side_effect = mock_get_spell
+        mock_catalogue.find_all.side_effect = mock_find_all
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock default sources to return a list of source abbreviations
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
@@ -306,12 +306,12 @@ class TestEnhancedFileSupportIntegration:
 
             # Verify all spells were loaded (counts ignored for spells)
             # SpellCollector uses find_all, not get_spell
-            assert mock_omnidexer.find_all.call_count == 3
+            assert mock_catalogue.find_all.call_count == 3
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.config.get_default_sources")
     def test_content_list_to_creatures_conversion_workflow(
-        self, mock_get_default_sources, mock_get_omnidexer
+        self, mock_get_default_sources, mock_get_catalogue
     ):
         """Test workflow from content list file to creature conversion."""
         # Create enhanced format content list
@@ -326,11 +326,11 @@ class TestEnhancedFileSupportIntegration:
         creatures_file = self.temp_dir / "creatures.txt"
         creatures_file.write_text(creatures_content, encoding="utf-8")
 
-        # Mock omnidexer
-        mock_omnidexer = Mock()
+        # Mock catalogue
+        mock_catalogue = Mock()
 
         def mock_get_creature(name):
-            from studiorum.core.models.creatures import Creature
+            from studiorum.data.models.creatures import Creature
 
             mock_creature = Mock(spec=Creature)
             mock_creature.name = name
@@ -354,29 +354,29 @@ class TestEnhancedFileSupportIntegration:
             return []
 
         def mock_find_creature(content_type, name, source=None):
-            # Mock for omnidexer.find() method - this is used when specific sources are provided
+            # Mock for catalogue.find() method - this is used when specific sources are provided
             test_creatures = ["Goblin", "Hobgoblin Captain", "Orc"]
             if name in test_creatures and (source is None or source == "MM"):
                 return mock_get_creature(name)
             return None
 
-        mock_omnidexer.get_creature.side_effect = mock_get_creature
-        mock_omnidexer.find_all.side_effect = mock_find_all_creatures
-        mock_omnidexer.find.side_effect = mock_find_creature
+        mock_catalogue.get_creature.side_effect = mock_get_creature
+        mock_catalogue.find_all.side_effect = mock_find_all_creatures
+        mock_catalogue.find.side_effect = mock_find_creature
 
         # Mock get_all_by_type and get_all_by_source methods that CreatureCollector uses
-        mock_omnidexer.get_all_by_type.return_value = [
+        mock_catalogue.get_all_by_type.return_value = [
             mock_get_creature("Goblin"),
             mock_get_creature("Hobgoblin Captain"),
             mock_get_creature("Orc"),
         ]
-        mock_omnidexer.get_all_by_source.return_value = [
+        mock_catalogue.get_all_by_source.return_value = [
             mock_get_creature("Goblin"),
             mock_get_creature("Hobgoblin Captain"),
             mock_get_creature("Orc"),
         ]
 
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock default sources to return a list of source abbreviations
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
@@ -409,12 +409,12 @@ class TestEnhancedFileSupportIntegration:
 
             # Verify all creatures were loaded
             # CreatureCollector uses find() when specific sources are provided (like "Goblin|MM")
-            assert mock_omnidexer.find.call_count == 3
+            assert mock_catalogue.find.call_count == 3
 
-    @patch("studiorum.services.Services.omnidexer", new_callable=PropertyMock)
+    @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.config.get_default_sources")
     def test_content_list_to_items_conversion_workflow(
-        self, mock_get_default_sources, mock_get_omnidexer
+        self, mock_get_default_sources, mock_get_catalogue
     ):
         """Test workflow from content list file to item conversion."""
         # Create enhanced format content list
@@ -429,8 +429,8 @@ class TestEnhancedFileSupportIntegration:
         items_file = self.temp_dir / "items.txt"
         items_file.write_text(items_content, encoding="utf-8")
 
-        # Mock omnidexer
-        mock_omnidexer = Mock()
+        # Mock catalogue
+        mock_catalogue = Mock()
 
         def mock_get_item(name):
             # Create a simple sortable mock using a class
@@ -470,29 +470,29 @@ class TestEnhancedFileSupportIntegration:
             return []
 
         def mock_find_item(content_type, name, source=None):
-            # Mock for omnidexer.find() method - not actually used by ItemCollector
+            # Mock for catalogue.find() method - not actually used by ItemCollector
             test_items = ["Shortsword", "Longsword", "Dagger"]
             if name in test_items and (source is None or source == "PHB"):
                 return mock_get_item(name)
             return None
 
-        mock_omnidexer.get_item.side_effect = mock_get_item
-        mock_omnidexer.find_all.side_effect = mock_find_all_items
-        mock_omnidexer.find.side_effect = mock_find_item
+        mock_catalogue.get_item.side_effect = mock_get_item
+        mock_catalogue.find_all.side_effect = mock_find_all_items
+        mock_catalogue.find.side_effect = mock_find_item
 
         # Mock get_all_by_type and get_all_by_source methods that ItemCollector uses
-        mock_omnidexer.get_all_by_type.return_value = [
+        mock_catalogue.get_all_by_type.return_value = [
             mock_get_item("Shortsword"),
             mock_get_item("Longsword"),
             mock_get_item("Dagger"),
         ]
-        mock_omnidexer.get_all_by_source.return_value = [
+        mock_catalogue.get_all_by_source.return_value = [
             mock_get_item("Shortsword"),
             mock_get_item("Longsword"),
             mock_get_item("Dagger"),
         ]
 
-        mock_get_omnidexer.return_value = mock_omnidexer
+        mock_get_catalogue.return_value = mock_catalogue
 
         # Mock default sources to return a list of source abbreviations
         mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
@@ -502,10 +502,10 @@ class TestEnhancedFileSupportIntegration:
                 "studiorum.cli.commands.convert.items._render_itemcompendium"
             ) as mock_render_items,
             patch(
-                "studiorum.core.services.item_collector.ItemCollector._get_item_value_in_gp"
+                "studiorum.data.collectors.item_collector.ItemCollector._get_item_value_in_gp"
             ) as mock_get_value,
             patch(
-                "studiorum.core.services.item_collector.ItemCollector._collect_by_names"
+                "studiorum.data.collectors.item_collector.ItemCollector._collect_by_names"
             ) as mock_collect_by_names,
         ):
             # Mock the render itemcompendium function to return a simple string
@@ -515,7 +515,7 @@ class TestEnhancedFileSupportIntegration:
 
             # Mock _collect_by_names to return a successful result with our test items
             def mock_collect_by_names_func(names, sources=None):
-                from studiorum.core.models.item_filters import ItemCollectionResult
+                from studiorum.data.models.item_filters import ItemCollectionResult
 
                 result = ItemCollectionResult()
                 for name in names:
@@ -554,7 +554,7 @@ class TestEnhancedFileSupportIntegration:
 
     def test_round_trip_workflow_without_mocks(self):
         """Test round-trip workflow without heavy mocking (file format only)."""
-        # This test focuses on file format parsing without requiring omnidexer
+        # This test focuses on file format parsing without requiring catalogue
 
         # Step 1: Create a content list in enhanced format
         original_content = """# Adventure content list
@@ -571,8 +571,8 @@ class TestEnhancedFileSupportIntegration:
         content_file.write_text(original_content, encoding="utf-8")
 
         # Step 2: Test that the file can be parsed correctly
-        from studiorum.core.loaders.content_sources import NameListFileSource
-        from studiorum.core.models.content import ContentType
+        from studiorum.data.loaders.content_sources import NameListFileSource
+        from studiorum.data.models.content import ContentType
 
         # Test parsing as different content types
         for content_type in [ContentType.CREATURE, ContentType.SPELL, ContentType.ITEM]:
@@ -617,8 +617,8 @@ Just random text"""
         invalid_file.write_text(invalid_content, encoding="utf-8")
 
         # Should handle parsing gracefully
-        from studiorum.core.loaders.content_sources import NameListFileSource
-        from studiorum.core.models.content import ContentType
+        from studiorum.data.loaders.content_sources import NameListFileSource
+        from studiorum.data.models.content import ContentType
 
         source = NameListFileSource(invalid_file, ContentType.SPELL)
 
@@ -651,8 +651,8 @@ Just random text"""
             file_path.write_text(content, encoding="utf-8")
 
             # Test parsing with each format
-            from studiorum.core.loaders.content_sources import NameListFileSource
-            from studiorum.core.models.content import ContentType
+            from studiorum.data.loaders.content_sources import NameListFileSource
+            from studiorum.data.models.content import ContentType
 
             source = NameListFileSource(file_path, ContentType.CREATURE)
 

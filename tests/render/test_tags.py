@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.data.references.content_tracker import ContentTracker
 from studiorum.render.entries import EntryRenderer
 from studiorum.render.tags import render
 
@@ -120,7 +120,7 @@ def test_references_are_tracked_including_nested_ones() -> None:
 
 def test_rendering_loads_no_data() -> None:
     with patch(
-        "studiorum.services.Services.load_omnidexer",
+        "studiorum.services.Services.load_catalogue",
         side_effect=AssertionError("loaded"),
     ):
         latex = render("{@spell fireball}")

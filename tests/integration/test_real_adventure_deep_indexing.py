@@ -2,9 +2,9 @@
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
-from studiorum.core.models.nested_content import (
+from studiorum.data.catalogue import Catalogue
+from studiorum.data.models.content import ContentType
+from studiorum.data.models.nested_content import (
     Inset,
     Section,
     Table,
@@ -19,19 +19,19 @@ pytestmark = pytest.mark.requires_data
 class TestRealAdventureDeepIndexing:
     """Integration tests with real adventure data."""
 
-    def test_omnidexer_deep_indexing_integration(self):
-        """Test that omnidexer correctly performs deep indexing on real data."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+    def test_catalogue_deep_indexing_integration(self):
+        """Test that catalogue correctly performs deep indexing on real data."""
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         # Load some adventure data
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Adventure data not available or failed to load")
 
         # Check that adventures are loaded
         adventure_type = ContentType("adventure")
-        adventures = omnidexer.get_all_by_type(adventure_type)
+        adventures = catalogue.get_all_by_type(adventure_type)
         if not adventures:
             pytest.skip("No adventures found in data sources")
 
@@ -42,7 +42,7 @@ class TestRealAdventureDeepIndexing:
         assert hasattr(adventure, "get_deep_index_entries")
 
         # Test deep indexing
-        deep_entries = adventure.get_deep_index_entries(omnidexer)
+        deep_entries = adventure.get_deep_index_entries(catalogue)
 
         # Note: nested content like Section, Table, Inset are not registered
         # as full content types, so they won't be indexed. This test verifies that
@@ -72,19 +72,19 @@ class TestRealAdventureDeepIndexing:
                 assert entry.source is not None
                 assert entry.source.abbreviation is not None
 
-    def test_omnidexer_indexes_adventure_nested_content(self):
-        """Test that omnidexer indexes adventure nested content correctly."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+    def test_catalogue_indexes_adventure_nested_content(self):
+        """Test that catalogue indexes adventure nested content correctly."""
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Adventure data not available")
 
         # Check for adventure sections - skip if content type doesn't exist
         try:
             adventure_section_type = ContentType("adventure_section")
-            sections = omnidexer.find_all(adventure_section_type)
+            sections = catalogue.find_all(adventure_section_type)
             if sections:
                 section = sections[0]
                 assert isinstance(section, Section)
@@ -97,7 +97,7 @@ class TestRealAdventureDeepIndexing:
         # Check for adventure tables - skip if content type doesn't exist
         try:
             adventure_table_type = ContentType("adventure_table")
-            tables = omnidexer.find_all(adventure_table_type)
+            tables = catalogue.find_all(adventure_table_type)
             if tables:
                 table = tables[0]
                 assert isinstance(table, Table)
@@ -110,7 +110,7 @@ class TestRealAdventureDeepIndexing:
         # Check for adventure insets - skip if content type doesn't exist
         try:
             adventure_inset_type = ContentType("adventure_inset")
-            insets = omnidexer.find_all(adventure_inset_type)
+            insets = catalogue.find_all(adventure_inset_type)
             if insets:
                 inset = insets[0]
                 assert isinstance(inset, Inset)
@@ -122,10 +122,10 @@ class TestRealAdventureDeepIndexing:
 
     def test_adventure_content_findable_by_name(self):
         """Test that adventure nested content can be found by name."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Adventure data not available")
 
@@ -136,13 +136,13 @@ class TestRealAdventureDeepIndexing:
             pytest.skip("adventure_section is not a registered ContentType")
 
         # Get all adventure sections
-        sections = omnidexer.find_all(adventure_section_type)
+        sections = catalogue.find_all(adventure_section_type)
         if not sections:
             pytest.skip("No adventure sections found")
 
         # Try to find a section by name
         first_section = sections[0]
-        found_section = omnidexer.find(adventure_section_type, first_section.name)
+        found_section = catalogue.find(adventure_section_type, first_section.name)
 
         assert found_section is not None
         assert found_section.name == first_section.name
@@ -153,18 +153,18 @@ class TestRealAdventureDeepIndexing:
         import time
 
         # Test without deep indexing
-        omnidexer_normal = Omnidexer(enable_deep_indexing=False)
+        catalogue_normal = Catalogue(enable_deep_indexing=False)
         start_time = time.time()
         try:
-            omnidexer_normal.load_all_data()
+            catalogue_normal.load_all_data()
         except Exception:
             pytest.skip("Adventure data not available")
         normal_time = time.time() - start_time
 
         # Test with deep indexing
-        omnidexer_deep = Omnidexer(enable_deep_indexing=True)
+        catalogue_deep = Catalogue(enable_deep_indexing=True)
         start_time = time.time()
-        omnidexer_deep.load_all_data()
+        catalogue_deep.load_all_data()
         deep_time = time.time() - start_time
 
         # Calculate performance impact
@@ -182,10 +182,10 @@ class TestRealAdventureDeepIndexing:
 
     def test_nested_content_has_unique_hash_keys(self):
         """Test that all nested content has unique hash keys."""
-        omnidexer = Omnidexer(enable_deep_indexing=True)
+        catalogue = Catalogue(enable_deep_indexing=True)
 
         try:
-            omnidexer.load_all_data()
+            catalogue.load_all_data()
         except Exception:
             pytest.skip("Adventure data not available")
 
@@ -200,7 +200,7 @@ class TestRealAdventureDeepIndexing:
         for type_str in nested_type_strings:
             try:
                 content_type = ContentType(type_str)
-                all_nested.extend(omnidexer.find_all(content_type))
+                all_nested.extend(catalogue.find_all(content_type))
             except ValueError:
                 # Skip content types that don't exist as enum members
                 continue

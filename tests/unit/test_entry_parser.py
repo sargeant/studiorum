@@ -1,13 +1,13 @@
 """Tests for entry parser functionality."""
 
-from studiorum.core.models.content import Source
-from studiorum.core.models.nested_content import (
+from studiorum.data.models.content import Source
+from studiorum.data.models.entry_parser import EntryParser
+from studiorum.data.models.nested_content import (
     Inset,
     Section,
     Table,
     VariantRule,
 )
-from studiorum.core.parsers.entry_parser import EntryParser
 
 
 class TestEntryParser:

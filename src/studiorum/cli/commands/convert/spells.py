@@ -9,7 +9,7 @@ import typer
 from rich import print as rprint
 
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.models.spells import Spell
+from studiorum.data.models.spells import Spell
 from studiorum.render.context import RenderingContext, Style
 
 from . import options as opt
@@ -192,15 +192,15 @@ def spells(
       studiorum convert spells --class wizard --school evocation --sort name
       studiorum convert spells --damage-type fire --no-material
     """
-    from studiorum.core.parsers.spell_input import SpellInputParser
+    from studiorum.cli.parsers.spell_input import SpellInputParser
 
     options = ConvertOptions.from_context(ctx)
     with conversion_errors():
-        omnidexer = load_data("spell")
+        catalogue = load_data("spell")
 
         names = read_names(spell_names, from_file, from_stdin, "spell")
         parsed_classes = _parse(SpellInputParser.parse_class_list, classes)
-        result = _collect(omnidexer, ctx.params, names, parsed_classes)
+        result = _collect(catalogue, ctx.params, names, parsed_classes)
         report_collection(result, result.spells, "spell")
 
         if sort == SpellSortMode.LEVEL:
@@ -229,7 +229,7 @@ def spells(
 
         found_fluff = (
             collect_fluff(
-                omnidexer,
+                catalogue,
                 found,
                 "spell",
                 sections=fluff_sections,
@@ -241,14 +241,14 @@ def spells(
         )
         tracker = None
         if creatures:
-            from studiorum.core.references.content_reference_manager import (
+            from studiorum.data.references.content_reference_manager import (
                 ContentReferenceManager,
             )
 
-            tracker = ContentReferenceManager(omnidexer=omnidexer).get_content_tracker()
+            tracker = ContentReferenceManager(catalogue=catalogue).get_content_tracker()
         context = RenderingContext(
             content_tracker=tracker,
-            omnidexer=omnidexer,
+            catalogue=catalogue,
             style=Style(
                 content_type="spell",
                 images=options.images,
@@ -266,7 +266,7 @@ def spells(
             options,
             heading,
             result,
-            _creature_appendix(context, omnidexer, tracker) if tracker else None,
+            _creature_appendix(context, catalogue, tracker) if tracker else None,
         )
         write_document(
             options, latex, Path("output/spells/spellbook.tex"), "Spellbook generated"
@@ -274,7 +274,7 @@ def spells(
 
 
 def _creature_appendix(
-    context: RenderingContext, omnidexer: Any, tracker: Any
+    context: RenderingContext, catalogue: Any, tracker: Any
 ) -> Callable[[], list["DocumentChapter"]]:
     """The appendix of creatures the spells name, built once the body is rendered."""
 
@@ -285,7 +285,7 @@ def _creature_appendix(
         )
         from studiorum.render.document import appendices_as_chapters
 
-        found = AppendixGenerator(omnidexer).generate_appendices(
+        found = AppendixGenerator(catalogue).generate_appendices(
             tracker, AppendixFlags(creatures=True)
         )
         return appendices_as_chapters(found, context)
@@ -301,12 +301,12 @@ def _parse(parser: Any, values: list[str] | None) -> list[Any] | None:
 
 
 def _collect(
-    omnidexer: Any, params: dict[str, Any], names: NameList, classes: list[str] | None
+    catalogue: Any, params: dict[str, Any], names: NameList, classes: list[str] | None
 ) -> Any:
     """Build the filter criteria from the command's parameters and collect."""
-    from studiorum.core.models.spell_filters import SpellFilterCriteria
-    from studiorum.core.parsers.spell_input import SpellInputParser
-    from studiorum.core.services.spell_collector import SpellCollector
+    from studiorum.cli.parsers.spell_input import SpellInputParser
+    from studiorum.data.collectors.spell_collector import SpellCollector
+    from studiorum.data.models.spell_filters import SpellFilterCriteria
 
     min_level, max_level = None, None
     if params["level"]:
@@ -341,7 +341,7 @@ def _collect(
 
     with display_manager.progress("Collecting spells") as _:
         task = display_manager.add_task("[cyan]Filtering spells...", total=None)
-        result = SpellCollector(omnidexer).collect_spells(criteria)
+        result = SpellCollector(catalogue).collect_spells(criteria)
         display_manager.update_task(task, completed=100)
     return result
 

@@ -8,7 +8,7 @@ logging and backward compatibility.
 import pytest
 from logfire.testing import CaptureLogfire
 
-from studiorum.core.error_types import (
+from studiorum.data.error_types import (
     ErrorCategory,
     ErrorSeverity,
     ValidationError,

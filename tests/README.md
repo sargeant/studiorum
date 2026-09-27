@@ -10,7 +10,7 @@ This directory contains a comprehensive test suite designed to stress test data 
 - **Purpose**: Stress test data validation with real dataset
 - **Features**:
   - Load all spell, creature, and item data
-  - Test omnidexer with full dataset
+  - Test catalogue with full dataset
   - Validate complex data structures
   - Test file format detection accuracy
   - Memory usage monitoring
@@ -48,7 +48,7 @@ This directory contains a comprehensive test suite designed to stress test data 
   - Complete spell dataset validation
   - Complete creature dataset validation
   - Complete item dataset validation
-  - Omnidexer full dataset load
+  - Catalogue full dataset load
   - Data consistency across loaders
   - Memory efficiency testing
   - Concurrent dataset loading
