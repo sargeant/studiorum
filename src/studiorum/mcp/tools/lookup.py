@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from typing import Annotated, Any, Literal
 
 from fastmcp.dependencies import Depends
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
@@ -15,7 +16,9 @@ from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError, not_found
 from studiorum.mcp.layouts import to_markdown
 from studiorum.mcp.models import (
+    ContentBatch,
     ContentEntry,
+    ContentMissing,
     ContentResults,
     ContentSummary,
     Publication,
@@ -30,6 +33,9 @@ from studiorum.mcp.tools.search import (
     split_srd,
 )
 from studiorum.services import Services
+
+MAX_BATCH = 20
+BATCH_CHARS = 24_000
 
 # Adventures and books are read by section, not whole.
 EntryType = Literal[
@@ -99,6 +105,57 @@ async def get_content(
             != (entry.name.lower(), entry.source.abbreviation.lower())
         ],
     )
+
+
+class Wanted(BaseModel):
+    content_type: EntryType
+    name: str = Field(description="A name, or a 5etools uid")
+    source: str | None = None
+
+
+async def get_contents(
+    items: Annotated[list[Wanted], Field(min_length=1, max_length=MAX_BATCH)],
+    format: Annotated[  # noqa: A002 - the name clients see
+        Literal["markdown", "json"],
+        Field(description="markdown: laid out to read; json: the 5etools data"),
+    ] = "markdown",
+    offset: Annotated[
+        int, Field(ge=0, description="Start at this item, to resume a batch")
+    ] = 0,
+    srd_only: SrdOnly = None,
+    default_srd: bool = Depends(srd_default),
+    services: Services = Depends(get_services),
+) -> ContentBatch:
+    """Several entries in full, as get_content returns them, up to 24,000 characters.
+
+    When the entries would run past that, the reply stops short and
+    next_offset says where to resume.
+    """
+    entries: list[ContentEntry] = []
+    missing: list[ContentMissing] = []
+    size = 0
+    for i, item in enumerate(items[offset:], start=offset):
+        try:
+            entry = await get_content(
+                item.content_type,
+                item.name,
+                item.source,
+                format,
+                srd_only,
+                default_srd=default_srd,
+                services=services,
+            )
+        except ClientError as e:
+            missing.append(ContentMissing(**item.model_dump(), error=str(e)))
+            continue
+        chars = len(entry.text or "") + (
+            len(json.dumps(entry.data)) if entry.data else 0
+        )
+        if entries and size + chars > BATCH_CHARS:
+            return ContentBatch(entries=entries, not_found=missing, next_offset=i)
+        entries.append(entry)
+        size += chars
+    return ContentBatch(entries=entries, not_found=missing)
 
 
 def entry_data(entry: BaseContent) -> dict[str, Any]:

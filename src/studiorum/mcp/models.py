@@ -82,6 +82,23 @@ class ContentEntry(BaseModel):
     )
 
 
+class ContentMissing(BaseModel):
+    content_type: str
+    name: str
+    source: str | None = None
+    error: str
+
+
+class ContentBatch(BaseModel):
+    entries: list[ContentEntry]
+    not_found: list[ContentMissing] = Field(
+        default_factory=list, description="Requests that found nothing, and why"
+    )
+    next_offset: int | None = Field(
+        None, description="Where to resume when the size cap stopped short"
+    )
+
+
 class Publication(BaseModel):
     id: str
     source: str = Field(description="The source abbreviation its content carries")

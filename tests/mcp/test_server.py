@@ -40,6 +40,7 @@ async def test_the_server_lists_its_tools() -> None:
         "search_rules",
         "search_content",
         "get_content",
+        "get_contents",
         "list_publications",
         "calculate_encounter_budget",
         "rate_encounter",
@@ -146,6 +147,42 @@ async def test_get_content_suggests_names() -> None:
     # A part of the name suggests the names that contain it
     with pytest.raises(ToolError, match="Did you mean: Young Red Dragon"):
         await call("get_content", content_type="creature", name="red drag")
+
+
+@pytest.mark.asyncio
+async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> None:
+    items = [
+        {"content_type": "creature", "name": "Goblin"},
+        {"content_type": "spell", "name": "Fireball"},
+        {"content_type": "spell", "name": "Hellfire Orb"},
+        {"content_type": "spell", "name": "Nothing"},
+        {"content_type": "item", "name": "Amulet of Health"},
+    ]
+    result = await call("get_contents", items=items)
+    assert [e["name"] for e in result["entries"]] == [
+        "Goblin",
+        "Fireball",
+        "Amulet of Health",
+    ]
+    fireball = await call("get_content", content_type="spell", name="Fireball")
+    assert result["entries"][1] == fireball
+    assert [(m["name"], m["error"][:20]) for m in result["not_found"]] == [
+        ("Hellfire Orb", "Hellfire Orb (HB) is"),
+        ("Nothing", "No spell named 'Noth"),
+    ]
+    assert result["next_offset"] is None
+
+    # A size cap stops the batch; next_offset resumes it
+    monkeypatch.setattr("studiorum.mcp.tools.lookup.BATCH_CHARS", 1)
+    first = await call("get_contents", items=items)
+    assert ([e["name"] for e in first["entries"]], first["next_offset"]) == (
+        ["Goblin"],
+        1,
+    )
+    rest = await call("get_contents", items=items, offset=4, format="json")
+    assert rest["entries"][0]["data"]["name"] == "Amulet of Health"
+    with pytest.raises(ToolError):
+        await call("get_contents", items=[items[0]] * 21)
 
 
 @pytest.mark.asyncio
