@@ -234,7 +234,40 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         tmp_path / "adventure" / "adventure-tb-st.json",
         {
             "data": [
-                {"type": "section", "name": "Trek", "id": "200", "entries": ["Go."]}
+                {
+                    "type": "section",
+                    "name": "Trek",
+                    "id": "200",
+                    "entries": [
+                        "Go.",
+                        # In book order, worst match for "traps" and "detonate" first
+                        {
+                            "type": "entries",
+                            "name": "12. Forge of Traps",
+                            "id": "201",
+                            "entries": ["Old runes detonated."],
+                        },
+                        {
+                            "type": "entries",
+                            "name": "Mousetraps",
+                            "id": "202",
+                            "entries": ["They detonate when touched."],
+                        },
+                        {
+                            "type": "entries",
+                            "name": "Traps",
+                            "id": "203",
+                            "entries": [
+                                {
+                                    "type": "statblock",
+                                    "tag": "spell",
+                                    "name": "Detonate",
+                                    "source": "TB",
+                                }
+                            ],
+                        },
+                    ],
+                }
             ]
         },
     )

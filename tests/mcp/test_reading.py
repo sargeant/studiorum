@@ -210,6 +210,29 @@ async def test_search_every_publication() -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_publication_ranks_matches() -> None:
+    def found(result: dict[str, Any]) -> list[str]:
+        return [r["id"] for r in result["results"]]
+
+    # The exact name, then the word whole in a name, then inside a word
+    traps = await call("search_publication", query="traps", names_only=True)
+    assert found(traps) == ["203", "201", "202"]
+    # A statblock named for it, then the word whole in the text, then inside a word
+    assert found(await call("search_publication", query="detonate")) == [
+        "203",
+        "202",
+        "201",
+    ]
+    # Parts of words still match, and ties go in book order
+    assert found(await call("search_publication", query="detonat")) == [
+        "201",
+        "202",
+        "203",
+    ]
+    assert found(await call("search_publication", query="mousetrap")) == ["202"]
+
+
+@pytest.mark.asyncio
 async def test_an_adventure_sharing_a_books_source_is_found_by_its_id() -> None:
     book = await call("get_table_of_contents", publication="TB")
     trek = await call("get_table_of_contents", publication="TB-ST")

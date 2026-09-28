@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from functools import cached_property
 from typing import Annotated, Any
@@ -139,8 +140,11 @@ async def search_publication(
     """Find the sections of books and adventures that mention something, for read_section.
 
     Every word must appear in the section's name or its own text (not its
-    subsections'). Sections named for the words come first, then the rest in
-    book order; across publications, oldest publication first.
+    subsections'), even inside a longer word. Sections named exactly the
+    query come first, then names holding the words whole, then other names;
+    then sections with a heading, statblock or table cell named the query,
+    then whole words in the text, then parts of words. Ties go in book order,
+    oldest publication first.
     """
     pubs = (
         [_publication(services, publication)]
@@ -148,18 +152,15 @@ async def search_publication(
         else _publications(services)
     )
     words = query.lower().split()
-    named: list[_Section] = []
-    mentioned: list[_Section] = []
-    for pub in pubs:
-        for section in _sections(services, pub):
-            name = section.name.lower()
-            if all(w in name for w in words):
-                named.append(section)
-            elif not names_only and all(
-                w in name or w in section.text.lower() for w in words
-            ):
-                mentioned.append(section)
-    found = named + mentioned
+    ranked = [
+        (rank, section)
+        for pub in pubs
+        for section in _sections(services, pub)
+        if (rank := _rank(section, words, names_only)) is not None
+    ]
+    # Stable, so book order breaks ties
+    ranked.sort(key=lambda r: r[0])
+    found = [section for _, section in ranked]
     return SectionMatches(
         publication=_pub_id(pubs[0]) if publication else None,
         total=len(found),
@@ -178,6 +179,34 @@ async def search_publication(
     )
 
 
+def _rank(section: _Section, words: list[str], names_only: bool) -> int | None:
+    """How well a section matches, best 0; None if it doesn't."""
+    name = section.name.lower()
+    if all(w in name for w in words):
+        if _plain(section.name) == " ".join(words):
+            return 0
+        return 1 if all(_whole(w, name) for w in words) else 2
+    if names_only:
+        return None
+    text = section.text.lower()
+    if not all(w in name or w in text for w in words):
+        return None
+    if " ".join(words) in section.inner_names:
+        return 3
+    return 4 if all(_whole(w, name) or _whole(w, text) for w in words) else 5
+
+
+def _whole(word: str, text: str) -> bool:
+    """Whether the word is in the text as a word of its own, or its plural."""
+    return re.search(rf"\b{re.escape(word)}(?:e?s)?\b", text) is not None
+
+
+def _plain(name: str) -> str:
+    """A name without an area key ("15. ", "B12: ") or end punctuation, lower case."""
+    name = re.sub(r"^[A-Z]{0,2}\d+[a-z]?[.:]\s+", "", name.strip())
+    return " ".join(re.sub(r"^\W+|\W+$", "", name).lower().split())
+
+
 class _Section:
     """A section with an id, and its own text as Markdown once asked for."""
 
@@ -190,6 +219,27 @@ class _Section:
     @cached_property
     def text(self) -> str:
         return markdown.render(_own(self.node))
+
+    @cached_property
+    def inner_names(self) -> set[str]:
+        """The names of the headings, statblocks and table cells in its own text."""
+        found: set[str] = set()
+
+        def visit(entry: Any, cell: bool = False) -> None:
+            if isinstance(entry, list):
+                for e in entry:
+                    visit(e, cell)
+            elif isinstance(entry, dict):
+                if entry is not self.node and entry.get("name"):
+                    found.add(_plain(markdown.strip_tags(str(entry["name"]))))
+                for key in ("entries", "items"):
+                    visit(entry.get(key))
+                visit(entry.get("rows"), cell=True)
+            elif cell and isinstance(entry, str):
+                found.add(_plain(markdown.strip_tags(entry)))
+
+        visit(_own(self.node))
+        return found
 
 
 # Per catalogue, each publication's sections, so later searches skip rendering
