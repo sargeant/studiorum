@@ -115,10 +115,14 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     goblin = next(c for c in creatures if c["name"] == "Goblin")
     # A Flee Mortals-style minion: CR 1/4, but worth 10 XP
     minion = _not_srd(goblin, "Goblin Minion") | {"cr": {"cr": "1/4", "xp": 10}}
+    # A statblock a spell summons: a type to choose, and no CR
+    familiar = {
+        k: v for k, v in _not_srd(goblin, "Battle Familiar").items() if k != "cr"
+    } | {"type": {"type": {"choose": ["celestial", "fey", "fiend"]}}}
     _write(tmp_path / "bestiary" / "index.json", {"SRD": "bestiary-srd.json"})
     _write(
         tmp_path / "bestiary" / "bestiary-srd.json",
-        {"monster": [*creatures, _not_srd(goblin, "Goblin Sneak"), minion]},
+        {"monster": [*creatures, _not_srd(goblin, "Goblin Sneak"), minion, familiar]},
     )
 
     items = _pick(SRD_DATA / "items.json", "item", {"Amulet of Health", "Ale (mug)"})
@@ -234,7 +238,40 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         tmp_path / "adventure" / "adventure-tb-st.json",
         {
             "data": [
-                {"type": "section", "name": "Trek", "id": "200", "entries": ["Go."]}
+                {
+                    "type": "section",
+                    "name": "Trek",
+                    "id": "200",
+                    "entries": [
+                        "Go.",
+                        # In book order, worst match for "traps" and "detonate" first
+                        {
+                            "type": "entries",
+                            "name": "12. Forge of Traps",
+                            "id": "201",
+                            "entries": ["Old runes detonated."],
+                        },
+                        {
+                            "type": "entries",
+                            "name": "Mousetraps",
+                            "id": "202",
+                            "entries": ["They detonate when touched."],
+                        },
+                        {
+                            "type": "entries",
+                            "name": "Traps",
+                            "id": "203",
+                            "entries": [
+                                {
+                                    "type": "statblock",
+                                    "tag": "spell",
+                                    "name": "Detonate",
+                                    "source": "TB",
+                                }
+                            ],
+                        },
+                    ],
+                }
             ]
         },
     )

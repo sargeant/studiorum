@@ -12,6 +12,7 @@ from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
 from studiorum.data.models.content import ContentType
+from studiorum.mcp.errors import suggestions
 from studiorum.mcp.server import mcp
 from studiorum.mcp.tools.lookup import EntryType
 
@@ -82,7 +83,12 @@ async def test_searches_include_text(monkeypatch: pytest.MonkeyPatch) -> None:
     fireball = await call("get_content", content_type="spell", name="Fireball")
     spells = await call("search_spells", query="fire", include_text=True)
     assert spells["results"][0]["text"] == fireball["text"]
-    assert (await call("search_spells", query="fire"))["results"][0]["text"] is None
+    # Without include_text, no text field at all
+    assert "text" not in (await call("search_spells", query="fire"))["results"][0]
+    for tool in ("search_creatures", "search_items"):
+        assert all("text" not in r for r in (await call(tool))["results"])
+    plain = await call("search_content", content_type="class", query="wiz")
+    assert "text" not in plain["results"][0]
     goblin = await call("get_content", content_type="creature", name="Goblin")
     creatures = await call("search_creatures", query="goblin", include_text=True)
     assert creatures["results"][0]["text"] == goblin["text"]
@@ -123,7 +129,6 @@ async def test_search_creatures_filters() -> None:
         "srd": True,
         "cr": "1/4",
         "type": "humanoid",
-        "text": None,
     }
     assert names(await call("search_creatures", creature_type="humanoid")) == [
         "Acolyte",
@@ -132,6 +137,22 @@ async def test_search_creatures_filters() -> None:
     assert names(await call("search_creatures", creature_type="dragon")) == [
         "Young Red Dragon"
     ]
+
+
+@pytest.mark.asyncio
+async def test_search_creatures_with_a_type_to_choose_and_no_cr() -> None:
+    familiar = await call(
+        "search_creatures", query="familiar", creature_type="fey", srd_only=False
+    )
+    assert [(r["name"], r["type"], r["cr"]) for r in familiar["results"]] == [
+        ("Battle Familiar", "celestial | fey | fiend", None)
+    ]
+    fiends = await call("search_creatures", creature_type="fiend", srd_only=False)
+    assert names(fiends) == ["Battle Familiar"]
+    assert (
+        names(await call("search_creatures", creature_type="undead", srd_only=False))
+        == []
+    )
 
 
 @pytest.mark.asyncio
@@ -184,6 +205,28 @@ async def test_get_content_suggests_names() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_content_suggests_names_from_the_source() -> None:
+    with pytest.raises(
+        ToolError,
+        match=r"No creature named 'Goblin' in HB\. Did you mean: Goblin Sneak, Goblin Minion\?$",
+    ):
+        await call("get_content", content_type="creature", name="Goblin", source="HB")
+    # Every source when nothing in the source is close
+    with pytest.raises(ToolError, match="in HB. Did you mean: Young Red Dragon"):
+        await call("get_content", content_type="creature", name="Dragon", source="HB")
+
+
+def test_suggestions_put_whole_words_first() -> None:
+    names = ["Searing Smite", "Festering Blast", "Lightning Ring", "Ring of Frost"]
+    assert suggestions("Ring", names) == [
+        "Ring of Frost",
+        "Lightning Ring",
+        "Searing Smite",
+        "Festering Blast",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> None:
     items = [
         {"content_type": "creature", "name": "Goblin"},
@@ -221,12 +264,13 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
 
 @pytest.mark.asyncio
 async def test_list_publications() -> None:
+    # Newest first
     result = await call("list_publications")
-    assert result["publications"][2]["source"] == "TB"
+    assert result["publications"][0]["source"] == "TB"
     assert [(p["id"], p["kind"]) for p in result["publications"]] == [
-        ("TA", "adventure"),
-        ("TB", "book"),
         ("TB-ST", "adventure"),
+        ("TB", "book"),
+        ("TA", "adventure"),
     ]
     books = await call("list_publications", kind="book")
     assert [p["name"] for p in books["publications"]] == ["Test Book"]
@@ -237,22 +281,24 @@ async def test_list_publications_filters_sorts_and_pages() -> None:
     def ids(result: dict[str, Any]) -> list[str]:
         return [p["id"] for p in result["publications"]]
 
-    assert ids(await call("list_publications", query="book")) == ["TB", "TB-ST"]
+    assert ids(await call("list_publications", query="book")) == ["TB-ST", "TB"]
     assert ids(await call("list_publications", query="ta")) == ["TA"]
     assert ids(await call("list_publications", published_after="2020")) == [
-        "TB",
         "TB-ST",
+        "TB",
     ]
     assert ids(await call("list_publications", published_after="2020-06-01")) == [
         "TB-ST"
     ]
-    newest = await call("list_publications", newest_first=True, limit=2, offset=0)
+    newest = await call("list_publications", limit=2, offset=0)
     assert (newest["total"], ids(newest), newest["next_offset"]) == (
         3,
         ["TB-ST", "TB"],
         2,
     )
-    assert ids(await call("list_publications", newest_first=True, offset=2)) == ["TA"]
+    assert ids(await call("list_publications", offset=2)) == ["TA"]
+    oldest = await call("list_publications", newest_first=False, limit=2)
+    assert (ids(oldest), oldest["next_offset"]) == (["TA", "TB"], 2)
     with pytest.raises(ToolError):
         await call("list_publications", published_after="last year")
 
@@ -378,12 +424,12 @@ async def test_bad_filters_say_what_is_wrong() -> None:
 async def test_searches_page_and_report_the_srd_mode() -> None:
     first = await call("search_creatures", srd_only=False, limit=2)
     second = await call("search_creatures", srd_only=False, limit=2, offset=2)
-    assert first["total"] == second["total"] == 5
+    assert first["total"] == second["total"] == 6
     assert names(first) + names(second) == [
         "Acolyte",
+        "Battle Familiar",
         "Goblin",
         "Goblin Minion",
-        "Goblin Sneak",
     ]
     assert (first["srd_only"], (await call("search_spells"))["srd_only"]) == (
         False,
@@ -453,3 +499,23 @@ async def test_get_class_progression_with_a_subclass() -> None:
     ]
     with pytest.raises(ToolError, match="No Wizard subclass named 'Nope'"):
         await call("get_class_progression", class_name="Wizard", subclass="Nope")
+
+
+@pytest.mark.asyncio
+async def test_unknown_parameters_list_the_ones_a_tool_takes() -> None:
+    with pytest.raises(
+        ToolError,
+        match=r"^list_publications has no parameter 'name_contains'\. "
+        r"Its parameters: kind, query, published_after, newest_first, limit, offset\.$",
+    ):
+        await call("list_publications", name_contains="tomb")
+    with pytest.raises(ToolError, match="has no parameter 'lvl' or 'name'"):
+        await call("search_spells", lvl=1, name="x")
+
+
+@pytest.mark.asyncio
+async def test_include_text_tools_describe_the_size_cap() -> None:
+    async with Client(mcp) as client:
+        tools = {t.name: t.description or "" for t in await client.list_tools()}
+    for name in ("search_spells", "search_creatures", "search_items", "search_content"):
+        assert "fewer results than limit; next_offset" in tools[name], name

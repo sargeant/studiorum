@@ -27,9 +27,11 @@ from studiorum.mcp.tools.lookup import find_one
 from studiorum.mcp.tools.search import (
     LatestOnly,
     Offset,
+    cr_text,
     reprint_uids,
     split_srd,
     type_name,
+    type_names,
 )
 from studiorum.services import Services
 
@@ -110,7 +112,7 @@ async def rate_encounter(
                 name=found.name,
                 source=found.source.abbreviation,
                 srd=found.is_srd,
-                cr=found.get_cr_text(),
+                cr=cr_text(found),
                 xp=encounter.creature_xp(found.cr),
                 count=wanted.count,
             )
@@ -179,7 +181,7 @@ async def suggest_creatures(
             continue
         if not include_minions and xp != encounter.table_xp(c.cr):
             continue
-        if creature_type and type_name(c).lower() != creature_type.lower():
+        if creature_type and creature_type.lower() not in map(str.lower, type_names(c)):
             continue
         if environment and not any(
             e == environment or e.startswith(f"{environment},")
@@ -204,7 +206,7 @@ async def suggest_creatures(
                 name=c.name,
                 source=c.source.abbreviation,
                 srd=c.is_srd,
-                cr=c.get_cr_text(),
+                cr=cr_text(c),
                 xp=xp,
                 type=type_name(c),
                 environment=_environments(c),

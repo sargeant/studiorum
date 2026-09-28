@@ -19,22 +19,31 @@ def next_offset(total: int, offset: int, shown: int) -> int | None:
     return offset + shown if offset + shown < total else None
 
 
+def _is_none(value: object) -> bool:
+    return value is None
+
+
+def optional(description: str) -> Any:
+    """A field left out of the reply when it's None, rather than sent as null."""
+    return Field(None, description=description, exclude_if=_is_none)
+
+
 class SpellSummary(BaseModel):
     name: str
     source: str
     srd: bool
     level: int
     school: str
-    text: str | None = Field(None, description="As Markdown, with include_text")
+    text: str | None = optional("As Markdown, with include_text")
 
 
 class CreatureSummary(BaseModel):
     name: str
     source: str
     srd: bool
-    cr: str
-    type: str
-    text: str | None = Field(None, description="As Markdown, with include_text")
+    cr: str | None = Field(description="None when it scales with a spell or level")
+    type: str = Field(description='e.g. humanoid, or "celestial | fey" for a choice')
+    text: str | None = optional("As Markdown, with include_text")
 
 
 class ItemSummary(BaseModel):
@@ -43,7 +52,7 @@ class ItemSummary(BaseModel):
     srd: bool
     type: str | None
     rarity: str | None
-    text: str | None = Field(None, description="As Markdown, with include_text")
+    text: str | None = optional("As Markdown, with include_text")
 
 
 class Filtered(BaseModel):
@@ -146,7 +155,7 @@ class RatedCreature(BaseModel):
     name: str
     source: str
     srd: bool
-    cr: str
+    cr: str | None = Field(description="None when it scales with a spell or level")
     xp: int | None = Field(description="XP each; none when the CR has no XP")
     count: int
 
@@ -167,7 +176,7 @@ class SuggestedCreature(BaseModel):
     name: str
     source: str
     srd: bool
-    cr: str
+    cr: str | None
     xp: int
     type: str
     environment: list[str]
@@ -213,8 +222,8 @@ class SectionText(BaseModel):
     pages: int
     text: str = Field(description="Markdown")
     sections: list[SectionRef] = Field(description="Subsections, to read on their own")
-    references: list[Reference] = Field(
-        default_factory=list, description="What this page links to"
+    references: list[Reference] | None = optional(
+        "What this page links to, with include_references"
     )
 
 
@@ -239,8 +248,8 @@ class SectionMatch(BaseModel):
     path: list[str] = Field(
         description="The sections this one sits in, outermost first"
     )
-    chars: int = Field(description="Size in Markdown characters")
-    snippet: str = Field(description="Text around the first match")
+    chars: int | None = optional("Size in Markdown characters; not with names_only")
+    snippet: str | None = optional("Text around the first match; not with names_only")
 
 
 class SectionMatches(BaseModel):
@@ -258,7 +267,7 @@ class ContentSummary(BaseModel):
         None, description="Pass as get_content's name when the name and source repeat"
     )
     detail: str | None = Field(None, description="What tells it apart, e.g. a pantheon")
-    text: str | None = Field(None, description="As Markdown, with include_text")
+    text: str | None = optional("As Markdown, with include_text")
 
 
 class ContentResults(Filtered):

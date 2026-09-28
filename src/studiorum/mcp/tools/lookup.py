@@ -246,8 +246,18 @@ def find_one(
         if source is None or c.source.abbreviation.lower() == source.lower()
     ]
     if not matches:
-        names = [c.name for c in catalogue.get_all_by_type(ctype)]
-        raise not_found(content_type, name, names)
+        every = catalogue.get_all_by_type(ctype)
+        names = [c.name for c in every]
+        if source is None:
+            raise not_found(content_type, name, names)
+        # Names from the source asked for first, then any source
+        raise not_found(
+            content_type,
+            name,
+            [c.name for c in every if c.source.abbreviation.lower() == source.lower()],
+            names,
+            where=source,
+        )
     allowed = [c for c in matches if c.is_srd or not srd_only]
     if not allowed:
         found = ", ".join(c.source.abbreviation for c in matches)
@@ -272,7 +282,11 @@ async def search_content(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ContentResults:
-    """Find entries of any type get_content reads by name, e.g. deities, feats, races."""
+    """Find entries of any type get_content reads by name, e.g. deities, feats, races.
+
+    With include_text, a page is capped at 24,000 characters of text, so it
+    can hold fewer results than limit; next_offset is where the rest start.
+    """
     srd_only = default_srd if srd_only is None else srd_only
     needle = query.lower()
     named = [
@@ -375,12 +389,14 @@ async def list_publications(
             description="Only those published on or after this: YYYY, YYYY-MM or YYYY-MM-DD",
         ),
     ] = None,
-    newest_first: bool = False,
+    newest_first: Annotated[
+        bool, Field(description="Newest first; false for oldest first")
+    ] = True,
     limit: Annotated[int, Field(ge=1, le=200)] = 50,
     offset: Offset = 0,
     services: Services = Depends(get_services),
 ) -> Publications:
-    """The books and adventures loaded, oldest first unless newest_first."""
+    """The books and adventures loaded, newest first unless newest_first=false."""
     catalogue = services.catalogue
     found: list[Publication] = []
     if kind in (None, "book"):
@@ -417,7 +433,9 @@ async def list_publications(
         if (needle in p.name.lower() or needle in p.id.lower())
         and (not published_after or (p.published or "") >= published_after)
     ]
-    found.sort(key=lambda p: (p.published or "", p.name), reverse=newest_first)
+    # Stable, so names stay A to Z within a date either way
+    found.sort(key=lambda p: p.name)
+    found.sort(key=lambda p: p.published or "", reverse=newest_first)
     return Publications(
         total=len(found),
         next_offset=next_offset(len(found), offset, limit),

@@ -357,9 +357,14 @@ class CreatureCollector:
         creature_type_data = creature.type
 
         # Parse creature type structure from 5e.tools data
+        choices: list[str] = []
         if isinstance(creature_type_data, CreatureType):
             kind = creature_type_data.type
             main_type = kind.lower() if isinstance(kind, str) else ""
+            # A type to choose, e.g. {"choose": ["celestial", "fey", "fiend"]}
+            choose = kind.get("choose") if isinstance(kind, dict) else None
+            if isinstance(choose, list):
+                choices = [str(c).lower() for c in choose]
             creature_tags = [
                 tag.lower()
                 for tag in creature_type_data.tags or []
@@ -379,7 +384,10 @@ class CreatureCollector:
             main_type = str(creature_type_data).lower()
             creature_tags = []
 
-        return criteria.matches_creature_type(main_type, creature_tags or None)
+        return any(
+            criteria.matches_creature_type(t, creature_tags or None)
+            for t in choices or [main_type]
+        )
 
     def _matches_alignment_criteria(
         self, creature: Creature, criteria: CreatureFilterCriteria
