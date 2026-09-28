@@ -19,16 +19,15 @@ repos:
       - id: check-merge-conflict
       - id: check-toml  # Add TOML validation
       - id: check-json  # Add JSON validation
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.0  # Add mypy type checking
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-pyyaml, types-psutil, pydantic]
-        args: [--ignore-missing-imports]
-        language_version: python3.12
-        files: ^src/
   - repo: local
     hooks:
+      # The project's environment, so imports resolve as they do in make mypy
+      - id: mypy
+        name: mypy
+        entry: uv run mypy src/
+        language: system
+        pass_filenames: false
+        files: ^(src/.*\.py|pyproject\.toml)$
       - id: template-legacy-render-check
         name: Template legacy render check
         entry: scripts/pre-commit-template-guard.sh
