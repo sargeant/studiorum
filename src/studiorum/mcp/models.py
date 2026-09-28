@@ -266,3 +266,30 @@ class ContentResults(Filtered):
     total: int = Field(description="Matches before the limit")
     next_offset: NextOffset = None
     results: list[ContentSummary]
+
+
+class FeatureRef(BaseModel):
+    name: str
+    uid: str = Field(description="Pass as get_content's name, with the feature type")
+
+
+class ProgressionLevel(BaseModel):
+    level: int
+    proficiency_bonus: int
+    features: list[FeatureRef] = Field(description="Class features gained")
+    subclass_features: list[FeatureRef] = Field(
+        default_factory=list, description="The subclass's features gained"
+    )
+    columns: dict[str, str] = Field(
+        description="The class table's own columns, e.g. spell slots by level"
+    )
+
+
+class ClassProgression(BaseModel):
+    name: str
+    source: str
+    srd: bool
+    subclass: str | None = None
+    subclass_source: str | None = None
+    columns: list[str] = Field(description="The columns' labels, in order")
+    levels: list[ProgressionLevel]

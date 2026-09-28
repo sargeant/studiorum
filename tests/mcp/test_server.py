@@ -42,6 +42,7 @@ async def test_the_server_lists_its_tools() -> None:
         "get_content",
         "get_contents",
         "list_publications",
+        "get_class_progression",
         "calculate_encounter_budget",
         "rate_encounter",
         "suggest_creatures",
@@ -412,3 +413,43 @@ async def test_search_content_gives_uids_where_names_repeat() -> None:
     )
     feature = await call("get_content", content_type="classFeature", name=first["uid"])
     assert feature["name"] == "Arcane Recovery"
+
+
+@pytest.mark.asyncio
+async def test_get_class_progression() -> None:
+    wizard = await call("get_class_progression", class_name="wizard")
+    assert (wizard["name"], len(wizard["levels"])) == ("Wizard", 20)
+    assert wizard["columns"][-9:] == [
+        "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"
+    ]  # fmt: skip
+    first = wizard["levels"][0]
+    assert (first["level"], first["proficiency_bonus"]) == (1, 2)
+    assert first["columns"]["1st"] == "2"
+    assert first["columns"]["2nd"] == "\u2014"
+    assert "Arcane Recovery" in [f["name"] for f in first["features"]]
+
+    one = await call("get_class_progression", class_name="Wizard", level=17)
+    assert [r["level"] for r in one["levels"]] == [17]
+    assert one["levels"][0]["proficiency_bonus"] == 6
+    slots = [one["levels"][0]["columns"][c] for c in wizard["columns"][-9:]]
+    assert slots == ["4", "3", "3", "3", "2", "1", "1", "1", "1"]
+    # A feature's uid reads it in full
+    uid = first["features"][0]["uid"]
+    feature = await call("get_content", content_type="classFeature", name=uid)
+    assert feature["name"] == first["features"][0]["name"]
+
+
+@pytest.mark.asyncio
+async def test_get_class_progression_with_a_subclass() -> None:
+    evoker = await call(
+        "get_class_progression", class_name="Wizard", subclass="evocation", level=2
+    )
+    assert (evoker["subclass"], evoker["subclass_source"]) == (
+        "School of Evocation",
+        "SRD",
+    )
+    assert [f["name"] for f in evoker["levels"][0]["subclass_features"]] == [
+        "School of Evocation"
+    ]
+    with pytest.raises(ToolError, match="No Wizard subclass named 'Nope'"):
+        await call("get_class_progression", class_name="Wizard", subclass="Nope")
