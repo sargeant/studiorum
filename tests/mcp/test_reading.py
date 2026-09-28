@@ -89,6 +89,15 @@ async def test_read_section_expands_statblocks() -> None:
     body = re.sub(r"^(#+) ", r"#\1 ", goblin["text"], flags=re.MULTILINE)
     assert guards["text"] == "# Guards\n\n" + body
     assert "Statblock" not in guards["text"]
+    # The text holds what references would, so they're left out unless asked for
+    assert "references" not in guards
+    guards = await call(
+        "read_section",
+        publication="TA",
+        section_id="005",
+        expand_statblocks=True,
+        include_references=True,
+    )
     # References keep the statblock and add what its text links to
     refs = [(r["type"], r["name"]) for r in guards["references"]]
     assert refs[0] == ("creature", "Goblin")
@@ -175,6 +184,10 @@ async def test_read_section_lists_references() -> None:
         ("creature", "Goblin", "SRD", None),
         ("section", "the big room", None, "003"),
     ]
+    bare = await call(
+        "read_section", publication="TA", section_id="002", include_references=False
+    )
+    assert "references" not in bare
 
 
 @pytest.mark.asyncio
@@ -203,7 +216,13 @@ async def test_search_every_publication() -> None:
     assert found(trek) == [("TB-ST", "200"), ("TA", "004")]
     names = await call("search_publication", query="trek", names_only=True)
     assert found(names) == [("TB-ST", "200")]
-    assert names["results"][0]["snippet"] == "Trek Go."
+    # Names only: no snippet or size
+    assert names["results"][0] == {
+        "publication": "TB-ST",
+        "id": "200",
+        "name": "Trek",
+        "path": [],
+    }
     assert found(await call("search_publication", query="roll d20")) == [("TB", "100")]
     one = await call("search_publication", query="trek", publication="TA")
     assert (one["publication"], found(one)) == ("TA", [("TA", "004")])

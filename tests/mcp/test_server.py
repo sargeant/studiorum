@@ -83,7 +83,12 @@ async def test_searches_include_text(monkeypatch: pytest.MonkeyPatch) -> None:
     fireball = await call("get_content", content_type="spell", name="Fireball")
     spells = await call("search_spells", query="fire", include_text=True)
     assert spells["results"][0]["text"] == fireball["text"]
-    assert (await call("search_spells", query="fire"))["results"][0]["text"] is None
+    # Without include_text, no text field at all
+    assert "text" not in (await call("search_spells", query="fire"))["results"][0]
+    for tool in ("search_creatures", "search_items"):
+        assert all("text" not in r for r in (await call(tool))["results"])
+    plain = await call("search_content", content_type="class", query="wiz")
+    assert "text" not in plain["results"][0]
     goblin = await call("get_content", content_type="creature", name="Goblin")
     creatures = await call("search_creatures", query="goblin", include_text=True)
     assert creatures["results"][0]["text"] == goblin["text"]
@@ -124,7 +129,6 @@ async def test_search_creatures_filters() -> None:
         "srd": True,
         "cr": "1/4",
         "type": "humanoid",
-        "text": None,
     }
     assert names(await call("search_creatures", creature_type="humanoid")) == [
         "Acolyte",

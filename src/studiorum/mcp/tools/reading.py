@@ -87,6 +87,13 @@ async def read_section(
             "instead of a line naming it; the section may take more pages"
         ),
     ] = False,
+    include_references: Annotated[
+        bool | None,
+        Field(
+            description="What the page links to, for get_content and read_section. "
+            "Default: true, but false with expand_statblocks, whose text holds them"
+        ),
+    ] = None,
     services: Services = Depends(get_services),
 ) -> SectionText:
     """One chapter or section as Markdown, with its subsections' ids.
@@ -101,6 +108,8 @@ async def read_section(
     pages = _pages(_expanded(services, node) if expand_statblocks else node)
     if page > len(pages):
         raise ClientError(f"Section {section_id} has {len(pages)} page(s).")
+    if include_references is None:
+        include_references = not expand_statblocks
     return SectionText(
         publication=_pub_id(pub),
         id=section_id,
@@ -109,9 +118,9 @@ async def read_section(
         page=page,
         pages=len(pages),
         text=pages[page - 1][0],
-        references=resolve_references(
-            services, markdown.references(pages[page - 1][1])
-        ),
+        references=resolve_references(services, markdown.references(pages[page - 1][1]))
+        if include_references
+        else None,
         sections=[
             SectionRef(id=n["id"], name=_name(n), depth=1, chars=_chars(n))
             for n in _subsections(node)
@@ -129,7 +138,11 @@ async def search_publication(
         Field(description="A book or adventure id, e.g. LMoP; else every one"),
     ] = None,
     names_only: Annotated[
-        bool, Field(description="Match section names only, not their text")
+        bool,
+        Field(
+            description="Match section names only, not their text; "
+            "results then leave out snippet and chars"
+        ),
     ] = False,
     limit: Annotated[int, Field(ge=1, le=50)] = 10,
     offset: Annotated[
@@ -171,8 +184,8 @@ async def search_publication(
                 id=str(s.node["id"]),
                 name=s.name,
                 path=s.path,
-                chars=_chars(s.node),
-                snippet=markdown.snippet(s.text, words),
+                chars=None if names_only else _chars(s.node),
+                snippet=None if names_only else markdown.snippet(s.text, words),
             )
             for s in found[offset : offset + limit]
         ],
