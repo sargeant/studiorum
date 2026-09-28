@@ -264,12 +264,13 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
 
 @pytest.mark.asyncio
 async def test_list_publications() -> None:
+    # Newest first
     result = await call("list_publications")
-    assert result["publications"][2]["source"] == "TB"
+    assert result["publications"][0]["source"] == "TB"
     assert [(p["id"], p["kind"]) for p in result["publications"]] == [
-        ("TA", "adventure"),
-        ("TB", "book"),
         ("TB-ST", "adventure"),
+        ("TB", "book"),
+        ("TA", "adventure"),
     ]
     books = await call("list_publications", kind="book")
     assert [p["name"] for p in books["publications"]] == ["Test Book"]
@@ -280,22 +281,24 @@ async def test_list_publications_filters_sorts_and_pages() -> None:
     def ids(result: dict[str, Any]) -> list[str]:
         return [p["id"] for p in result["publications"]]
 
-    assert ids(await call("list_publications", query="book")) == ["TB", "TB-ST"]
+    assert ids(await call("list_publications", query="book")) == ["TB-ST", "TB"]
     assert ids(await call("list_publications", query="ta")) == ["TA"]
     assert ids(await call("list_publications", published_after="2020")) == [
-        "TB",
         "TB-ST",
+        "TB",
     ]
     assert ids(await call("list_publications", published_after="2020-06-01")) == [
         "TB-ST"
     ]
-    newest = await call("list_publications", newest_first=True, limit=2, offset=0)
+    newest = await call("list_publications", limit=2, offset=0)
     assert (newest["total"], ids(newest), newest["next_offset"]) == (
         3,
         ["TB-ST", "TB"],
         2,
     )
-    assert ids(await call("list_publications", newest_first=True, offset=2)) == ["TA"]
+    assert ids(await call("list_publications", offset=2)) == ["TA"]
+    oldest = await call("list_publications", newest_first=False, limit=2)
+    assert (ids(oldest), oldest["next_offset"]) == (["TA", "TB"], 2)
     with pytest.raises(ToolError):
         await call("list_publications", published_after="last year")
 
