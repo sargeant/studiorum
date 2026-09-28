@@ -90,7 +90,7 @@ The search tools return short summaries (name, source, level or challenge rating
 
 `search_content` gives a `uid` and a `detail` where a name and source repeat, such as the Celtic and Forgotten Realms Silvanus in the PHB; pass the uid as `get_content`'s name to pick one.
 
-`list_publications` gives each book or adventure's `id` and the `source` its content carries, newest first. `query` keeps those whose name or id contains the text, `published_after` those published on or after a date (`2024` or `2024-11-12`), and `newest_first=false` lists them oldest first; it returns 50 at a time. They differ for some, such as `PS-X` and `PSX`, and `sources` filters take either. `list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
+`list_publications` gives each book or adventure's `id` and the `source` its content carries, newest first. `query` keeps those whose name or id contains the text, `published_after` those published on or after a date (`2024` or `2024-11-12`), and `newest_first=false` lists them oldest first; it returns 20 at a time unless you pass `limit` (up to 200). They differ for some, such as `PS-X` and `PSX`, and `sources` filters take either. `list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
 
 ### Reading books and adventures
 

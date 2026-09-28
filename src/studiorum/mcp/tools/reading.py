@@ -99,7 +99,8 @@ async def read_section(
     include_references: Annotated[
         bool | None,
         Field(
-            description="What the page links to, for get_content and read_section. "
+            description="List what the page links to: entries to read with "
+            "get_content, sections with read_section. "
             "Default: true, but false with expand_statblocks, whose text holds them"
         ),
     ] = None,

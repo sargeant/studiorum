@@ -88,7 +88,10 @@ async def get_content(
         Field(description="markdown: laid out to read; json: the 5etools data"),
     ] = "markdown",
     include_references: Annotated[
-        bool, Field(description="What the entry's text links to, for get_content")
+        bool,
+        Field(
+            description="List what the entry's text links to, to read with get_content"
+        ),
     ] = True,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
@@ -213,7 +216,10 @@ async def get_contents(
         int, Field(ge=0, description="Start at this item, to resume a batch")
     ] = 0,
     include_references: Annotated[
-        bool, Field(description="What each entry's text links to, for get_content")
+        bool,
+        Field(
+            description="List what each entry's text links to, to read with get_content"
+        ),
     ] = False,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
@@ -573,7 +579,7 @@ async def list_publications(
     newest_first: Annotated[
         bool, Field(description="Newest first; false for oldest first")
     ] = True,
-    limit: Annotated[int, Field(ge=1, le=200)] = 50,
+    limit: Annotated[int, Field(ge=1, le=200)] = 20,
     offset: Offset = 0,
     services: Services = Depends(get_services),
 ) -> Publications:

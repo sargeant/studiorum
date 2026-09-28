@@ -48,7 +48,8 @@ async def get_class_progression(
 
     Features come with 5etools uids for get_content. With a subclass, its
     table columns (an Eldritch Knight's spell slots) and features are added.
-    Each level's cells line up with columns.
+    Each level's cells line up with columns. A subclass comes with the class's
+    whole table; subclass_only gives just what the subclass adds.
     """
     srd_only = default_srd if srd_only is None else srd_only
     if subclass_only and not subclass:
