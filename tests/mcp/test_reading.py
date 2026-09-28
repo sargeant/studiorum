@@ -41,9 +41,9 @@ async def test_table_of_contents() -> None:
         ("003", "Big Room", 2),
         ("005", "Guards", 2),
     ]
-    assert (deep["total"], deep["next_offset"]) == (6, None)
+    assert (deep["total"], deep.get("next_offset")) == (6, None)
     paged = await call("get_table_of_contents", publication="TA", depth=2, limit=4)
-    assert (ids(paged)[-1], paged["next_offset"]) == (("002", "The Cave", 1), 4)
+    assert (ids(paged)[-1], paged.get("next_offset")) == (("002", "The Cave", 1), 4)
     rest = await call(
         "get_table_of_contents", publication="TA", depth=2, limit=4, offset=4
     )
@@ -65,7 +65,9 @@ async def test_read_section_as_markdown() -> None:
         "# Welcome\n\nHello goblins.\n\n## Hooks\n\nA hook.\n\n- one\n- two"
         "\n\n## Background\n\nLong ago. See the side trek."
     )
-    assert (welcome["page"], welcome["pages"], welcome["path"]) == (1, 1, [])
+    assert (welcome["page"], welcome["pages"]) == (1, 1)
+    # Empty lists and nulls are left out
+    assert "path" not in welcome
     # Its subsections are in the text, so aren't listed
     assert "sections" not in welcome
 
@@ -216,7 +218,7 @@ async def test_read_section_lists_references() -> None:
 @pytest.mark.asyncio
 async def test_search_publication() -> None:
     result = await call("search_publication", publication="TA", query="guards")
-    assert [(r["id"], r["name"], r["path"]) for r in result["results"]] == [
+    assert [(r["id"], r["name"], r.get("path", [])) for r in result["results"]] == [
         ("005", "Guards", ["The Cave"]),
         ("002", "The Cave", []),
     ]
@@ -234,7 +236,7 @@ async def test_search_every_publication() -> None:
         return [(r["publication"], r["id"]) for r in result["results"]]
 
     trek = await call("search_publication", query="trek")
-    assert trek["publication"] is None
+    assert "publication" not in trek
     # Named sections first, then the text, oldest publication first
     assert found(trek) == [("TB-ST", "200"), ("TA", "004")]
     names = await call("search_publication", query="trek", names_only=True)
@@ -244,7 +246,6 @@ async def test_search_every_publication() -> None:
         "publication": "TB-ST",
         "id": "200",
         "name": "Trek",
-        "path": [],
     }
     assert found(await call("search_publication", query="roll d20")) == [("TB", "100")]
     one = await call("search_publication", query="trek", publication="TA")

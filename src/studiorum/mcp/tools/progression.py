@@ -74,13 +74,12 @@ async def get_class_progression(
             ProgressionLevel(
                 level=row.level,
                 proficiency_bonus=row.proficiency_bonus,
-                features=None
+                features=[]
                 if only_sub
-                else _features(services, "classFeature", row.features) or None,
+                else _features(services, "classFeature", row.features),
                 subclass_features=_features(
                     services, "subclassFeature", row.subclass_features
-                )
-                or None,
+                ),
                 cells=[cell_text(c) for c in row.cells[first:]],
             )
             for row in progression.levels

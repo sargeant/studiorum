@@ -125,7 +125,7 @@ def _content_entry(
             != (entry.name.lower(), entry.source.abbreviation.lower())
         ]
         if include_references
-        else None,
+        else [],
     )
 
 

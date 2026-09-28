@@ -129,13 +129,12 @@ async def read_section(
         text=pages[page - 1][0],
         references=resolve_references(services, markdown.references(pages[page - 1][1]))
         if include_references
-        else None,
+        else [],
         sections=[
             SectionRef(id=n["id"], name=_name(n), depth=1, chars=_chars(n))
             for n in _subsections(node)
             if str(n["id"]) in pointed
-        ]
-        or None,
+        ],
     )
 
 
@@ -492,7 +491,7 @@ def _split(block: str) -> list[str]:
     ]
 
 
-def _statblocks(node: Node) -> list[str] | None:
+def _statblocks(node: Node) -> list[str]:
     """The statblocks a section holds, if it holds nothing else but images."""
     names: list[str] = []
 
@@ -508,7 +507,7 @@ def _statblocks(node: Node) -> list[str] | None:
             return isinstance(children, list) and all(map(only_statblocks, children))
         return False
 
-    return list(dict.fromkeys(names)) if only_statblocks(node) and names else None
+    return list(dict.fromkeys(names)) if only_statblocks(node) else []
 
 
 def _name(node: Node) -> str:

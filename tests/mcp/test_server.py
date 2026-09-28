@@ -29,7 +29,7 @@ async def call(tool: str, **args: Any) -> dict[str, Any]:
 
 
 def names(result: dict[str, Any]) -> list[str]:
-    return [r["name"] for r in result["results"]]
+    return [r["name"] for r in result.get("results", [])]
 
 
 @pytest.mark.asyncio
@@ -74,10 +74,10 @@ async def test_search_spells_filters() -> None:
     assert names(await call("search_spells", ritual=True)) == ["Alarm"]
     assert names(await call("search_spells", ritual=False)) == ["Fireball"]
     result = await call("search_spells", srd_only=False, limit=1)
-    assert (result["total"], result["next_offset"]) == (3, 1)
+    assert (result["total"], result.get("next_offset")) == (3, 1)
     assert len(result["results"]) == 1
     last = await call("search_spells", srd_only=False, limit=1, offset=2)
-    assert (names(last), last["next_offset"]) == (["Hellfire Orb"], None)
+    assert (names(last), last.get("next_offset")) == (["Hellfire Orb"], None)
 
 
 @pytest.mark.asyncio
@@ -106,13 +106,13 @@ async def test_searches_include_text(monkeypatch: pytest.MonkeyPatch) -> None:
     # Text stops a page at the size cap, though a page always has one result
     monkeypatch.setattr("studiorum.mcp.tools.search.PAGE_CHARS", 1)
     capped = await call("search_spells", srd_only=False, include_text=True)
-    assert (len(capped["results"]), capped["total"], capped["next_offset"]) == (
+    assert (len(capped["results"]), capped["total"], capped.get("next_offset")) == (
         1,
         3,
         1,
     )
     rest = await call("search_spells", srd_only=False, include_text=True, offset=2)
-    assert (names(rest), rest["next_offset"]) == (["Hellfire Orb"], None)
+    assert (names(rest), rest.get("next_offset")) == (["Hellfire Orb"], None)
 
 
 @pytest.mark.asyncio
@@ -146,7 +146,7 @@ async def test_search_creatures_with_a_type_to_choose_and_no_cr() -> None:
     familiar = await call(
         "search_creatures", query="familiar", creature_type="fey", srd_only=False
     )
-    assert [(r["name"], r["type"], r["cr"]) for r in familiar["results"]] == [
+    assert [(r["name"], r["type"], r.get("cr")) for r in familiar["results"]] == [
         ("Battle Familiar", "celestial | fey | fiend", None)
     ]
     fiends = await call("search_creatures", creature_type="fiend", srd_only=False)
@@ -262,12 +262,12 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
     ]
     linked = await call("get_contents", items=items[:1], include_references=True)
     assert "references" in linked["entries"][0]
-    assert result["next_offset"] is None
+    assert result.get("next_offset") is None
 
     # A size cap stops the batch; next_offset resumes it
     monkeypatch.setattr("studiorum.mcp.tools.lookup.PAGE_CHARS", 1)
     first = await call("get_contents", items=items)
-    assert ([e["name"] for e in first["entries"]], first["next_offset"]) == (
+    assert ([e["name"] for e in first["entries"]], first.get("next_offset")) == (
         ["Goblin"],
         1,
     )
@@ -306,14 +306,14 @@ async def test_list_publications_filters_sorts_and_pages() -> None:
         "TB-ST"
     ]
     newest = await call("list_publications", limit=2, offset=0)
-    assert (newest["total"], ids(newest), newest["next_offset"]) == (
+    assert (newest["total"], ids(newest), newest.get("next_offset")) == (
         3,
         ["TB-ST", "TB"],
         2,
     )
     assert ids(await call("list_publications", offset=2)) == ["TA"]
     oldest = await call("list_publications", newest_first=False, limit=2)
-    assert (ids(oldest), oldest["next_offset"]) == (["TA", "TB"], 2)
+    assert (ids(oldest), oldest.get("next_offset")) == (["TA", "TB"], 2)
     with pytest.raises(ToolError):
         await call("list_publications", published_after="last year")
 
@@ -567,9 +567,9 @@ async def test_get_class_progression_with_a_subclass() -> None:
         subclass="evocation",
         subclass_only=True,
     )
-    assert only["columns"] == []
+    assert "columns" not in only
     assert [r["level"] for r in only["levels"]] == [2, 6, 10, 14]
-    assert only["levels"][0]["cells"] == []
+    assert "cells" not in only["levels"][0]
     assert "features" not in only["levels"][0]
     with pytest.raises(ToolError, match="subclass_only needs a subclass"):
         await call("get_class_progression", class_name="Wizard", subclass_only=True)
