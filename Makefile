@@ -127,8 +127,9 @@ lint-imports: uv
 # PYSEC-2026-2447 (CVE-2025-69872): diskcache pickles by default, so anyone who
 # can write to the local cache directory could run code. No fixed release; the
 # pickled content cache is due to be removed.
+# --skip-editable leaves out studiorum itself, which PyPI doesn't have.
 pip-audit: uv
-	@$(UV) pip-audit --desc=off --ignore-vuln GHSA-4xh5-x5gv-qwph --ignore-vuln PYSEC-2026-2447 || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
+	@$(UV) pip-audit --desc=off --skip-editable --ignore-vuln GHSA-4xh5-x5gv-qwph --ignore-vuln PYSEC-2026-2447 || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
 
 ## Static security analysis
 bandit: uv
