@@ -47,7 +47,8 @@ async def search_rules(
     properties and masteries (Finesse, Sap). Every word must appear in the
     name or text. A rule named the query comes first, then rules with a part
     named it (the 2024 Grapple and Shove are parts of Unarmed Strike), then
-    other name matches, then rules with every word whole, then the rest. A
+    other name matches, then rules with the query whole in their text, then
+    those with every word whole, then the rest, core rules first in each. A
     variant rule that matches only in a part that is also an action of its
     own (the DMG's Climb onto a Bigger Creature, in Action Options) gives way
     to that action. Read one in full with get_content.
@@ -80,16 +81,25 @@ async def search_rules(
                 rank = 1
             elif all(w in name for w in words):
                 rank = 2
-            elif _whole_words(words, f"{name} {fold(text)}"):
+            elif _whole_words([phrase], fold(text)):
                 rank = 3
-            else:
+            elif _whole_words(words, f"{name} {fold(text)}"):
                 rank = 4
+            else:
+                rank = 5
             found.append((rank, kind, text, rule))
     kept, hidden = split_srd([r for *_, r in found], srd_only, latest_only)
     found = [f for f in found if id(f[3]) in set(map(id, kept))]
     names = {fold(rule.name) for *_, rule in found}
     found = [f for f in found if not via_parts.get(id(f[3]), set()) & names]
-    found.sort(key=lambda f: (f[0], f[3].name.lower(), f[3].source.abbreviation))
+    found.sort(
+        key=lambda f: (
+            f[0],
+            not _core(f[3]),
+            f[3].name.lower(),
+            f[3].source.abbreviation,
+        )
+    )
     return RuleResults(
         srd_only=srd_only,
         hidden_by_srd=hidden,
@@ -105,6 +115,13 @@ async def search_rules(
             )
             for _, kind, text, rule in found[offset : offset + limit]
         ],
+    )
+
+
+def _core(rule: BaseContent) -> bool:
+    """Whether a rule is in the SRD or the free Basic Rules, not a setting's or an adventure's."""
+    return rule.is_srd or bool(
+        getattr(rule, "basicRules", None) or getattr(rule, "basicRules2024", None)
     )
 
 
