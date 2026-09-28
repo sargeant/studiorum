@@ -283,7 +283,8 @@ async def search_creatures(
     cr_min: Annotated[float | None, Field(ge=0, le=30)] = None,
     cr_max: Annotated[float | None, Field(ge=0, le=30)] = None,
     creature_type: Annotated[
-        str | None, Field(description="e.g. dragon, humanoid, undead")
+        str | None,
+        Field(description="A type or a tag, e.g. dragon, undead, demon, goblinoid"),
     ] = None,
     sources: Sources = None,
     srd_only: SrdOnly = None,
@@ -302,15 +303,9 @@ async def search_creatures(
     srd_only = default_srd if srd_only is None else srd_only
     if cr_min is not None and cr_max is not None and cr_min > cr_max:
         raise ClientError(f"cr_min ({cr_min:g}) is more than cr_max ({cr_max:g}).")
-    if creature_type and creature_type.lower() not in CREATURE_TYPES:
-        raise ClientError(
-            f"No creature type '{creature_type}'. Types: {', '.join(sorted(CREATURE_TYPES))}."
-        )
+    check_creature_type(services, creature_type)
     filters = _given(
-        min_cr=cr_min,
-        max_cr=cr_max,
-        creature_types=[creature_type] if creature_type else None,
-        sources=as_sources(services, sources),
+        min_cr=cr_min, max_cr=cr_max, sources=as_sources(services, sources)
     )
     found: list[Creature] = (
         CreatureCollector(services.catalogue)
@@ -319,6 +314,8 @@ async def search_creatures(
         if filters
         else _all(services, ContentType.CREATURE, Creature)
     )
+    if creature_type:
+        found = [c for c in found if is_kind(c, creature_type)]
     creatures, hidden = _narrow(found, query, srd_only, latest_only)
     page, after = paged(
         creatures, offset, limit, _text("creature") if include_text else None
@@ -410,6 +407,41 @@ def type_names(creature: Creature) -> list[str]:
         choices = kind.get("choose")
         return [str(c) for c in choices] if isinstance(choices, list) else []
     return [str(kind)] if kind else []
+
+
+def type_tags(creature: Creature) -> list[str]:
+    """The tags on a creature's type, e.g. devil for a fiend (devil)."""
+    kind: Any = creature.type
+    if not isinstance(kind, dict):
+        kind = getattr(kind, "model_dump", lambda **_: {})(by_alias=True)
+    tags = kind.get("tags") if isinstance(kind, dict) else None
+    return [str(t if isinstance(t, str) else t.get("tag", "")) for t in tags or [] if t]
+
+
+def is_kind(creature: Creature, kind: str) -> bool:
+    """Whether a creature is of this type or has this tag (a demon, a goblinoid)."""
+    wanted = kind.lower()
+    return any(
+        wanted == k.lower() for k in (*type_names(creature), *type_tags(creature))
+    )
+
+
+def check_creature_type(services: Services, kind: str | None) -> None:
+    """A ClientError unless ``kind`` is a creature type or a tag some creature has."""
+    if not kind or kind.lower() in CREATURE_TYPES:
+        return
+    tags = {
+        t.lower()
+        for c in services.catalogue.get_all_by_type(ContentType.CREATURE)
+        if isinstance(c, Creature)
+        for t in type_tags(c)
+    }
+    if kind.lower() not in tags:
+        raise ClientError(
+            f"No creature type or tag '{kind}'. Types: "
+            f"{', '.join(sorted(CREATURE_TYPES))}; tags include demon, devil, "
+            "goblinoid, shapechanger and titan."
+        )
 
 
 def cr_text(creature: Creature) -> str | None:

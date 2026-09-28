@@ -27,11 +27,12 @@ from studiorum.mcp.tools.lookup import find_one
 from studiorum.mcp.tools.search import (
     LatestOnly,
     Offset,
+    check_creature_type,
     cr_text,
+    is_kind,
     reprint_uids,
     split_srd,
     type_name,
-    type_names,
 )
 from studiorum.services import Services
 
@@ -145,7 +146,8 @@ async def suggest_creatures(
     ] = 1,
     environment: Environment | None = None,
     creature_type: Annotated[
-        str | None, Field(description="e.g. dragon, humanoid, undead")
+        str | None,
+        Field(description="A type or a tag, e.g. dragon, undead, demon, goblinoid"),
     ] = None,
     rules: RulesChoice = "2024",
     include_minions: Annotated[
@@ -168,6 +170,7 @@ async def suggest_creatures(
     with rate_encounter.
     """
     srd_only = default_srd if srd_only is None else srd_only
+    check_creature_type(services, creature_type)
     try:
         low, high = encounter.xp_range(difficulty, party_levels, rules)
     except ValueError as e:
@@ -183,7 +186,7 @@ async def suggest_creatures(
             continue
         if not include_minions and xp != encounter.table_xp(c.cr):
             continue
-        if creature_type and creature_type.lower() not in map(str.lower, type_names(c)):
+        if creature_type and not is_kind(c, creature_type):
             continue
         if environment and not any(
             e == environment or e.startswith(f"{environment},")

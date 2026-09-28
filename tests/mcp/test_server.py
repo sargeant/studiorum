@@ -591,10 +591,25 @@ def test_a_feature_name_several_classes_share_asks_for_a_uid() -> None:
 
 
 @pytest.mark.asyncio
+async def test_creatures_can_be_found_by_a_tag_on_their_type() -> None:
+    goblins = await call("search_creatures", creature_type="Goblinoid")
+    assert names(goblins) == ["Goblin"]
+    with pytest.raises(ToolError, match="No creature type or tag 'robot'"):
+        await call(
+            "suggest_creatures",
+            party_levels=[1],
+            difficulty="low",
+            creature_type="robot",
+        )
+
+
+@pytest.mark.asyncio
 async def test_bad_filters_say_what_is_wrong() -> None:
     with pytest.raises(ToolError, match=r"cr_min \(5\) is more than cr_max \(1\)"):
         await call("search_creatures", cr_min=5, cr_max=1)
-    with pytest.raises(ToolError, match="No creature type 'robot'. Types: aberration"):
+    with pytest.raises(
+        ToolError, match="No creature type or tag 'robot'. Types: aberration"
+    ):
         await call("search_creatures", creature_type="robot")
     with pytest.raises(ToolError, match="No class named 'pilot'. Classes: Wizard"):
         await call("search_spells", spell_class="pilot")
