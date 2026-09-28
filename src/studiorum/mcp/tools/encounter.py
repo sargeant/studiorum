@@ -65,7 +65,9 @@ Environment = Literal[
 
 class CreatureCount(BaseModel):
     name: str
-    source: str | None = Field(None, description="Source abbreviation; else the first")
+    source: str | None = Field(
+        None, description="Source abbreviation; else the latest edition"
+    )
     count: Annotated[int, Field(ge=1, le=50)] = 1
 
 

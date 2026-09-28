@@ -47,21 +47,29 @@ async def get_table_of_contents(
         str | None, Field(description="List inside this section; else the whole")
     ] = None,
     depth: Annotated[int, Field(ge=1, le=4, description="Levels of sections")] = 1,
+    limit: Annotated[int, Field(ge=1, le=500)] = 100,
+    offset: Annotated[
+        int, Field(ge=0, description="Skip this many sections, to page")
+    ] = 0,
     services: Services = Depends(get_services),
 ) -> Contents:
     """The chapters and sections of a book or adventure, with ids for read_section.
 
     Each section's size is in Markdown characters; read_section returns up to
-    24,000 a page.
+    24,000 a page. A deep listing of a long book comes in pages of limit
+    sections; section_id lists one part instead.
     """
     pub = _publication(services, publication)
     roots = _chapters(pub)
     if section_id is not None:
         roots = _subsections(_find(pub, roots, section_id)[0])
+    walked = list(_walk(roots, depth))
     return Contents(
         id=_pub_id(pub),
         name=pub.name,
         kind="book" if isinstance(pub, Book) else "adventure",
+        total=len(walked),
+        next_offset=next_offset(len(walked), offset, limit),
         sections=[
             SectionRef(
                 id=n["id"],
@@ -70,7 +78,7 @@ async def get_table_of_contents(
                 chars=_chars(n),
                 statblocks=_statblocks(n),
             )
-            for n, d in _walk(roots, depth)
+            for n, d in walked[offset : offset + limit]
         ],
     )
 
@@ -106,7 +114,7 @@ async def read_section(
     """
     pub = _publication(services, publication)
     node, path = _find(pub, _chapters(pub), section_id)
-    pages = _pages(_expanded(services, node) if expand_statblocks else node)
+    pages, pointed = _pages(_expanded(services, node) if expand_statblocks else node)
     if page > len(pages):
         raise ClientError(f"Section {section_id} has {len(pages)} page(s).")
     if include_references is None:
@@ -125,7 +133,9 @@ async def read_section(
         sections=[
             SectionRef(id=n["id"], name=_name(n), depth=1, chars=_chars(n))
             for n in _subsections(node)
-        ],
+            if str(n["id"]) in pointed
+        ]
+        or None,
     )
 
 
@@ -436,9 +446,13 @@ def _find(
     )
 
 
-def _pages(node: Node) -> list[tuple[str, list[Any]]]:
-    """Pages of Markdown, each with the 5etools data it came from (for references)."""
+def _pages(node: Node) -> tuple[list[tuple[str, list[Any]]], set[str]]:
+    """Pages of Markdown, each with the 5etools data it came from (for references).
+
+    Also the ids of the subsections too long to hold, which the pages point to.
+    """
     parts: list[tuple[str, Any]] = [(f"# {_name(node)}", None)]
+    pointed: set[str] = set()
     for child in node.get("entries", []):
         block = markdown.render(child, 2)
         if not block:
@@ -452,6 +466,7 @@ def _pages(node: Node) -> list[tuple[str, list[Any]]]:
             )
             # Read as an area link, so the subsection shows up in references
             parts.append((pointer, f"{{@area {child['name']}|{child['id']}}}"))
+            pointed.add(str(child["id"]))
         else:
             pieces = _split(block)
             parts += [(pieces[0], child), *((p, None) for p in pieces[1:])]
@@ -465,7 +480,7 @@ def _pages(node: Node) -> list[tuple[str, list[Any]]]:
         current = f"{current}\n\n{text}" if current else text
         if source is not None:
             sources.append(source)
-    return [*pages, (current, sources)] if current else pages or [("", [])]
+    return [*pages, (current, sources)] if current else pages or [("", [])], pointed
 
 
 def _split(block: str) -> list[str]:

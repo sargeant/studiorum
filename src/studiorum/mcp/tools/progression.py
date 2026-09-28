@@ -10,7 +10,7 @@ from pydantic import Field
 from studiorum.data.class_entries import class_progression
 from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
-from studiorum.mcp.errors import not_found
+from studiorum.mcp.errors import ClientError, not_found
 from studiorum.mcp.markdown import strip_tags
 from studiorum.mcp.models import ClassProgression, FeatureRef, ProgressionLevel
 from studiorum.mcp.tools.lookup import find_one
@@ -33,6 +33,13 @@ async def get_class_progression(
     level: Annotated[
         int | None, Field(ge=1, le=20, description="One level; else all 20")
     ] = None,
+    subclass_only: Annotated[
+        bool,
+        Field(
+            description="With a subclass: only the levels it gains features at, "
+            "and only its own columns"
+        ),
+    ] = False,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -41,8 +48,11 @@ async def get_class_progression(
 
     Features come with 5etools uids for get_content. With a subclass, its
     table columns (an Eldritch Knight's spell slots) and features are added.
+    Each level's cells line up with columns.
     """
     srd_only = default_srd if srd_only is None else srd_only
+    if subclass_only and not subclass:
+        raise ClientError("subclass_only needs a subclass.")
     cls = find_one(services, "class", class_name, source, srd_only)
     raw = cls.model_dump(by_alias=True, exclude_none=True)
     sub = _subclass(services, cls, subclass, srd_only) if subclass else None
@@ -50,23 +60,32 @@ async def get_class_progression(
         raw, sub.model_dump(by_alias=True, exclude_none=True) if sub else None
     )
     labels = _labels([(c.label, c.title) for c in progression.columns])
+    only_sub = sub is not None and subclass_only
+    # The subclass's columns follow the class's
+    first = len(class_progression(raw).columns) if only_sub else 0
     return ClassProgression(
         name=cls.name,
         source=cls.source.abbreviation,
         srd=cls.is_srd,
         subclass=sub.name if sub else None,
         subclass_source=sub.source.abbreviation if sub else None,
-        columns=labels,
+        columns=labels[first:],
         levels=[
             ProgressionLevel(
                 level=row.level,
                 proficiency_bonus=row.proficiency_bonus,
-                features=[_feature(uid) for uid in row.features],
-                subclass_features=[_feature(uid) for uid in row.subclass_features],
-                columns=dict(zip(labels, map(cell_text, row.cells), strict=True)),
+                features=None
+                if only_sub
+                else [_feature("classFeature", u) for u in row.features] or None,
+                subclass_features=[
+                    _feature("subclassFeature", u) for u in row.subclass_features
+                ]
+                or None,
+                cells=[cell_text(c) for c in row.cells[first:]],
             )
             for row in progression.levels
-            if level is None or row.level == level
+            if (level is None or row.level == level)
+            and (row.subclass_features or not only_sub)
         ],
     )
 
@@ -107,8 +126,26 @@ def _labels(columns: list[tuple[str, str | None]]) -> list[str]:
     ]
 
 
-def _feature(uid: str) -> FeatureRef:
-    return FeatureRef(name=uid.split("|")[0], uid=uid)
+def _feature(kind: str, uid: str) -> FeatureRef:
+    return FeatureRef(name=uid.split("|")[0], uid=full_uid(kind, uid))
+
+
+def full_uid(kind: str, uid: str) -> str:
+    """A feature uid with the sources 5etools leaves to default filled in.
+
+    A class's source defaults to PHB and a feature's to its class's (or
+    subclass's), as in 5etools' unpackUidClassFeature.
+    """
+    parts = uid.split("|")
+    if kind == "classFeature":
+        name, cls, cls_source, level, source = (parts + [""] * 5)[:5]
+        cls_source = cls_source or "PHB"
+        return "|".join((name, cls, cls_source, level, source or cls_source))
+    name, cls, cls_source, short, sub_source, level, source = (parts + [""] * 7)[:7]
+    sub_source = sub_source or "PHB"
+    return "|".join(
+        (name, cls, cls_source or "PHB", short, sub_source, level, source or sub_source)
+    )
 
 
 def cell_text(cell: Any) -> str:

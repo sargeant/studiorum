@@ -5,6 +5,7 @@ Each Client runs the server lifespan, so each call is a cold start.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, get_args
 
 import pytest
@@ -14,7 +15,8 @@ from fastmcp.exceptions import ToolError
 from studiorum.data.models.content import ContentType
 from studiorum.mcp.errors import suggestions
 from studiorum.mcp.server import mcp
-from studiorum.mcp.tools.lookup import EntryType
+from studiorum.mcp.tools.lookup import EntryType, _drop_reprinted_features
+from studiorum.mcp.tools.progression import full_uid
 
 pytestmark = pytest.mark.usefixtures("mcp_data")
 
@@ -209,7 +211,14 @@ async def test_get_content_suggests_names() -> None:
 async def test_get_content_suggests_names_from_the_source() -> None:
     with pytest.raises(
         ToolError,
-        match=r"No creature named 'Goblin' in HB\. Did you mean: Goblin Sneak, Goblin Minion\?$",
+        match=r"No creature named 'Goblin Sn' in HB\. Did you mean: Goblin Sneak, Goblin Minion\?$",
+    ):
+        await call(
+            "get_content", content_type="creature", name="Goblin Sn", source="HB"
+        )
+    # A name in other sources says which
+    with pytest.raises(
+        ToolError, match=r"^No creature named 'Goblin' in HB; there is one in SRD\.$"
     ):
         await call("get_content", content_type="creature", name="Goblin", source="HB")
     # Every source when nothing in the source is close
@@ -235,6 +244,7 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
         {"content_type": "spell", "name": "Hellfire Orb"},
         {"content_type": "spell", "name": "Nothing"},
         {"content_type": "item", "name": "Amulet of Health"},
+        {"content_type": "spell", "name": "fireball"},
     ]
     result = await call("get_contents", items=items)
     assert [e["name"] for e in result["entries"]] == [
@@ -242,12 +252,16 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
         "Fireball",
         "Amulet of Health",
     ]
-    fireball = await call("get_content", content_type="spell", name="Fireball")
+    fireball = await call(
+        "get_content", content_type="spell", name="Fireball", include_references=False
+    )
     assert result["entries"][1] == fireball
-    assert [(m["name"], m["error"][:20]) for m in result["not_found"]] == [
-        ("Hellfire Orb", "Hellfire Orb (HB) is"),
-        ("Nothing", "No spell named 'Noth"),
+    assert [(m["index"], m["name"], m["error"][:20]) for m in result["not_found"]] == [
+        (2, "Hellfire Orb", "Hellfire Orb (HB) is"),
+        (3, "Nothing", "No spell named 'Noth"),
     ]
+    linked = await call("get_contents", items=items[:1], include_references=True)
+    assert "references" in linked["entries"][0]
     assert result["next_offset"] is None
 
     # A size cap stops the batch; next_offset resumes it
@@ -364,15 +378,17 @@ async def test_get_content_reads_classes_and_features() -> None:
 
 @pytest.mark.asyncio
 async def test_search_rules_matches_names_then_text() -> None:
+    # A rule with a part named the query comes before other name matches
     result = await call("search_rules", query="grapple")
     assert [(r["name"], r["type"]) for r in result["results"]] == [
-        ("Grappled", "condition"),
         ("Unarmed Strike", "variantrule"),
+        ("Grappled", "condition"),
     ]
-    assert (
-        result["results"][1]["snippet"]
-        == "A blow to damage, grapple, or shove a target."
+    assert result["results"][0]["snippet"].startswith(
+        "A blow to damage, grapple, or shove a target."
     )
+    shove = await call("search_rules", query="shove")
+    assert [r["name"] for r in shove["results"]] == ["Unarmed Strike"]
     speed = await call("search_rules", query="speed", rule_type="condition")
     assert speed["results"][0]["snippet"] == "Your Speed is 0."
 
@@ -409,6 +425,41 @@ async def test_languages_can_be_found_and_read() -> None:
     assert [r["name"] for r in found["results"]] == ["Elvish"]
     elvish = await call("get_content", content_type="language", name="Elvish")
     assert "Elvish" in elvish["text"]
+    # The core rules' entry over a thinner one elsewhere
+    every = await call(
+        "get_content", content_type="language", name="Elvish", srd_only=False
+    )
+    assert every["source"] == "XPHB"
+
+
+def test_features_of_a_reprinted_class_give_way_to_the_reprint() -> None:
+    class Stub:
+        def __init__(self, name: str, source: str, **raw: Any) -> None:
+            self.name, self.raw = name, raw
+            self.source = SimpleNamespace(abbreviation=source)
+            self.short_name = raw.get("shortName")
+            self.reprintedAs = raw.get("reprintedAs")
+
+        def model_dump(self, **_: Any) -> dict[str, Any]:
+            return self.raw
+
+    wizards = [
+        Stub("Wizard", "PHB", reprintedAs=["Wizard|XPHB"]),
+        Stub("Wizard", "XPHB"),
+    ]
+    mastery = [
+        Stub("Spell Mastery", source, className="Wizard", classSource=source)
+        for source in ("PHB", "XPHB")
+    ]
+    only_phb = Stub("Arcane Tradition", "PHB", className="Wizard", classSource="PHB")
+    services: Any = SimpleNamespace(
+        catalogue=SimpleNamespace(get_all_by_type=lambda _: wizards)
+    )
+    kept = _drop_reprinted_features(services, "classFeature", [*mastery, only_phb])
+    assert [(c.name, c.source.abbreviation) for c in kept] == [
+        ("Spell Mastery", "XPHB"),
+        ("Arcane Tradition", "PHB"),
+    ]
 
 
 @pytest.mark.asyncio
@@ -471,15 +522,24 @@ async def test_get_class_progression() -> None:
     ]  # fmt: skip
     first = wizard["levels"][0]
     assert (first["level"], first["proficiency_bonus"]) == (1, 2)
-    assert first["columns"]["1st"] == "2"
-    assert first["columns"]["2nd"] == "\u2014"
+    assert first["cells"][-9:-7] == ["2", "\u2014"]
+    assert "subclass_features" not in first
     assert "Arcane Recovery" in [f["name"] for f in first["features"]]
 
     one = await call("get_class_progression", class_name="Wizard", level=17)
     assert [r["level"] for r in one["levels"]] == [17]
     assert one["levels"][0]["proficiency_bonus"] == 6
-    slots = [one["levels"][0]["columns"][c] for c in wizard["columns"][-9:]]
-    assert slots == ["4", "3", "3", "3", "2", "1", "1", "1", "1"]
+    assert one["levels"][0]["cells"][-9:] == [
+        "4",
+        "3",
+        "3",
+        "3",
+        "2",
+        "1",
+        "1",
+        "1",
+        "1",
+    ]
     # A feature's uid reads it in full
     uid = first["features"][0]["uid"]
     feature = await call("get_content", content_type="classFeature", name=uid)
@@ -500,6 +560,44 @@ async def test_get_class_progression_with_a_subclass() -> None:
     ]
     with pytest.raises(ToolError, match="No Wizard subclass named 'Nope'"):
         await call("get_class_progression", class_name="Wizard", subclass="Nope")
+
+    only = await call(
+        "get_class_progression",
+        class_name="Wizard",
+        subclass="evocation",
+        subclass_only=True,
+    )
+    assert only["columns"] == []
+    assert [r["level"] for r in only["levels"]] == [2, 6, 10, 14]
+    assert only["levels"][0]["cells"] == []
+    assert "features" not in only["levels"][0]
+    with pytest.raises(ToolError, match="subclass_only needs a subclass"):
+        await call("get_class_progression", class_name="Wizard", subclass_only=True)
+
+
+@pytest.mark.parametrize(
+    ("kind", "uid", "full"),
+    [
+        ("classFeature", "Rage|Barbarian||1", "Rage|Barbarian|PHB|1|PHB"),
+        (
+            "classFeature",
+            "Spell Mastery|Wizard|XPHB|18",
+            "Spell Mastery|Wizard|XPHB|18|XPHB",
+        ),
+        (
+            "subclassFeature",
+            "Evoker|Wizard|XPHB|Evoker|XPHB|3",
+            "Evoker|Wizard|XPHB|Evoker|XPHB|3|XPHB",
+        ),
+        (
+            "subclassFeature",
+            "Evoker|Wizard||Evoker||2",
+            "Evoker|Wizard|PHB|Evoker|PHB|2|PHB",
+        ),
+    ],
+)
+def test_full_uid(kind: str, uid: str, full: str) -> None:
+    assert full_uid(kind, uid) == full
 
 
 @pytest.mark.asyncio

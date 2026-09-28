@@ -35,6 +35,7 @@ from studiorum.mcp.tools.search import (
     Offset,
     drop_reprinted,
     paged,
+    reprint_uids,
     split_srd,
 )
 from studiorum.services import Services
@@ -85,6 +86,9 @@ async def get_content(
         Literal["markdown", "json"],
         Field(description="markdown: laid out to read; json: the 5etools data"),
     ] = "markdown",
+    include_references: Annotated[
+        bool, Field(description="What the entry's text links to, for get_content")
+    ] = True,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -92,6 +96,19 @@ async def get_content(
     """One entry in full (a statblock, a spell, a class and its features), by type and name."""
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
+    return _content_entry(
+        services, content_type, entry, format, include_references, srd_only
+    )
+
+
+def _content_entry(
+    services: Services,
+    content_type: str,
+    entry: BaseContent,
+    format: str,  # noqa: A002 - as get_content names it
+    include_references: bool,
+    srd_only: bool,
+) -> ContentEntry:
     data = _layout_data(services, content_type, entry, srd_only)
     return ContentEntry(
         type=content_type,
@@ -105,7 +122,9 @@ async def get_content(
             for r in resolve_references(services, markdown.references(data))
             if (r.name.lower(), (r.source or "").lower())
             != (entry.name.lower(), entry.source.abbreviation.lower())
-        ],
+        ]
+        if include_references
+        else None,
     )
 
 
@@ -124,6 +143,9 @@ async def get_contents(
     offset: Annotated[
         int, Field(ge=0, description="Start at this item, to resume a batch")
     ] = 0,
+    include_references: Annotated[
+        bool, Field(description="What each entry's text links to, for get_content")
+    ] = False,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -131,25 +153,28 @@ async def get_contents(
     """Several entries in full, as get_content returns them, up to 24,000 characters.
 
     When the entries would run past that, the reply stops short and
-    next_offset says where to resume.
+    next_offset says where to resume. An entry asked for twice comes once.
     """
+    srd_only = default_srd if srd_only is None else srd_only
     entries: list[ContentEntry] = []
     missing: list[ContentMissing] = []
+    seen: set[tuple[str, str, str]] = set()
     size = 0
     for i, item in enumerate(items[offset:], start=offset):
         try:
-            entry = await get_content(
-                item.content_type,
-                item.name,
-                item.source,
-                format,
-                srd_only,
-                default_srd=default_srd,
-                services=services,
+            found = find_one(
+                services, item.content_type, item.name, item.source, srd_only
             )
         except ClientError as e:
-            missing.append(ContentMissing(**item.model_dump(), error=str(e)))
+            missing.append(ContentMissing(index=i, **item.model_dump(), error=str(e)))
             continue
+        key = (item.content_type, found.name, found.source.abbreviation)
+        if key in seen:
+            continue
+        seen.add(key)
+        entry = _content_entry(
+            services, item.content_type, found, format, include_references, srd_only
+        )
         chars = len(entry.text or "") + (
             len(json.dumps(entry.data)) if entry.data else 0
         )
@@ -262,6 +287,14 @@ def find_one(
         names = [c.name for c in every]
         if source is None:
             raise not_found(content_type, name, names)
+        elsewhere = sorted(
+            {c.source.abbreviation for c in _by_name(services, ctype, name)}
+        )
+        if elsewhere and "|" not in name:
+            raise ClientError(
+                f"No {content_type} named '{name}' in {source}; "
+                f"there is one in {', '.join(elsewhere)}."
+            )
         # Names from the source asked for first, then any source
         raise not_found(
             content_type,
@@ -277,8 +310,22 @@ def find_one(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
     latest = drop_reprinted(allowed) or allowed
-    # 5etools marks 2024 content edition "one"; prefer it when nothing else decides
-    return sorted(latest, key=lambda c: getattr(c, "edition", None) != "one")[0]
+    return min(latest, key=_preference)
+
+
+def _preference(content: BaseContent) -> tuple[bool, bool, bool, bool]:
+    """How to choose among entries of one name, best first.
+
+    5etools marks 2024 content edition "one"; then the 2024 core rules, the
+    2014 core rules, and an entry with text over one that only names itself.
+    """
+    raw = content.model_dump(by_alias=True, exclude_none=True)
+    return (
+        getattr(content, "edition", None) != "one",
+        not (raw.get("srd52") or raw.get("basicRules2024")),
+        not (raw.get("srd") or raw.get("basicRules")),
+        not raw.get("entries"),
+    )
 
 
 async def search_content(
@@ -307,6 +354,8 @@ async def search_content(
         if needle in fold(c.name)
     ]
     kept, hidden = split_srd(named, srd_only, latest_only)
+    if latest_only and content_type in _OWNER_FIELDS:
+        kept = _drop_reprinted_features(services, content_type, kept)
     kept.sort(
         key=lambda c: (fold(c.name) != needle, c.name.lower(), c.source.abbreviation)
     )
@@ -336,6 +385,50 @@ async def search_content(
             for c, text in page
         ],
     )
+
+
+# A feature's class or subclass: its type, and the fields holding its name and source
+_OWNER_FIELDS = {
+    "classFeature": (ContentType.CLASS, "className", "classSource"),
+    "subclassFeature": (ContentType.SUBCLASS, "subclassShortName", "subclassSource"),
+}
+
+
+def _drop_reprinted_features(
+    services: Services, content_type: str, found: list[BaseContent]
+) -> list[BaseContent]:
+    """Leave out features of a reprinted class or subclass that its reprint has too.
+
+    5etools marks the class reprinted (PHB Wizard as XPHB's), not its features.
+    """
+    owner_type, name_field, source_field = _OWNER_FIELDS[content_type]
+    # A reprint uid starts with the name (a subclass's short name), ends with the source
+    reprints: dict[tuple[str, str], set[tuple[str, str]]] = {}
+    for owner in services.catalogue.get_all_by_type(owner_type):
+        if uids := reprint_uids(owner):
+            name = str(getattr(owner, "short_name", None) or owner.name).lower()
+            reprints[(name, owner.source.abbreviation.lower())] = {
+                (u.split("|")[0].lower(), u.split("|")[-1].lower()) for u in uids
+            }
+
+    def owned_by(c: BaseContent) -> tuple[str, str, str]:
+        raw = c.model_dump(by_alias=True)
+        return (
+            c.name.lower(),
+            str(raw.get(name_field) or "").lower(),
+            str(raw.get(source_field) or "").lower(),
+        )
+
+    present = {owned_by(c) for c in found}
+    return [
+        c
+        for c in found
+        if not any(
+            (name, *target) in present
+            for name, owned, source in [owned_by(c)]
+            for target in reprints.get((owned, source), ())
+        )
+    ]
 
 
 def resolve_references(

@@ -102,12 +102,13 @@ class ContentEntry(BaseModel):
     data: dict[str, Any] | None = optional(
         "The entry as 5etools models it, with format=json"
     )
-    references: list[Reference] = Field(
-        default_factory=list, description="What the entry's text links to"
+    references: list[Reference] | None = optional(
+        "What the entry's text links to, with include_references"
     )
 
 
 class ContentMissing(BaseModel):
+    index: int = Field(description="Its place in the items asked for, from 0")
     content_type: str
     name: str
     source: str | None = optional("The source asked for")
@@ -206,6 +207,8 @@ class Contents(BaseModel):
     id: str
     name: str
     kind: Literal["book", "adventure"]
+    total: int = Field(description="Sections at the depth asked for, before the limit")
+    next_offset: NextOffset = None
     sections: list[SectionRef]
 
 
@@ -219,7 +222,9 @@ class SectionText(BaseModel):
     page: int
     pages: int
     text: str = Field(description="Markdown")
-    sections: list[SectionRef] = Field(description="Subsections, to read on their own")
+    sections: list[SectionRef] | None = optional(
+        "Subsections too long for this text, which names them; read them on their own"
+    )
     references: list[Reference] | None = optional(
         "What this page links to, with include_references"
     )
@@ -283,13 +288,11 @@ class FeatureRef(BaseModel):
 class ProgressionLevel(BaseModel):
     level: int
     proficiency_bonus: int
-    features: list[FeatureRef] = Field(description="Class features gained")
-    subclass_features: list[FeatureRef] = Field(
-        default_factory=list, description="The subclass's features gained"
+    features: list[FeatureRef] | None = optional("Class features gained, if any")
+    subclass_features: list[FeatureRef] | None = optional(
+        "The subclass's features gained, if any"
     )
-    columns: dict[str, str] = Field(
-        description="The class table's own columns, e.g. spell slots by level"
-    )
+    cells: list[str] = Field(description="This level's value in each of columns")
 
 
 class ClassProgression(BaseModel):
@@ -298,5 +301,7 @@ class ClassProgression(BaseModel):
     srd: bool
     subclass: str | None = optional("With a subclass asked for")
     subclass_source: str | None = optional("With a subclass asked for")
-    columns: list[str] = Field(description="The columns' labels, in order")
+    columns: list[str] = Field(
+        description="The class table's own columns, e.g. spell slots by level"
+    )
     levels: list[ProgressionLevel]
