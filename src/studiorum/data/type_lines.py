@@ -306,27 +306,31 @@ def optional_feature_entries(content: BaseModel, _: Catalogue | None) -> list[An
         *([f"{{@i {prerequisite}}}"] if prerequisite else []),
         *_cost(data.get("consumes") or {}),
         *(data.get("entries") or []),
-        f"{{@note Type: {_feature_type(data.get('featureType') or [])}}}",
+        f"{{@note Type: {feature_type(data.get('featureType') or [])}}}",
     ]
 
 
 def _cost(consumes: Raw) -> list[str]:
     """``getCostEntry``: "Cost: 2 Sorcery Points"."""
+    text = cost_text(consumes)
+    return [f"{{@i Cost: {text}}}"] if text else []
+
+
+def cost_text(consumes: Raw) -> str:
+    """What an optional feature consumes: "2 Sorcery Points"."""
     if not consumes.get("name"):
-        return []
+        return ""
     words = [w for w in consumes["name"].split(" ") if w]
     most = consumes.get("amountMax", consumes.get("amount"))
     if most is not None and most != 1:
         words[-1] = to_plural(words[-1])
     unit = " ".join(words)
     if consumes.get("amountMin") is not None and consumes.get("amountMax") is not None:
-        return [
-            f"{{@i Cost: {consumes['amountMin']}\u2013{consumes['amountMax']} {unit}}}"
-        ]
-    return [f"{{@i Cost: {consumes.get('amount', 1)} {unit}}}"]
+        return f"{consumes['amountMin']}\u2013{consumes['amountMax']} {unit}"
+    return f"{consumes.get('amount', 1)} {unit}"
 
 
-def _feature_type(types: list[str]) -> str:
+def feature_type(types: list[str]) -> str:
     """``getTypeText``: "Fighting Style; Fighter/Paladin"."""
     names = [OPT_FEATURE_TYPES.get(t, t) for t in types]
     prefix = common_prefix(names) if len(names) > 1 else ""
@@ -668,7 +672,7 @@ def vehicle_upgrade_entries(content: BaseModel, _: Catalogue | None) -> list[Any
     return [*([f"{{@i {summary}}}"] if summary else []), *(data.get("entries") or [])]
 
 
-def language_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
+def language_entries(content: BaseModel | Raw, _: Catalogue | None) -> list[Any]:
     """``Renderer.language``: its kind, speakers, origin and script, then entries."""
     data = raw(content)
     lines = [

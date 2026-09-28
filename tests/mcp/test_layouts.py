@@ -186,3 +186,46 @@ def test_a_creature_shows_initiative_immunities_and_challenge_as_5etools_does() 
     assert "**Condition Immunities** charmed, poisoned" in text
     assert "**Challenge** 17 (18,000 XP, or 20,000 in its lair; PB +6)" in text
     assert "Level 6 (1 slot): x" in text
+
+
+def test_an_optional_feature_names_its_type_and_cost() -> None:
+    invocation = {
+        "name": "Agonizing Blast",
+        "source": "XPHB",
+        "featureType": ["EI"],
+        "prerequisite": [
+            {
+                "level": {
+                    "level": 2,
+                    "class": {
+                        "name": "Warlock",
+                        "source": "XPHB",
+                        "visibleStats": True,
+                    },
+                }
+            }
+        ],
+        "consumes": {"name": "Sorcery Point", "amount": 2},
+        "entries": ["Add your Charisma modifier."],
+    }
+
+    text = to_markdown("optionalfeature", invocation)
+
+    assert "*Eldritch Invocation* · *XPHB*" in text
+    assert "**Prerequisite** 2nd level Warlock\n**Cost** 2 Sorcery Points" in text
+
+
+def test_a_language_shows_its_kind_and_origin() -> None:
+    cant = {
+        "name": "Thieves' Cant",
+        "source": "XPHB",
+        "type": "rare",
+        "origin": "Various criminal guilds",
+    }
+
+    text = to_markdown("language", cant)
+
+    assert text == (
+        "# Thieves' Cant\n\n*Rare language* · *XPHB*\n\n"
+        "**Origin:** Various criminal guilds"
+    )
