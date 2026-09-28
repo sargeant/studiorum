@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -82,9 +82,7 @@ async def get_content(
     """One entry in full (a statblock, a spell, a class and its features), by type and name."""
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
-    data = entry.model_dump(mode="json", by_alias=True, exclude_none=True) | {
-        "source": entry.source.abbreviation
-    }
+    data = entry_data(entry)
     if content_type == "class":
         data["subclasses"] = _subclasses(services, entry, srd_only)
     return ContentEntry(
@@ -101,6 +99,13 @@ async def get_content(
             != (entry.name.lower(), entry.source.abbreviation.lower())
         ],
     )
+
+
+def entry_data(entry: BaseContent) -> dict[str, Any]:
+    """An entry as 5etools models it, with its source as an abbreviation."""
+    return entry.model_dump(mode="json", by_alias=True, exclude_none=True) | {
+        "source": entry.source.abbreviation
+    }
 
 
 def _subclasses(

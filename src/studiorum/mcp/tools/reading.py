@@ -11,9 +11,12 @@ from pydantic import Field
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
 from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import FLUFF_TYPES, content_type_of
+from studiorum.data.statblocks import find_statblock, statblock_type
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import get_services
 from studiorum.mcp.errors import ClientError, not_found
+from studiorum.mcp.layouts import to_markdown
 from studiorum.mcp.models import (
     Contents,
     SectionMatch,
@@ -21,7 +24,7 @@ from studiorum.mcp.models import (
     SectionRef,
     SectionText,
 )
-from studiorum.mcp.tools.lookup import resolve_references
+from studiorum.mcp.tools.lookup import entry_data, resolve_references
 from studiorum.services import Services
 
 PAGE_CHARS = 24_000
@@ -71,18 +74,25 @@ async def read_section(
     publication: Publication,
     section_id: Annotated[str, Field(description="An id from get_table_of_contents")],
     page: Annotated[int, Field(ge=1)] = 1,
+    expand_statblocks: Annotated[
+        bool,
+        Field(
+            description="Each statblock in full, as get_content lays it out, "
+            "instead of a line naming it; the section may take more pages"
+        ),
+    ] = False,
     services: Services = Depends(get_services),
 ) -> SectionText:
     """One chapter or section as Markdown, with its subsections' ids.
 
     Tags such as {@creature goblin} are reduced to their text, and statblocks
-    to a line naming the creature; get_content returns one in full. A section
-    too long for one page comes in pages; a subsection too long for a page is
-    left as a pointer to read on its own.
+    to a line naming the creature (get_content returns one in full) unless
+    expand_statblocks. A section too long for one page comes in pages; a
+    subsection too long for a page is left as a pointer to read on its own.
     """
     pub = _publication(services, publication)
     node, path = _find(pub, _chapters(pub), section_id)
-    pages = _pages(node)
+    pages = _pages(_expanded(services, node) if expand_statblocks else node)
     if page > len(pages):
         raise ClientError(f"Section {section_id} has {len(pages)} page(s).")
     return SectionText(
@@ -144,6 +154,44 @@ async def search_publication(
         total=len(found),
         results=found[offset : offset + limit],
     )
+
+
+def _expanded(services: Services, node: Node) -> Node:
+    """A copy of a section with each statblock laid out as get_content does.
+
+    Lore (fluff) and statblocks that name nothing loaded stay as they are.
+    """
+
+    def expand(entry: Any) -> Any:
+        if isinstance(entry, list):
+            return [expand(e) for e in entry]
+        if not isinstance(entry, dict):
+            return entry
+        if entry.get("type") == "statblock":
+            return _statblock_markdown(services, entry) or entry
+        return {k: expand(v) for k, v in entry.items()}
+
+    expanded: Node = expand(node)
+    return expanded
+
+
+def _statblock_markdown(services: Services, entry: Node) -> Node | None:
+    """A statblock as Markdown, keeping the entry and its data for references."""
+    content_type = statblock_type(entry)
+    if content_type is None or content_type in FLUFF_TYPES:
+        return None
+    found = find_statblock(services.catalogue, entry, content_type)
+    if found is None:
+        return None
+    data = entry_data(found)
+    if entry.get("displayName"):
+        data["name"] = entry["displayName"]
+    return {
+        "type": "studiorumMarkdown",
+        "markdown": to_markdown(content_type_of(found).value, data),
+        "statblock": entry,
+        "data": data,
+    }
 
 
 def _every_section(
