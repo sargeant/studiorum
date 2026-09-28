@@ -45,6 +45,19 @@ studiorum mcp run --transport http --host 127.0.0.1 --port 8000
 
 Content tools return only entries that 5etools marks as part of the 2014 SRD or the 5.2 SRD unless a call passes `srd_only=false`. For a personal install with your own data, start the server with `--all-content` to make everything the default instead: `"args": ["run", "--directory", "/path/to/studiorum", "studiorum", "mcp", "run", "--all-content"]`. A call can still pass `srd_only=true`.
 
+### Running it as a service
+
+Over HTTP the server listens at `/mcp`. It opens its port only once the data has loaded, so a TCP check on the port is a readiness check; a plain `GET /mcp` returns 406. Sessions live in the process, so run one replica.
+
+A container image or other deployment can rely on these, and a change to any of them is called out in the pull request that makes it:
+
+- The command: `studiorum mcp run --transport http --host 0.0.0.0 --port 8000`, with `--all-content` for everything by default, and `--client-ip-header NAME` (or `STUDIORUM_TRUSTED_CLIENT_IP_HEADER=NAME`) to log the client address from a header the proxy in front sets, such as Cloudflare's `CF-Connecting-IP`. Without it the log has the TCP peer. Only set it when nothing but that proxy can reach the server, since a client can send any header.
+- The configuration file, named by `STUDIORUM_CONFIG_FILE`: `data.dirs` (5etools `data/` directories; spell class lists come from each one's `generated/`), `data.homebrew`, `logging.level` and `logging.format`. An unknown top-level key is an error.
+- Environment variables: `STUDIORUM_<SECTION>__<KEY>` overrides a configuration key, such as `STUDIORUM_LOGGING__LEVEL=INFO`; `STUDIORUM_PROGRESS=false` turns off progress bars; `STUDIORUM_CACHE_DIR` sets the cache directory (else the platform's user cache directory, under `XDG_CACHE_HOME` on Linux); `STUDIORUM_TELEMETRY=true` with `LOGFIRE_TOKEN` also sends logs to Logfire.
+- Logs: one JSON object per line on stderr (see [Configuration](configuration.md#logging-configuration)). At INFO each MCP request is one line with `method`, `tool`, `status` (`ok`, `error` for a bad call, `failed` for a crash), `duration_ms`, `session` and `client_ip`.
+
+`make mcp-smoke` starts the server over HTTP with your configuration and calls three tools; `uv run python scripts/mcp_smoke.py --url URL` checks one already running.
+
 ## Tools
 
 | Tool | What it returns |
@@ -94,4 +107,4 @@ The encounter tools take the party as a list of character levels, such as `[5, 5
 
 - **The client can't start the server.** Run the command from your client configuration in a terminal. `studiorum mcp run` should wait silently for input; press Ctrl-C to stop it. If it exits, the error names the problem, usually a missing configuration file or data directory.
 - **Nothing comes back.** Check `srd_only`: much of the data is outside the SRD. `studiorum data show` lists the data directories the server loads.
-- **Logs.** The server writes logs to stderr, never to stdout, which carries the protocol. Claude Desktop keeps each server's stderr in its own log directory (on macOS, `~/Library/Logs/Claude/`).
+- **Logs.** The server writes logs to stderr, never to stdout, which carries the protocol. Claude Desktop keeps each server's stderr in its own log directory (on macOS, `~/Library/Logs/Claude/`). Run with `--verbose` (before `mcp`) to log each request.

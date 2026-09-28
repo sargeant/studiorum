@@ -46,7 +46,7 @@ else
 UV_SYNC_BASE := uv sync $(UV_SYNC_FLAGS)
 endif
 
-.PHONY: help all check security uv ruff mypy pyright-errors lint-imports pip-audit bandit test test-serial test-full-data test-latex-integration docs docs-serve cli-reference clean ci-install ci-check ci-test uv-llm mcp-ref-tools
+.PHONY: help all check security uv ruff mypy pyright-errors lint-imports pip-audit bandit test test-serial test-full-data test-latex-integration mcp-smoke docs docs-serve cli-reference clean ci-install ci-check ci-test uv-llm mcp-ref-tools
 
 # Only the sync targets need to run serially
 .NOTPARALLEL: uv ci-install uv-llm
@@ -62,7 +62,7 @@ help:
 	@echo "  ruff         - Format, then lint"
 	@echo "  mypy         - Type check src/"
 	@echo "  pyright-errors - Pyright, errors only"
-	@echo "  lint-imports - Import layering and core cycles (import-linter)"
+	@echo "  lint-imports - Import layering and data cycles (import-linter)"
 	@echo "  pip-audit    - Dependency vulnerability scan"
 	@echo "  bandit       - Static security analysis"
 	@echo ""
@@ -70,6 +70,7 @@ help:
 	@echo "  test-serial  - Tests marked xdist_incompatible, run without xdist"
 	@echo "  test-full-data - Tests that need a 5etools checkout (STUDIORUM_5ETOOLS_DIR, default ~/Code/5etools-src)"
 	@echo "  test-latex-integration - Real LaTeX compilation (needs TeX Live and the DnD template)"
+	@echo "  mcp-smoke    - Start the MCP server over HTTP with your config and call it (run before tagging)"
 	@echo ""
 	@echo "Docs:"
 	@echo "  docs         - Generate the CLI reference, build the site and open it"
@@ -146,6 +147,10 @@ test-serial: uv
 ## Tests that need the full 5etools data set
 test-full-data: uv
 	STUDIORUM_TEST_FULL_DATA=1 uv run --env-file .env.dev pytest -m "requires_data"
+
+## Start the MCP server over HTTP with the current config and call three tools
+mcp-smoke: uv
+	@$(UV) python $(SCRIPTS_DIR)/mcp_smoke.py
 
 ## Real LaTeX compilation (requires TeX Live and DND-5e-LaTeX-Template)
 test-latex-integration: uv
