@@ -122,7 +122,30 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     _write(tmp_path / "bestiary" / "index.json", {"SRD": "bestiary-srd.json"})
     _write(
         tmp_path / "bestiary" / "bestiary-srd.json",
-        {"monster": [*creatures, _not_srd(goblin, "Goblin Sneak"), minion, familiar]},
+        {
+            "monster": [
+                *creatures,
+                _not_srd(goblin, "Goblin Sneak")
+                | {"legendaryGroup": {"name": "Goblin Warren", "source": "HB"}},
+                minion,
+                familiar,
+            ]
+        },
+    )
+    _write(
+        tmp_path / "bestiary" / "legendarygroups.json",
+        {
+            "legendaryGroup": [
+                {
+                    "name": "Goblin Warren",
+                    "source": "HB",
+                    "lairActions": [
+                        "Goblins pour out of the {@condition prone|XPHB} walls."
+                    ],
+                    "regionalEffects": ["Rats grow bold."],
+                }
+            ]
+        },
     )
 
     items = _pick(SRD_DATA / "items.json", "item", {"Amulet of Health", "Ale (mug)"})

@@ -510,6 +510,28 @@ async def test_feats_keep_their_prerequisites() -> None:
 
 
 @pytest.mark.asyncio
+async def test_a_creature_comes_with_its_lair_actions_and_regional_effects() -> None:
+    sneak = await call(
+        "get_content", content_type="creature", name="Goblin Sneak", srd_only=False
+    )
+    assert sneak["text"].endswith(
+        "## Lair Actions\n\nGoblins pour out of the prone walls.\n\n"
+        "## Regional Effects\n\nRats grow bold."
+    )
+    assert ("condition", "Prone") in [
+        (r["type"], r["name"]) for r in sneak["references"]
+    ]
+    raw = await call(
+        "get_content",
+        content_type="creature",
+        name="Goblin Sneak",
+        srd_only=False,
+        format="json",
+    )
+    assert "_lair" not in raw["data"]
+
+
+@pytest.mark.asyncio
 async def test_get_content_reads_a_generic_variant_as_an_item() -> None:
     flame = await call(
         "get_content", content_type="item", name="flame tongue", srd_only=False

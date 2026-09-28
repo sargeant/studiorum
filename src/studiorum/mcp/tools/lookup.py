@@ -19,7 +19,7 @@ from studiorum.data.models.magicvariant import MagicVariant
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError, not_found
-from studiorum.mcp.layouts import entry_data, to_markdown
+from studiorum.mcp.layouts import LAIR, entry_data, to_markdown
 from studiorum.mcp.models import (
     PAGE_CHARS,
     ContentBatch,
@@ -146,7 +146,7 @@ def _content_entry(
         source=entry.source.abbreviation,
         srd=entry.is_srd,
         text=text,
-        data={k: v for k, v in data.items() if k not in _SITE_ONLY}
+        data={k: v for k, v in data.items() if k not in _SITE_ONLY and k != LAIR}
         if format == "json"
         else None,
         references=references if include_references else [],
@@ -287,7 +287,32 @@ def _layout_data(
         data["subclasses"] = _subclasses(services, entry, srd_only)
     if content_type in ("classFeature", "subclassFeature"):
         data["entries"] = dereferenced(data.get("entries", []), services.catalogue)
+    if content_type == "creature" and (lair := _lair(services, data)):
+        data[LAIR] = lair
     return data
+
+
+def _lair(services: Services, data: dict[str, Any]) -> dict[str, Any]:
+    """A creature's lair actions, regional effects and mythic encounter, which
+    5etools keeps in its legendary group."""
+    group = data.get("legendaryGroup")
+    if not isinstance(group, dict) or not group.get("name"):
+        return {}
+    found = services.catalogue.find(
+        ContentType.LEGENDARYGROUP, group["name"], group.get("source")
+    )
+    if found is None:
+        return {}
+    raw = found.model_dump(by_alias=True, exclude_none=True)
+    return {
+        heading: raw[key]
+        for heading, key in (
+            ("Lair Actions", "lairActions"),
+            ("Regional Effects", "regionalEffects"),
+            ("Mythic Encounter", "mythicEncounter"),
+        )
+        if raw.get(key)
+    }
 
 
 def _variant_data(services: Services, variant: MagicVariant) -> dict[str, Any]:
