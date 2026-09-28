@@ -10,10 +10,12 @@ from fastmcp.dependencies import Depends
 from pydantic import BaseModel, Field
 
 from studiorum.data.class_entries import dereferenced
+from studiorum.data.loaders.magic_variants import generic_item
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
 from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.data.models.itemproperties import ItemProperty
+from studiorum.data.models.magicvariant import MagicVariant
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError, not_found
@@ -278,12 +280,26 @@ def _layout_data(
 ) -> dict[str, Any]:
     """The data get_content lays out: the entry, a class's subclasses, and a
     feature with the features it refers to in place."""
+    if isinstance(entry, MagicVariant):
+        return _variant_data(services, entry)
     data = entry_data(entry)
     if content_type == "class":
         data["subclasses"] = _subclasses(services, entry, srd_only)
     if content_type in ("classFeature", "subclassFeature"):
         data["entries"] = dereferenced(data.get("entries", []), services.catalogue)
     return data
+
+
+def _variant_data(services: Services, variant: MagicVariant) -> dict[str, Any]:
+    """A generic variant as 5etools lists it, as an item, with the items it makes."""
+    key = (variant.name, variant.source.abbreviation)
+    items = sorted(
+        i.name
+        for i in services.catalogue.get_all_by_type(ContentType.ITEM)
+        if isinstance(generic := getattr(i, "genericVariant", None), dict)
+        and (generic.get("name"), generic.get("source")) == key
+    )
+    return entry_data(generic_item(variant)) | {"items": items}
 
 
 def _item_references(services: Services, data: dict[str, Any]) -> list[dict[str, str]]:
@@ -402,13 +418,17 @@ def find_one(
     """The first entry with this type, name and source; a ToolError if none is allowed."""
     catalogue = services.catalogue
     ctype = ContentType(content_type)
+    candidates = (
+        _by_uid(services, ctype, name)
+        if "|" in name
+        else _by_name(services, ctype, name)
+    )
+    if not candidates and ctype == ContentType.ITEM and "|" not in name:
+        # A generic variant such as Flame Tongue, which 5etools keeps apart
+        candidates = _by_name(services, ContentType.MAGICVARIANT, name)
     matches = [
         c
-        for c in (
-            _by_uid(services, ctype, name)
-            if "|" in name
-            else _by_name(services, ctype, name)
-        )
+        for c in candidates
         if source is None or c.source.abbreviation.lower() == source.lower()
     ]
     if not matches:

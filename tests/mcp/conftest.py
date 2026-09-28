@@ -136,7 +136,8 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         tmp_path / "items-base.json",
         {
             "itemType": [
-                {"name": "Food and Drink", "abbreviation": "FD", "source": "PHB"}
+                {"name": "Food and Drink", "abbreviation": "FD", "source": "PHB"},
+                {"name": "Generic Variant", "abbreviation": "GV", "source": "XDMG"},
             ],
             "itemProperty": [
                 {
@@ -325,6 +326,26 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     ],
                 }
             ],
+        },
+    )
+
+    _write(
+        tmp_path / "magicvariants.json",
+        {
+            "magicvariant": [
+                {
+                    "name": "Flame Tongue",
+                    "type": "GV|XDMG",
+                    "requires": [{"weapon": True}],
+                    "inherits": {
+                        "namePrefix": "Flame Tongue ",
+                        "source": "XDMG",
+                        "rarity": "very rare",
+                        "reqAttune": True,
+                        "entries": ["Flames engulf the weapon."],
+                    },
+                }
+            ]
         },
     )
 

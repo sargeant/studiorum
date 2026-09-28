@@ -500,6 +500,19 @@ async def test_feats_keep_their_prerequisites() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_content_reads_a_generic_variant_as_an_item() -> None:
+    flame = await call(
+        "get_content", content_type="item", name="flame tongue", srd_only=False
+    )
+    assert (flame["name"], flame["source"]) == ("Flame Tongue", "XDMG")
+    assert flame["text"].startswith(
+        "# Flame Tongue\n\n*Generic Variant, very rare, requires attunement*"
+    )
+    assert "Flames engulf the weapon." in flame["text"]
+    assert "- Flame Tongue Rapier" in flame["text"]
+
+
+@pytest.mark.asyncio
 async def test_a_subrace_answers_to_its_name_as_players_say_it() -> None:
     hill = await call("get_content", content_type="race", name="Hill Dwarf")
     assert hill["name"] == "Dwarf (Hill)"
