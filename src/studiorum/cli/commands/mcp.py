@@ -41,10 +41,11 @@ def run(
 ) -> None:
     """Run the MCP server. It loads the data before answering the first call."""
     from studiorum.log import route_libraries
-    from studiorum.mcp.server import mcp, options, request_log
+    from studiorum.mcp.server import instructions, mcp, options, request_log
 
     route_libraries()
     options.all_content = all_content
+    mcp.instructions = instructions(all_content)
     request_log.client_ip_header = client_ip_header
 
     if transport == "stdio":

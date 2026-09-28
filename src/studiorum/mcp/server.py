@@ -66,14 +66,23 @@ async def lifespan(server: FastMCP[Any]) -> AsyncIterator[dict[str, Any]]:
     yield {"services": services, "srd_only": not options.all_content}
 
 
-mcp: FastMCP[Any] = FastMCP(
-    name="studiorum",
-    instructions=(
+def instructions(all_content: bool) -> str:
+    """What the server tells a client, with the srd_only default it runs with."""
+    default = (
+        "Content tools return all content unless a call passes srd_only=true."
+        if all_content
+        else "Content tools default to SRD content only (srd_only=true)."
+    )
+    return (
         "Read-only 5e content from 5etools data. Search tools return summaries; "
         "get_content returns one entry in full. Books and adventures are read "
-        "through get_table_of_contents and read_section. Content tools default "
-        "to SRD content only (srd_only=true)."
-    ),
+        f"through get_table_of_contents and read_section. {default}"
+    )
+
+
+mcp: FastMCP[Any] = FastMCP(
+    name="studiorum",
+    instructions=instructions(all_content=False),
     lifespan=lifespan,
     # Only ToolError messages reach the client; other exceptions are masked.
     mask_error_details=True,
