@@ -9,6 +9,7 @@ entry renderer can set them without any LaTeX in Python.
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
@@ -156,7 +157,7 @@ def _initiative(data: Raw) -> list[str] | None:
 def feat_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     """``Renderer.feat``: category and prerequisite, then entries with the increase."""
     data = raw(content)
-    return [*_category_line(data), *_repeatable(data), *_full_entries(data)]
+    return [*_category_line(data), *_repeatable(data), *feat_full_entries(data)]
 
 
 def _category_line(data: Raw) -> list[str]:
@@ -175,9 +176,9 @@ def _repeatable(data: Raw) -> list[str]:
     return [f"{{@b Repeatable:}} {data.get('repeatableNote') or 'Yes'}"]
 
 
-def _full_entries(data: Raw) -> list[Any]:
+def feat_full_entries(data: Raw) -> list[Any]:
     """``Renderer.feat.initFullEntries``: the ability increase joins the entries."""
-    entries = list(data.get("entries") or [])
+    entries = copy.deepcopy(list(data.get("entries") or []))
     shown = [a for a in data.get("ability") or [] if not a.get("hidden")]
     if not shown:
         return entries

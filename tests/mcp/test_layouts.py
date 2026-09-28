@@ -80,3 +80,78 @@ def test_a_creature_vehicle_is_laid_out_as_a_creature() -> None:
     )
 
     assert "**Hit Points** 67 (9d10 + 18)" in text
+
+
+def test_a_background_leaves_its_ability_scores_to_its_entries() -> None:
+    sage = {
+        "name": "Sage",
+        "source": "XPHB",
+        "ability": [
+            {
+                "choose": {
+                    "weighted": {"from": ["con", "int", "wis"], "weights": [2, 1]}
+                }
+            },
+            {
+                "choose": {
+                    "weighted": {"from": ["con", "int", "wis"], "weights": [1, 1, 1]}
+                }
+            },
+        ],
+        "entries": [
+            {
+                "type": "list",
+                "items": [
+                    {
+                        "type": "item",
+                        "name": "Ability Scores:",
+                        "entry": "Constitution, Intelligence, Wisdom",
+                    }
+                ],
+            }
+        ],
+    }
+
+    text = to_markdown("background", sage)
+
+    assert "Ability Score Increase" not in text
+    assert "**Ability Scores:** Constitution, Intelligence, Wisdom" in text
+
+
+def test_a_feat_shows_its_increase_as_5etools_does() -> None:
+    boon = {
+        "name": "Boon of Irresistible Offense",
+        "source": "XPHB",
+        "category": "EB",
+        "ability": [{"choose": {"from": ["str", "dex"]}, "max": 30}],
+        "entries": [
+            "You gain the following benefits.",
+            {"type": "entries", "name": "Overcome Defenses", "entries": ["Text."]},
+        ],
+    }
+
+    text = to_markdown("feat", boon)
+
+    assert "## Ability Score Increase" in text
+    assert "Increase your Strength or Dexterity by 1, to a maximum of 30." in text
+    assert boon["entries"][1]["name"] == "Overcome Defenses"
+
+
+def test_a_feat_with_a_list_gains_its_increase_without_changing_the_data() -> None:
+    feat = {
+        "name": "Athlete",
+        "source": "XPHB",
+        "ability": [{"choose": {"from": ["str", "dex"]}}],
+        "entries": [
+            {
+                "type": "list",
+                "items": [{"type": "item", "name": "Climb Speed.", "entry": "Text."}],
+            }
+        ],
+    }
+
+    first = to_markdown("feat", feat)
+
+    assert first == to_markdown("feat", feat)
+    assert first.count("Increase your Strength or Dexterity by 1") == 1
+    assert len(feat["entries"][0]["items"]) == 1
