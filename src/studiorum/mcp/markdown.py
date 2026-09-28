@@ -435,7 +435,8 @@ def references(value: Any) -> list[dict[str, str]]:
             # 5etools lists what a creature carries or an item casts by uid
             for key, kind in (("attachedItems", "item"), ("attachedSpells", "spell")):
                 for uid in _uids(v.get(key)):
-                    name, _, source = uid.partition("|")
+                    # "fireball#5" is Fireball cast at level 5
+                    name, _, source = uid.split("#")[0].partition("|")
                     add(
                         {
                             "type": kind,
@@ -459,13 +460,14 @@ def _statblock_source(entry: dict[str, Any]) -> str:
 
 
 def _uids(value: Any) -> list[str]:
-    """Uids in a list, or in a dict of lists (attachedSpells by frequency)."""
+    """Uids in a list, or in a dict of lists (attachedSpells by frequency, whose
+    "ability" is not a spell)."""
     if isinstance(value, str):
         return [value]
     if isinstance(value, list):
         return [u for v in value for u in _uids(v)]
     if isinstance(value, dict):
-        return [u for v in value.values() for u in _uids(v)]
+        return [u for v in value.values() if not isinstance(v, str) for u in _uids(v)]
     return []
 
 

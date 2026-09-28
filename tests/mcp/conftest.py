@@ -152,7 +152,19 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     amulet = next(i for i in items if i["name"] == "Amulet of Health")
     _write(
         tmp_path / "items.json",
-        {"item": [*items, *(_not_srd(amulet, n) for n in ("Amulet of Grit", "Grit"))]},
+        {
+            "item": [
+                *items,
+                *(_not_srd(amulet, n) for n in ("Amulet of Grit", "Grit")),
+                {
+                    "name": "Flame Tongue",
+                    "source": "DMG",
+                    "rarity": "very rare",
+                    "reprintedAs": ["Flame Tongue|XDMG"],
+                    "entries": ["A burning sword."],
+                },
+            ]
+        },
     )
 
     _write(

@@ -224,6 +224,21 @@ def test_entry_types_render_as_5etools_shows_them(
     assert render(entry) == markdown
 
 
+def test_an_items_attached_spells_are_references_without_level_or_ability() -> None:
+    signet = {
+        "attachedSpells": {
+            "daily": {"1e": ["augury", "fireball#5", "summon dragon|xphb#9"]},
+            "ability": "int",
+        }
+    }
+
+    assert [(r["name"], r["source"]) for r in references(signet)] == [
+        ("augury", "PHB"),
+        ("fireball", "PHB"),
+        ("summon dragon", "xphb"),
+    ]
+
+
 def test_a_quote_names_who_and_where() -> None:
     quote = {
         "type": "quote",
