@@ -206,6 +206,8 @@ class Contents(BaseModel):
     id: str
     name: str
     kind: Literal["book", "adventure"]
+    total: int = Field(description="Sections at the depth asked for, before the limit")
+    next_offset: NextOffset = None
     sections: list[SectionRef]
 
 
@@ -219,7 +221,9 @@ class SectionText(BaseModel):
     page: int
     pages: int
     text: str = Field(description="Markdown")
-    sections: list[SectionRef] = Field(description="Subsections, to read on their own")
+    sections: list[SectionRef] | None = optional(
+        "Subsections too long for this text, which names them; read them on their own"
+    )
     references: list[Reference] | None = optional(
         "What this page links to, with include_references"
     )

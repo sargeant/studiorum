@@ -41,6 +41,13 @@ async def test_table_of_contents() -> None:
         ("003", "Big Room", 2),
         ("005", "Guards", 2),
     ]
+    assert (deep["total"], deep["next_offset"]) == (6, None)
+    paged = await call("get_table_of_contents", publication="TA", depth=2, limit=4)
+    assert (ids(paged)[-1], paged["next_offset"]) == (("002", "The Cave", 1), 4)
+    rest = await call(
+        "get_table_of_contents", publication="TA", depth=2, limit=4, offset=4
+    )
+    assert ids(rest) == ids(deep)[4:]
     inside = await call("get_table_of_contents", publication="TA", section_id="002")
     assert ids(inside) == [("003", "Big Room", 1), ("005", "Guards", 1)]
     assert inside["sections"][0]["chars"] > 30000
@@ -59,7 +66,8 @@ async def test_read_section_as_markdown() -> None:
         "\n\n## Background\n\nLong ago. See the side trek."
     )
     assert (welcome["page"], welcome["pages"], welcome["path"]) == (1, 1, [])
-    assert [s["id"] for s in welcome["sections"]] == ["001", "004"]
+    # Its subsections are in the text, so aren't listed
+    assert "sections" not in welcome
 
     rules = await call("read_section", publication="TB", section_id="100")
     assert rules["text"] == "# Rules\n\nRoll a d20."
@@ -77,6 +85,7 @@ async def test_read_section_points_to_long_subsections() -> None:
     assert "| d4 | Item |\n|---|---|\n| 1 | Potion of Healing |" in cave["text"]
     assert "*[Creature statblock: Goblin (MM)]*" in cave["text"]
     assert "> You smell smoke." in cave["text"]
+    assert [s["id"] for s in cave["sections"]] == ["003"]
 
 
 @pytest.mark.asyncio
