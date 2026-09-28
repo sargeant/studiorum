@@ -32,8 +32,8 @@ class CreatureSummary(BaseModel):
     name: str
     source: str
     srd: bool
-    cr: str
-    type: str
+    cr: str | None = Field(description="None when it scales with a spell or level")
+    type: str = Field(description='e.g. humanoid, or "celestial | fey" for a choice')
     text: str | None = Field(None, description="As Markdown, with include_text")
 
 
@@ -146,7 +146,7 @@ class RatedCreature(BaseModel):
     name: str
     source: str
     srd: bool
-    cr: str
+    cr: str | None = Field(description="None when it scales with a spell or level")
     xp: int | None = Field(description="XP each; none when the CR has no XP")
     count: int
 
@@ -167,7 +167,7 @@ class SuggestedCreature(BaseModel):
     name: str
     source: str
     srd: bool
-    cr: str
+    cr: str | None
     xp: int
     type: str
     environment: list[str]

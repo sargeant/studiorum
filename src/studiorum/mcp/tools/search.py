@@ -311,7 +311,7 @@ async def search_creatures(
                 name=c.name,
                 source=c.source.abbreviation,
                 srd=c.is_srd,
-                cr=c.get_cr_text(),
+                cr=cr_text(c),
                 type=type_name(c),
                 text=text,
             )
@@ -371,10 +371,21 @@ async def search_items(
 
 
 def type_name(creature: Creature) -> str:
-    """The creature's type name, e.g. humanoid."""
-    kind = creature.type
-    if isinstance(kind, str):
-        return kind
+    """The creature's type name, e.g. humanoid, or "celestial | fey" for a choice."""
+    return " | ".join(type_names(creature))
+
+
+def type_names(creature: Creature) -> list[str]:
+    """The creature's type, or each type it may choose from."""
+    kind: Any = creature.type
+    if not isinstance(kind, str):
+        kind = kind.get("type", "") if isinstance(kind, dict) else kind.type
     if isinstance(kind, dict):
-        return str(kind.get("type", ""))
-    return str(getattr(kind, "type", kind))
+        choices = kind.get("choose")
+        return [str(c) for c in choices] if isinstance(choices, list) else []
+    return [str(kind)] if kind else []
+
+
+def cr_text(creature: Creature) -> str | None:
+    """The challenge rating, or None for a statblock that scales with a spell or level."""
+    return None if creature.cr is None else creature.get_cr_text()

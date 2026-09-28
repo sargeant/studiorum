@@ -136,6 +136,22 @@ async def test_search_creatures_filters() -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_creatures_with_a_type_to_choose_and_no_cr() -> None:
+    familiar = await call(
+        "search_creatures", query="familiar", creature_type="fey", srd_only=False
+    )
+    assert [(r["name"], r["type"], r["cr"]) for r in familiar["results"]] == [
+        ("Battle Familiar", "celestial | fey | fiend", None)
+    ]
+    fiends = await call("search_creatures", creature_type="fiend", srd_only=False)
+    assert names(fiends) == ["Battle Familiar"]
+    assert (
+        names(await call("search_creatures", creature_type="undead", srd_only=False))
+        == []
+    )
+
+
+@pytest.mark.asyncio
 async def test_search_items_filters() -> None:
     assert names(await call("search_items")) == ["Ale (mug)", "Amulet of Health"]
     assert names(await call("search_items", rarity="rare", srd_only=False)) == [
@@ -401,12 +417,12 @@ async def test_bad_filters_say_what_is_wrong() -> None:
 async def test_searches_page_and_report_the_srd_mode() -> None:
     first = await call("search_creatures", srd_only=False, limit=2)
     second = await call("search_creatures", srd_only=False, limit=2, offset=2)
-    assert first["total"] == second["total"] == 5
+    assert first["total"] == second["total"] == 6
     assert names(first) + names(second) == [
         "Acolyte",
+        "Battle Familiar",
         "Goblin",
         "Goblin Minion",
-        "Goblin Sneak",
     ]
     assert (first["srd_only"], (await call("search_spells"))["srd_only"]) == (
         False,
