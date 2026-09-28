@@ -429,6 +429,30 @@ async def test_name_searches_put_an_entry_named_the_query_first() -> None:
 
 
 @pytest.mark.asyncio
+async def test_weapon_properties_and_masteries_are_rules() -> None:
+    sap = await call("search_rules", query="sap")
+    assert [(r["name"], r["type"]) for r in sap["results"]] == [("Sap", "itemMastery")]
+    # The PHB Finesse gives way to its XPHB reprint, named by abbreviation
+    finesse = await call("search_rules", query="finesse", srd_only=False)
+    assert [(r["name"], r["source"]) for r in finesse["results"]] == [
+        ("Finesse", "XPHB")
+    ]
+    prop = await call(
+        "get_content", content_type="itemProperty", name="Finesse", srd_only=False
+    )
+    assert prop["text"] == (
+        "# Finesse\n\n*weapon property* · *XPHB*\n\nUse Strength or Dexterity (XPHB)."
+    )
+    rapier = await call(
+        "get_content", content_type="item", name="Rapier", srd_only=False
+    )
+    assert [(r["type"], r["name"]) for r in rapier["references"]] == [
+        ("itemProperty", "Finesse"),
+        ("itemMastery", "Sap"),
+    ]
+
+
+@pytest.mark.asyncio
 async def test_searches_say_what_the_srd_filter_hid() -> None:
     result = await call("search_spells", query="orb")
     assert (result["total"], result["hidden_by_srd"]) == (0, 1)

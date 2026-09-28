@@ -170,9 +170,14 @@ def drop_reprinted[T: BaseContent](found: Sequence[T]) -> list[T]:
 
 
 def _keys(content: BaseContent) -> set[tuple[str, str]]:
-    """What a reprint uid can call this entry: its name, or a subclass's short name."""
+    """What a reprint uid can call this entry: its name, a subclass's short name,
+    or an item property's abbreviation."""
     source = content.source.abbreviation.lower()
-    names = {content.name, str(getattr(content, "short_name", "") or "")}
+    names = {
+        content.name,
+        str(getattr(content, "short_name", "") or ""),
+        str(getattr(content, "abbreviation", "") or ""),
+    }
     return {(n.lower(), source) for n in names if n}
 
 
