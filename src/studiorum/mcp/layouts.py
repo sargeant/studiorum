@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from typing import Any
 
@@ -248,6 +249,42 @@ def _initiative(data: Raw) -> str:
     return f"{bonus:+d} ({passive})"
 
 
+def _woven(actions: Any, spells: list[Raw] | None) -> list[Any]:
+    """``_getOrderedActionsBonusActions``: spellcasting woven in by name after the
+    attacks, which come after any Multiattack."""
+    actions, spells = list(actions or []), spells or []
+    if not actions or not spells:
+        return actions or spells
+    attacks = [
+        i
+        for i, a in enumerate(actions)
+        if isinstance(a, dict)
+        and a.get("entries")
+        and isinstance(a["entries"][0], str)
+        and re.search(r"\{@atkr? ", a["entries"][0])
+    ]
+    # 5etools keeps the last attack with the rest
+    split = attacks[-1] if attacks else 0
+    head, rest = actions[:split], actions[split:]
+    for spell in spells:
+        name = str(spell.get("name", "")).lower()
+        at = next(
+            (
+                i
+                for i, a in enumerate(rest)
+                if isinstance(a, dict)
+                and a.get("name")
+                and str(a["name"]).lower() >= name
+            ),
+            None,
+        )
+        if name and at is not None:
+            rest.insert(at, spell)
+        else:
+            rest.append(spell)
+    return head + rest
+
+
 def _spellcasting(blocks: Any) -> list[Raw]:
     """Spellcasting blocks as traits, with their spell lists as text
     (``Renderer._renderSpellcasting_getEntries``)."""
@@ -369,11 +406,12 @@ def _creature(data: Raw, _: str) -> list[str]:
     uses = data.get("legendaryActions", 3)
     if data.get("legendaryActionsLair"):
         uses = f"{uses} ({data['legendaryActionsLair']} in its lair)"
+    legendary = _woven(data.get("legendary"), by_place.get("legendary"))
     legendary_intro = data.get("legendaryHeader") or (
         [
             f"The {data.get('name', 'creature').lower()} can take {uses} legendary actions."
         ]
-        if data.get("legendary")
+        if legendary
         else None
     )
     return [
@@ -386,17 +424,20 @@ def _creature(data: Raw, _: str) -> list[str]:
         _named_blocks(
             "Traits", [*(data.get("trait") or []), *by_place.get("trait", [])]
         ),
-        _named_blocks(
-            "Actions", [*(data.get("action") or []), *by_place.get("action", [])]
+        *(
+            _named_blocks(heading, _woven(data.get(prop), by_place.get(prop)))
+            for heading, prop in (
+                ("Actions", "action"),
+                ("Bonus Actions", "bonus"),
+                ("Reactions", "reaction"),
+            )
         ),
+        _named_blocks("Legendary Actions", legendary, legendary_intro),
         _named_blocks(
-            "Bonus Actions", [*(data.get("bonus") or []), *by_place.get("bonus", [])]
+            "Mythic Actions",
+            _woven(data.get("mythic"), by_place.get("mythic")),
+            data.get("mythicHeader"),
         ),
-        _named_blocks(
-            "Reactions", [*(data.get("reaction") or []), *by_place.get("reaction", [])]
-        ),
-        _named_blocks("Legendary Actions", data.get("legendary"), legendary_intro),
-        _named_blocks("Mythic Actions", data.get("mythic"), data.get("mythicHeader")),
         *(
             f"## {heading}\n\n{_entries(entries, 3)}"
             for heading, entries in (data.get(LAIR) or {}).items()
