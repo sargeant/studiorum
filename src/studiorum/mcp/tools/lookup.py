@@ -8,6 +8,7 @@ from typing import Annotated, Any, Literal
 from fastmcp.dependencies import Depends
 from pydantic import BaseModel, Field
 
+from studiorum.data.class_entries import dereferenced
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
 from studiorum.data.models.content import BaseContent, ContentType
@@ -188,10 +189,13 @@ async def get_contents(
 def _layout_data(
     services: Services, content_type: str, entry: BaseContent, srd_only: bool
 ) -> dict[str, Any]:
-    """The data get_content lays out: the entry, and a class's subclasses."""
+    """The data get_content lays out: the entry, a class's subclasses, and a
+    feature with the features it refers to in place."""
     data = entry_data(entry)
     if content_type == "class":
         data["subclasses"] = _subclasses(services, entry, srd_only)
+    if content_type in ("classFeature", "subclassFeature"):
+        data["entries"] = dereferenced(data.get("entries", []), services.catalogue)
     return data
 
 

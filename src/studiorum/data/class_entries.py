@@ -89,19 +89,52 @@ def _feature(uid: str, kind: ContentType, catalogue: Catalogue | None) -> Raw | 
         return None
     data = found.model_dump(by_alias=True, exclude_none=True)
     entry = {"type": "entries", **{k: data[k] for k in _FEATURE_PROPS if k in data}}
-    entry["entries"] = _dereferenced(entry.get("entries", []), catalogue)
+    entry["entries"] = dereferenced(entry.get("entries", []), catalogue)
     return entry
 
 
-def _dereferenced(entries: Any, catalogue: Catalogue) -> Any:
+def nested_features(
+    uid: str, kind: ContentType, catalogue: Catalogue
+) -> list[tuple[ContentType, str]]:
+    """The class and subclass features a feature refers to, by type and uid, in order.
+
+    A 2024 subclass's first feature (Evoker) holds its mechanics this way.
+    """
+    found = catalogue.find_uid(kind, uid)
+    if found is None:
+        return []
+    out: list[tuple[ContentType, str]] = []
+
+    def visit(entry: Any) -> None:
+        if isinstance(entry, list):
+            for e in entry:
+                visit(e)
+        elif isinstance(entry, dict):
+            ref = _REFS.get(str(entry.get("type")))
+            if ref and ref[1] in (
+                ContentType.CLASS_FEATURE,
+                ContentType.SUBCLASS_FEATURE,
+            ):
+                child = str(entry.get(ref[0], ""))
+                out.append((ref[1], child))
+                out.extend(nested_features(child, ref[1], catalogue))
+            else:
+                for v in entry.values():
+                    visit(v)
+
+    visit(found.model_dump(by_alias=True, exclude_none=True).get("entries", []))
+    return out
+
+
+def dereferenced(entries: Any, catalogue: Catalogue) -> Any:
     """Entries with each feature reference replaced by the feature."""
     if isinstance(entries, list):
-        return [_dereferenced(e, catalogue) for e in entries]
+        return [dereferenced(e, catalogue) for e in entries]
     if not isinstance(entries, dict):
         return entries
     ref = _REFS.get(str(entries.get("type")))
     if ref is None:
-        return {k: _dereferenced(v, catalogue) for k, v in entries.items()}
+        return {k: dereferenced(v, catalogue) for k, v in entries.items()}
     key, kind = ref
     uid = str(entries.get(key, ""))
     if kind in _DEFAULT_SOURCE and "|" not in uid:
