@@ -15,6 +15,7 @@ from studiorum.data.models.content import ContentType
 from studiorum.mcp.errors import suggestions
 from studiorum.mcp.server import mcp
 from studiorum.mcp.tools.lookup import EntryType
+from studiorum.mcp.tools.progression import full_uid
 
 pytestmark = pytest.mark.usefixtures("mcp_data")
 
@@ -478,15 +479,24 @@ async def test_get_class_progression() -> None:
     ]  # fmt: skip
     first = wizard["levels"][0]
     assert (first["level"], first["proficiency_bonus"]) == (1, 2)
-    assert first["columns"]["1st"] == "2"
-    assert first["columns"]["2nd"] == "\u2014"
+    assert first["cells"][-9:-7] == ["2", "\u2014"]
+    assert "subclass_features" not in first
     assert "Arcane Recovery" in [f["name"] for f in first["features"]]
 
     one = await call("get_class_progression", class_name="Wizard", level=17)
     assert [r["level"] for r in one["levels"]] == [17]
     assert one["levels"][0]["proficiency_bonus"] == 6
-    slots = [one["levels"][0]["columns"][c] for c in wizard["columns"][-9:]]
-    assert slots == ["4", "3", "3", "3", "2", "1", "1", "1", "1"]
+    assert one["levels"][0]["cells"][-9:] == [
+        "4",
+        "3",
+        "3",
+        "3",
+        "2",
+        "1",
+        "1",
+        "1",
+        "1",
+    ]
     # A feature's uid reads it in full
     uid = first["features"][0]["uid"]
     feature = await call("get_content", content_type="classFeature", name=uid)
@@ -507,6 +517,44 @@ async def test_get_class_progression_with_a_subclass() -> None:
     ]
     with pytest.raises(ToolError, match="No Wizard subclass named 'Nope'"):
         await call("get_class_progression", class_name="Wizard", subclass="Nope")
+
+    only = await call(
+        "get_class_progression",
+        class_name="Wizard",
+        subclass="evocation",
+        subclass_only=True,
+    )
+    assert only["columns"] == []
+    assert [r["level"] for r in only["levels"]] == [2, 6, 10, 14]
+    assert only["levels"][0]["cells"] == []
+    assert "features" not in only["levels"][0]
+    with pytest.raises(ToolError, match="subclass_only needs a subclass"):
+        await call("get_class_progression", class_name="Wizard", subclass_only=True)
+
+
+@pytest.mark.parametrize(
+    ("kind", "uid", "full"),
+    [
+        ("classFeature", "Rage|Barbarian||1", "Rage|Barbarian|PHB|1|PHB"),
+        (
+            "classFeature",
+            "Spell Mastery|Wizard|XPHB|18",
+            "Spell Mastery|Wizard|XPHB|18|XPHB",
+        ),
+        (
+            "subclassFeature",
+            "Evoker|Wizard|XPHB|Evoker|XPHB|3",
+            "Evoker|Wizard|XPHB|Evoker|XPHB|3|XPHB",
+        ),
+        (
+            "subclassFeature",
+            "Evoker|Wizard||Evoker||2",
+            "Evoker|Wizard|PHB|Evoker|PHB|2|PHB",
+        ),
+    ],
+)
+def test_full_uid(kind: str, uid: str, full: str) -> None:
+    assert full_uid(kind, uid) == full
 
 
 @pytest.mark.asyncio

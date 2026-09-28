@@ -288,13 +288,11 @@ class FeatureRef(BaseModel):
 class ProgressionLevel(BaseModel):
     level: int
     proficiency_bonus: int
-    features: list[FeatureRef] = Field(description="Class features gained")
-    subclass_features: list[FeatureRef] = Field(
-        default_factory=list, description="The subclass's features gained"
+    features: list[FeatureRef] | None = optional("Class features gained, if any")
+    subclass_features: list[FeatureRef] | None = optional(
+        "The subclass's features gained, if any"
     )
-    columns: dict[str, str] = Field(
-        description="The class table's own columns, e.g. spell slots by level"
-    )
+    cells: list[str] = Field(description="This level's value in each of columns")
 
 
 class ClassProgression(BaseModel):
@@ -303,5 +301,7 @@ class ClassProgression(BaseModel):
     srd: bool
     subclass: str | None = optional("With a subclass asked for")
     subclass_source: str | None = optional("With a subclass asked for")
-    columns: list[str] = Field(description="The columns' labels, in order")
+    columns: list[str] = Field(
+        description="The class table's own columns, e.g. spell slots by level"
+    )
     levels: list[ProgressionLevel]
