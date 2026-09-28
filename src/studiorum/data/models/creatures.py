@@ -258,6 +258,9 @@ class SpellcasterSpells(BaseModel):
     """Spell list for a specific spell level."""
 
     slots: int | None = Field(None, description="Number of spell slots")
+    lower: int | None = Field(
+        None, description="The lowest level of slot, when the slots span levels"
+    )
     spells: list[str] = Field(..., description="List of spells with {@spell} tags")
 
 
@@ -282,10 +285,23 @@ class Spellcasting(BaseModel):
     spells: dict[str, SpellcasterSpells] | None = Field(
         None, description="Spells by level"
     )
+    constant: list[str | SpellEntry] | None = Field(
+        None, description="Spells always in effect"
+    )
     will: list[str | SpellEntry] | None = Field(None, description="At-will spells")
     daily: dict[str, list[str | SpellEntry]] | None = Field(
         None, description="Daily use spells"
     )
+    # Uses per period or cost, keyed like daily ("3", or "1e" for each)
+    recharge: dict[str, list[str | SpellEntry]] | None = None
+    legendary: dict[str, list[str | SpellEntry]] | None = None
+    charges: dict[str, list[str | SpellEntry]] | None = None
+    rest: dict[str, list[str | SpellEntry]] | None = None
+    restLong: dict[str, list[str | SpellEntry]] | None = None
+    weekly: dict[str, list[str | SpellEntry]] | None = None
+    monthly: dict[str, list[str | SpellEntry]] | None = None
+    yearly: dict[str, list[str | SpellEntry]] | None = None
+    ritual: list[str | SpellEntry] | None = Field(None, description="Ritual spells")
     ability: str | None = Field(None, description="Spellcasting ability")
     hidden: list[str] | None = Field(None, description="Hidden sections")
     displayAs: str | None = Field(
