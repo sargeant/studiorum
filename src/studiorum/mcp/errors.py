@@ -35,9 +35,16 @@ def not_found(
     """
     found = suggestions(name, candidates) or suggestions(name, fallback or [])
     message = f"No {what} named '{name}'" + (f" in {where}." if where else ".")
+    few = sorted(set(candidates))
     if found:
         message += " Did you mean: " + ", ".join(found) + "?"
+    elif 0 < len(few) <= FEW:
+        message += " There are: " + ", ".join(few) + "."
     return ClientError(message)
+
+
+# Few enough names to list them all when none is close
+FEW = 20
 
 
 def suggestions(name: str, candidates: list[str], n: int = 5) -> list[str]:

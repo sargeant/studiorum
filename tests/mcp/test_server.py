@@ -623,6 +623,11 @@ async def test_bad_filters_say_what_is_wrong() -> None:
         await call("search_creatures", creature_type="robot")
     with pytest.raises(ToolError, match="No class named 'pilot'. Classes: Wizard"):
         await call("search_spells", spell_class="pilot")
+    # With none close, a type with few names lists them
+    with pytest.raises(
+        ToolError, match=r"No class named 'pilot'\. There are: Wizard\.$"
+    ):
+        await call("get_class_progression", class_name="pilot")
 
 
 @pytest.mark.asyncio
