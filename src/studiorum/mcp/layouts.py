@@ -10,7 +10,7 @@ from studiorum.data.models.content import BaseContent
 from studiorum.data.models.items import variation_entries
 from studiorum.data.text.parser import feat_category
 from studiorum.data.text.prerequisites import prerequisite_entry
-from studiorum.data.text.stats import speed_text
+from studiorum.data.text.stats import condition_text, damage_text, speed_text
 from studiorum.data.type_lines import ability_text, feat_full_entries
 from studiorum.data.vehicle_lines import VehicleSection, vehicle_block
 from studiorum.mcp.markdown import render, strip_tags
@@ -199,10 +199,39 @@ def _challenge(cr: Any) -> str:
     if base is None:
         return ""
     xp = encounter.creature_xp(cr)
-    text = f"{base} ({xp:,} XP)" if xp is not None else str(base)
+    lair_xp = cr.get("xpLair") if isinstance(cr, dict) else None
+    notes = [
+        f"{xp:,} XP" if xp is not None else "",
+        f"or {lair_xp:,} in its lair" if isinstance(lair_xp, int) else "",
+    ]
+    pb = encounter.proficiency_bonus(cr)
+    details = "; ".join(
+        p for p in (", ".join(n for n in notes if n), f"PB +{pb}" if pb else "") if p
+    )
+    text = f"{base} ({details})" if details else str(base)
     if isinstance(cr, dict) and cr.get("lair"):
         text += f", or {cr['lair']} in its lair"
     return text
+
+
+def _initiative(data: Raw) -> str:
+    """``Renderer.monster.getInitiativePart``: "+14 (24)"."""
+    dex, initiative = data.get("dex"), data.get("initiative")
+    if isinstance(initiative, dict) and isinstance(initiative.get("initiative"), int):
+        bonus = initiative["initiative"]
+    elif isinstance(initiative, int):
+        bonus = initiative
+    elif isinstance(dex, int):
+        bonus = (dex - 10) // 2
+        if isinstance(initiative, dict) and initiative.get("proficiency"):
+            bonus += initiative["proficiency"] * (
+                encounter.proficiency_bonus(data.get("cr")) or 0
+            )
+    else:
+        return ""
+    mode = initiative.get("advantageMode") if isinstance(initiative, dict) else None
+    passive = 10 + bonus + {"adv": 5, "dis": -5}.get(str(mode), 0)
+    return f"{bonus:+d} ({passive})"
 
 
 def _spellcasting(blocks: Any) -> list[Raw]:
@@ -217,7 +246,8 @@ def _spellcasting(blocks: Any) -> list[Raw]:
                 each = " each" if uses.endswith("e") else ""
                 lines.append(f"{uses.rstrip('e')}{label}{each}: {_join(spells)}")
         for level, spells in sorted((block.get("spells") or {}).items()):
-            slots = f" ({spells['slots']} slots)" if spells.get("slots") else ""
+            count = spells.get("slots")
+            slots = f" ({count} slot{'s' if count != 1 else ''})" if count else ""
             label = "Cantrips" if level == "0" else f"Level {level}{slots}"
             lines.append(f"{label}: {_join(spells.get('spells', []))}")
         lines += block.get("footerEntries", [])
@@ -240,16 +270,20 @@ def _creature(data: Raw, _: str) -> list[str]:
         by_place.setdefault(raw.get("displayAs", "trait"), []).append(block)
     stats = [
         _line("Armor Class", _ac(data.get("ac"))),
+        _line("Initiative", _initiative(data)),
         _line("Hit Points", strip_tags(str(hp_text))),
         _line("Speed", _speed(data.get("speed"))),
     ]
     details = [
         _line("Saving Throws", _bonuses(data.get("save"), _ABILITY_NAMES)),
         _line("Skills", _bonuses(data.get("skill"))),
-        _line("Vulnerabilities", _join(data.get("vulnerable") or [])),
-        _line("Resistances", _join(data.get("resist") or [])),
-        _line("Immunities", _join(data.get("immune") or [])),
-        _line("Condition Immunities", _join(data.get("conditionImmune") or [])),
+        _line("Vulnerabilities", strip_tags(damage_text(data.get("vulnerable")))),
+        _line("Resistances", strip_tags(damage_text(data.get("resist")))),
+        _line("Immunities", strip_tags(damage_text(data.get("immune")))),
+        _line(
+            "Condition Immunities",
+            strip_tags(condition_text(data.get("conditionImmune"))),
+        ),
         _line("Senses", ", ".join(s for s in (senses, passive) if s)),
         _line("Languages", _join(data.get("languages") or []) or "None"),
         _line("Challenge", _challenge(data.get("cr"))),

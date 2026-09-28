@@ -155,3 +155,34 @@ def test_a_feat_with_a_list_gains_its_increase_without_changing_the_data() -> No
     assert first == to_markdown("feat", feat)
     assert first.count("Increase your Strength or Dexterity by 1") == 1
     assert len(feat["entries"][0]["items"]) == 1
+
+
+def test_a_creature_shows_initiative_immunities_and_challenge_as_5etools_does() -> None:
+    dragon = {
+        "name": "Dragon",
+        "source": "XMM",
+        "size": ["H"],
+        "type": "dragon",
+        "dex": 10,
+        "initiative": {"proficiency": 2},
+        "immune": [
+            "poison",
+            {"immune": ["bludgeoning", "slashing"], "note": "from nonmagical attacks"},
+        ],
+        "conditionImmune": ["charmed", "poisoned"],
+        "cr": {"cr": "17", "xpLair": 20000},
+        "spellcasting": [
+            {"name": "Spellcasting", "spells": {"6": {"slots": 1, "spells": ["x"]}}}
+        ],
+    }
+
+    text = to_markdown("creature", dragon)
+
+    assert "**Initiative** +12 (22)" in text
+    assert (
+        "**Immunities** poison; bludgeoning and slashing from nonmagical attacks"
+        in text
+    )
+    assert "**Condition Immunities** charmed, poisoned" in text
+    assert "**Challenge** 17 (18,000 XP, or 20,000 in its lair; PB +6)" in text
+    assert "Level 6 (1 slot): x" in text
