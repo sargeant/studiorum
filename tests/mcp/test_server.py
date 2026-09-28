@@ -235,6 +235,7 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
         {"content_type": "spell", "name": "Hellfire Orb"},
         {"content_type": "spell", "name": "Nothing"},
         {"content_type": "item", "name": "Amulet of Health"},
+        {"content_type": "spell", "name": "fireball"},
     ]
     result = await call("get_contents", items=items)
     assert [e["name"] for e in result["entries"]] == [
@@ -242,12 +243,16 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
         "Fireball",
         "Amulet of Health",
     ]
-    fireball = await call("get_content", content_type="spell", name="Fireball")
+    fireball = await call(
+        "get_content", content_type="spell", name="Fireball", include_references=False
+    )
     assert result["entries"][1] == fireball
-    assert [(m["name"], m["error"][:20]) for m in result["not_found"]] == [
-        ("Hellfire Orb", "Hellfire Orb (HB) is"),
-        ("Nothing", "No spell named 'Noth"),
+    assert [(m["index"], m["name"], m["error"][:20]) for m in result["not_found"]] == [
+        (2, "Hellfire Orb", "Hellfire Orb (HB) is"),
+        (3, "Nothing", "No spell named 'Noth"),
     ]
+    linked = await call("get_contents", items=items[:1], include_references=True)
+    assert "references" in linked["entries"][0]
     assert result["next_offset"] is None
 
     # A size cap stops the batch; next_offset resumes it

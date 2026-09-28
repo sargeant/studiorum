@@ -102,12 +102,13 @@ class ContentEntry(BaseModel):
     data: dict[str, Any] | None = optional(
         "The entry as 5etools models it, with format=json"
     )
-    references: list[Reference] = Field(
-        default_factory=list, description="What the entry's text links to"
+    references: list[Reference] | None = optional(
+        "What the entry's text links to, with include_references"
     )
 
 
 class ContentMissing(BaseModel):
+    index: int = Field(description="Its place in the items asked for, from 0")
     content_type: str
     name: str
     source: str | None = optional("The source asked for")

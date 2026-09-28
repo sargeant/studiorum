@@ -85,6 +85,9 @@ async def get_content(
         Literal["markdown", "json"],
         Field(description="markdown: laid out to read; json: the 5etools data"),
     ] = "markdown",
+    include_references: Annotated[
+        bool, Field(description="What the entry's text links to, for get_content")
+    ] = True,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -92,6 +95,19 @@ async def get_content(
     """One entry in full (a statblock, a spell, a class and its features), by type and name."""
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
+    return _content_entry(
+        services, content_type, entry, format, include_references, srd_only
+    )
+
+
+def _content_entry(
+    services: Services,
+    content_type: str,
+    entry: BaseContent,
+    format: str,  # noqa: A002 - as get_content names it
+    include_references: bool,
+    srd_only: bool,
+) -> ContentEntry:
     data = _layout_data(services, content_type, entry, srd_only)
     return ContentEntry(
         type=content_type,
@@ -105,7 +121,9 @@ async def get_content(
             for r in resolve_references(services, markdown.references(data))
             if (r.name.lower(), (r.source or "").lower())
             != (entry.name.lower(), entry.source.abbreviation.lower())
-        ],
+        ]
+        if include_references
+        else None,
     )
 
 
@@ -124,6 +142,9 @@ async def get_contents(
     offset: Annotated[
         int, Field(ge=0, description="Start at this item, to resume a batch")
     ] = 0,
+    include_references: Annotated[
+        bool, Field(description="What each entry's text links to, for get_content")
+    ] = False,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -131,25 +152,28 @@ async def get_contents(
     """Several entries in full, as get_content returns them, up to 24,000 characters.
 
     When the entries would run past that, the reply stops short and
-    next_offset says where to resume.
+    next_offset says where to resume. An entry asked for twice comes once.
     """
+    srd_only = default_srd if srd_only is None else srd_only
     entries: list[ContentEntry] = []
     missing: list[ContentMissing] = []
+    seen: set[tuple[str, str, str]] = set()
     size = 0
     for i, item in enumerate(items[offset:], start=offset):
         try:
-            entry = await get_content(
-                item.content_type,
-                item.name,
-                item.source,
-                format,
-                srd_only,
-                default_srd=default_srd,
-                services=services,
+            found = find_one(
+                services, item.content_type, item.name, item.source, srd_only
             )
         except ClientError as e:
-            missing.append(ContentMissing(**item.model_dump(), error=str(e)))
+            missing.append(ContentMissing(index=i, **item.model_dump(), error=str(e)))
             continue
+        key = (item.content_type, found.name, found.source.abbreviation)
+        if key in seen:
+            continue
+        seen.add(key)
+        entry = _content_entry(
+            services, item.content_type, found, format, include_references, srd_only
+        )
         chars = len(entry.text or "") + (
             len(json.dumps(entry.data)) if entry.data else 0
         )
