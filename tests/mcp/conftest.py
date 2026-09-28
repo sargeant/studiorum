@@ -241,7 +241,29 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "source": "XPHB",
                     "srd52": True,
                     "entries": ["Your {@variantrule Speed|XPHB} is 0."],
-                }
+                },
+                {
+                    "name": "Incapacitated",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["You can't take any action."],
+                },
+                {
+                    "name": "Prone",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["You can only crawl."],
+                },
+                {
+                    "name": "Unconscious",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": [
+                        "You have the {@condition Incapacitated|XPHB} and "
+                        "{@condition Prone|XPHB} conditions.",
+                        "While {@condition Incapacitated|XPHB}, you drop what you hold.",
+                    ],
+                },
             ]
         },
     )

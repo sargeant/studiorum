@@ -94,7 +94,11 @@ async def get_content(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ContentEntry:
-    """One entry in full (a statblock, a spell, a class and its features), by type and name."""
+    """One entry in full (a statblock, a spell, a class and its features), by type and name.
+
+    A condition comes with the conditions its text names, in turn (Unconscious:
+    Incapacitated and Prone).
+    """
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
     return _content_entry(
@@ -111,22 +115,46 @@ def _content_entry(
     srd_only: bool,
 ) -> ContentEntry:
     data = _layout_data(services, content_type, entry, srd_only)
+    references = [
+        r
+        for r in resolve_references(services, markdown.references(data))
+        if (r.name.lower(), (r.source or "").lower())
+        != (entry.name.lower(), entry.source.abbreviation.lower())
+    ]
+    text = None
+    if format == "markdown":
+        text = to_markdown(content_type, data)
+        if content_type == "condition":
+            text = "\n\n".join([text, *_included_conditions(services, entry)])
     return ContentEntry(
         type=content_type,
         name=entry.name,
         source=entry.source.abbreviation,
         srd=entry.is_srd,
-        text=to_markdown(content_type, data) if format == "markdown" else None,
+        text=text,
         data=data if format == "json" else None,
-        references=[
-            r
-            for r in resolve_references(services, markdown.references(data))
-            if (r.name.lower(), (r.source or "").lower())
-            != (entry.name.lower(), entry.source.abbreviation.lower())
-        ]
-        if include_references
-        else [],
+        references=references if include_references else [],
     )
+
+
+def _included_conditions(services: Services, condition: BaseContent) -> list[str]:
+    """The Markdown of the conditions a condition names (Paralyzed: Incapacitated),
+    and those they name in turn, each once."""
+    seen = {(condition.name.lower(), condition.source.abbreviation.lower())}
+    queue = [condition]
+    out = []
+    while queue:
+        data = entry_data(queue.pop(0))
+        for ref in resolve_references(services, markdown.references(data)):
+            key = (ref.name.lower(), (ref.source or "").lower())
+            if ref.type != "condition" or not ref.source or key in seen:
+                continue
+            seen.add(key)
+            found = services.catalogue.find(ContentType.CONDITION, ref.name, ref.source)
+            if found is not None:
+                queue.append(found)
+                out.append(to_markdown("condition", entry_data(found)))
+    return out
 
 
 class Wanted(BaseModel):

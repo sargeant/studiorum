@@ -668,3 +668,17 @@ async def test_include_text_tools_describe_the_size_cap() -> None:
         tools = {t.name: t.description or "" for t in await client.list_tools()}
     for name in ("search_spells", "search_creatures", "search_items", "search_content"):
         assert "fewer results than limit; next_offset" in tools[name], name
+
+
+@pytest.mark.asyncio
+async def test_a_condition_comes_with_the_conditions_it_includes() -> None:
+    unconscious = await call(
+        "get_content", content_type="condition", name="Unconscious"
+    )
+    headings = [
+        line for line in unconscious["text"].splitlines() if line.startswith("# ")
+    ]
+    assert headings == ["# Unconscious", "# Incapacitated", "# Prone"]
+    assert "You can only crawl." in unconscious["text"]
+    prone = await call("get_content", content_type="condition", name="Prone")
+    assert prone["text"].count("# ") == 1
