@@ -19,8 +19,15 @@ class ClientError(ToolError):
 
 
 def not_found(what: str, name: str, candidates: list[str]) -> ClientError:
-    """A ToolError naming what wasn't found and the closest names that were."""
-    suggestions = get_close_matches(name, sorted(set(candidates)), n=5, cutoff=0.6)
+    """A ToolError naming what wasn't found and the closest names that were.
+
+    Names containing ``name`` come first, shortest first, then close spellings.
+    """
+    unique = sorted(set(candidates))
+    needle = name.lower()
+    containing = sorted((c for c in unique if needle in c.lower()), key=len)
+    close = get_close_matches(name, unique, n=5, cutoff=0.6)
+    suggestions = list(dict.fromkeys([*containing, *close]))[:5]
     message = f"No {what} named '{name}'."
     if suggestions:
         message += " Did you mean: " + ", ".join(suggestions) + "?"

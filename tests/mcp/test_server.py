@@ -143,6 +143,9 @@ async def test_get_content_suggests_names() -> None:
         ToolError, match="No creature named 'Goblim'. Did you mean: Goblin"
     ):
         await call("get_content", content_type="creature", name="Goblim")
+    # A part of the name suggests the names that contain it
+    with pytest.raises(ToolError, match="Did you mean: Young Red Dragon"):
+        await call("get_content", content_type="creature", name="red drag")
 
 
 @pytest.mark.asyncio
