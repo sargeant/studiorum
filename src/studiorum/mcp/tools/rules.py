@@ -15,7 +15,16 @@ from studiorum.mcp.text import fold
 from studiorum.mcp.tools.search import LatestOnly, Limit, Offset, split_srd
 from studiorum.services import Services
 
-RuleType = Literal["action", "condition", "status", "variantrule", "sense", "hazard"]
+RuleType = Literal[
+    "action",
+    "condition",
+    "status",
+    "variantrule",
+    "sense",
+    "hazard",
+    "itemProperty",
+    "itemMastery",
+]
 
 
 async def search_rules(
@@ -32,8 +41,9 @@ async def search_rules(
 ) -> RuleResults:
     """Find rules by name or text: actions, conditions, variant rules, hazards and more.
 
-    The types are actions, conditions, statuses, variant rules, senses and
-    hazards (the 2024 Falling and Suffocation are hazards). Every word must appear in the name or text. A rule named the query comes
+    The types are actions, conditions, statuses, variant rules, senses,
+    hazards (the 2024 Falling and Suffocation are hazards), and weapon
+    properties and masteries (Finesse, Sap). Every word must appear in the name or text. A rule named the query comes
     first, then rules with a part named it (the 2024 Grapple and Shove are
     parts of Unarmed Strike), then other name matches. A variant rule that
     matches only in a part that is also an action of its own (the DMG's

@@ -137,7 +137,40 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         {
             "itemType": [
                 {"name": "Food and Drink", "abbreviation": "FD", "source": "PHB"}
-            ]
+            ],
+            "itemProperty": [
+                {
+                    "abbreviation": "F",
+                    "source": source,
+                    **({"reprintedAs": ["F|XPHB"]} if source == "PHB" else {}),
+                    "entries": [
+                        {
+                            "type": "entries",
+                            "name": "Finesse",
+                            "entries": [f"Use Strength or Dexterity ({source})."],
+                        }
+                    ],
+                }
+                for source in ("PHB", "XPHB")
+            ],
+            "itemMastery": [
+                {
+                    "name": "Sap",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["The target has Disadvantage on its next attack."],
+                }
+            ],
+            "baseitem": [
+                {
+                    "name": "Rapier",
+                    "source": "XPHB",
+                    "type": "M|XPHB",
+                    "weapon": True,
+                    "property": ["F|XPHB"],
+                    "mastery": ["Sap|XPHB"],
+                }
+            ],
         },
     )
 

@@ -12,6 +12,7 @@ from studiorum.data.class_entries import dereferenced
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
 from studiorum.data.models.content import BaseContent, ContentType
+from studiorum.data.models.itemproperties import ItemProperty
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError, not_found
@@ -56,6 +57,8 @@ EntryType = Literal[
     "feat",
     "hazard",
     "item",
+    "itemMastery",
+    "itemProperty",
     "language",
     "optionalfeature",
     "race",
@@ -118,9 +121,12 @@ def _content_entry(
     srd_only: bool,
 ) -> ContentEntry:
     data = _layout_data(services, content_type, entry, srd_only)
+    found = markdown.references(data)
+    if content_type == "item":
+        found += _item_references(services, data)
     references = [
         r
-        for r in resolve_references(services, markdown.references(data))
+        for r in resolve_references(services, found)
         if (r.name.lower(), (r.source or "").lower())
         != (entry.name.lower(), entry.source.abbreviation.lower())
     ]
@@ -275,6 +281,33 @@ def _layout_data(
     if content_type in ("classFeature", "subclassFeature"):
         data["entries"] = dereferenced(data.get("entries", []), services.catalogue)
     return data
+
+
+def _item_references(services: Services, data: dict[str, Any]) -> list[dict[str, str]]:
+    """An item's weapon properties and mastery, which it names by uid, not by tag."""
+    properties = {
+        (p.abbreviation.lower(), p.source.abbreviation.lower()): p
+        for p in services.catalogue.get_all_by_type(ContentType.ITEM_PROPERTY)
+        if isinstance(p, ItemProperty)
+    }
+    found = []
+    for value in data.get("property") or []:
+        uid = value.get("uid", "") if isinstance(value, dict) else str(value)
+        abbreviation, _, source = uid.partition("|")
+        prop = properties.get((abbreviation.lower(), (source or "PHB").lower()))
+        if prop is not None:
+            found.append(
+                {
+                    "type": "itemProperty",
+                    "name": prop.name,
+                    "source": prop.source.abbreviation,
+                }
+            )
+    for value in data.get("mastery") or []:
+        uid = value.get("uid", "") if isinstance(value, dict) else str(value)
+        name, _, source = uid.partition("|")
+        found.append({"type": "itemMastery", "name": name, "source": source or "XPHB"})
+    return found
 
 
 def entry_markdown(

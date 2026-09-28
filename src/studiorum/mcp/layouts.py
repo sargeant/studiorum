@@ -551,6 +551,15 @@ def _subclass(data: Raw, _: str) -> list[str]:
     ]
 
 
+_KINDS = {
+    "itemProperty": "weapon property",
+    "itemMastery": "weapon mastery property",
+    "variantrule": "rule",
+    "optionalfeature": "optional feature",
+    "vehicleUpgrade": "vehicle upgrade",
+}
+
+
 def _generic(data: Raw, content_type: str) -> list[str]:
     kind = content_type
     if data.get("level") and (data.get("className") or data.get("subclassShortName")):
@@ -560,6 +569,17 @@ def _generic(data: Raw, content_type: str) -> list[str]:
         kind = feat_category(str(data["category"]))
     if content_type == "optionalfeature" and data.get("featureType"):
         kind = feature_type(data["featureType"])
+    kind = _KINDS.get(kind, kind)
+    entries = data.get("entries") or data.get("entry")
+    # A property's text is one entry named as it is
+    if (
+        content_type == "itemProperty"
+        and isinstance(entries, list)
+        and len(entries) == 1
+        and isinstance(entries[0], dict)
+        and entries[0].get("name") == data.get("name")
+    ):
+        entries = entries[0].get("entries")
     prerequisite = strip_tags(
         prerequisite_entry(data.get("prerequisite"), skip_prefix=True)
     )
@@ -575,11 +595,7 @@ def _generic(data: Raw, content_type: str) -> list[str]:
             )
             if line
         ),
-        _entries(
-            feat_full_entries(data)
-            if content_type == "feat"
-            else data.get("entries") or data.get("entry")
-        ),
+        _entries(feat_full_entries(data) if content_type == "feat" else entries),
     ]
 
 
