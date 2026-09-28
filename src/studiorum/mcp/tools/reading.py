@@ -99,7 +99,8 @@ async def read_section(
     include_references: Annotated[
         bool | None,
         Field(
-            description="What the page links to, for get_content and read_section. "
+            description="List what the page links to: entries to read with "
+            "get_content, sections with read_section. "
             "Default: true, but false with expand_statblocks, whose text holds them"
         ),
     ] = None,
@@ -129,13 +130,12 @@ async def read_section(
         text=pages[page - 1][0],
         references=resolve_references(services, markdown.references(pages[page - 1][1]))
         if include_references
-        else None,
+        else [],
         sections=[
             SectionRef(id=n["id"], name=_name(n), depth=1, chars=_chars(n))
             for n in _subsections(node)
             if str(n["id"]) in pointed
-        ]
-        or None,
+        ],
     )
 
 
@@ -166,8 +166,8 @@ async def search_publication(
     Every word must appear in the section's name or its own text (not its
     subsections'), even inside a longer word. Sections named exactly the
     query come first, then names holding the words whole, then other names;
-    then sections with a heading, statblock or table cell named the query,
-    then whole words in the text, then parts of words. Ties go in book order,
+    then sections with a statblock named the query, then a heading or table
+    cell named it, then whole words in the text, then parts of words. Ties go in book order,
     oldest publication first.
     """
     pubs = (
@@ -215,9 +215,12 @@ def _rank(section: _Section, words: list[str], names_only: bool) -> int | None:
     text = fold(section.text)
     if not all(w in name or w in text for w in words):
         return None
-    if " ".join(words) in section.inner_names:
+    phrase = " ".join(words)
+    if phrase in section.statblock_names:
         return 3
-    return 4 if all(_whole(w, name) or _whole(w, text) for w in words) else 5
+    if phrase in section.inner_names:
+        return 4
+    return 5 if all(_whole(w, name) or _whole(w, text) for w in words) else 6
 
 
 def _whole(word: str, text: str) -> bool:
@@ -243,6 +246,24 @@ class _Section:
     @cached_property
     def text(self) -> str:
         return markdown.render(_own(self.node))
+
+    @cached_property
+    def statblock_names(self) -> set[str]:
+        """The names of the statblocks in its own text."""
+        found: set[str] = set()
+
+        def visit(entry: Any) -> None:
+            if isinstance(entry, list):
+                for e in entry:
+                    visit(e)
+            elif isinstance(entry, dict):
+                if entry.get("type") == "statblock" and entry.get("name"):
+                    found.add(_plain(markdown.strip_tags(str(entry["name"]))))
+                for key in ("entries", "items"):
+                    visit(entry.get(key))
+
+        visit(_own(self.node))
+        return found
 
     @cached_property
     def inner_names(self) -> set[str]:
@@ -492,7 +513,7 @@ def _split(block: str) -> list[str]:
     ]
 
 
-def _statblocks(node: Node) -> list[str] | None:
+def _statblocks(node: Node) -> list[str]:
     """The statblocks a section holds, if it holds nothing else but images."""
     names: list[str] = []
 
@@ -508,7 +529,7 @@ def _statblocks(node: Node) -> list[str] | None:
             return isinstance(children, list) and all(map(only_statblocks, children))
         return False
 
-    return list(dict.fromkeys(names)) if only_statblocks(node) and names else None
+    return list(dict.fromkeys(names)) if only_statblocks(node) else []
 
 
 def _name(node: Node) -> str:

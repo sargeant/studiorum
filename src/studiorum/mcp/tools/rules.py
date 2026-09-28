@@ -34,21 +34,33 @@ async def search_rules(
 
     Every word must appear in the name or text. A rule named the query comes
     first, then rules with a part named it (the 2024 Grapple and Shove are
-    parts of Unarmed Strike), then other name matches. Read one in full with
-    get_content.
+    parts of Unarmed Strike), then other name matches. A variant rule that
+    matches only in a part that is also an action of its own (the DMG's
+    Climb onto a Bigger Creature, in Action Options) gives way to that
+    action. Read one in full with get_content.
     """
     srd_only = default_srd if srd_only is None else srd_only
     words = fold(query).split()
     phrase = " ".join(words)
+    split = _split_parts(services)
     found: list[tuple[int, str, str, BaseContent]] = []
+    # Rules matched only in their split-out parts, with those parts' names
+    via_parts: dict[int, set[str]] = {}
     for kind in (rule_type,) if rule_type else get_args(RuleType):
         for rule in services.catalogue.get_all_by_type(ContentType(kind)):
             name = fold(rule.name)
             raw = rule.model_dump(mode="json", by_alias=True, exclude_none=True)
-            text = render(raw.get("entries") or [])
-            folded = fold(text)
-            if not all(w in name or w in folded for w in words):
+            entries = raw.get("entries") or []
+            text = render(entries)
+            if not _matches(words, name, text):
                 continue
+            parts = split.get(name, set()) if kind == "variantrule" else set()
+            if parts:
+                own = render(_without(entries, parts))
+                if _matches(words, name, own):
+                    text = own
+                else:
+                    via_parts[id(rule)] = parts
             if name == phrase:
                 rank = 0
             elif phrase in _part_names(raw.get("entries")):
@@ -60,6 +72,8 @@ async def search_rules(
             found.append((rank, kind, text, rule))
     kept, hidden = split_srd([r for *_, r in found], srd_only, latest_only)
     found = [f for f in found if id(f[3]) in set(map(id, kept))]
+    names = {fold(rule.name) for *_, rule in found}
+    found = [f for f in found if not via_parts.get(id(f[3]), set()) & names]
     found.sort(key=lambda f: (f[0], f[3].name.lower(), f[3].source.abbreviation))
     return RuleResults(
         srd_only=srd_only,
@@ -77,6 +91,41 @@ async def search_rules(
             for _, kind, text, rule in found[offset : offset + limit]
         ],
     )
+
+
+def _matches(words: list[str], name: str, text: str) -> bool:
+    folded = fold(text)
+    return all(w in name or w in folded for w in words)
+
+
+def _split_parts(services: Services) -> dict[str, set[str]]:
+    """Variant rules' parts that 5etools also keeps as actions (fromVariant), by
+    the variant rule's name, folded."""
+    found: dict[str, set[str]] = {}
+    for action in services.catalogue.get_all_by_type(ContentType.ACTION):
+        parent = action.model_dump(by_alias=True).get("fromVariant")
+        if parent:
+            found.setdefault(fold(str(parent).split("|")[0]), set()).add(
+                fold(action.name)
+            )
+    return found
+
+
+def _without(entries: Any, parts: set[str]) -> Any:
+    """Entries without the named parts, folded names."""
+    if isinstance(entries, list):
+        return [
+            _without(e, parts)
+            for e in entries
+            if not (
+                isinstance(e, dict)
+                and e.get("name")
+                and fold(strip_tags(str(e["name"]))) in parts
+            )
+        ]
+    if isinstance(entries, dict):
+        return {k: _without(v, parts) for k, v in entries.items()}
+    return entries
 
 
 def _part_names(entries: Any) -> set[str]:

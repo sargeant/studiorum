@@ -29,7 +29,7 @@ async def call(tool: str, **args: Any) -> dict[str, Any]:
 
 
 def names(result: dict[str, Any]) -> list[str]:
-    return [r["name"] for r in result["results"]]
+    return [r["name"] for r in result.get("results", [])]
 
 
 @pytest.mark.asyncio
@@ -74,10 +74,10 @@ async def test_search_spells_filters() -> None:
     assert names(await call("search_spells", ritual=True)) == ["Alarm"]
     assert names(await call("search_spells", ritual=False)) == ["Fireball"]
     result = await call("search_spells", srd_only=False, limit=1)
-    assert (result["total"], result["next_offset"]) == (3, 1)
+    assert (result["total"], result.get("next_offset")) == (3, 1)
     assert len(result["results"]) == 1
     last = await call("search_spells", srd_only=False, limit=1, offset=2)
-    assert (names(last), last["next_offset"]) == (["Hellfire Orb"], None)
+    assert (names(last), last.get("next_offset")) == (["Hellfire Orb"], None)
 
 
 @pytest.mark.asyncio
@@ -106,13 +106,13 @@ async def test_searches_include_text(monkeypatch: pytest.MonkeyPatch) -> None:
     # Text stops a page at the size cap, though a page always has one result
     monkeypatch.setattr("studiorum.mcp.tools.search.PAGE_CHARS", 1)
     capped = await call("search_spells", srd_only=False, include_text=True)
-    assert (len(capped["results"]), capped["total"], capped["next_offset"]) == (
+    assert (len(capped["results"]), capped["total"], capped.get("next_offset")) == (
         1,
         3,
         1,
     )
     rest = await call("search_spells", srd_only=False, include_text=True, offset=2)
-    assert (names(rest), rest["next_offset"]) == (["Hellfire Orb"], None)
+    assert (names(rest), rest.get("next_offset")) == (["Hellfire Orb"], None)
 
 
 @pytest.mark.asyncio
@@ -146,7 +146,7 @@ async def test_search_creatures_with_a_type_to_choose_and_no_cr() -> None:
     familiar = await call(
         "search_creatures", query="familiar", creature_type="fey", srd_only=False
     )
-    assert [(r["name"], r["type"], r["cr"]) for r in familiar["results"]] == [
+    assert [(r["name"], r["type"], r.get("cr")) for r in familiar["results"]] == [
         ("Battle Familiar", "celestial | fey | fiend", None)
     ]
     fiends = await call("search_creatures", creature_type="fiend", srd_only=False)
@@ -262,12 +262,12 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
     ]
     linked = await call("get_contents", items=items[:1], include_references=True)
     assert "references" in linked["entries"][0]
-    assert result["next_offset"] is None
+    assert result.get("next_offset") is None
 
     # A size cap stops the batch; next_offset resumes it
     monkeypatch.setattr("studiorum.mcp.tools.lookup.PAGE_CHARS", 1)
     first = await call("get_contents", items=items)
-    assert ([e["name"] for e in first["entries"]], first["next_offset"]) == (
+    assert ([e["name"] for e in first["entries"]], first.get("next_offset")) == (
         ["Goblin"],
         1,
     )
@@ -275,6 +275,8 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
     assert rest["entries"][0]["data"]["name"] == "Amulet of Health"
     with pytest.raises(ToolError):
         await call("get_contents", items=[items[0]] * 21)
+    with pytest.raises(ToolError, match="offset 5 is past the end of the 1 item"):
+        await call("get_contents", items=items[:1], offset=5)
 
 
 @pytest.mark.asyncio
@@ -306,14 +308,14 @@ async def test_list_publications_filters_sorts_and_pages() -> None:
         "TB-ST"
     ]
     newest = await call("list_publications", limit=2, offset=0)
-    assert (newest["total"], ids(newest), newest["next_offset"]) == (
+    assert (newest["total"], ids(newest), newest.get("next_offset")) == (
         3,
         ["TB-ST", "TB"],
         2,
     )
     assert ids(await call("list_publications", offset=2)) == ["TA"]
     oldest = await call("list_publications", newest_first=False, limit=2)
-    assert (ids(oldest), oldest["next_offset"]) == (["TA", "TB"], 2)
+    assert (ids(oldest), oldest.get("next_offset")) == (["TA", "TB"], 2)
     with pytest.raises(ToolError):
         await call("list_publications", published_after="last year")
 
@@ -389,6 +391,23 @@ async def test_search_rules_matches_names_then_text() -> None:
     )
     shove = await call("search_rules", query="shove")
     assert [r["name"] for r in shove["results"]] == ["Unarmed Strike"]
+
+
+@pytest.mark.asyncio
+async def test_search_rules_prefers_an_action_to_the_variant_rule_it_repeats() -> None:
+    # Action Options matches "grapple" only in the part 5etools also keeps as an action
+    grapple = await call("search_rules", query="grapple", srd_only=False)
+    assert "Action Options" not in [r["name"] for r in grapple["results"]]
+    assert "Climb onto a Bigger Creature" in [r["name"] for r in grapple["results"]]
+    # Matching its own text, it stays, with the snippet from that text
+    tumble = await call("search_rules", query="tumble", srd_only=False)
+    [options] = [r for r in tumble["results"] if r["name"] == "Action Options"]
+    assert "Climb on" not in options["snippet"]
+    # Without the action to give way to, it stays
+    variant = await call(
+        "search_rules", query="grapple", rule_type="variantrule", srd_only=False
+    )
+    assert "Action Options" in [r["name"] for r in variant["results"]]
     speed = await call("search_rules", query="speed", rule_type="condition")
     assert speed["results"][0]["snippet"] == "Your Speed is 0."
 
@@ -567,9 +586,9 @@ async def test_get_class_progression_with_a_subclass() -> None:
         subclass="evocation",
         subclass_only=True,
     )
-    assert only["columns"] == []
+    assert "columns" not in only
     assert [r["level"] for r in only["levels"]] == [2, 6, 10, 14]
-    assert only["levels"][0]["cells"] == []
+    assert "cells" not in only["levels"][0]
     assert "features" not in only["levels"][0]
     with pytest.raises(ToolError, match="subclass_only needs a subclass"):
         await call("get_class_progression", class_name="Wizard", subclass_only=True)
@@ -651,3 +670,27 @@ async def test_include_text_tools_describe_the_size_cap() -> None:
         tools = {t.name: t.description or "" for t in await client.list_tools()}
     for name in ("search_spells", "search_creatures", "search_items", "search_content"):
         assert "fewer results than limit; next_offset" in tools[name], name
+
+
+@pytest.mark.asyncio
+async def test_a_condition_comes_with_the_conditions_it_includes() -> None:
+    unconscious = await call(
+        "get_content", content_type="condition", name="Unconscious"
+    )
+    headings = [
+        line for line in unconscious["text"].splitlines() if line.startswith("# ")
+    ]
+    assert headings == ["# Unconscious", "# Incapacitated", "# Prone"]
+    assert "You can only crawl." in unconscious["text"]
+    prone = await call("get_content", content_type="condition", name="Prone")
+    assert prone["text"].count("# ") == 1
+
+
+@pytest.mark.asyncio
+async def test_json_leaves_out_what_only_the_5etools_site_uses() -> None:
+    goblin = await call(
+        "get_content", content_type="creature", name="Goblin", format="json"
+    )
+    data = goblin["data"]
+    assert {"traitTags", "hasToken", "soundClip"}.isdisjoint(data)
+    assert {"name", "cr", "action"} <= set(data)

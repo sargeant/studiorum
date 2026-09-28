@@ -7,7 +7,7 @@ from typing import Annotated, Any
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
-from studiorum.data.class_entries import class_progression
+from studiorum.data.class_entries import class_progression, nested_features
 from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError, not_found
@@ -48,7 +48,8 @@ async def get_class_progression(
 
     Features come with 5etools uids for get_content. With a subclass, its
     table columns (an Eldritch Knight's spell slots) and features are added.
-    Each level's cells line up with columns.
+    Each level's cells line up with columns. A subclass comes with the class's
+    whole table; subclass_only gives just what the subclass adds.
     """
     srd_only = default_srd if srd_only is None else srd_only
     if subclass_only and not subclass:
@@ -74,13 +75,12 @@ async def get_class_progression(
             ProgressionLevel(
                 level=row.level,
                 proficiency_bonus=row.proficiency_bonus,
-                features=None
+                features=[]
                 if only_sub
-                else [_feature("classFeature", u) for u in row.features] or None,
-                subclass_features=[
-                    _feature("subclassFeature", u) for u in row.subclass_features
-                ]
-                or None,
+                else _features(services, "classFeature", row.features),
+                subclass_features=_features(
+                    services, "subclassFeature", row.subclass_features
+                ),
                 cells=[cell_text(c) for c in row.cells[first:]],
             )
             for row in progression.levels
@@ -124,6 +124,19 @@ def _labels(columns: list[tuple[str, str | None]]) -> list[str]:
         f"{strip_tags(title)} {label}" if labels.count(label) > 1 and title else label
         for label, (_, title) in zip(labels, columns, strict=True)
     ]
+
+
+def _features(services: Services, kind: str, uids: list[str]) -> list[FeatureRef]:
+    """Features by uid, each followed by the features it refers to (Evoker's
+    Evocation Savant and Potent Cantrip)."""
+    out = []
+    for uid in uids:
+        out.append(_feature(kind, uid))
+        for child_kind, child in nested_features(
+            uid, ContentType(kind), services.catalogue
+        ):
+            out.append(_feature(child_kind.value, child))
+    return out
 
 
 def _feature(kind: str, uid: str) -> FeatureRef:

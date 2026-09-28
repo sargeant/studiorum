@@ -8,6 +8,7 @@ from typing import Annotated, Any, Literal
 from fastmcp.dependencies import Depends
 from pydantic import BaseModel, Field
 
+from studiorum.data.class_entries import dereferenced
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
 from studiorum.data.models.content import BaseContent, ContentType
@@ -87,13 +88,20 @@ async def get_content(
         Field(description="markdown: laid out to read; json: the 5etools data"),
     ] = "markdown",
     include_references: Annotated[
-        bool, Field(description="What the entry's text links to, for get_content")
+        bool,
+        Field(
+            description="List what the entry's text links to, to read with get_content"
+        ),
     ] = True,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ContentEntry:
-    """One entry in full (a statblock, a spell, a class and its features), by type and name."""
+    """One entry in full (a statblock, a spell, a class and its features), by type and name.
+
+    A condition comes with the conditions its text names, in turn (Unconscious:
+    Incapacitated and Prone).
+    """
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
     return _content_entry(
@@ -110,22 +118,86 @@ def _content_entry(
     srd_only: bool,
 ) -> ContentEntry:
     data = _layout_data(services, content_type, entry, srd_only)
+    references = [
+        r
+        for r in resolve_references(services, markdown.references(data))
+        if (r.name.lower(), (r.source or "").lower())
+        != (entry.name.lower(), entry.source.abbreviation.lower())
+    ]
+    text = None
+    if format == "markdown":
+        text = to_markdown(content_type, data)
+        if content_type == "condition":
+            text = "\n\n".join([text, *_included_conditions(services, entry)])
     return ContentEntry(
         type=content_type,
         name=entry.name,
         source=entry.source.abbreviation,
         srd=entry.is_srd,
-        text=to_markdown(content_type, data) if format == "markdown" else None,
-        data=data if format == "json" else None,
-        references=[
-            r
-            for r in resolve_references(services, markdown.references(data))
-            if (r.name.lower(), (r.source or "").lower())
-            != (entry.name.lower(), entry.source.abbreviation.lower())
-        ]
-        if include_references
+        text=text,
+        data={k: v for k, v in data.items() if k not in _SITE_ONLY}
+        if format == "json"
         else None,
+        references=references if include_references else [],
     )
+
+
+# What 5etools keeps for its site's filters, tokens and art, not the rules; the
+# tags are read from the text, which the entry keeps
+_SITE_ONLY = frozenset(
+    {
+        "actionTags",
+        "altArt",
+        "areaTags",
+        "conditionInflict",
+        "conditionInflictLegendary",
+        "conditionInflictSpell",
+        "creatureTypeTags",
+        "damageInflict",
+        "damageTags",
+        "damageTagsLegendary",
+        "damageTagsSpell",
+        "hasFluff",
+        "hasFluffImages",
+        "hasRefs",
+        "hasToken",
+        "isNamedCreature",
+        "isNpc",
+        "languageTags",
+        "lootTables",
+        "miscTags",
+        "reqAttuneTags",
+        "savingThrowForced",
+        "savingThrowForcedLegendary",
+        "savingThrowForcedSpell",
+        "senseTags",
+        "soundClip",
+        "spellcastingTags",
+        "tokenCredit",
+        "tokenCustom",
+        "traitTags",
+    }
+)
+
+
+def _included_conditions(services: Services, condition: BaseContent) -> list[str]:
+    """The Markdown of the conditions a condition names (Paralyzed: Incapacitated),
+    and those they name in turn, each once."""
+    seen = {(condition.name.lower(), condition.source.abbreviation.lower())}
+    queue = [condition]
+    out = []
+    while queue:
+        data = entry_data(queue.pop(0))
+        for ref in resolve_references(services, markdown.references(data)):
+            key = (ref.name.lower(), (ref.source or "").lower())
+            if ref.type != "condition" or not ref.source or key in seen:
+                continue
+            seen.add(key)
+            found = services.catalogue.find(ContentType.CONDITION, ref.name, ref.source)
+            if found is not None:
+                queue.append(found)
+                out.append(to_markdown("condition", entry_data(found)))
+    return out
 
 
 class Wanted(BaseModel):
@@ -144,7 +216,10 @@ async def get_contents(
         int, Field(ge=0, description="Start at this item, to resume a batch")
     ] = 0,
     include_references: Annotated[
-        bool, Field(description="What each entry's text links to, for get_content")
+        bool,
+        Field(
+            description="List what each entry's text links to, to read with get_content"
+        ),
     ] = False,
     srd_only: SrdOnly = None,
     default_srd: bool = Depends(srd_default),
@@ -156,6 +231,10 @@ async def get_contents(
     next_offset says where to resume. An entry asked for twice comes once.
     """
     srd_only = default_srd if srd_only is None else srd_only
+    if offset >= len(items):
+        raise ClientError(
+            f"offset {offset} is past the end of the {len(items)} item(s) asked for."
+        )
     entries: list[ContentEntry] = []
     missing: list[ContentMissing] = []
     seen: set[tuple[str, str, str]] = set()
@@ -188,10 +267,13 @@ async def get_contents(
 def _layout_data(
     services: Services, content_type: str, entry: BaseContent, srd_only: bool
 ) -> dict[str, Any]:
-    """The data get_content lays out: the entry, and a class's subclasses."""
+    """The data get_content lays out: the entry, a class's subclasses, and a
+    feature with the features it refers to in place."""
     data = entry_data(entry)
     if content_type == "class":
         data["subclasses"] = _subclasses(services, entry, srd_only)
+    if content_type in ("classFeature", "subclassFeature"):
+        data["entries"] = dereferenced(data.get("entries", []), services.catalogue)
     return data
 
 
@@ -497,7 +579,7 @@ async def list_publications(
     newest_first: Annotated[
         bool, Field(description="Newest first; false for oldest first")
     ] = True,
-    limit: Annotated[int, Field(ge=1, le=200)] = 50,
+    limit: Annotated[int, Field(ge=1, le=200)] = 20,
     offset: Offset = 0,
     services: Services = Depends(get_services),
 ) -> Publications:

@@ -3,7 +3,11 @@
 from typing import Any
 from unittest.mock import Mock
 
-from studiorum.data.class_entries import class_entries, subclass_entries
+from studiorum.data.class_entries import (
+    class_entries,
+    nested_features,
+    subclass_entries,
+)
 from studiorum.data.models.classes import Class, ClassFeature, SubclassFeature
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.optional_features import OptionalFeature
@@ -177,3 +181,16 @@ def test_features_are_looked_up_by_uid() -> None:
         ContentType.CLASS_FEATURE, "Fighting Style|Fighter||1"
     )
     catalogue.find_uid.assert_any_call(ContentType.OPTIONALFEATURE, "Archery|PHB")
+
+
+def test_nested_features_lists_the_features_a_feature_refers_to() -> None:
+    # Class and subclass features only, not the options a feature offers
+    assert nested_features(
+        "Champion|Fighter||Champion||3", ContentType.SUBCLASS_FEATURE, _catalogue()
+    ) == [(ContentType.SUBCLASS_FEATURE, "Improved Critical|Fighter||Champion||3")]
+    assert (
+        nested_features(
+            "Fighting Style|Fighter||1", ContentType.CLASS_FEATURE, _catalogue()
+        )
+        == []
+    )

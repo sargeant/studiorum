@@ -21,7 +21,7 @@ async def call(tool: str, **args: Any) -> dict[str, Any]:
 
 
 def names(result: dict[str, Any]) -> list[str]:
-    return [r["name"] for r in result["results"]]
+    return [r["name"] for r in result.get("results", [])]
 
 
 async def test_calculate_encounter_budget() -> None:

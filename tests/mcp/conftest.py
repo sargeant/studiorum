@@ -187,6 +187,23 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         {
             "variantrule": [
                 {
+                    "name": "Action Options",
+                    "source": "DMG",
+                    "entries": [
+                        "Options for combat.",
+                        {
+                            "type": "entries",
+                            "name": "Climb onto a Bigger Creature",
+                            "entries": ["Climb on, as a special grapple check."],
+                        },
+                        {
+                            "type": "entries",
+                            "name": "Tumble",
+                            "entries": ["Tumble through a hostile creature's space."],
+                        },
+                    ],
+                },
+                {
                     "name": "Unarmed Strike",
                     "source": "XPHB",
                     "srd52": True,
@@ -198,6 +215,19 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                             "entries": ["The target has the Grappled condition."],
                         },
                     ],
+                },
+            ]
+        },
+    )
+    _write(
+        tmp_path / "actions.json",
+        {
+            "action": [
+                {
+                    "name": "Climb onto a Bigger Creature",
+                    "source": "DMG",
+                    "fromVariant": "Action Options",
+                    "entries": ["Climb on, as a special grapple check."],
                 }
             ]
         },
@@ -211,7 +241,29 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "source": "XPHB",
                     "srd52": True,
                     "entries": ["Your {@variantrule Speed|XPHB} is 0."],
-                }
+                },
+                {
+                    "name": "Incapacitated",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["You can't take any action."],
+                },
+                {
+                    "name": "Prone",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["You can only crawl."],
+                },
+                {
+                    "name": "Unconscious",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": [
+                        "You have the {@condition Incapacitated|XPHB} and "
+                        "{@condition Prone|XPHB} conditions.",
+                        "While {@condition Incapacitated|XPHB}, you drop what you hold.",
+                    ],
+                },
             ]
         },
     )
@@ -265,6 +317,18 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                             "name": "Mousetraps",
                             "id": "202",
                             "entries": ["They detonate when touched."],
+                        },
+                        {
+                            "type": "entries",
+                            "name": "Spell List",
+                            "id": "204",
+                            "entries": [
+                                {
+                                    "type": "table",
+                                    "colLabels": ["Spell"],
+                                    "rows": [["{@spell Detonate|TB}"]],
+                                }
+                            ],
                         },
                         {
                             "type": "entries",
