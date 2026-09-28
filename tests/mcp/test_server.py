@@ -15,7 +15,7 @@ from fastmcp.exceptions import ToolError
 from studiorum.data.loaders import item_types
 from studiorum.data.models.content import ContentType
 from studiorum.mcp.errors import ClientError, suggestions
-from studiorum.mcp.server import mcp
+from studiorum.mcp.server import instructions, mcp
 from studiorum.mcp.tools.lookup import (
     EntryType,
     _check_one_owner,
@@ -671,6 +671,11 @@ async def test_creatures_can_be_found_by_a_tag_on_their_type() -> None:
             difficulty="low",
             creature_type="robot",
         )
+
+
+def test_the_instructions_give_the_srd_default_the_server_runs_with() -> None:
+    assert "default to SRD content only (srd_only=true)" in instructions(False)
+    assert "return all content unless a call passes srd_only=true" in instructions(True)
 
 
 @pytest.mark.asyncio
