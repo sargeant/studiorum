@@ -389,6 +389,23 @@ async def test_search_rules_matches_names_then_text() -> None:
     )
     shove = await call("search_rules", query="shove")
     assert [r["name"] for r in shove["results"]] == ["Unarmed Strike"]
+
+
+@pytest.mark.asyncio
+async def test_search_rules_prefers_an_action_to_the_variant_rule_it_repeats() -> None:
+    # Action Options matches "grapple" only in the part 5etools also keeps as an action
+    grapple = await call("search_rules", query="grapple", srd_only=False)
+    assert "Action Options" not in [r["name"] for r in grapple["results"]]
+    assert "Climb onto a Bigger Creature" in [r["name"] for r in grapple["results"]]
+    # Matching its own text, it stays, with the snippet from that text
+    tumble = await call("search_rules", query="tumble", srd_only=False)
+    [options] = [r for r in tumble["results"] if r["name"] == "Action Options"]
+    assert "Climb on" not in options["snippet"]
+    # Without the action to give way to, it stays
+    variant = await call(
+        "search_rules", query="grapple", rule_type="variantrule", srd_only=False
+    )
+    assert "Action Options" in [r["name"] for r in variant["results"]]
     speed = await call("search_rules", query="speed", rule_type="condition")
     assert speed["results"][0]["snippet"] == "Your Speed is 0."
 

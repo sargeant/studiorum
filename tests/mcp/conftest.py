@@ -187,6 +187,23 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         {
             "variantrule": [
                 {
+                    "name": "Action Options",
+                    "source": "DMG",
+                    "entries": [
+                        "Options for combat.",
+                        {
+                            "type": "entries",
+                            "name": "Climb onto a Bigger Creature",
+                            "entries": ["Climb on, as a special grapple check."],
+                        },
+                        {
+                            "type": "entries",
+                            "name": "Tumble",
+                            "entries": ["Tumble through a hostile creature's space."],
+                        },
+                    ],
+                },
+                {
                     "name": "Unarmed Strike",
                     "source": "XPHB",
                     "srd52": True,
@@ -198,6 +215,19 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                             "entries": ["The target has the Grappled condition."],
                         },
                     ],
+                },
+            ]
+        },
+    )
+    _write(
+        tmp_path / "actions.json",
+        {
+            "action": [
+                {
+                    "name": "Climb onto a Bigger Creature",
+                    "source": "DMG",
+                    "fromVariant": "Action Options",
+                    "entries": ["Climb on, as a special grapple check."],
                 }
             ]
         },
