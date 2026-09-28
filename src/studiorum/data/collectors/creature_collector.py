@@ -362,8 +362,9 @@ class CreatureCollector:
             kind = creature_type_data.type
             main_type = kind.lower() if isinstance(kind, str) else ""
             # A type to choose, e.g. {"choose": ["celestial", "fey", "fiend"]}
-            if isinstance(kind, dict) and isinstance(kind.get("choose"), list):
-                choices = [str(c).lower() for c in kind["choose"]]
+            choose = kind.get("choose") if isinstance(kind, dict) else None
+            if isinstance(choose, list):
+                choices = [str(c).lower() for c in choose]
             creature_tags = [
                 tag.lower()
                 for tag in creature_type_data.tags or []
