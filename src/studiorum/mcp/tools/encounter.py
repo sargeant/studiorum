@@ -110,20 +110,27 @@ async def rate_encounter(
             "pass its name and source to use that version."
             for uid in reprint_uids(found)
         ]
+        xp = encounter.creature_xp(found.cr)
+        if xp is None:
+            notes.append(
+                f"{found.name} ({found.source.abbreviation}) has no challenge "
+                "rating, so it adds no XP and doesn't count toward the multiplier."
+            )
         rated.append(
             RatedCreature(
                 name=found.name,
                 source=found.source.abbreviation,
                 srd=found.is_srd,
                 cr=cr_text(found),
-                xp=encounter.creature_xp(found.cr),
+                xp=xp,
                 count=wanted.count,
             )
         )
     if problems:
         raise ClientError(" ".join(problems))
     total = sum((c.xp or 0) * c.count for c in rated)
-    factor = encounter.multiplier(sum(c.count for c in rated), len(party_levels), rules)
+    counted = sum(c.count for c in rated if c.xp is not None)
+    factor = encounter.multiplier(counted, len(party_levels), rules)
     adjusted = int(total * factor)
     return EncounterRating(
         rules=rules,
