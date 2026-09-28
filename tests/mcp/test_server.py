@@ -352,7 +352,7 @@ async def test_get_content_as_markdown() -> None:
     assert goblin.startswith("# Goblin\n\n*Small humanoid (goblinoid), neutral evil*")
     assert "**Armor Class** 15 (leather armor, shield)" in goblin
     assert "| 8 (-1) | 14 (+2) | 10 (+0) | 10 (+0) | 8 (-1) | 8 (-1) |" in goblin
-    assert "**Challenge** 1/4 (50 XP)" in goblin
+    assert "**Challenge** 1/4 (50 XP; PB +2)" in goblin
     assert "***Scimitar.*** *Melee Weapon Attack:* +4 to hit" in goblin
 
     fireball = (await call("get_content", content_type="spell", name="Fireball"))[

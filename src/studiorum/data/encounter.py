@@ -8,6 +8,7 @@ budgets are the most XP for each difficulty, with no multiplier.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from typing import Any, Literal
 
@@ -61,6 +62,21 @@ def creature_xp(cr: Any) -> int | None:
             return int(cr["xp"])
         cr = cr.get("cr")
     return XP_BY_CR.get(str(cr)) if cr is not None else None
+
+
+def proficiency_bonus(cr: Any) -> int | None:
+    """``Parser.crToPb`` for a 5etools ``cr``: +2 to CR 4, then +1 every 4 CR."""
+    base = cr.get("cr") if isinstance(cr, dict) else cr
+    if str(base) not in XP_BY_CR:
+        return None
+    number = _cr_number(str(base))
+    return 2 if number < 5 else math.ceil(number / 4) + 1
+
+
+def _cr_number(cr: str) -> float:
+    """A CR such as "1/4" as a number."""
+    top, _, bottom = cr.partition("/")
+    return int(top) / int(bottom or 1)
 
 
 def table_xp(cr: Any) -> int | None:
