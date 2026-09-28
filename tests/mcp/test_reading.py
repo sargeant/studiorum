@@ -181,6 +181,49 @@ def test_a_statblock_without_a_source_takes_the_default() -> None:
     ]
 
 
+@pytest.mark.parametrize(
+    ("entry", "markdown"),
+    [
+        ({"type": "bonus", "value": 2}, "+2"),
+        ({"type": "bonusSpeed", "value": 10}, "+10 ft."),
+        ({"type": "bonusSpeed", "value": 0}, "\u2014"),
+        (
+            {"type": "dice", "toRoll": [{"number": 2, "faces": 6, "modifier": 3}]},
+            "2d6+3",
+        ),
+        ({"type": "refOptionalfeature", "optionalfeature": "Dueling|XPHB"}, "Dueling"),
+        (
+            {
+                "type": "ingredient",
+                "entry": "{=amount1/v} cup {@item flour}",
+                "amount1": 1.5,
+            },
+            "1 1/2 cup flour",
+        ),
+        (
+            {
+                "type": "flowchart",
+                "blocks": [{"type": "flowBlock", "name": "Start", "entries": ["Go."]}],
+            },
+            "# Start\n\nGo.",
+        ),
+        (
+            {
+                "type": "spellcasting",
+                "name": "Shared Spellcasting",
+                "headerEntries": ["The coven casts:"],
+                "spells": {"1": {"slots": 4, "spells": ["{@spell sleep}"]}},
+            },
+            "# Shared Spellcasting\n\nThe coven casts:\n\nLevel 1 (4 slots): sleep",
+        ),
+    ],
+)
+def test_entry_types_render_as_5etools_shows_them(
+    entry: dict[str, Any], markdown: str
+) -> None:
+    assert render(entry) == markdown
+
+
 def test_a_quote_names_who_and_where() -> None:
     quote = {
         "type": "quote",
