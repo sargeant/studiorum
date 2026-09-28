@@ -9,6 +9,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from fastmcp import FastMCP
+from mcp.types import ToolAnnotations
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, Response
 
 from studiorum.config import get_app_config
 from studiorum.log import get_logger
@@ -40,6 +43,8 @@ options = ServerOptions()
 
 
 logger = get_logger(__name__)
+
+READ_ONLY = ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False)
 
 
 @asynccontextmanager
@@ -85,4 +90,11 @@ for tool in (
     read_section,
     search_publication,
 ):
-    mcp.tool(tool)
+    # Every tool reads the loaded data and nothing else
+    mcp.tool(tool, annotations=READ_ONLY)
+
+
+@mcp.custom_route("/healthz", methods=["GET"], include_in_schema=False)
+async def healthz(request: Request) -> Response:
+    """200 once the server answers, which is after the data has loaded."""
+    return PlainTextResponse("ok")

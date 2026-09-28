@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+import httpx
 from fastmcp import Client
 
 TOOLS = 13
@@ -50,6 +51,11 @@ def _check(ok: bool, what: str) -> None:
 
 
 async def _smoke(url: str) -> None:
+    health = url.removesuffix("/").removesuffix("/mcp") + "/healthz"
+    async with httpx.AsyncClient() as http:
+        response = await http.get(health)
+    _check(response.status_code == 200, f"GET {health}: {response.status_code}")
+
     async with Client(url) as client:
         tools = await client.list_tools()
         _check(len(tools) == TOOLS, f"tools/list: {len(tools)} tools")
