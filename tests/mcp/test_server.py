@@ -515,6 +515,21 @@ async def test_unknown_parameters_list_the_ones_a_tool_takes() -> None:
 
 
 @pytest.mark.asyncio
+async def test_bad_arguments_say_what_is_wrong_in_a_line_each() -> None:
+    with pytest.raises(ToolError) as caught:
+        await call("search_spells", limit=101, offset=-1)
+    assert str(caught.value) == (
+        "Bad arguments to search_spells. "
+        "limit: Input should be less than or equal to 100. "
+        "offset: Input should be greater than or equal to 0."
+    )
+    with pytest.raises(
+        ToolError, match=r"^Bad arguments to search_content\. query: Required\.$"
+    ):
+        await call("search_content", content_type="feat")
+
+
+@pytest.mark.asyncio
 async def test_results_leave_out_empty_keys() -> None:
     grappler = (await call("search_content", content_type="feat", query="grap"))[
         "results"
