@@ -19,17 +19,13 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel
 
 from studiorum.data.compact import compact_heading, compact_parts
-from studiorum.data.loaders.magic_variants import generic_item
-from studiorum.data.models.content import ContentType
 from studiorum.data.models.content_models import (
     FLUFF_TYPES,
-    PROP_TYPES,
-    TAG_TYPES,
     content_type_of,
 )
 from studiorum.data.models.creatures import ArmorClass, Creature
 from studiorum.data.models.entry_registry import KNOWN_ENTRY_TYPES
-from studiorum.data.models.magicvariant import MagicVariant
+from studiorum.data.statblocks import find_statblock, statblock_source, statblock_type
 from studiorum.log import get_logger
 from studiorum.render.context import Style
 from studiorum.render.escape import escape
@@ -571,47 +567,23 @@ class EntryRenderer:
 
     def _statblock_content(self, entry: dict[str, Any]) -> Any:
         """The content a statblock names by its prop, or else its tag."""
-        name = entry.get("name", "")
-        tag, prop = entry.get("tag", ""), entry.get("prop", "")
-        known = TAG_TYPES.get(tag)
-        content_type = PROP_TYPES.get(prop) if prop else known and known[0]
+        content_type = statblock_type(entry)
         if content_type is None:
-            kind = prop or tag
+            kind = entry.get("prop") or entry.get("tag", "")
             if kind not in _warned_statblocks:
                 _warned_statblocks.add(kind)
                 logger.warning(f"Statblocks of '{kind}' are not supported")
             return None
-        source = entry.get("source") or (known[1] if known else "")
-        found = self._find(content_type, entry, source)
-        # An item may be a generic variant, which renders as an item
-        if found is None and content_type == ContentType.ITEM:
-            found = self._find(ContentType.MAGICVARIANT, entry, source)
-        if isinstance(found, MagicVariant):
-            found = generic_item(found)
-        if found is None:
-            logger.warning(
-                f"Could not resolve statblock reference: {prop or tag} '{name}' "
-                f"from {source}"
-            )
-        return found
-
-    def _find(
-        self, content_type: ContentType, entry: dict[str, Any], source: str
-    ) -> Any:
-        """Content by name and source, or a subclass by its 5etools uid."""
         if self.catalogue is None:
             return None
-        if content_type == ContentType.SUBCLASS and entry.get("shortName"):
-            uid = "|".join(
-                (
-                    entry["shortName"],
-                    entry.get("className", ""),
-                    entry.get("classSource", ""),
-                    source,
-                )
+        found = find_statblock(self.catalogue, entry, content_type)
+        if found is None:
+            logger.warning(
+                "Could not resolve statblock reference: "
+                f"{entry.get('prop') or entry.get('tag', '')} '{entry.get('name', '')}' "
+                f"from {statblock_source(entry)}"
             )
-            return self.catalogue.find_uid(content_type, uid)
-        return self.catalogue.find(content_type, entry.get("name", ""), source)
+        return found
 
     def _render_model(self, kind: str, content: Any) -> str:
         """A creature, spell, item or vehicle through its macro, in the text."""
