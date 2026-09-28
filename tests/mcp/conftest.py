@@ -337,7 +337,9 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "source": "XPHB",
                     "srd52": True,
                     "entries": ["You take 1d6 Bludgeoning damage per 10 feet fallen."],
-                }
+                },
+                {"name": "Cliff", "source": "XDMG", "entries": ["Many have fallen."]},
+                {"name": "Pit", "source": "XDMG", "entries": ["You might fall."]},
             ]
         },
     )
