@@ -107,9 +107,12 @@ publish() {
     echo
     confirm "Fast-forward main to $(git rev-parse --short HEAD) and push $tag?"
 
-    git push origin HEAD:main
+    # One atomic push: the pre-push gates run once, and main never moves without its tag.
     git tag -a "$tag" --cleanup=verbatim -F "$summary"
-    git push origin "$tag"
+    if ! git push --atomic origin HEAD:main "refs/tags/$tag"; then
+        git tag -d "$tag" >/dev/null
+        die "the push failed; check git ls-remote origin refs/heads/main refs/tags/$tag before trying again"
+    fi
     wait_for_run release.yml --commit "$(git rev-parse HEAD)"
     gh release view "$tag" --repo "$REPO" --json url -q .url
 }
