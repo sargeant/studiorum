@@ -63,11 +63,11 @@ A container image or other deployment can rely on these, and a change to any of 
 | Tool | What it returns |
 |---|---|
 | `search_spells` | Spells by name, level, school, class list, ritual or concentration |
-| `search_creatures` | Creatures by name, challenge rating range and creature type |
-| `search_items` | Items by name, rarity, attunement, or magic items only |
+| `search_creatures` | Creatures by name, challenge rating range, and creature type or a tag on it such as demon or goblinoid |
+| `search_items` | Items by name, kind (ring, wand, wondrous, weapon), rarity, attunement, or magic items only |
 | `search_content` | Entries of any type `get_content` reads, by name or source (every one of a type without a query): deities, feats, races, backgrounds, random tables and the rest |
 | `search_rules` | Actions, conditions, statuses, variant rules, senses, hazards, and weapon properties and masteries whose name or text has the words asked for |
-| `get_content` | One entry in full, such as a statblock, a spell, a class or a class feature, as Markdown |
+| `get_content` | One entry in full, such as a statblock (with its lair actions and regional effects), a spell, a class feature, a generic magic item such as Flame Tongue, or a random table, as Markdown |
 | `get_contents` | Up to 20 entries in full in one call |
 | `get_class_progression` | A class's table by level: proficiency bonus, features, spell slots and its other columns |
 | `list_publications` | The books and adventures loaded, by name, date or kind |
