@@ -6,7 +6,7 @@ from typing import Any
 
 import mcp.types as mt
 from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
-from fastmcp.tools.tool import ToolResult
+from fastmcp.tools import ToolResult
 
 from studiorum.mcp.errors import ClientError
 
