@@ -1,5 +1,6 @@
 """Markdown layouts for get_content."""
 
+from studiorum.data.models.creatures import Spellcasting
 from studiorum.mcp.layouts import to_markdown
 
 
@@ -229,3 +230,49 @@ def test_a_language_shows_its_kind_and_origin() -> None:
         "# Thieves' Cant\n\n*Rare language* · *XPHB*\n\n"
         "**Origin:** Various criminal guilds"
     )
+
+
+def test_a_creature_shows_every_kind_of_spell_list_but_its_hidden_ones() -> None:
+    caster = {
+        "name": "Caster",
+        "source": "HB",
+        "size": ["M"],
+        "type": "humanoid",
+        "spellcasting": [
+            {
+                "name": "Wand",
+                "headerEntries": ["The wand casts."],
+                "charges": {"1e": ["{@spell light}"], "2e": ["{@spell fly}"]},
+                "ritual": ["{@spell alarm}"],
+                "daily": {"1": ["{@spell sleep}"]},
+                "hidden": ["daily"],
+            },
+            {
+                "name": "Pact Magic",
+                "spells": {
+                    "0": {"spells": ["{@spell light}"]},
+                    "3": {"lower": 1, "slots": 2, "spells": ["{@spell fly}"]},
+                },
+            },
+        ],
+    }
+
+    text = to_markdown("creature", caster)
+
+    assert "2 charges each: fly\n\n1 charge each: light\n\nRituals: alarm" in text
+    assert "sleep" not in text
+    assert "Cantrips: light\n\nLevels 1-3 (2 level 3 slots): fly" in text
+
+
+def test_the_spellcasting_model_keeps_every_kind_of_spell_list() -> None:
+    block = {
+        "name": "Wand",
+        "charges": {"1e": ["{@spell light}"]},
+        "restLong": {"1": ["{@spell fly}"]},
+        "ritual": ["{@spell alarm}"],
+        "spells": {"3": {"lower": 1, "slots": 2, "spells": ["{@spell fly}"]}},
+    }
+
+    kept = Spellcasting.model_validate(block).model_dump(exclude_none=True)
+
+    assert kept == block
