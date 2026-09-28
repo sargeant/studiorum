@@ -68,31 +68,37 @@ A container image or other deployment can rely on these, and a change to any of 
 | `search_content` | Entries of any type `get_content` reads, by name: deities, feats, races, backgrounds and the rest |
 | `search_rules` | Actions, conditions, statuses, variant rules and senses whose name or text has the words asked for |
 | `get_content` | One entry in full, such as a statblock, a spell, a class or a class feature, as Markdown |
-| `list_publications` | The books and adventures loaded, oldest first |
+| `get_contents` | Up to 20 entries in full in one call |
+| `get_class_progression` | A class's table by level: proficiency bonus, features, spell slots and its other columns |
+| `list_publications` | The books and adventures loaded, by name, date or kind |
 | `get_table_of_contents` | A book or adventure's chapters and sections, with their ids and sizes |
 | `read_section` | One chapter or section of a book or adventure as Markdown |
-| `search_publication` | The sections of a book or adventure that mention something |
+| `search_publication` | The sections of a book or adventure, or of all of them, that mention something |
 | `calculate_encounter_budget` | The XP for each encounter difficulty for a party |
 | `rate_encounter` | How hard a group of creatures is for a party |
 | `suggest_creatures` | Creatures that make an encounter of a given difficulty |
 
-The search tools return short summaries (name, source, level or challenge rating, and so on) with the number of matches, up to a `limit` of 100. If a name isn't found, the error suggests the closest names. Each result says whether the call kept to the SRD (`srd_only`) and, when the SRD filter left matches out, how many (`hidden_by_srd`). Pass `offset` with `limit` to page through a long list. An unknown class or creature type, or `cr_min` above `cr_max`, is an error that lists what's valid. Searches leave out an entry when a later book reprints it and the reprint is also a match, so you see the XPHB Fireball and not the PHB one. Pass `latest_only=false` to see both.
+The search tools return short summaries (name, source, level or challenge rating, and so on) with the number of matches, up to a `limit` of 100. Pass `include_text=true` to `search_spells`, `search_creatures`, `search_items` or `search_content` to get each result's text too, as `get_content` gives it; a page then stops at 24,000 characters, so it can hold fewer results than `limit`. If a name isn't found, the error suggests names that contain it, then the closest spellings. Each result says whether the call kept to the SRD (`srd_only`) and, when the SRD filter left matches out, how many (`hidden_by_srd`). Every tool that returns a list takes `limit` and `offset` and returns `total` and `next_offset`, the offset of the next page (none after the last). `read_section` is the exception: its pages are pages of text (`page` and `pages`). An unknown class or creature type, or `cr_min` above `cr_max`, is an error that lists what's valid. Searches leave out an entry when a later book reprints it and the reprint is also a match, so you see the XPHB Fireball and not the PHB one. Pass `latest_only=false` to see both.
 
 `search_rules` matches every word of the query against a rule's name and text, name matches first, with a short snippet of the text around the match. It finds rules that aren't where you'd expect: in the 2024 rules, grappling is part of the Unarmed Strike variant rule.
 
 `get_content` returns an entry as Markdown: a creature as a statblock, and spells, items, classes and subclasses in their own layouts, with tags reduced to their text. Pass `format="json"` for the 5etools data instead. `references` lists what the entry's text links to, such as the items a creature carries, for further `get_content` calls. A class lists its features with their 5etools uids, such as `Spell Mastery|Wizard|XPHB|18`; pass one as the name with `content_type="classFeature"` (or `subclassFeature`) to read it. Without a `source`, `get_content` returns the latest edition. Specific magic items such as +3 Plate Armor are built from 5etools' generic variants, as the 5etools site builds them.
 
+`get_contents` takes a list of up to 20 requests, each a `content_type`, `name` and optional `source`, and returns them as `get_content` would, up to 24,000 characters in all. When the entries would run past that it stops short and `next_offset` says where to resume; names it can't find are listed in `not_found` with the reason.
+
+`get_class_progression` takes a class (and optionally its `source`, a `subclass` and a `level`) and returns its table by level: proficiency bonus, the features gained with their uids, and the class's own columns, such as cantrips and spell slots by spell level, rendered as the 5etools class page shows them. A subclass adds its features and any columns it has, such as an Eldritch Knight's spell slots.
+
 `search_content` gives a `uid` and a `detail` where a name and source repeat, such as the Celtic and Forgotten Realms Silvanus in the PHB; pass the uid as `get_content`'s name to pick one.
 
-`list_publications` gives each book or adventure's `id` and the `source` its content carries. They differ for some, such as `PS-X` and `PSX`, and `sources` filters take either. `list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
+`list_publications` gives each book or adventure's `id` and the `source` its content carries, oldest first. `query` keeps those whose name or id contains the text, `published_after` those published on or after a date (`2024` or `2024-11-12`), and `newest_first` reverses the order; it returns 50 at a time. They differ for some, such as `PS-X` and `PSX`, and `sources` filters take either. `list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
 
 ### Reading books and adventures
 
 `get_content` doesn't return books or adventures, which run to hundreds of thousands of characters. Read them a section at a time:
 
 1. `get_table_of_contents` takes an id from `list_publications` (such as `LMoP`), or the full name, and lists its chapters with their sections' ids and their size in characters. A section that holds nothing but statblocks lists them in `statblocks`, so you can go straight to `get_content`. `depth` lists more levels of sections, and `section_id` lists the sections inside one section.
-2. `read_section` returns one chapter or section as Markdown, with the ids of its subsections. Tags such as `{@creature goblin|MM}` become their text ("goblin"), and a statblock becomes a line naming the creature, which `get_content` returns in full. A page holds up to 24,000 characters. A longer section comes in pages (`page`, `pages`), and a subsection too long for a page is left as a pointer to read on its own. `references` lists what the page links to: content for `get_content`, other sections by id, and other books and adventures by publication id.
-3. `search_publication` finds the sections that mention something, with a breadcrumb path and a snippet. Every word must appear in a section's name or its own text; sections named for the words come first, then the rest in book order.
+2. `read_section` returns one chapter or section as Markdown, with the ids of its subsections. Tags such as `{@creature goblin|MM}` become their text ("goblin"), and a statblock becomes a line naming the creature, which `get_content` returns in full. Pass `expand_statblocks=true` to have each statblock laid out in full in its place instead, as `get_content` gives it; a section full of spells or creatures then takes more pages. A page holds up to 24,000 characters. A longer section comes in pages (`page`, `pages`), and a subsection too long for a page is left as a pointer to read on its own. `references` lists what the page links to: content for `get_content`, other sections by id, and other books and adventures by publication id.
+3. `search_publication` finds the sections that mention something, with a breadcrumb path and a snippet. Every word must appear in a section's name or its own text; sections named for the words come first, then the rest in book order. Leave out `publication` to search every book and adventure, oldest first, to find which one has something; `names_only=true` matches section names alone. The first search over all of them takes a couple of seconds while the text is prepared, and later ones take a fraction of a second.
 
 ### Encounters
 
