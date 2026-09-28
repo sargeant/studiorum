@@ -368,3 +368,16 @@ def test_a_complex_trap_gives_its_rating_trigger_and_countermeasures() -> None:
     )
     for part in ("## Trigger", "A creature enters the hall.", "## Countermeasures"):
         assert part in text
+
+
+def test_a_vehicle_upgrade_names_its_type() -> None:
+    armor = {
+        "name": "Canian Armor",
+        "source": "BGDIA",
+        "upgradeType": ["IWM:A"],
+        "entries": ["Infernal iron."],
+    }
+
+    assert to_markdown("vehicleUpgrade", armor) == (
+        "# Canian Armor\n\n*Infernal War Machine Upgrade, Armor* · *BGDIA*\n\nInfernal iron."
+    )

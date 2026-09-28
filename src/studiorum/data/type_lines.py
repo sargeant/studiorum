@@ -659,7 +659,7 @@ def background_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     return [*([prerequisite] if prerequisite else []), *(data.get("entries") or [])]
 
 
-def vehicle_upgrade_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
+def vehicle_upgrade_entries(content: BaseModel | Raw, _: Catalogue | None) -> list[Any]:
     """``Renderer.vehicleUpgrade``: its types and prerequisite, then entries."""
     data = raw(content)
     # 5etools joins the types as an array: with a bare comma
