@@ -137,11 +137,19 @@ def _all[T: BaseContent](
 def _narrow[T: BaseContent](
     found: Sequence[T], query: str | None, srd_only: bool, latest_only: bool
 ) -> tuple[list[T], int]:
-    """The matches in name order, and how many srd_only left out."""
+    """The matches, any named the query first, then in name order, and how many
+    srd_only left out."""
     needle = fold(query or "")
     named = [c for c in found if needle in fold(c.name)]
     kept, hidden = split_srd(named, srd_only, latest_only)
-    return sorted(kept, key=lambda c: (c.name.lower(), c.source.abbreviation)), hidden
+    return sorted(
+        kept,
+        key=lambda c: (
+            bool(needle) and fold(c.name) != needle,
+            c.name.lower(),
+            c.source.abbreviation,
+        ),
+    ), hidden
 
 
 def split_srd[T: BaseContent](

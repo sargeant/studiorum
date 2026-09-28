@@ -163,6 +163,7 @@ async def test_search_items_filters() -> None:
     assert names(await call("search_items", rarity="rare", srd_only=False)) == [
         "Amulet of Grit",
         "Amulet of Health",
+        "Grit",
     ]
     assert names(await call("search_items", magic_only=True)) == ["Amulet of Health"]
 
@@ -410,6 +411,21 @@ async def test_search_rules_prefers_an_action_to_the_variant_rule_it_repeats() -
     assert "Action Options" in [r["name"] for r in variant["results"]]
     speed = await call("search_rules", query="speed", rule_type="condition")
     assert speed["results"][0]["snippet"] == "Your Speed is 0."
+
+
+@pytest.mark.asyncio
+async def test_search_rules_finds_hazards() -> None:
+    result = await call("search_rules", query="falling")
+    assert [(r["name"], r["type"]) for r in result["results"]] == [
+        ("Falling", "hazard")
+    ]
+    assert await call("search_rules", query="falling", rule_type="hazard") == result
+
+
+@pytest.mark.asyncio
+async def test_name_searches_put_an_entry_named_the_query_first() -> None:
+    grit = await call("search_items", query="grit", srd_only=False)
+    assert names(grit) == ["Grit", "Amulet of Grit"]
 
 
 @pytest.mark.asyncio
