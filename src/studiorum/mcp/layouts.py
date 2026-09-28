@@ -438,6 +438,7 @@ def _creature(data: Raw, _: str) -> list[str]:
             _woven(data.get("mythic"), by_place.get("mythic")),
             data.get("mythicHeader"),
         ),
+        _entries(data.get("variant")),
         *(
             f"## {heading}\n\n{_entries(entries, 3)}"
             for heading, entries in (data.get(LAIR) or {}).items()
