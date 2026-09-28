@@ -190,7 +190,14 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "name": "Unarmed Strike",
                     "source": "XPHB",
                     "srd52": True,
-                    "entries": ["A blow to damage, grapple, or shove a target."],
+                    "entries": [
+                        "A blow to damage, grapple, or shove a target.",
+                        {
+                            "type": "entries",
+                            "name": "Grapple",
+                            "entries": ["The target has the Grappled condition."],
+                        },
+                    ],
                 }
             ]
         },

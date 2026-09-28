@@ -364,15 +364,17 @@ async def test_get_content_reads_classes_and_features() -> None:
 
 @pytest.mark.asyncio
 async def test_search_rules_matches_names_then_text() -> None:
+    # A rule with a part named the query comes before other name matches
     result = await call("search_rules", query="grapple")
     assert [(r["name"], r["type"]) for r in result["results"]] == [
-        ("Grappled", "condition"),
         ("Unarmed Strike", "variantrule"),
+        ("Grappled", "condition"),
     ]
-    assert (
-        result["results"][1]["snippet"]
-        == "A blow to damage, grapple, or shove a target."
+    assert result["results"][0]["snippet"].startswith(
+        "A blow to damage, grapple, or shove a target."
     )
+    shove = await call("search_rules", query="shove")
+    assert [r["name"] for r in shove["results"]] == ["Unarmed Strike"]
     speed = await call("search_rules", query="speed", rule_type="condition")
     assert speed["results"][0]["snippet"] == "Your Speed is 0."
 

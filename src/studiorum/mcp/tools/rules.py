@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Any, Literal, get_args
 
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
 from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
-from studiorum.mcp.markdown import render, snippet
+from studiorum.mcp.markdown import render, snippet, strip_tags
 from studiorum.mcp.models import RuleResults, RuleSummary, next_offset
 from studiorum.mcp.text import fold
 from studiorum.mcp.tools.search import LatestOnly, Limit, Offset, split_srd
@@ -32,12 +32,14 @@ async def search_rules(
 ) -> RuleResults:
     """Find rules by name or text: actions, conditions, statuses, variant rules and senses.
 
-    Every word must appear in the name or text. Name matches come first. The
-    2024 rules put some actions elsewhere: grappling is under the Unarmed
-    Strike variant rule. Read one in full with get_content.
+    Every word must appear in the name or text. A rule named the query comes
+    first, then rules with a part named it (the 2024 Grapple and Shove are
+    parts of Unarmed Strike), then other name matches. Read one in full with
+    get_content.
     """
     srd_only = default_srd if srd_only is None else srd_only
     words = fold(query).split()
+    phrase = " ".join(words)
     found: list[tuple[int, str, str, BaseContent]] = []
     for kind in (rule_type,) if rule_type else get_args(RuleType):
         for rule in services.catalogue.get_all_by_type(ContentType(kind)):
@@ -47,13 +49,14 @@ async def search_rules(
             folded = fold(text)
             if not all(w in name or w in folded for w in words):
                 continue
-            rank = (
-                0
-                if name == " ".join(words)
-                else 1
-                if all(w in name for w in words)
-                else 2
-            )
+            if name == phrase:
+                rank = 0
+            elif phrase in _part_names(raw.get("entries")):
+                rank = 1
+            elif all(w in name for w in words):
+                rank = 2
+            else:
+                rank = 3
             found.append((rank, kind, text, rule))
     kept, hidden = split_srd([r for *_, r in found], srd_only, latest_only)
     found = [f for f in found if id(f[3]) in set(map(id, kept))]
@@ -74,3 +77,21 @@ async def search_rules(
             for _, kind, text, rule in found[offset : offset + limit]
         ],
     )
+
+
+def _part_names(entries: Any) -> set[str]:
+    """The names of the entries inside a rule, folded."""
+    found: set[str] = set()
+
+    def visit(entry: Any) -> None:
+        if isinstance(entry, list):
+            for e in entry:
+                visit(e)
+        elif isinstance(entry, dict):
+            if entry.get("name"):
+                found.add(fold(strip_tags(str(entry["name"]))))
+            visit(entry.get("entries"))
+            visit(entry.get("items"))
+
+    visit(entries)
+    return found
