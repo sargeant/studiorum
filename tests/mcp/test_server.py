@@ -492,3 +492,15 @@ async def test_get_class_progression_with_a_subclass() -> None:
     ]
     with pytest.raises(ToolError, match="No Wizard subclass named 'Nope'"):
         await call("get_class_progression", class_name="Wizard", subclass="Nope")
+
+
+@pytest.mark.asyncio
+async def test_unknown_parameters_list_the_ones_a_tool_takes() -> None:
+    with pytest.raises(
+        ToolError,
+        match=r"^list_publications has no parameter 'name_contains'\. "
+        r"Its parameters: kind, query, published_after, newest_first, limit, offset\.$",
+    ):
+        await call("list_publications", name_contains="tomb")
+    with pytest.raises(ToolError, match="has no parameter 'lvl' or 'name'"):
+        await call("search_spells", lvl=1, name="x")

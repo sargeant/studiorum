@@ -15,6 +15,7 @@ from starlette.responses import PlainTextResponse, Response
 
 from studiorum.config import get_app_config
 from studiorum.log import get_logger
+from studiorum.mcp.arguments import UnknownArguments
 from studiorum.mcp.request_log import RequestLog
 from studiorum.mcp.tools.encounter import (
     calculate_encounter_budget,
@@ -80,6 +81,7 @@ mcp: FastMCP[Any] = FastMCP(
 # ErrorHandlingMiddleware is left out: it rewrites ToolError messages.
 request_log = RequestLog()
 mcp.add_middleware(request_log)
+mcp.add_middleware(UnknownArguments())
 
 for tool in (
     search_spells,
