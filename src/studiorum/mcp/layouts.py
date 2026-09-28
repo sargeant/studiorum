@@ -44,6 +44,10 @@ _DAMAGE = {"B": "Bludgeoning", "P": "Piercing", "S": "Slashing", "N": "Necrotic"
 _PROPERTIES = {"A": "Ammunition", "F": "Finesse", "H": "Heavy", "L": "Light", "LD": "Loading", "R": "Reach", "S": "Special", "T": "Thrown", "2H": "Two-Handed", "V": "Versatile", "RLD": "Reload", "BF": "Burst Fire"}  # fmt: skip
 
 
+# A creature's legendary group sections, which get_content adds for its layout
+LAIR = "_lair"
+
+
 def entry_data(entry: BaseContent) -> Raw:
     """An entry as 5etools models it, with its source as an abbreviation."""
     return entry.model_dump(mode="json", by_alias=True, exclude_none=True) | {
@@ -328,6 +332,10 @@ def _creature(data: Raw, _: str) -> list[str]:
         ),
         _named_blocks("Legendary Actions", data.get("legendary"), legendary_intro),
         _named_blocks("Mythic Actions", data.get("mythic"), data.get("mythicHeader")),
+        *(
+            f"## {heading}\n\n{_entries(entries, 3)}"
+            for heading, entries in (data.get(LAIR) or {}).items()
+        ),
     ]
 
 
