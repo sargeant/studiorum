@@ -55,6 +55,22 @@ async def test_rate_encounter() -> None:
     assert classic["difficulty"] == "deadly"
 
 
+async def test_rate_encounter_says_a_creature_without_a_cr_adds_nothing() -> None:
+    group = [{"name": "goblin", "count": 2}, {"name": "Battle Familiar", "count": 2}]
+    result = await call(
+        "rate_encounter",
+        party_levels=[1, 1, 1, 1],
+        creatures=group,
+        rules="2014",
+        srd_only=False,
+    )
+    assert (result["total_xp"], result["multiplier"]) == (100, 1.5)
+    assert result["notes"] == [
+        "Battle Familiar (HB) has no challenge rating, so it adds no XP and "
+        "doesn't count toward the multiplier."
+    ]
+
+
 async def test_rate_encounter_keeps_to_the_srd() -> None:
     sneak = [{"name": "Goblin Sneak"}]
     with pytest.raises(ToolError, match="not in the SRD; pass srd_only=false"):
