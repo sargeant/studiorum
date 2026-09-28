@@ -35,6 +35,7 @@ from studiorum.mcp.tools.search import (
     Offset,
     drop_reprinted,
     paged,
+    reprint_uids,
     split_srd,
 )
 from studiorum.services import Services
@@ -353,6 +354,8 @@ async def search_content(
         if needle in fold(c.name)
     ]
     kept, hidden = split_srd(named, srd_only, latest_only)
+    if latest_only and content_type in _OWNER_FIELDS:
+        kept = _drop_reprinted_features(services, content_type, kept)
     kept.sort(
         key=lambda c: (fold(c.name) != needle, c.name.lower(), c.source.abbreviation)
     )
@@ -382,6 +385,50 @@ async def search_content(
             for c, text in page
         ],
     )
+
+
+# A feature's class or subclass: its type, and the fields holding its name and source
+_OWNER_FIELDS = {
+    "classFeature": (ContentType.CLASS, "className", "classSource"),
+    "subclassFeature": (ContentType.SUBCLASS, "subclassShortName", "subclassSource"),
+}
+
+
+def _drop_reprinted_features(
+    services: Services, content_type: str, found: list[BaseContent]
+) -> list[BaseContent]:
+    """Leave out features of a reprinted class or subclass that its reprint has too.
+
+    5etools marks the class reprinted (PHB Wizard as XPHB's), not its features.
+    """
+    owner_type, name_field, source_field = _OWNER_FIELDS[content_type]
+    # A reprint uid starts with the name (a subclass's short name), ends with the source
+    reprints: dict[tuple[str, str], set[tuple[str, str]]] = {}
+    for owner in services.catalogue.get_all_by_type(owner_type):
+        if uids := reprint_uids(owner):
+            name = str(getattr(owner, "short_name", None) or owner.name).lower()
+            reprints[(name, owner.source.abbreviation.lower())] = {
+                (u.split("|")[0].lower(), u.split("|")[-1].lower()) for u in uids
+            }
+
+    def owned_by(c: BaseContent) -> tuple[str, str, str]:
+        raw = c.model_dump(by_alias=True)
+        return (
+            c.name.lower(),
+            str(raw.get(name_field) or "").lower(),
+            str(raw.get(source_field) or "").lower(),
+        )
+
+    present = {owned_by(c) for c in found}
+    return [
+        c
+        for c in found
+        if not any(
+            (name, *target) in present
+            for name, owned, source in [owned_by(c)]
+            for target in reprints.get((owned, source), ())
+        )
+    ]
 
 
 def resolve_references(

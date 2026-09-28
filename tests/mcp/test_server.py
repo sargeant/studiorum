@@ -5,6 +5,7 @@ Each Client runs the server lifespan, so each call is a cold start.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, get_args
 
 import pytest
@@ -14,7 +15,7 @@ from fastmcp.exceptions import ToolError
 from studiorum.data.models.content import ContentType
 from studiorum.mcp.errors import suggestions
 from studiorum.mcp.server import mcp
-from studiorum.mcp.tools.lookup import EntryType
+from studiorum.mcp.tools.lookup import EntryType, _drop_reprinted_features
 from studiorum.mcp.tools.progression import full_uid
 
 pytestmark = pytest.mark.usefixtures("mcp_data")
@@ -429,6 +430,36 @@ async def test_languages_can_be_found_and_read() -> None:
         "get_content", content_type="language", name="Elvish", srd_only=False
     )
     assert every["source"] == "XPHB"
+
+
+def test_features_of_a_reprinted_class_give_way_to_the_reprint() -> None:
+    class Stub:
+        def __init__(self, name: str, source: str, **raw: Any) -> None:
+            self.name, self.raw = name, raw
+            self.source = SimpleNamespace(abbreviation=source)
+            self.short_name = raw.get("shortName")
+            self.reprintedAs = raw.get("reprintedAs")
+
+        def model_dump(self, **_: Any) -> dict[str, Any]:
+            return self.raw
+
+    wizards = [
+        Stub("Wizard", "PHB", reprintedAs=["Wizard|XPHB"]),
+        Stub("Wizard", "XPHB"),
+    ]
+    mastery = [
+        Stub("Spell Mastery", source, className="Wizard", classSource=source)
+        for source in ("PHB", "XPHB")
+    ]
+    only_phb = Stub("Arcane Tradition", "PHB", className="Wizard", classSource="PHB")
+    services: Any = SimpleNamespace(
+        catalogue=SimpleNamespace(get_all_by_type=lambda _: wizards)
+    )
+    kept = _drop_reprinted_features(services, "classFeature", [*mastery, only_phb])
+    assert [(c.name, c.source.abbreviation) for c in kept] == [
+        ("Spell Mastery", "XPHB"),
+        ("Arcane Tradition", "PHB"),
+    ]
 
 
 @pytest.mark.asyncio
