@@ -684,3 +684,13 @@ async def test_a_condition_comes_with_the_conditions_it_includes() -> None:
     assert "You can only crawl." in unconscious["text"]
     prone = await call("get_content", content_type="condition", name="Prone")
     assert prone["text"].count("# ") == 1
+
+
+@pytest.mark.asyncio
+async def test_json_leaves_out_what_only_the_5etools_site_uses() -> None:
+    goblin = await call(
+        "get_content", content_type="creature", name="Goblin", format="json"
+    )
+    data = goblin["data"]
+    assert {"traitTags", "hasToken", "soundClip"}.isdisjoint(data)
+    assert {"name", "cr", "action"} <= set(data)

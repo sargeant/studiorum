@@ -132,9 +132,49 @@ def _content_entry(
         source=entry.source.abbreviation,
         srd=entry.is_srd,
         text=text,
-        data=data if format == "json" else None,
+        data={k: v for k, v in data.items() if k not in _SITE_ONLY}
+        if format == "json"
+        else None,
         references=references if include_references else [],
     )
+
+
+# What 5etools keeps for its site's filters, tokens and art, not the rules; the
+# tags are read from the text, which the entry keeps
+_SITE_ONLY = frozenset(
+    {
+        "actionTags",
+        "altArt",
+        "areaTags",
+        "conditionInflict",
+        "conditionInflictLegendary",
+        "conditionInflictSpell",
+        "creatureTypeTags",
+        "damageInflict",
+        "damageTags",
+        "damageTagsLegendary",
+        "damageTagsSpell",
+        "hasFluff",
+        "hasFluffImages",
+        "hasRefs",
+        "hasToken",
+        "isNamedCreature",
+        "isNpc",
+        "languageTags",
+        "lootTables",
+        "miscTags",
+        "reqAttuneTags",
+        "savingThrowForced",
+        "savingThrowForcedLegendary",
+        "savingThrowForcedSpell",
+        "senseTags",
+        "soundClip",
+        "spellcastingTags",
+        "tokenCredit",
+        "tokenCustom",
+        "traitTags",
+    }
+)
 
 
 def _included_conditions(services: Services, condition: BaseContent) -> list[str]:
