@@ -320,3 +320,29 @@ def test_spellcasting_is_woven_into_actions_and_legendary_actions_by_name() -> N
         "Pounce",
     ]
     assert "The dragon can take 3 legendary actions." in text
+
+
+def test_a_creature_ends_with_its_variants_as_5etools_insets() -> None:
+    imp = {
+        "name": "Imp",
+        "source": "MM",
+        "size": ["T"],
+        "type": "fiend",
+        "action": [{"name": "Sting", "entries": ["Ouch."]}],
+        "variant": [
+            {
+                "type": "variant",
+                "name": "Imp Familiar",
+                "entries": [
+                    "Imps can serve.",
+                    {"type": "variantSub", "name": "Familiar", "entries": ["A bond."]},
+                ],
+            }
+        ],
+    }
+
+    text = to_markdown("creature", imp)
+
+    assert text.endswith(
+        "> **Variant: Imp Familiar**\n>\n> Imps can serve.\n>\n> ***Familiar.*** A bond."
+    )

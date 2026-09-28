@@ -126,6 +126,15 @@ def render(entry: Any, depth: int = 1) -> str:
         case "inset" | "insetReadaloud":
             body = _join([f"**{name}**" if name else "", _children(entry, depth + 1)])
             return _quote(body)
+        case "variant":
+            title = f"**Variant: {name}**" if name else ""
+            return _quote(_join([title, _children(entry, depth + 1)]))
+        case "variantInner":
+            return _join([f"**{name}**" if name else "", _children(entry, depth + 1)])
+        case "variantSub":
+            first, _, rest = _children(entry, depth + 1).partition("\n\n")
+            lead = f"***{name}.*** {first}".strip() if name else first
+            return _join([lead, rest])
         case "quote":
             # 5etools' "— by, from", with the work in italics
             by = strip_tags(entry.get("by") or "")
