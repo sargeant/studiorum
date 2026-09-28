@@ -511,3 +511,11 @@ async def test_unknown_parameters_list_the_ones_a_tool_takes() -> None:
         await call("list_publications", name_contains="tomb")
     with pytest.raises(ToolError, match="has no parameter 'lvl' or 'name'"):
         await call("search_spells", lvl=1, name="x")
+
+
+@pytest.mark.asyncio
+async def test_include_text_tools_describe_the_size_cap() -> None:
+    async with Client(mcp) as client:
+        tools = {t.name: t.description or "" for t in await client.list_tools()}
+    for name in ("search_spells", "search_creatures", "search_items", "search_content"):
+        assert "fewer results than limit; next_offset" in tools[name], name

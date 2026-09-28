@@ -282,7 +282,11 @@ async def search_content(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ContentResults:
-    """Find entries of any type get_content reads by name, e.g. deities, feats, races."""
+    """Find entries of any type get_content reads by name, e.g. deities, feats, races.
+
+    With include_text, a page is capped at 24,000 characters of text, so it
+    can hold fewer results than limit; next_offset is where the rest start.
+    """
     srd_only = default_srd if srd_only is None else srd_only
     needle = query.lower()
     named = [

@@ -214,7 +214,11 @@ async def search_spells(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> SpellResults:
-    """Find spells by name, level, school, class list, ritual or concentration."""
+    """Find spells by name, level, school, class list, ritual or concentration.
+
+    With include_text, a page is capped at 24,000 characters of text, so it
+    can hold fewer results than limit; next_offset is where the rest start.
+    """
     srd_only = default_srd if srd_only is None else srd_only
     if spell_class:
         classes = sorted(
@@ -276,7 +280,11 @@ async def search_creatures(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> CreatureResults:
-    """Find creatures by name, challenge rating range and creature type."""
+    """Find creatures by name, challenge rating range and creature type.
+
+    With include_text, a page is capped at 24,000 characters of text, so it
+    can hold fewer results than limit; next_offset is where the rest start.
+    """
     srd_only = default_srd if srd_only is None else srd_only
     if cr_min is not None and cr_max is not None and cr_min > cr_max:
         raise ClientError(f"cr_min ({cr_min:g}) is more than cr_max ({cr_max:g}).")
@@ -334,7 +342,11 @@ async def search_items(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ItemResults:
-    """Find items by name, rarity, attunement, or magic items only."""
+    """Find items by name, rarity, attunement, or magic items only.
+
+    With include_text, a page is capped at 24,000 characters of text, so it
+    can hold fewer results than limit; next_offset is where the rest start.
+    """
     srd_only = default_srd if srd_only is None else srd_only
     filters = _given(
         rarities=[rarity] if rarity else None,
