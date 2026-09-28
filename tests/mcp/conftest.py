@@ -301,6 +301,33 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         },
     )
 
+    madness = {
+        "name": "Short-Term Madness",
+        "source": "DMG",
+        "srd": True,
+        "chapter": {"name": "Running the Game"},
+        "colLabels": ["d100", "Effect"],
+        "rows": [["01-50", "{@condition Paralyzed|XPHB}*"], ["51-00", "Babbling"]],
+        "footnotes": ["* Until the end of your next turn."],
+    }
+    _write(
+        tmp_path / "tables.json",
+        {
+            "table": [madness],
+            "tableGroup": [
+                {
+                    "name": "Madness",
+                    "source": "DMG",
+                    "srd": True,
+                    "tables": [
+                        {**madness, "caption": "Short"},
+                        {**madness, "caption": "Long"},
+                    ],
+                }
+            ],
+        },
+    )
+
     _write(
         tmp_path / "trapshazards.json",
         {

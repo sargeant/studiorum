@@ -453,6 +453,20 @@ async def test_weapon_properties_and_masteries_are_rules() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_content_reads_tables_with_their_footnotes() -> None:
+    table = await call("get_content", content_type="table", name="short-term madness")
+    assert table["text"] == (
+        "# Short-Term Madness\n\n*table* · *DMG, Running the Game*\n\n"
+        "| d100 | Effect |\n|---|---|\n| 01-50 | Paralyzed* |\n| 51-00 | Babbling |"
+        "\n\n* Until the end of your next turn."
+    )
+    group = await call("get_content", content_type="tableGroup", name="Madness")
+    assert "**Short**" in group["text"] and "**Long**" in group["text"]
+    found = await call("search_content", content_type="table", query="madness")
+    assert [r["name"] for r in found["results"]] == ["Short-Term Madness"]
+
+
+@pytest.mark.asyncio
 async def test_searches_say_what_the_srd_filter_hid() -> None:
     result = await call("search_spells", query="orb")
     assert (result["total"], result["hidden_by_srd"]) == (0, 1)
