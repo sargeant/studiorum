@@ -27,6 +27,7 @@ from studiorum.mcp.models import (
     Reference,
     next_offset,
 )
+from studiorum.mcp.text import fold
 from studiorum.mcp.tools.search import (
     IncludeText,
     LatestOnly,
@@ -226,6 +227,17 @@ def _by_uid(services: Services, ctype: ContentType, uid: str) -> list[BaseConten
     return found
 
 
+def _by_name(services: Services, ctype: ContentType, name: str) -> list[BaseContent]:
+    """Entries with this name, else those whose name matches it folded, as "Rothe" does "Rothé"."""
+    catalogue = services.catalogue
+    found = catalogue.find_all(ctype, name)
+    if found:
+        return found
+    key = fold(name)
+    names = {c.name for c in catalogue.get_all_by_type(ctype) if fold(c.name) == key}
+    return [c for n in sorted(names) for c in catalogue.find_all(ctype, n)]
+
+
 def find_one(
     services: Services,
     content_type: str,
@@ -241,7 +253,7 @@ def find_one(
         for c in (
             _by_uid(services, ctype, name)
             if "|" in name
-            else catalogue.find_all(ctype, name)
+            else _by_name(services, ctype, name)
         )
         if source is None or c.source.abbreviation.lower() == source.lower()
     ]
@@ -288,15 +300,15 @@ async def search_content(
     can hold fewer results than limit; next_offset is where the rest start.
     """
     srd_only = default_srd if srd_only is None else srd_only
-    needle = query.lower()
+    needle = fold(query)
     named = [
         c
         for c in services.catalogue.get_all_by_type(ContentType(content_type))
-        if needle in c.name.lower()
+        if needle in fold(c.name)
     ]
     kept, hidden = split_srd(named, srd_only, latest_only)
     kept.sort(
-        key=lambda c: (c.name.lower() != needle, c.name.lower(), c.source.abbreviation)
+        key=lambda c: (fold(c.name) != needle, c.name.lower(), c.source.abbreviation)
     )
     page, after = paged(
         kept,
@@ -426,11 +438,11 @@ async def list_publications(
             for a in catalogue.get_all_by_type(ContentType.ADVENTURE)
             if isinstance(a, Adventure)
         ]
-    needle = (query or "").lower()
+    needle = fold(query or "")
     found = [
         p
         for p in found
-        if (needle in p.name.lower() or needle in p.id.lower())
+        if (needle in fold(p.name) or needle in fold(p.id))
         and (not published_after or (p.published or "") >= published_after)
     ]
     # Stable, so names stay A to Z within a date either way

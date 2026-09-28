@@ -541,6 +541,13 @@ async def test_results_leave_out_empty_keys() -> None:
 
 
 @pytest.mark.asyncio
+async def test_queries_match_without_accents() -> None:
+    assert names(await call("search_creatures", query="GÖB")) == ["Goblin"]
+    goblin = await call("get_content", content_type="creature", name="Göblin")
+    assert goblin["name"] == "Goblin"
+
+
+@pytest.mark.asyncio
 async def test_include_text_tools_describe_the_size_cap() -> None:
     async with Client(mcp) as client:
         tools = {t.name: t.description or "" for t in await client.list_tools()}

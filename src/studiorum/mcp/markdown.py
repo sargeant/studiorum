@@ -18,6 +18,7 @@ from studiorum.data.text.tags import (
     split_tag,
 )
 from studiorum.log import get_logger
+from studiorum.mcp.text import fold
 
 logger = get_logger(__name__)
 
@@ -390,7 +391,9 @@ def _uids(value: Any) -> list[str]:
 def snippet(text: str, words: list[str], size: int = 240) -> str:
     """The text around the first of the words, flattened to one line."""
     flat = " ".join(w for w in text.split() if w.strip("#"))
-    at = min((i for w in words if (i := flat.lower().find(w)) >= 0), default=0)
+    # Folding can shift an index by a character or two, which a snippet can bear
+    folded = fold(flat)
+    at = min((i for w in words if (i := folded.find(w)) >= 0), default=0)
     start = max(0, at - size // 3)
     piece = flat[start : start + size]
     return ("…" if start else "") + piece + ("…" if start + size < len(flat) else "")

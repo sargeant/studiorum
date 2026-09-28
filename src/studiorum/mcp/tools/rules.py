@@ -11,6 +11,7 @@ from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.markdown import render, snippet
 from studiorum.mcp.models import RuleResults, RuleSummary, next_offset
+from studiorum.mcp.text import fold
 from studiorum.mcp.tools.search import LatestOnly, Limit, Offset, split_srd
 from studiorum.services import Services
 
@@ -36,18 +37,19 @@ async def search_rules(
     Strike variant rule. Read one in full with get_content.
     """
     srd_only = default_srd if srd_only is None else srd_only
-    words = query.lower().split()
+    words = fold(query).split()
     found: list[tuple[int, str, str, BaseContent]] = []
     for kind in (rule_type,) if rule_type else get_args(RuleType):
         for rule in services.catalogue.get_all_by_type(ContentType(kind)):
-            name = rule.name.lower()
+            name = fold(rule.name)
             raw = rule.model_dump(mode="json", by_alias=True, exclude_none=True)
             text = render(raw.get("entries") or [])
-            if not all(w in name or w in text.lower() for w in words):
+            folded = fold(text)
+            if not all(w in name or w in folded for w in words):
                 continue
             rank = (
                 0
-                if name == query.lower()
+                if name == " ".join(words)
                 else 1
                 if all(w in name for w in words)
                 else 2
