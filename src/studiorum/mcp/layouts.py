@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from typing import Any
 
 from studiorum.data import encounter
@@ -17,13 +18,17 @@ from studiorum.data.type_lines import (
     cost_text,
     feat_full_entries,
     feature_type,
+    hazard_entries,
     language_entries,
+    trap_entries,
+    vehicle_upgrade_entries,
 )
 from studiorum.data.vehicle_lines import VehicleSection, vehicle_block
 from studiorum.mcp.markdown import render, strip_tags
 from studiorum.mcp.spellcasting import spellcasting_entries
 
 type Raw = dict[str, Any]
+type Layout = Callable[[Raw, str], list[str]]
 
 _SIZES = {"T": "Tiny", "S": "Small", "M": "Medium", "L": "Large", "H": "Huge", "G": "Gargantuan"}  # fmt: skip
 _ALIGNMENTS = {"L": "lawful", "N": "neutral", "NX": "neutral", "NY": "neutral", "C": "chaotic", "G": "good", "E": "evil", "U": "unaligned", "A": "any alignment"}  # fmt: skip
@@ -69,6 +74,9 @@ def to_markdown(content_type: str, data: Raw) -> str:
         "vehicle": _vehicle,
         "deity": _deity,
         "language": _language,
+        "trap": _ported(trap_entries),
+        "hazard": _ported(hazard_entries),
+        "vehicleUpgrade": _ported(vehicle_upgrade_entries),
         "table": _table,
         "tableGroup": _table,
     }.get(content_type, _generic)
@@ -656,6 +664,20 @@ def _table(data: Raw, content_type: str) -> list[str]:
             ]
         ),
     ]
+
+
+def _ported(port: Callable[[Raw, None], list[Any]]) -> Layout:
+    """A layout from one of 5etools' renderers ported for LaTeX: its italic first
+    line (a trap's rating, an upgrade's type) as the kind, then the rest."""
+
+    def layout(data: Raw, content_type: str) -> list[str]:
+        entries = port(data, None)
+        kind = f"*{_KINDS.get(content_type, content_type)}*"
+        if entries and isinstance(entries[0], str) and entries[0].startswith("{@i "):
+            kind = _entries(entries.pop(0))
+        return [_title(data), f"{kind} · *{_source(data)}*", _entries(entries)]
+
+    return layout
 
 
 def _language(data: Raw, _: str) -> list[str]:

@@ -346,3 +346,38 @@ def test_a_creature_ends_with_its_variants_as_5etools_insets() -> None:
     assert text.endswith(
         "> **Variant: Imp Familiar**\n>\n> Imps can serve.\n>\n> ***Familiar.*** A bond."
     )
+
+
+def test_a_complex_trap_gives_its_rating_trigger_and_countermeasures() -> None:
+    trap = {
+        "name": "Path of Blades",
+        "source": "XGE",
+        "trapHazType": "CMPX",
+        "rating": [{"tier": 1, "threat": "dangerous"}],
+        "trigger": ["A creature enters the hall."],
+        "initiative": 3,
+        "eActive": ["Blades whirl."],
+        "countermeasures": ["Smash the blades."],
+        "entries": ["A long hall."],
+    }
+
+    text = to_markdown("trap", trap)
+
+    assert text.startswith(
+        "# Path of Blades\n\n*Dangerous Complex Trap (1st–4th Level)* · *XGE*\n\nA long hall."
+    )
+    for part in ("## Trigger", "A creature enters the hall.", "## Countermeasures"):
+        assert part in text
+
+
+def test_a_vehicle_upgrade_names_its_type() -> None:
+    armor = {
+        "name": "Canian Armor",
+        "source": "BGDIA",
+        "upgradeType": ["IWM:A"],
+        "entries": ["Infernal iron."],
+    }
+
+    assert to_markdown("vehicleUpgrade", armor) == (
+        "# Canian Armor\n\n*Infernal War Machine Upgrade, Armor* · *BGDIA*\n\nInfernal iron."
+    )
