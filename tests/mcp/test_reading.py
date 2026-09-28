@@ -350,3 +350,49 @@ async def test_links_to_other_publications_are_references() -> None:
     assert {
         (r["type"], r["name"], r["publication"]) for r in welcome["references"]
     } == {("publication", "the side trek", "TB-ST")}
+
+
+def test_a_table_in_a_list_item_follows_it_as_a_block() -> None:
+    entry = {
+        "type": "list",
+        "items": [
+            {
+                "type": "item",
+                "name": "Tempest",
+                "entries": [
+                    "Roll a d6.",
+                    {
+                        "type": "table",
+                        "colLabels": ["d6", "Effect"],
+                        "rows": [["1", "Gas"]],
+                    },
+                ],
+            }
+        ],
+    }
+
+    assert render(entry) == (
+        "- **Tempest** Roll a d6.\n\n| d6 | Effect |\n|---|---|\n| 1 | Gas |\n"
+    )
+
+
+def test_a_table_in_a_table_cell_is_one_line() -> None:
+    table = {
+        "type": "table",
+        "colLabels": ["d100", "Magic Item"],
+        "rows": [
+            [
+                "12-14",
+                {
+                    "type": "table",
+                    "caption": "Figurine",
+                    "colLabels": ["d8", "Item"],
+                    "rows": [["01", "Griffon"], ["02", "Fly"]],
+                },
+            ]
+        ],
+    }
+
+    assert render(table).splitlines()[-1] == (
+        "| 12-14 | **Figurine** (d8: 01 Griffon; 02 Fly) |"
+    )

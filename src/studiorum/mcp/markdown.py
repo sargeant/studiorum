@@ -274,13 +274,30 @@ def _children(entry: dict[str, Any], depth: int) -> str:
 def _item(item: Any, depth: int, indent: str = "") -> str:
     if isinstance(item, dict) and item.get("type") == "list":
         return "\n".join(_item(i, depth, indent + "  ") for i in item.get("items", []))
+    tables: list[Any] = []
+    if isinstance(item, dict):
+        # A table can't sit inline in a list item, so it follows as a block
+        entries = [
+            *(item.get("entries") or []),
+            *([item["entry"]] if "entry" in item else []),
+        ]
+        tables = [
+            e for e in entries if isinstance(e, dict) and e.get("type") in _TABLES
+        ]
+        if tables:
+            rest = [e for e in entries if e not in tables]
+            item = {k: v for k, v in item.items() if k != "entry"} | {"entries": rest}
     if isinstance(item, dict) and item.get("type") in ("item", "itemSub", "itemSpell"):
         name = strip_tags(str(item.get("name", "")))
         body = _inline(_children(item, depth))
         text = f"**{name}** {body}".strip() if name else body
     else:
         text = _inline(render(item, depth))
-    return f"{indent}- {text}"
+    after = f"\n\n{_join(render(t, depth) for t in tables)}\n" if tables else ""
+    return f"{indent}- {text}{after}"
+
+
+_TABLES = ("table", "tableGroup")
 
 
 def _table(table: dict[str, Any]) -> str:
@@ -319,8 +336,23 @@ def _cell(cell: Any) -> str:
             return str(roll["exact"])
         if "min" in roll:
             return f"{roll['min']}–{roll.get('max', '')}"
-        return _inline(render(cell.get("entry", ""), 6))
-    return _inline(render(cell, 6))
+        return _inline(render(_tables_inline(cell.get("entry", "")), 6))
+    return _inline(render(_tables_inline(cell), 6))
+
+
+def _tables_inline(value: Any) -> Any:
+    """A table in a table cell as one line, "Figurine (d8: 01 Bronze griffon; 02 ...)"."""
+    if isinstance(value, list):
+        return [_tables_inline(v) for v in value]
+    if not isinstance(value, dict):
+        return value
+    if value.get("type") == "table":
+        labels = [strip_tags(str(c)) for c in value.get("colLabels", [])]
+        rows = "; ".join(" ".join(_cell(c) for c in row) for row in _rows(value))
+        body = f"{labels[0]}: {rows}" if labels else rows
+        caption = strip_tags(str(value.get("caption") or ""))
+        return f"**{caption}** ({body})" if caption else body
+    return {k: _tables_inline(v) for k, v in value.items()}
 
 
 def _inline(text: str) -> str:
