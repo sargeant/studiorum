@@ -328,7 +328,7 @@ def _creature(data: Raw, _: str) -> list[str]:
             strip_tags(condition_text(data.get("conditionImmune"))),
         ),
         _line("Senses", ", ".join(s for s in (senses, passive) if s)),
-        _line("Languages", _join(data.get("languages") or []) or "None"),
+        _line("Languages", _join(data.get("languages") or []) or "\u2014"),
         _line("Challenge", _challenge(data.get("cr"))),
     ]
     uses = data.get("legendaryActions", 3)
