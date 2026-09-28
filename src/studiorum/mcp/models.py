@@ -86,12 +86,10 @@ class Reference(BaseModel):
 
     type: str = Field(description="A get_content type, or 'section'")
     name: str = Field(description="The name, or a uid for class and subclass features")
-    source: str | None = None
-    section_id: str | None = Field(
-        None, description="For a section in this publication"
-    )
-    publication: str | None = Field(
-        None, description="For a book or adventure, its id for get_table_of_contents"
+    source: str | None = optional("The source, when the link names one")
+    section_id: str | None = optional("For a section in this publication")
+    publication: str | None = optional(
+        "For a book or adventure, its id for get_table_of_contents"
     )
 
 
@@ -100,9 +98,9 @@ class ContentEntry(BaseModel):
     name: str
     source: str
     srd: bool
-    text: str | None = Field(None, description="The entry as Markdown")
-    data: dict[str, Any] | None = Field(
-        None, description="The entry as 5etools models it"
+    text: str | None = optional("The entry as Markdown, with format=markdown")
+    data: dict[str, Any] | None = optional(
+        "The entry as 5etools models it, with format=json"
     )
     references: list[Reference] = Field(
         default_factory=list, description="What the entry's text links to"
@@ -112,7 +110,7 @@ class ContentEntry(BaseModel):
 class ContentMissing(BaseModel):
     content_type: str
     name: str
-    source: str | None = None
+    source: str | None = optional("The source asked for")
     error: str
 
 
@@ -131,9 +129,9 @@ class Publication(BaseModel):
     source: str = Field(description="The source abbreviation its content carries")
     name: str
     kind: Literal["book", "adventure"]
-    published: str | None = None
-    group: str | None = None
-    storyline: str | None = None
+    published: str | None = optional("YYYY-MM-DD")
+    group: str | None = optional("5etools' grouping, e.g. core or supplement")
+    storyline: str | None = optional("The storyline an adventure belongs to")
 
 
 class Publications(BaseModel):
@@ -199,8 +197,8 @@ class SectionRef(BaseModel):
     name: str
     depth: int = Field(description="1 for the top level listed")
     chars: int = Field(description="Size in Markdown characters")
-    statblocks: list[str] | None = Field(
-        None, description="Set when the section holds only these statblocks"
+    statblocks: list[str] | None = optional(
+        "Set when the section holds only these statblocks"
     )
 
 
@@ -263,10 +261,10 @@ class ContentSummary(BaseModel):
     name: str
     source: str
     srd: bool
-    uid: str | None = Field(
-        None, description="Pass as get_content's name when the name and source repeat"
+    uid: str | None = optional(
+        "Pass as get_content's name when the name and source repeat"
     )
-    detail: str | None = Field(None, description="What tells it apart, e.g. a pantheon")
+    detail: str | None = optional("What tells it apart, e.g. a pantheon")
     text: str | None = optional("As Markdown, with include_text")
 
 
@@ -298,7 +296,7 @@ class ClassProgression(BaseModel):
     name: str
     source: str
     srd: bool
-    subclass: str | None = None
-    subclass_source: str | None = None
+    subclass: str | None = optional("With a subclass asked for")
+    subclass_source: str | None = optional("With a subclass asked for")
     columns: list[str] = Field(description="The columns' labels, in order")
     levels: list[ProgressionLevel]

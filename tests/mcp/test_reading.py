@@ -45,7 +45,7 @@ async def test_table_of_contents() -> None:
     assert ids(inside) == [("003", "Big Room", 1), ("005", "Guards", 1)]
     assert inside["sections"][0]["chars"] > 30000
     # A section that only holds statblocks says which
-    assert [s["statblocks"] for s in inside["sections"]] == [None, ["Goblin"]]
+    assert [s.get("statblocks") for s in inside["sections"]] == [None, ["Goblin"]]
 
     book = await call("get_table_of_contents", publication="TB")
     assert (book["kind"], ids(book)) == ("book", [("100", "Rules", 1)])
@@ -174,7 +174,8 @@ def test_a_quote_names_who_and_where() -> None:
 async def test_read_section_lists_references() -> None:
     cave = await call("read_section", publication="TA", section_id="002")
     refs = [
-        (r["type"], r["name"], r["source"], r["section_id"]) for r in cave["references"]
+        (r["type"], r["name"], r.get("source"), r.get("section_id"))
+        for r in cave["references"]
     ]
     assert refs == [
         ("section", "Big Room", None, "003"),
