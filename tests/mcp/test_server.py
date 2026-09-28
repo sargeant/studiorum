@@ -70,8 +70,10 @@ async def test_search_spells_filters() -> None:
     assert names(await call("search_spells", ritual=True)) == ["Alarm"]
     assert names(await call("search_spells", ritual=False)) == ["Fireball"]
     result = await call("search_spells", srd_only=False, limit=1)
-    assert result["total"] == 3
+    assert (result["total"], result["next_offset"]) == (3, 1)
     assert len(result["results"]) == 1
+    last = await call("search_spells", srd_only=False, limit=1, offset=2)
+    assert (names(last), last["next_offset"]) == (["Hellfire Orb"], None)
 
 
 @pytest.mark.asyncio
@@ -213,7 +215,11 @@ async def test_list_publications_filters_sorts_and_pages() -> None:
         "TB-ST"
     ]
     newest = await call("list_publications", newest_first=True, limit=2, offset=0)
-    assert (newest["total"], ids(newest)) == (3, ["TB-ST", "TB"])
+    assert (newest["total"], ids(newest), newest["next_offset"]) == (
+        3,
+        ["TB-ST", "TB"],
+        2,
+    )
     assert ids(await call("list_publications", newest_first=True, offset=2)) == ["TA"]
     with pytest.raises(ToolError):
         await call("list_publications", published_after="last year")

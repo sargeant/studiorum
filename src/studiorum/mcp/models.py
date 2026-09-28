@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
+
+NextOffset = Annotated[
+    int | None, Field(description="The offset of the next page; none after the last")
+]
+
+
+def next_offset(total: int, offset: int, shown: int) -> int | None:
+    """Where the page after ``shown`` results from ``offset`` starts, if any remain."""
+    return offset + shown if offset + shown < total else None
 
 
 class SpellSummary(BaseModel):
@@ -41,16 +50,19 @@ class Filtered(BaseModel):
 
 class SpellResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[SpellSummary]
 
 
 class CreatureResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[CreatureSummary]
 
 
 class ItemResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[ItemSummary]
 
 
@@ -111,6 +123,7 @@ class Publication(BaseModel):
 
 class Publications(BaseModel):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     publications: list[Publication]
 
 
@@ -162,6 +175,7 @@ class CreatureSuggestions(Filtered):
         description="The XP range per creature that puts the group at this difficulty"
     )
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[SuggestedCreature]
 
 
@@ -208,6 +222,7 @@ class RuleSummary(BaseModel):
 
 class RuleResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[RuleSummary]
 
 
@@ -224,6 +239,7 @@ class SectionMatch(BaseModel):
 class SectionMatches(BaseModel):
     publication: str
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[SectionMatch]
 
 
@@ -240,4 +256,5 @@ class ContentSummary(BaseModel):
 class ContentResults(Filtered):
     type: str
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[ContentSummary]

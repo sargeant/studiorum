@@ -30,6 +30,7 @@ from studiorum.mcp.models import (
     ItemSummary,
     SpellResults,
     SpellSummary,
+    next_offset,
 )
 from studiorum.services import Services
 
@@ -206,6 +207,7 @@ async def search_spells(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(spells),
+        next_offset=next_offset(len(spells), offset, limit),
         results=[
             SpellSummary(
                 name=s.name,
@@ -260,6 +262,7 @@ async def search_creatures(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(creatures),
+        next_offset=next_offset(len(creatures), offset, limit),
         results=[
             CreatureSummary(
                 name=c.name,
@@ -306,6 +309,7 @@ async def search_items(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(items),
+        next_offset=next_offset(len(items), offset, limit),
         results=[
             ItemSummary(
                 name=i.name,

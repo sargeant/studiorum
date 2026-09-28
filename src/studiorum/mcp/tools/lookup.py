@@ -24,6 +24,7 @@ from studiorum.mcp.models import (
     Publication,
     Publications,
     Reference,
+    next_offset,
 )
 from studiorum.mcp.tools.search import (
     LatestOnly,
@@ -275,6 +276,7 @@ async def search_content(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(kept),
+        next_offset=next_offset(len(kept), offset, limit),
         results=[
             ContentSummary(
                 name=c.name,
@@ -394,4 +396,8 @@ async def list_publications(
         and (not published_after or (p.published or "") >= published_after)
     ]
     found.sort(key=lambda p: (p.published or "", p.name), reverse=newest_first)
-    return Publications(total=len(found), publications=found[offset : offset + limit])
+    return Publications(
+        total=len(found),
+        next_offset=next_offset(len(found), offset, limit),
+        publications=found[offset : offset + limit],
+    )

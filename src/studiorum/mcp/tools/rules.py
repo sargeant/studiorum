@@ -10,7 +10,7 @@ from pydantic import Field
 from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.markdown import render, snippet
-from studiorum.mcp.models import RuleResults, RuleSummary
+from studiorum.mcp.models import RuleResults, RuleSummary, next_offset
 from studiorum.mcp.tools.search import LatestOnly, Limit, Offset, split_srd
 from studiorum.services import Services
 
@@ -60,6 +60,7 @@ async def search_rules(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(found),
+        next_offset=next_offset(len(found), offset, limit),
         results=[
             RuleSummary(
                 name=rule.name,

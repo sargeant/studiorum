@@ -23,6 +23,7 @@ from studiorum.mcp.models import (
     SectionMatches,
     SectionRef,
     SectionText,
+    next_offset,
 )
 from studiorum.mcp.tools.lookup import entry_data, resolve_references
 from studiorum.services import Services
@@ -73,7 +74,9 @@ async def get_table_of_contents(
 async def read_section(
     publication: Publication,
     section_id: Annotated[str, Field(description="An id from get_table_of_contents")],
-    page: Annotated[int, Field(ge=1)] = 1,
+    page: Annotated[
+        int, Field(ge=1, description="A page of text, from 1; the reply gives pages")
+    ] = 1,
     expand_statblocks: Annotated[
         bool,
         Field(
@@ -152,6 +155,7 @@ async def search_publication(
     return SectionMatches(
         publication=_pub_id(pub),
         total=len(found),
+        next_offset=next_offset(len(found), offset, limit),
         results=found[offset : offset + limit],
     )
 

@@ -21,6 +21,7 @@ from studiorum.mcp.models import (
     EncounterRating,
     RatedCreature,
     SuggestedCreature,
+    next_offset,
 )
 from studiorum.mcp.tools.lookup import find_one
 from studiorum.mcp.tools.search import (
@@ -197,6 +198,7 @@ async def suggest_creatures(
         count=count,
         xp_each=each,
         total=len(fits),
+        next_offset=next_offset(len(fits), offset, limit),
         results=[
             SuggestedCreature(
                 name=c.name,
