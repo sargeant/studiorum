@@ -21,7 +21,13 @@ from studiorum.mcp.tools.encounter import (
     rate_encounter,
     suggest_creatures,
 )
-from studiorum.mcp.tools.lookup import get_content, list_publications, search_content
+from studiorum.mcp.tools.lookup import (
+    get_content,
+    get_contents,
+    list_publications,
+    search_content,
+)
+from studiorum.mcp.tools.progression import get_class_progression
 from studiorum.mcp.tools.reading import (
     get_table_of_contents,
     read_section,
@@ -82,7 +88,9 @@ for tool in (
     search_rules,
     search_content,
     get_content,
+    get_contents,
     list_publications,
+    get_class_progression,
     calculate_encounter_budget,
     rate_encounter,
     suggest_creatures,

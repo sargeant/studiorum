@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+import json
+from typing import Annotated, Any, Literal
 
 from fastmcp.dependencies import Depends
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
@@ -13,23 +14,31 @@ from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError, not_found
-from studiorum.mcp.layouts import to_markdown
+from studiorum.mcp.layouts import entry_data, to_markdown
 from studiorum.mcp.models import (
+    PAGE_CHARS,
+    ContentBatch,
     ContentEntry,
+    ContentMissing,
     ContentResults,
     ContentSummary,
     Publication,
     Publications,
     Reference,
+    next_offset,
 )
 from studiorum.mcp.tools.search import (
+    IncludeText,
     LatestOnly,
     Limit,
     Offset,
     drop_reprinted,
+    paged,
     split_srd,
 )
 from studiorum.services import Services
+
+MAX_BATCH = 20
 
 # Adventures and books are read by section, not whole.
 EntryType = Literal[
@@ -82,11 +91,7 @@ async def get_content(
     """One entry in full (a statblock, a spell, a class and its features), by type and name."""
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
-    data = entry.model_dump(mode="json", by_alias=True, exclude_none=True) | {
-        "source": entry.source.abbreviation
-    }
-    if content_type == "class":
-        data["subclasses"] = _subclasses(services, entry, srd_only)
+    data = _layout_data(services, content_type, entry, srd_only)
     return ContentEntry(
         type=content_type,
         name=entry.name,
@@ -100,6 +105,76 @@ async def get_content(
             if (r.name.lower(), (r.source or "").lower())
             != (entry.name.lower(), entry.source.abbreviation.lower())
         ],
+    )
+
+
+class Wanted(BaseModel):
+    content_type: EntryType
+    name: str = Field(description="A name, or a 5etools uid")
+    source: str | None = None
+
+
+async def get_contents(
+    items: Annotated[list[Wanted], Field(min_length=1, max_length=MAX_BATCH)],
+    format: Annotated[  # noqa: A002 - the name clients see
+        Literal["markdown", "json"],
+        Field(description="markdown: laid out to read; json: the 5etools data"),
+    ] = "markdown",
+    offset: Annotated[
+        int, Field(ge=0, description="Start at this item, to resume a batch")
+    ] = 0,
+    srd_only: SrdOnly = None,
+    default_srd: bool = Depends(srd_default),
+    services: Services = Depends(get_services),
+) -> ContentBatch:
+    """Several entries in full, as get_content returns them, up to 24,000 characters.
+
+    When the entries would run past that, the reply stops short and
+    next_offset says where to resume.
+    """
+    entries: list[ContentEntry] = []
+    missing: list[ContentMissing] = []
+    size = 0
+    for i, item in enumerate(items[offset:], start=offset):
+        try:
+            entry = await get_content(
+                item.content_type,
+                item.name,
+                item.source,
+                format,
+                srd_only,
+                default_srd=default_srd,
+                services=services,
+            )
+        except ClientError as e:
+            missing.append(ContentMissing(**item.model_dump(), error=str(e)))
+            continue
+        chars = len(entry.text or "") + (
+            len(json.dumps(entry.data)) if entry.data else 0
+        )
+        if entries and size + chars > PAGE_CHARS:
+            return ContentBatch(entries=entries, not_found=missing, next_offset=i)
+        entries.append(entry)
+        size += chars
+    return ContentBatch(entries=entries, not_found=missing)
+
+
+def _layout_data(
+    services: Services, content_type: str, entry: BaseContent, srd_only: bool
+) -> dict[str, Any]:
+    """The data get_content lays out: the entry, and a class's subclasses."""
+    data = entry_data(entry)
+    if content_type == "class":
+        data["subclasses"] = _subclasses(services, entry, srd_only)
+    return data
+
+
+def entry_markdown(
+    services: Services, content_type: str, entry: BaseContent, srd_only: bool
+) -> str:
+    """An entry as get_content's Markdown."""
+    return to_markdown(
+        content_type, _layout_data(services, content_type, entry, srd_only)
     )
 
 
@@ -191,6 +266,7 @@ async def search_content(
     ],
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
+    include_text: IncludeText = False,
     limit: Limit = 20,
     offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
@@ -208,11 +284,20 @@ async def search_content(
     kept.sort(
         key=lambda c: (c.name.lower() != needle, c.name.lower(), c.source.abbreviation)
     )
+    page, after = paged(
+        kept,
+        offset,
+        limit,
+        (lambda c: entry_markdown(services, content_type, c, srd_only))
+        if include_text
+        else None,
+    )
     return ContentResults(
         type=content_type,
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(kept),
+        next_offset=after,
         results=[
             ContentSummary(
                 name=c.name,
@@ -220,8 +305,9 @@ async def search_content(
                 srd=c.is_srd,
                 uid=content_uid(content_type, c),
                 detail=_detail(content_type, c),
+                text=text,
             )
-            for c in kept[offset : offset + limit]
+            for c, text in page
         ],
     )
 
@@ -279,9 +365,22 @@ def _detail(content_type: str, content: BaseContent) -> str | None:
 
 async def list_publications(
     kind: Literal["book", "adventure"] | None = None,
+    query: Annotated[
+        str | None, Field(description="Text the name or id must contain")
+    ] = None,
+    published_after: Annotated[
+        str | None,
+        Field(
+            pattern=r"^\d{4}(-\d{2}(-\d{2})?)?$",
+            description="Only those published on or after this: YYYY, YYYY-MM or YYYY-MM-DD",
+        ),
+    ] = None,
+    newest_first: bool = False,
+    limit: Annotated[int, Field(ge=1, le=200)] = 50,
+    offset: Offset = 0,
     services: Services = Depends(get_services),
 ) -> Publications:
-    """The books and adventures loaded, oldest first."""
+    """The books and adventures loaded, oldest first unless newest_first."""
     catalogue = services.catalogue
     found: list[Publication] = []
     if kind in (None, "book"):
@@ -311,5 +410,16 @@ async def list_publications(
             for a in catalogue.get_all_by_type(ContentType.ADVENTURE)
             if isinstance(a, Adventure)
         ]
-    found.sort(key=lambda p: (p.published or "", p.name))
-    return Publications(total=len(found), publications=found)
+    needle = (query or "").lower()
+    found = [
+        p
+        for p in found
+        if (needle in p.name.lower() or needle in p.id.lower())
+        and (not published_after or (p.published or "") >= published_after)
+    ]
+    found.sort(key=lambda p: (p.published or "", p.name), reverse=newest_first)
+    return Publications(
+        total=len(found),
+        next_offset=next_offset(len(found), offset, limit),
+        publications=found[offset : offset + limit],
+    )

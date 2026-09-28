@@ -22,7 +22,7 @@ from typing import Any
 import httpx
 from fastmcp import Client
 
-TOOLS = 13
+TOOLS = 15
 
 
 def _free_port() -> int:

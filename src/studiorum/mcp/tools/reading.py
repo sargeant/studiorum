@@ -3,28 +3,34 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from functools import cached_property
 from typing import Annotated, Any
+from weakref import WeakKeyDictionary
 
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
 from studiorum.data.models.content import ContentType
+from studiorum.data.models.content_models import FLUFF_TYPES, content_type_of
+from studiorum.data.statblocks import find_statblock, statblock_type
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import get_services
 from studiorum.mcp.errors import ClientError, not_found
+from studiorum.mcp.layouts import entry_data, to_markdown
 from studiorum.mcp.models import (
+    PAGE_CHARS,
     Contents,
     SectionMatch,
     SectionMatches,
     SectionRef,
     SectionText,
+    next_offset,
 )
 from studiorum.mcp.tools.lookup import resolve_references
 from studiorum.services import Services
-
-PAGE_CHARS = 24_000
 
 Publication = Annotated[
     str, Field(description="A book or adventure id from list_publications, e.g. LMoP")
@@ -70,19 +76,28 @@ async def get_table_of_contents(
 async def read_section(
     publication: Publication,
     section_id: Annotated[str, Field(description="An id from get_table_of_contents")],
-    page: Annotated[int, Field(ge=1)] = 1,
+    page: Annotated[
+        int, Field(ge=1, description="A page of text, from 1; the reply gives pages")
+    ] = 1,
+    expand_statblocks: Annotated[
+        bool,
+        Field(
+            description="Each statblock in full, as get_content lays it out, "
+            "instead of a line naming it; the section may take more pages"
+        ),
+    ] = False,
     services: Services = Depends(get_services),
 ) -> SectionText:
     """One chapter or section as Markdown, with its subsections' ids.
 
     Tags such as {@creature goblin} are reduced to their text, and statblocks
-    to a line naming the creature; get_content returns one in full. A section
-    too long for one page comes in pages; a subsection too long for a page is
-    left as a pointer to read on its own.
+    to a line naming the creature (get_content returns one in full) unless
+    expand_statblocks. A section too long for one page comes in pages; a
+    subsection too long for a page is left as a pointer to read on its own.
     """
     pub = _publication(services, publication)
     node, path = _find(pub, _chapters(pub), section_id)
-    pages = _pages(node)
+    pages = _pages(_expanded(services, node) if expand_statblocks else node)
     if page > len(pages):
         raise ClientError(f"Section {section_id} has {len(pages)} page(s).")
     return SectionText(
@@ -104,46 +119,129 @@ async def read_section(
 
 
 async def search_publication(
-    publication: Publication,
     query: Annotated[
         str,
         Field(min_length=2, description="Words to find in a section's name or text"),
     ],
+    publication: Annotated[
+        str | None,
+        Field(description="A book or adventure id, e.g. LMoP; else every one"),
+    ] = None,
+    names_only: Annotated[
+        bool, Field(description="Match section names only, not their text")
+    ] = False,
     limit: Annotated[int, Field(ge=1, le=50)] = 10,
     offset: Annotated[
         int, Field(ge=0, description="Skip this many matches, to page")
     ] = 0,
     services: Services = Depends(get_services),
 ) -> SectionMatches:
-    """Find the sections of a book or adventure that mention something, for read_section.
+    """Find the sections of books and adventures that mention something, for read_section.
 
     Every word must appear in the section's name or its own text (not its
     subsections'). Sections named for the words come first, then the rest in
-    book order.
+    book order; across publications, oldest publication first.
     """
-    pub = _publication(services, publication)
+    pubs = (
+        [_publication(services, publication)]
+        if publication
+        else _publications(services)
+    )
     words = query.lower().split()
-    named: list[SectionMatch] = []
-    mentioned: list[SectionMatch] = []
-    for node, path in _every_section(_chapters(pub)):
-        name = _name(node).lower()
-        text = markdown.render(_own(node))
-        if not all(w in name or w in text.lower() for w in words):
-            continue
-        match = SectionMatch(
-            id=str(node["id"]),
-            name=_name(node),
-            path=path,
-            chars=_chars(node),
-            snippet=markdown.snippet(text, words),
-        )
-        (named if all(w in name for w in words) else mentioned).append(match)
+    named: list[_Section] = []
+    mentioned: list[_Section] = []
+    for pub in pubs:
+        for section in _sections(services, pub):
+            name = section.name.lower()
+            if all(w in name for w in words):
+                named.append(section)
+            elif not names_only and all(
+                w in name or w in section.text.lower() for w in words
+            ):
+                mentioned.append(section)
     found = named + mentioned
     return SectionMatches(
-        publication=_pub_id(pub),
+        publication=_pub_id(pubs[0]) if publication else None,
         total=len(found),
-        results=found[offset : offset + limit],
+        next_offset=next_offset(len(found), offset, limit),
+        results=[
+            SectionMatch(
+                publication=s.publication,
+                id=str(s.node["id"]),
+                name=s.name,
+                path=s.path,
+                chars=_chars(s.node),
+                snippet=markdown.snippet(s.text, words),
+            )
+            for s in found[offset : offset + limit]
+        ],
     )
+
+
+class _Section:
+    """A section with an id, and its own text as Markdown once asked for."""
+
+    def __init__(self, publication: str, node: Node, path: list[str]) -> None:
+        self.publication = publication
+        self.node = node
+        self.path = path
+        self.name = _name(node)
+
+    @cached_property
+    def text(self) -> str:
+        return markdown.render(_own(self.node))
+
+
+# Per catalogue, each publication's sections, so later searches skip rendering
+_SECTIONS: WeakKeyDictionary[Catalogue, dict[str, list[_Section]]] = WeakKeyDictionary()
+
+
+def _sections(services: Services, pub: Adventure | Book) -> list[_Section]:
+    by_pub = _SECTIONS.setdefault(services.catalogue, {})
+    key = _pub_id(pub)
+    if key not in by_pub:
+        by_pub[key] = [
+            _Section(key, node, path) for node, path in _every_section(_chapters(pub))
+        ]
+    return by_pub[key]
+
+
+def _expanded(services: Services, node: Node) -> Node:
+    """A copy of a section with each statblock laid out as get_content does.
+
+    Lore (fluff) and statblocks that name nothing loaded stay as they are.
+    """
+
+    def expand(entry: Any) -> Any:
+        if isinstance(entry, list):
+            return [expand(e) for e in entry]
+        if not isinstance(entry, dict):
+            return entry
+        if entry.get("type") == "statblock":
+            return _statblock_markdown(services, entry) or entry
+        return {k: expand(v) for k, v in entry.items()}
+
+    expanded: Node = expand(node)
+    return expanded
+
+
+def _statblock_markdown(services: Services, entry: Node) -> Node | None:
+    """A statblock as Markdown, keeping the entry and its data for references."""
+    content_type = statblock_type(entry)
+    if content_type is None or content_type in FLUFF_TYPES:
+        return None
+    found = find_statblock(services.catalogue, entry, content_type)
+    if found is None:
+        return None
+    data = entry_data(found)
+    if entry.get("displayName"):
+        data["name"] = entry["displayName"]
+    return {
+        "type": "studiorumMarkdown",
+        "markdown": to_markdown(content_type_of(found).value, data),
+        "statblock": entry,
+        "data": data,
+    }
 
 
 def _every_section(
@@ -169,6 +267,25 @@ def _own(node: Node) -> Node:
         return out
 
     return prune(node)
+
+
+def _publications(services: Services) -> list[Adventure | Book]:
+    """Every book and adventure with its text, oldest first."""
+    catalogue = services.catalogue
+    found = sorted(
+        (
+            p
+            for ctype in (ContentType.ADVENTURE, ContentType.BOOK)
+            for p in catalogue.get_all_by_type(ctype)
+            if isinstance(p, Adventure | Book)
+        ),
+        key=lambda p: (p.published or "", p.name),
+    )
+    hydrated = [catalogue.hydrate(p) for p in found]
+    return [
+        h if isinstance(h, Adventure | Book) else p
+        for h, p in zip(hydrated, found, strict=True)
+    ]
 
 
 def _publication(services: Services, wanted: str) -> Adventure | Book:

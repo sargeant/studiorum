@@ -6,6 +6,7 @@ The tag splitting and display rules follow 5etools' ``Renderer.stripTags``
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from studiorum.data.models.content_models import TAG_TYPES
@@ -147,6 +148,9 @@ def render(entry: Any, depth: int = 1) -> str:
             return f"*[{label}: {strip_tags(title)}]*" if title else ""
         case "gallery":
             return _join(render(i, depth) for i in entry.get("images", []))
+        case "studiorumMarkdown":
+            # Markdown laid out already (an expanded statblock), headings from depth
+            return _shift_headings(str(entry.get("markdown", "")), depth)
         case "statblock":
             source = entry.get("source", "")
             if str(entry.get("prop", "")).endswith("Fluff"):
@@ -171,6 +175,16 @@ def render(entry: Any, depth: int = 1) -> str:
             return f"**{name}** = {strip_tags(entry.get('text', ''))} {attrs}".strip()
     heading = f"{'#' * min(depth, 6)} {name}" if name else ""
     return _join([heading, _children(entry, depth + 1 if name else depth)])
+
+
+def _shift_headings(text: str, depth: int) -> str:
+    """Markdown whose top heading is ``#``, with its headings moved to ``depth``."""
+    return re.sub(
+        r"^(#+) ",
+        lambda m: "#" * min(len(m.group(1)) + depth - 1, 6) + " ",
+        text,
+        flags=re.MULTILINE,
+    )
 
 
 def _abilities(entry: dict[str, Any]) -> str:

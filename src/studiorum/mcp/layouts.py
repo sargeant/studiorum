@@ -6,6 +6,7 @@ from typing import Any
 
 from studiorum.data import encounter
 from studiorum.data.loaders import item_types
+from studiorum.data.models.content import BaseContent
 from studiorum.data.models.items import variation_entries
 from studiorum.data.text.parser import feat_category
 from studiorum.data.text.prerequisites import prerequisite_entry
@@ -35,6 +36,13 @@ _ABILITY_NAMES = {"str": "Strength", "dex": "Dexterity", "con": "Constitution", 
 _SCHOOLS = {"A": "Abjuration", "C": "Conjuration", "D": "Divination", "E": "Enchantment", "V": "Evocation", "I": "Illusion", "N": "Necromancy", "T": "Transmutation"}  # fmt: skip
 _DAMAGE = {"B": "Bludgeoning", "P": "Piercing", "S": "Slashing", "N": "Necrotic", "R": "Radiant", "O": "Force", "F": "Fire", "C": "Cold", "L": "Lightning", "T": "Thunder", "A": "Acid", "I": "Poison", "Y": "Psychic"}  # fmt: skip
 _PROPERTIES = {"A": "Ammunition", "F": "Finesse", "H": "Heavy", "L": "Light", "LD": "Loading", "R": "Reach", "S": "Special", "T": "Thrown", "2H": "Two-Handed", "V": "Versatile", "RLD": "Reload", "BF": "Burst Fire"}  # fmt: skip
+
+
+def entry_data(entry: BaseContent) -> Raw:
+    """An entry as 5etools models it, with its source as an abbreviation."""
+    return entry.model_dump(mode="json", by_alias=True, exclude_none=True) | {
+        "source": entry.source.abbreviation
+    }
 
 
 def to_markdown(content_type: str, data: Raw) -> str:

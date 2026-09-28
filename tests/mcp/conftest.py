@@ -51,6 +51,8 @@ ADVENTURE_TEXT = [
                 "rows": [["1", "{@item Potion of Healing|DMG}"], ["2-4", "Nothing"]],
             },
             {"type": "statblock", "tag": "creature", "name": "Goblin", "source": "MM"},
+            # Not in the data set
+            {"type": "statblock", "tag": "creature", "name": "Owlbear", "source": "MM"},
             {"type": "insetReadaloud", "entries": ["You smell smoke."]},
             {
                 "type": "entries",
@@ -61,7 +63,7 @@ ADVENTURE_TEXT = [
                         "type": "statblock",
                         "tag": "creature",
                         "name": "Goblin",
-                        "source": "MM",
+                        "source": "SRD",
                     }
                 ],
             },

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import pytest
@@ -79,6 +80,28 @@ async def test_read_section_points_to_long_subsections() -> None:
 
 
 @pytest.mark.asyncio
+async def test_read_section_expands_statblocks() -> None:
+    guards = await call(
+        "read_section", publication="TA", section_id="005", expand_statblocks=True
+    )
+    # Laid out as get_content lays it out, with headings under the section's
+    goblin = await call("get_content", content_type="creature", name="Goblin")
+    body = re.sub(r"^(#+) ", r"#\1 ", goblin["text"], flags=re.MULTILINE)
+    assert guards["text"] == "# Guards\n\n" + body
+    assert "Statblock" not in guards["text"]
+    # References keep the statblock and add what its text links to
+    refs = [(r["type"], r["name"]) for r in guards["references"]]
+    assert refs[0] == ("creature", "Goblin")
+    assert {(r["type"], r["name"]) for r in goblin["references"]} <= set(refs)
+
+    # A statblock for something not loaded stays a line
+    cave = await call(
+        "read_section", publication="TA", section_id="002", expand_statblocks=True
+    )
+    assert "*[Creature statblock: Owlbear (MM)]*" in cave["text"]
+
+
+@pytest.mark.asyncio
 async def test_read_section_pages() -> None:
     first = await call("read_section", publication="TA", section_id="003")
     assert (first["pages"], first["path"]) == (2, ["The Cave"])
@@ -148,6 +171,8 @@ async def test_read_section_lists_references() -> None:
         ("section", "Big Room", None, "003"),
         ("item", "Potion of Healing", "DMG", None),
         ("creature", "Goblin", "MM", None),
+        ("creature", "Owlbear", "MM", None),
+        ("creature", "Goblin", "SRD", None),
         ("section", "the big room", None, "003"),
     ]
 
@@ -165,6 +190,23 @@ async def test_search_publication() -> None:
     # A section's own text, not its subsections'
     hooks = await call("search_publication", publication="TA", query="hook")
     assert [r["id"] for r in hooks["results"]] == ["001"]
+
+
+@pytest.mark.asyncio
+async def test_search_every_publication() -> None:
+    def found(result: dict[str, Any]) -> list[tuple[str, str]]:
+        return [(r["publication"], r["id"]) for r in result["results"]]
+
+    trek = await call("search_publication", query="trek")
+    assert trek["publication"] is None
+    # Named sections first, then the text, oldest publication first
+    assert found(trek) == [("TB-ST", "200"), ("TA", "004")]
+    names = await call("search_publication", query="trek", names_only=True)
+    assert found(names) == [("TB-ST", "200")]
+    assert names["results"][0]["snippet"] == "Trek Go."
+    assert found(await call("search_publication", query="roll d20")) == [("TB", "100")]
+    one = await call("search_publication", query="trek", publication="TA")
+    assert (one["publication"], found(one)) == ("TA", [("TA", "004")])
 
 
 @pytest.mark.asyncio

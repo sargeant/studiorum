@@ -40,7 +40,9 @@ async def test_the_server_lists_its_tools() -> None:
         "search_rules",
         "search_content",
         "get_content",
+        "get_contents",
         "list_publications",
+        "get_class_progression",
         "calculate_encounter_budget",
         "rate_encounter",
         "suggest_creatures",
@@ -69,8 +71,40 @@ async def test_search_spells_filters() -> None:
     assert names(await call("search_spells", ritual=True)) == ["Alarm"]
     assert names(await call("search_spells", ritual=False)) == ["Fireball"]
     result = await call("search_spells", srd_only=False, limit=1)
-    assert result["total"] == 3
+    assert (result["total"], result["next_offset"]) == (3, 1)
     assert len(result["results"]) == 1
+    last = await call("search_spells", srd_only=False, limit=1, offset=2)
+    assert (names(last), last["next_offset"]) == (["Hellfire Orb"], None)
+
+
+@pytest.mark.asyncio
+async def test_searches_include_text(monkeypatch: pytest.MonkeyPatch) -> None:
+    fireball = await call("get_content", content_type="spell", name="Fireball")
+    spells = await call("search_spells", query="fire", include_text=True)
+    assert spells["results"][0]["text"] == fireball["text"]
+    assert (await call("search_spells", query="fire"))["results"][0]["text"] is None
+    goblin = await call("get_content", content_type="creature", name="Goblin")
+    creatures = await call("search_creatures", query="goblin", include_text=True)
+    assert creatures["results"][0]["text"] == goblin["text"]
+    items = await call("search_items", query="amulet", include_text=True)
+    assert items["results"][0]["text"].startswith("# Amulet of Health")
+    wizard = await call("get_content", content_type="class", name="Wizard")
+    classes = await call(
+        "search_content", content_type="class", query="wiz", include_text=True
+    )
+    # A class lists its subclasses, as get_content does
+    assert classes["results"][0]["text"] == wizard["text"]
+
+    # Text stops a page at the size cap, though a page always has one result
+    monkeypatch.setattr("studiorum.mcp.tools.search.PAGE_CHARS", 1)
+    capped = await call("search_spells", srd_only=False, include_text=True)
+    assert (len(capped["results"]), capped["total"], capped["next_offset"]) == (
+        1,
+        3,
+        1,
+    )
+    rest = await call("search_spells", srd_only=False, include_text=True, offset=2)
+    assert (names(rest), rest["next_offset"]) == (["Hellfire Orb"], None)
 
 
 @pytest.mark.asyncio
@@ -89,6 +123,7 @@ async def test_search_creatures_filters() -> None:
         "srd": True,
         "cr": "1/4",
         "type": "humanoid",
+        "text": None,
     }
     assert names(await call("search_creatures", creature_type="humanoid")) == [
         "Acolyte",
@@ -143,6 +178,45 @@ async def test_get_content_suggests_names() -> None:
         ToolError, match="No creature named 'Goblim'. Did you mean: Goblin"
     ):
         await call("get_content", content_type="creature", name="Goblim")
+    # A part of the name suggests the names that contain it
+    with pytest.raises(ToolError, match="Did you mean: Young Red Dragon"):
+        await call("get_content", content_type="creature", name="red drag")
+
+
+@pytest.mark.asyncio
+async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> None:
+    items = [
+        {"content_type": "creature", "name": "Goblin"},
+        {"content_type": "spell", "name": "Fireball"},
+        {"content_type": "spell", "name": "Hellfire Orb"},
+        {"content_type": "spell", "name": "Nothing"},
+        {"content_type": "item", "name": "Amulet of Health"},
+    ]
+    result = await call("get_contents", items=items)
+    assert [e["name"] for e in result["entries"]] == [
+        "Goblin",
+        "Fireball",
+        "Amulet of Health",
+    ]
+    fireball = await call("get_content", content_type="spell", name="Fireball")
+    assert result["entries"][1] == fireball
+    assert [(m["name"], m["error"][:20]) for m in result["not_found"]] == [
+        ("Hellfire Orb", "Hellfire Orb (HB) is"),
+        ("Nothing", "No spell named 'Noth"),
+    ]
+    assert result["next_offset"] is None
+
+    # A size cap stops the batch; next_offset resumes it
+    monkeypatch.setattr("studiorum.mcp.tools.lookup.PAGE_CHARS", 1)
+    first = await call("get_contents", items=items)
+    assert ([e["name"] for e in first["entries"]], first["next_offset"]) == (
+        ["Goblin"],
+        1,
+    )
+    rest = await call("get_contents", items=items, offset=4, format="json")
+    assert rest["entries"][0]["data"]["name"] == "Amulet of Health"
+    with pytest.raises(ToolError):
+        await call("get_contents", items=[items[0]] * 21)
 
 
 @pytest.mark.asyncio
@@ -156,6 +230,31 @@ async def test_list_publications() -> None:
     ]
     books = await call("list_publications", kind="book")
     assert [p["name"] for p in books["publications"]] == ["Test Book"]
+
+
+@pytest.mark.asyncio
+async def test_list_publications_filters_sorts_and_pages() -> None:
+    def ids(result: dict[str, Any]) -> list[str]:
+        return [p["id"] for p in result["publications"]]
+
+    assert ids(await call("list_publications", query="book")) == ["TB", "TB-ST"]
+    assert ids(await call("list_publications", query="ta")) == ["TA"]
+    assert ids(await call("list_publications", published_after="2020")) == [
+        "TB",
+        "TB-ST",
+    ]
+    assert ids(await call("list_publications", published_after="2020-06-01")) == [
+        "TB-ST"
+    ]
+    newest = await call("list_publications", newest_first=True, limit=2, offset=0)
+    assert (newest["total"], ids(newest), newest["next_offset"]) == (
+        3,
+        ["TB-ST", "TB"],
+        2,
+    )
+    assert ids(await call("list_publications", newest_first=True, offset=2)) == ["TA"]
+    with pytest.raises(ToolError):
+        await call("list_publications", published_after="last year")
 
 
 def test_entry_types_are_content_types() -> None:
@@ -314,3 +413,43 @@ async def test_search_content_gives_uids_where_names_repeat() -> None:
     )
     feature = await call("get_content", content_type="classFeature", name=first["uid"])
     assert feature["name"] == "Arcane Recovery"
+
+
+@pytest.mark.asyncio
+async def test_get_class_progression() -> None:
+    wizard = await call("get_class_progression", class_name="wizard")
+    assert (wizard["name"], len(wizard["levels"])) == ("Wizard", 20)
+    assert wizard["columns"][-9:] == [
+        "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"
+    ]  # fmt: skip
+    first = wizard["levels"][0]
+    assert (first["level"], first["proficiency_bonus"]) == (1, 2)
+    assert first["columns"]["1st"] == "2"
+    assert first["columns"]["2nd"] == "\u2014"
+    assert "Arcane Recovery" in [f["name"] for f in first["features"]]
+
+    one = await call("get_class_progression", class_name="Wizard", level=17)
+    assert [r["level"] for r in one["levels"]] == [17]
+    assert one["levels"][0]["proficiency_bonus"] == 6
+    slots = [one["levels"][0]["columns"][c] for c in wizard["columns"][-9:]]
+    assert slots == ["4", "3", "3", "3", "2", "1", "1", "1", "1"]
+    # A feature's uid reads it in full
+    uid = first["features"][0]["uid"]
+    feature = await call("get_content", content_type="classFeature", name=uid)
+    assert feature["name"] == first["features"][0]["name"]
+
+
+@pytest.mark.asyncio
+async def test_get_class_progression_with_a_subclass() -> None:
+    evoker = await call(
+        "get_class_progression", class_name="Wizard", subclass="evocation", level=2
+    )
+    assert (evoker["subclass"], evoker["subclass_source"]) == (
+        "School of Evocation",
+        "SRD",
+    )
+    assert [f["name"] for f in evoker["levels"][0]["subclass_features"]] == [
+        "School of Evocation"
+    ]
+    with pytest.raises(ToolError, match="No Wizard subclass named 'Nope'"):
+        await call("get_class_progression", class_name="Wizard", subclass="Nope")

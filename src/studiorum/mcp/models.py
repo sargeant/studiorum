@@ -2,9 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
+
+# The most Markdown one reply carries (about 6,000 tokens)
+PAGE_CHARS = 24_000
+
+NextOffset = Annotated[
+    int | None, Field(description="The offset of the next page; none after the last")
+]
+
+
+def next_offset(total: int, offset: int, shown: int) -> int | None:
+    """Where the page after ``shown`` results from ``offset`` starts, if any remain."""
+    return offset + shown if offset + shown < total else None
 
 
 class SpellSummary(BaseModel):
@@ -13,6 +25,7 @@ class SpellSummary(BaseModel):
     srd: bool
     level: int
     school: str
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class CreatureSummary(BaseModel):
@@ -21,6 +34,7 @@ class CreatureSummary(BaseModel):
     srd: bool
     cr: str
     type: str
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class ItemSummary(BaseModel):
@@ -29,6 +43,7 @@ class ItemSummary(BaseModel):
     srd: bool
     type: str | None
     rarity: str | None
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class Filtered(BaseModel):
@@ -41,16 +56,19 @@ class Filtered(BaseModel):
 
 class SpellResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[SpellSummary]
 
 
 class CreatureResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[CreatureSummary]
 
 
 class ItemResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[ItemSummary]
 
 
@@ -82,6 +100,23 @@ class ContentEntry(BaseModel):
     )
 
 
+class ContentMissing(BaseModel):
+    content_type: str
+    name: str
+    source: str | None = None
+    error: str
+
+
+class ContentBatch(BaseModel):
+    entries: list[ContentEntry]
+    not_found: list[ContentMissing] = Field(
+        default_factory=list, description="Requests that found nothing, and why"
+    )
+    next_offset: int | None = Field(
+        None, description="Where to resume when the size cap stopped short"
+    )
+
+
 class Publication(BaseModel):
     id: str
     source: str = Field(description="The source abbreviation its content carries")
@@ -93,7 +128,8 @@ class Publication(BaseModel):
 
 
 class Publications(BaseModel):
-    total: int
+    total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     publications: list[Publication]
 
 
@@ -145,6 +181,7 @@ class CreatureSuggestions(Filtered):
         description="The XP range per creature that puts the group at this difficulty"
     )
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[SuggestedCreature]
 
 
@@ -191,10 +228,12 @@ class RuleSummary(BaseModel):
 
 class RuleResults(Filtered):
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[RuleSummary]
 
 
 class SectionMatch(BaseModel):
+    publication: str = Field(description="The book or adventure id")
     id: str
     name: str
     path: list[str] = Field(
@@ -205,8 +244,9 @@ class SectionMatch(BaseModel):
 
 
 class SectionMatches(BaseModel):
-    publication: str
+    publication: str | None = Field(description="None when every one was searched")
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[SectionMatch]
 
 
@@ -218,9 +258,38 @@ class ContentSummary(BaseModel):
         None, description="Pass as get_content's name when the name and source repeat"
     )
     detail: str | None = Field(None, description="What tells it apart, e.g. a pantheon")
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class ContentResults(Filtered):
     type: str
     total: int = Field(description="Matches before the limit")
+    next_offset: NextOffset = None
     results: list[ContentSummary]
+
+
+class FeatureRef(BaseModel):
+    name: str
+    uid: str = Field(description="Pass as get_content's name, with the feature type")
+
+
+class ProgressionLevel(BaseModel):
+    level: int
+    proficiency_bonus: int
+    features: list[FeatureRef] = Field(description="Class features gained")
+    subclass_features: list[FeatureRef] = Field(
+        default_factory=list, description="The subclass's features gained"
+    )
+    columns: dict[str, str] = Field(
+        description="The class table's own columns, e.g. spell slots by level"
+    )
+
+
+class ClassProgression(BaseModel):
+    name: str
+    source: str
+    srd: bool
+    subclass: str | None = None
+    subclass_source: str | None = None
+    columns: list[str] = Field(description="The columns' labels, in order")
+    levels: list[ProgressionLevel]
