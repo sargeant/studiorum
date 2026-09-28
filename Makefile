@@ -128,8 +128,9 @@ lint-imports: uv
 # can write to the local cache directory could run code. No fixed release; the
 # pickled content cache is due to be removed.
 # --skip-editable leaves out studiorum itself, which PyPI doesn't have.
+# The script falls back from PyPI's vulnerability service to OSV.
 pip-audit: uv
-	@$(UV) pip-audit --desc=off --skip-editable --ignore-vuln GHSA-4xh5-x5gv-qwph --ignore-vuln PYSEC-2026-2447 || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
+	@$(SCRIPTS_DIR)/pip-audit.sh --desc=off --skip-editable --ignore-vuln GHSA-4xh5-x5gv-qwph --ignore-vuln PYSEC-2026-2447
 
 ## Static security analysis
 bandit: uv
