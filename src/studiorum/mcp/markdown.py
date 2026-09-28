@@ -227,7 +227,10 @@ def _table(table: dict[str, Any]) -> str:
         *("| " + " | ".join(r + [""] * (width - len(r))) + " |" for r in rows),
     ]
     caption = table.get("caption")
-    return _join([f"**{strip_tags(caption)}**" if caption else "", "\n".join(lines)])
+    footnotes = [render(f) for f in table.get("footnotes") or []]
+    return _join(
+        [f"**{strip_tags(caption)}**" if caption else "", "\n".join(lines), *footnotes]
+    )
 
 
 def _rows(table: dict[str, Any]) -> list[list[Any]]:

@@ -63,6 +63,8 @@ def to_markdown(content_type: str, data: Raw) -> str:
         "vehicle": _vehicle,
         "deity": _deity,
         "language": _language,
+        "table": _table,
+        "tableGroup": _table,
     }.get(content_type, _generic)
     return "\n\n".join(p for p in layout(data, content_type) if p)
 
@@ -596,6 +598,28 @@ def _generic(data: Raw, content_type: str) -> list[str]:
             if line
         ),
         _entries(feat_full_entries(data) if content_type == "feat" else entries),
+    ]
+
+
+def _table(data: Raw, content_type: str) -> list[str]:
+    """A table, or a group of them, with the chapter it's printed in."""
+    chapter = (data.get("chapter") or {}).get("name")
+    where = f"{_source(data)}, {strip_tags(str(chapter))}" if chapter else _source(data)
+    tables = data.get("tables") or [] if content_type == "tableGroup" else [data]
+    return [
+        _title(data),
+        f"*table* · *{where}*",
+        _entries(
+            [
+                {
+                    **table,
+                    "type": "table",
+                    # A lone table's caption is its name, the title already
+                    "caption": table.get("caption") if len(tables) > 1 else None,
+                }
+                for table in tables
+            ]
+        ),
     ]
 
 

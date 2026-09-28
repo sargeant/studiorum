@@ -67,6 +67,8 @@ EntryType = Literal[
     "status",
     "subclass",
     "subclassFeature",
+    "table",
+    "tableGroup",
     "trap",
     "variantrule",
     "vehicle",
