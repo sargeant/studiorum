@@ -387,6 +387,17 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                 },
                 {"name": "Cliff", "source": "XDMG", "entries": ["Many have fallen."]},
                 {"name": "Pit", "source": "XDMG", "entries": ["You might fall."]},
+                {
+                    "name": "Abyss",
+                    "source": "XDMG",
+                    "entries": ["You fall, and might not stop."],
+                },
+                {
+                    "name": "Quarry",
+                    "source": "XDMG",
+                    "srd52": True,
+                    "entries": ["You might fall."],
+                },
             ]
         },
     )
