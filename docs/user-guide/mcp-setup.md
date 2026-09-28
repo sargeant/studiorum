@@ -65,7 +65,7 @@ A container image or other deployment can rely on these, and a change to any of 
 | `search_spells` | Spells by name, level, school, class list, ritual or concentration |
 | `search_creatures` | Creatures by name, challenge rating range and creature type |
 | `search_items` | Items by name, rarity, attunement, or magic items only |
-| `search_content` | Entries of any type `get_content` reads, by name: deities, feats, races, backgrounds, random tables and the rest |
+| `search_content` | Entries of any type `get_content` reads, by name or source (every one of a type without a query): deities, feats, races, backgrounds, random tables and the rest |
 | `search_rules` | Actions, conditions, statuses, variant rules, senses, hazards, and weapon properties and masteries whose name or text has the words asked for |
 | `get_content` | One entry in full, such as a statblock, a spell, a class or a class feature, as Markdown |
 | `get_contents` | Up to 20 entries in full in one call |
