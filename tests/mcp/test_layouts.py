@@ -276,3 +276,47 @@ def test_the_spellcasting_model_keeps_every_kind_of_spell_list() -> None:
     kept = Spellcasting.model_validate(block).model_dump(exclude_none=True)
 
     assert kept == block
+
+
+def test_spellcasting_is_woven_into_actions_and_legendary_actions_by_name() -> None:
+    dragon = {
+        "name": "Dragon",
+        "source": "HB",
+        "size": ["H"],
+        "type": "dragon",
+        "action": [
+            {"name": "Multiattack", "entries": ["Two attacks."]},
+            {"name": "Rend", "entries": ["{@atkr m} +5."]},
+            {"name": "Breath", "entries": ["Fire."]},
+            {"name": "Wing", "entries": ["Buffet."]},
+        ],
+        "legendary": [{"name": "Pounce", "entries": ["Moves."]}],
+        "spellcasting": [
+            {
+                "name": "Spellcasting",
+                "headerEntries": ["Casts."],
+                "displayAs": "action",
+            },
+            {
+                "name": "Frightful Presence",
+                "headerEntries": ["Fear."],
+                "displayAs": "legendary",
+            },
+        ],
+    }
+
+    text = to_markdown("creature", dragon)
+
+    names = [
+        line.split(".***")[0][3:] for line in text.split("\n") if line.startswith("***")
+    ]
+    assert names == [
+        "Multiattack",
+        "Rend",
+        "Breath",
+        "Spellcasting",
+        "Wing",
+        "Frightful Presence",
+        "Pounce",
+    ]
+    assert "The dragon can take 3 legendary actions." in text
