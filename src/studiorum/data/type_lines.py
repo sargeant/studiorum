@@ -62,7 +62,7 @@ def raw(content: BaseModel | Raw) -> Raw:
     return content.model_dump(by_alias=True, exclude_none=True)
 
 
-def trap_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
+def trap_entries(content: BaseModel | Raw, _: Catalogue | None) -> list[Any]:
     """``Renderer.traphazard`` and ``Renderer.trap``: subtitle, then parts and entries."""
     data = raw(content)
     entries = list(data.get("entries") or [])
@@ -76,7 +76,7 @@ def trap_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
     return [*_subtitle(data), *body]
 
 
-def hazard_entries(content: BaseModel, _: Catalogue | None) -> list[Any]:
+def hazard_entries(content: BaseModel | Raw, _: Catalogue | None) -> list[Any]:
     data = raw(content)
     return [*_subtitle(data), *(data.get("entries") or [])]
 

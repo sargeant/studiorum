@@ -17,7 +17,9 @@ from studiorum.data.type_lines import (
     cost_text,
     feat_full_entries,
     feature_type,
+    hazard_entries,
     language_entries,
+    trap_entries,
 )
 from studiorum.data.vehicle_lines import VehicleSection, vehicle_block
 from studiorum.mcp.markdown import render, strip_tags
@@ -69,6 +71,8 @@ def to_markdown(content_type: str, data: Raw) -> str:
         "vehicle": _vehicle,
         "deity": _deity,
         "language": _language,
+        "trap": _trap,
+        "hazard": _trap,
         "table": _table,
         "tableGroup": _table,
     }.get(content_type, _generic)
@@ -656,6 +660,17 @@ def _table(data: Raw, content_type: str) -> list[str]:
             ]
         ),
     ]
+
+
+def _trap(data: Raw, content_type: str) -> list[str]:
+    """``Renderer.traphazard``: its kind and rating, then its parts (a complex
+    trap's trigger, elements and countermeasures) and entries."""
+    port = trap_entries if content_type == "trap" else hazard_entries
+    entries = port(data, None)
+    kind = f"*{content_type}*"
+    if entries and isinstance(entries[0], str) and entries[0].startswith("{@i "):
+        kind = _entries(entries.pop(0))
+    return [_title(data), f"{kind} · *{_source(data)}*", _entries(entries)]
 
 
 def _language(data: Raw, _: str) -> list[str]:
