@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from functools import cached_property
 from typing import Annotated, Any
+from weakref import WeakKeyDictionary
 
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
+from studiorum.data.catalogue import Catalogue
 from studiorum.data.models.adventures import Adventure
 from studiorum.data.models.books import Book
 from studiorum.data.models.content import ContentType
@@ -116,47 +119,91 @@ async def read_section(
 
 
 async def search_publication(
-    publication: Publication,
     query: Annotated[
         str,
         Field(min_length=2, description="Words to find in a section's name or text"),
     ],
+    publication: Annotated[
+        str | None,
+        Field(description="A book or adventure id, e.g. LMoP; else every one"),
+    ] = None,
+    names_only: Annotated[
+        bool, Field(description="Match section names only, not their text")
+    ] = False,
     limit: Annotated[int, Field(ge=1, le=50)] = 10,
     offset: Annotated[
         int, Field(ge=0, description="Skip this many matches, to page")
     ] = 0,
     services: Services = Depends(get_services),
 ) -> SectionMatches:
-    """Find the sections of a book or adventure that mention something, for read_section.
+    """Find the sections of books and adventures that mention something, for read_section.
 
     Every word must appear in the section's name or its own text (not its
     subsections'). Sections named for the words come first, then the rest in
-    book order.
+    book order; across publications, oldest publication first.
     """
-    pub = _publication(services, publication)
+    pubs = (
+        [_publication(services, publication)]
+        if publication
+        else _publications(services)
+    )
     words = query.lower().split()
-    named: list[SectionMatch] = []
-    mentioned: list[SectionMatch] = []
-    for node, path in _every_section(_chapters(pub)):
-        name = _name(node).lower()
-        text = markdown.render(_own(node))
-        if not all(w in name or w in text.lower() for w in words):
-            continue
-        match = SectionMatch(
-            id=str(node["id"]),
-            name=_name(node),
-            path=path,
-            chars=_chars(node),
-            snippet=markdown.snippet(text, words),
-        )
-        (named if all(w in name for w in words) else mentioned).append(match)
+    named: list[_Section] = []
+    mentioned: list[_Section] = []
+    for pub in pubs:
+        for section in _sections(services, pub):
+            name = section.name.lower()
+            if all(w in name for w in words):
+                named.append(section)
+            elif not names_only and all(
+                w in name or w in section.text.lower() for w in words
+            ):
+                mentioned.append(section)
     found = named + mentioned
     return SectionMatches(
-        publication=_pub_id(pub),
+        publication=_pub_id(pubs[0]) if publication else None,
         total=len(found),
         next_offset=next_offset(len(found), offset, limit),
-        results=found[offset : offset + limit],
+        results=[
+            SectionMatch(
+                publication=s.publication,
+                id=str(s.node["id"]),
+                name=s.name,
+                path=s.path,
+                chars=_chars(s.node),
+                snippet=markdown.snippet(s.text, words),
+            )
+            for s in found[offset : offset + limit]
+        ],
     )
+
+
+class _Section:
+    """A section with an id, and its own text as Markdown once asked for."""
+
+    def __init__(self, publication: str, node: Node, path: list[str]) -> None:
+        self.publication = publication
+        self.node = node
+        self.path = path
+        self.name = _name(node)
+
+    @cached_property
+    def text(self) -> str:
+        return markdown.render(_own(self.node))
+
+
+# Per catalogue, each publication's sections, so later searches skip rendering
+_SECTIONS: WeakKeyDictionary[Catalogue, dict[str, list[_Section]]] = WeakKeyDictionary()
+
+
+def _sections(services: Services, pub: Adventure | Book) -> list[_Section]:
+    by_pub = _SECTIONS.setdefault(services.catalogue, {})
+    key = _pub_id(pub)
+    if key not in by_pub:
+        by_pub[key] = [
+            _Section(key, node, path) for node, path in _every_section(_chapters(pub))
+        ]
+    return by_pub[key]
 
 
 def _expanded(services: Services, node: Node) -> Node:
@@ -220,6 +267,25 @@ def _own(node: Node) -> Node:
         return out
 
     return prune(node)
+
+
+def _publications(services: Services) -> list[Adventure | Book]:
+    """Every book and adventure with its text, oldest first."""
+    catalogue = services.catalogue
+    found = sorted(
+        (
+            p
+            for ctype in (ContentType.ADVENTURE, ContentType.BOOK)
+            for p in catalogue.get_all_by_type(ctype)
+            if isinstance(p, Adventure | Book)
+        ),
+        key=lambda p: (p.published or "", p.name),
+    )
+    hydrated = [catalogue.hydrate(p) for p in found]
+    return [
+        h if isinstance(h, Adventure | Book) else p
+        for h, p in zip(hydrated, found, strict=True)
+    ]
 
 
 def _publication(services: Services, wanted: str) -> Adventure | Book:

@@ -233,6 +233,7 @@ class RuleResults(Filtered):
 
 
 class SectionMatch(BaseModel):
+    publication: str = Field(description="The book or adventure id")
     id: str
     name: str
     path: list[str] = Field(
@@ -243,7 +244,7 @@ class SectionMatch(BaseModel):
 
 
 class SectionMatches(BaseModel):
-    publication: str
+    publication: str | None = Field(description="None when every one was searched")
     total: int = Field(description="Matches before the limit")
     next_offset: NextOffset = None
     results: list[SectionMatch]

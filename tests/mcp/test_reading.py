@@ -193,6 +193,23 @@ async def test_search_publication() -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_every_publication() -> None:
+    def found(result: dict[str, Any]) -> list[tuple[str, str]]:
+        return [(r["publication"], r["id"]) for r in result["results"]]
+
+    trek = await call("search_publication", query="trek")
+    assert trek["publication"] is None
+    # Named sections first, then the text, oldest publication first
+    assert found(trek) == [("TB-ST", "200"), ("TA", "004")]
+    names = await call("search_publication", query="trek", names_only=True)
+    assert found(names) == [("TB-ST", "200")]
+    assert names["results"][0]["snippet"] == "Trek Go."
+    assert found(await call("search_publication", query="roll d20")) == [("TB", "100")]
+    one = await call("search_publication", query="trek", publication="TA")
+    assert (one["publication"], found(one)) == ("TA", [("TA", "004")])
+
+
+@pytest.mark.asyncio
 async def test_an_adventure_sharing_a_books_source_is_found_by_its_id() -> None:
     book = await call("get_table_of_contents", publication="TB")
     trek = await call("get_table_of_contents", publication="TB-ST")
