@@ -329,6 +329,32 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     )
 
     _write(
+        tmp_path / "races.json",
+        {
+            "race": [
+                {
+                    "name": "Dwarf",
+                    "source": "PHB",
+                    "srd": True,
+                    "size": ["M"],
+                    "speed": 25,
+                    "entries": ["Stout."],
+                }
+            ],
+            "subrace": [
+                {
+                    "name": "Hill",
+                    "source": "PHB",
+                    "raceName": "Dwarf",
+                    "raceSource": "PHB",
+                    "srd": True,
+                    "entries": ["Tough."],
+                }
+            ],
+        },
+    )
+
+    _write(
         tmp_path / "trapshazards.json",
         {
             "hazard": [

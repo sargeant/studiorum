@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Annotated, Any, Literal
 
 from fastmcp.dependencies import Depends
@@ -376,8 +377,19 @@ def _by_name(services: Services, ctype: ContentType, name: str) -> list[BaseCont
     if found:
         return found
     key = fold(name)
-    names = {c.name for c in catalogue.get_all_by_type(ctype) if fold(c.name) == key}
+    names = {c.name for c in catalogue.get_all_by_type(ctype) if key in _names(c)}
     return [c for n in sorted(names) for c in catalogue.find_all(ctype, n)]
+
+
+_PARENTHESISED = re.compile(r"(.+?) \((.+)\)")
+
+
+def _names(content: BaseContent) -> tuple[str, ...]:
+    """A name folded, and a subrace's the way players say it ("Dwarf (Hill)", "hill dwarf")."""
+    name = fold(content.name)
+    if match := _PARENTHESISED.fullmatch(name):
+        return name, f"{match[2]} {match[1]}"
+    return (name,)
 
 
 def find_one(
@@ -495,13 +507,13 @@ async def search_content(
     named = [
         c
         for c in services.catalogue.get_all_by_type(ContentType(content_type))
-        if needle in fold(c.name)
+        if any(needle in n for n in _names(c))
     ]
     kept, hidden = split_srd(named, srd_only, latest_only)
     if latest_only and content_type in _OWNER_FIELDS:
         kept = _drop_reprinted_features(services, content_type, kept)
     kept.sort(
-        key=lambda c: (fold(c.name) != needle, c.name.lower(), c.source.abbreviation)
+        key=lambda c: (needle not in _names(c), c.name.lower(), c.source.abbreviation)
     )
     page, after = paged(
         kept,
