@@ -553,6 +553,19 @@ async def test_a_subrace_answers_to_its_name_as_players_say_it() -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_content_lists_a_type_by_source_without_a_query() -> None:
+    every = await call("search_content", content_type="language", srd_only=False)
+    assert [(r["name"], r["source"]) for r in every["results"]] == [
+        ("Elvish", "DSotDQ"),
+        ("Elvish", "XPHB"),
+    ]
+    xphb = await call(
+        "search_content", content_type="language", sources=["xphb"], srd_only=False
+    )
+    assert [r["source"] for r in xphb["results"]] == ["XPHB"]
+
+
+@pytest.mark.asyncio
 async def test_languages_can_be_found_and_read() -> None:
     found = await call("search_content", content_type="language", query="elv")
     assert [r["name"] for r in found["results"]] == ["Elvish"]
@@ -802,9 +815,9 @@ async def test_bad_arguments_say_what_is_wrong_in_a_line_each() -> None:
         "offset: Input should be greater than or equal to 0."
     )
     with pytest.raises(
-        ToolError, match=r"^Bad arguments to search_content\. query: Required\.$"
+        ToolError, match=r"^Bad arguments to get_content\. name: Required\.$"
     ):
-        await call("search_content", content_type="feat")
+        await call("get_content", content_type="feat")
 
 
 @pytest.mark.asyncio

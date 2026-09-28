@@ -38,6 +38,9 @@ from studiorum.mcp.tools.search import (
     LatestOnly,
     Limit,
     Offset,
+    Query,
+    Sources,
+    as_sources,
     drop_reprinted,
     paged,
     reprint_uids,
@@ -531,9 +534,8 @@ def _preference(content: BaseContent) -> tuple[bool, bool, bool, bool]:
 
 async def search_content(
     content_type: EntryType,
-    query: Annotated[
-        str, Field(min_length=1, description="Text the name must contain")
-    ],
+    query: Query = None,
+    sources: Sources = None,
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
     include_text: IncludeText = False,
@@ -542,23 +544,30 @@ async def search_content(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ContentResults:
-    """Find entries of any type get_content reads by name, e.g. deities, feats, races.
+    """Find entries of any type get_content reads, by name or source: feats, races and more.
 
-    With include_text, a page is capped at 24,000 characters of text, so it
-    can hold fewer results than limit; next_offset is where the rest start.
+    Without a query, every entry of the type, from the sources given. With
+    include_text, a page is capped at 24,000 characters of text, so it can
+    hold fewer results than limit; next_offset is where the rest start.
     """
     srd_only = default_srd if srd_only is None else srd_only
-    needle = fold(query)
+    needle = fold(query or "")
+    wanted = {s.lower() for s in as_sources(services, sources) or []}
     named = [
         c
         for c in services.catalogue.get_all_by_type(ContentType(content_type))
         if any(needle in n for n in _names(c))
+        and (not wanted or c.source.abbreviation.lower() in wanted)
     ]
     kept, hidden = split_srd(named, srd_only, latest_only)
     if latest_only and content_type in _OWNER_FIELDS:
         kept = _drop_reprinted_features(services, content_type, kept)
     kept.sort(
-        key=lambda c: (needle not in _names(c), c.name.lower(), c.source.abbreviation)
+        key=lambda c: (
+            bool(needle) and needle not in _names(c),
+            c.name.lower(),
+            c.source.abbreviation,
+        )
     )
     page, after = paged(
         kept,
