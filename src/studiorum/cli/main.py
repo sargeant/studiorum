@@ -7,6 +7,7 @@ import yaml
 from pydantic import ValidationError
 from rich import print as rprint
 
+from studiorum import __version__
 from studiorum.cli.context import install_services, reset_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.config import (
@@ -48,9 +49,7 @@ console = display_manager.console
 @app.command("version")
 def show_version() -> None:
     """Show version information."""
-    rprint(
-        "[bold blue]studiorum[/bold blue] [green]v2.0.0[/green] - Modern Architecture"
-    )
+    rprint(f"[bold blue]studiorum[/bold blue] [green]{__version__}[/green]")
     rprint("Convert 5e JSON → LaTeX → PDF")
 
 
