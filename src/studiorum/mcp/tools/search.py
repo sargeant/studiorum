@@ -33,6 +33,7 @@ from studiorum.mcp.models import (
     SpellSummary,
     next_offset,
 )
+from studiorum.mcp.text import fold
 from studiorum.services import Services
 
 School = Literal[
@@ -137,8 +138,8 @@ def _narrow[T: BaseContent](
     found: Sequence[T], query: str | None, srd_only: bool, latest_only: bool
 ) -> tuple[list[T], int]:
     """The matches in name order, and how many srd_only left out."""
-    needle = (query or "").lower()
-    named = [c for c in found if needle in c.name.lower()]
+    needle = fold(query or "")
+    named = [c for c in found if needle in fold(c.name)]
     kept, hidden = split_srd(named, srd_only, latest_only)
     return sorted(kept, key=lambda c: (c.name.lower(), c.source.abbreviation)), hidden
 

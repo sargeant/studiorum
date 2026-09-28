@@ -30,6 +30,7 @@ from studiorum.mcp.models import (
     SectionText,
     next_offset,
 )
+from studiorum.mcp.text import fold
 from studiorum.mcp.tools.lookup import resolve_references
 from studiorum.services import Services
 
@@ -164,7 +165,7 @@ async def search_publication(
         if publication
         else _publications(services)
     )
-    words = query.lower().split()
+    words = fold(query).split()
     ranked = [
         (rank, section)
         for pub in pubs
@@ -194,14 +195,14 @@ async def search_publication(
 
 def _rank(section: _Section, words: list[str], names_only: bool) -> int | None:
     """How well a section matches, best 0; None if it doesn't."""
-    name = section.name.lower()
+    name = fold(section.name)
     if all(w in name for w in words):
         if _plain(section.name) == " ".join(words):
             return 0
         return 1 if all(_whole(w, name) for w in words) else 2
     if names_only:
         return None
-    text = section.text.lower()
+    text = fold(section.text)
     if not all(w in name or w in text for w in words):
         return None
     if " ".join(words) in section.inner_names:
@@ -217,7 +218,7 @@ def _whole(word: str, text: str) -> bool:
 def _plain(name: str) -> str:
     """A name without an area key ("15. ", "B12: ") or end punctuation, lower case."""
     name = re.sub(r"^[A-Z]{0,2}\d+[a-z]?[.:]\s+", "", name.strip())
-    return " ".join(re.sub(r"^\W+|\W+$", "", name).lower().split())
+    return " ".join(re.sub(r"^\W+|\W+$", "", fold(name)).split())
 
 
 class _Section:

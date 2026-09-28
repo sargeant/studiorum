@@ -176,7 +176,8 @@ async def test_get_content_returns_the_entry() -> None:
     result = await call(
         "get_content", content_type="spell", name="fireball", format="json"
     )
-    assert result["text"] is None
+    # Keys with nothing to say are left out rather than sent as null
+    assert "text" not in result
     assert result["name"] == "Fireball"
     assert result["srd"] is True
     assert result["data"]["level"] == 3
@@ -511,6 +512,39 @@ async def test_unknown_parameters_list_the_ones_a_tool_takes() -> None:
         await call("list_publications", name_contains="tomb")
     with pytest.raises(ToolError, match="has no parameter 'lvl' or 'name'"):
         await call("search_spells", lvl=1, name="x")
+
+
+@pytest.mark.asyncio
+async def test_bad_arguments_say_what_is_wrong_in_a_line_each() -> None:
+    with pytest.raises(ToolError) as caught:
+        await call("search_spells", limit=101, offset=-1)
+    assert str(caught.value) == (
+        "Bad arguments to search_spells. "
+        "limit: Input should be less than or equal to 100. "
+        "offset: Input should be greater than or equal to 0."
+    )
+    with pytest.raises(
+        ToolError, match=r"^Bad arguments to search_content\. query: Required\.$"
+    ):
+        await call("search_content", content_type="feat")
+
+
+@pytest.mark.asyncio
+async def test_results_leave_out_empty_keys() -> None:
+    grappler = (await call("search_content", content_type="feat", query="grap"))[
+        "results"
+    ][0]
+    assert set(grappler) == {"name", "source", "srd"}
+    goblin = await call("get_content", content_type="creature", name="Goblin")
+    assert "data" not in goblin
+    assert all(set(r) == {"type", "name", "source"} for r in goblin["references"])
+
+
+@pytest.mark.asyncio
+async def test_queries_match_without_accents() -> None:
+    assert names(await call("search_creatures", query="GÖB")) == ["Goblin"]
+    goblin = await call("get_content", content_type="creature", name="Göblin")
+    assert goblin["name"] == "Goblin"
 
 
 @pytest.mark.asyncio

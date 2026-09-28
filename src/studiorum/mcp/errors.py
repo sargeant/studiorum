@@ -8,6 +8,8 @@ from difflib import get_close_matches
 
 from fastmcp.exceptions import ToolError
 
+from studiorum.mcp.text import fold
+
 
 class ClientError(ToolError):
     """A bad call: the client sees the message, and FastMCP logs it only at DEBUG.
@@ -45,11 +47,11 @@ def suggestions(name: str, candidates: list[str], n: int = 5) -> list[str]:
     holding it mid-word, each shortest first, then close spellings.
     """
     unique = sorted(set(candidates))
-    needle = name.lower()
+    needle = fold(name)
     at_word = re.compile(rf"\b{re.escape(needle)}")
     containing = sorted(
-        (c for c in unique if needle in c.lower()),
-        key=lambda c: (at_word.search(c.lower()) is None, len(c)),
+        (c for c in unique if needle in fold(c)),
+        key=lambda c: (at_word.search(fold(c)) is None, len(c)),
     )
     close = get_close_matches(name, unique, n=n, cutoff=0.6)
     return list(dict.fromkeys([*containing, *close]))[:n]
