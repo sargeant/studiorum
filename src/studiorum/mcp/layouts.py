@@ -11,7 +11,13 @@ from studiorum.data.models.items import variation_entries
 from studiorum.data.text.parser import feat_category
 from studiorum.data.text.prerequisites import prerequisite_entry
 from studiorum.data.text.stats import condition_text, damage_text, speed_text
-from studiorum.data.type_lines import ability_text, feat_full_entries
+from studiorum.data.type_lines import (
+    ability_text,
+    cost_text,
+    feat_full_entries,
+    feature_type,
+    language_entries,
+)
 from studiorum.data.vehicle_lines import VehicleSection, vehicle_block
 from studiorum.mcp.markdown import render, strip_tags
 
@@ -56,6 +62,7 @@ def to_markdown(content_type: str, data: Raw) -> str:
         "race": _race,
         "vehicle": _vehicle,
         "deity": _deity,
+        "language": _language,
     }.get(content_type, _generic)
     return "\n\n".join(p for p in layout(data, content_type) if p)
 
@@ -551,12 +558,22 @@ def _generic(data: Raw, content_type: str) -> list[str]:
         kind = f"Level {data['level']} {owner} feature"
     if content_type == "feat" and data.get("category"):
         kind = feat_category(str(data["category"]))
+    if content_type == "optionalfeature" and data.get("featureType"):
+        kind = feature_type(data["featureType"])
+    prerequisite = strip_tags(
+        prerequisite_entry(data.get("prerequisite"), skip_prefix=True)
+    )
     return [
         _title(data),
         f"*{kind}* · *{_source(data)}*",
-        _line(
-            "Prerequisite",
-            strip_tags(prerequisite_entry(data.get("prerequisite"), skip_prefix=True)),
+        "\n".join(
+            line
+            for line in (
+                # 5etools joins "2nd level" and " Warlock" with a space
+                _line("Prerequisite", " ".join(prerequisite.split())),
+                _line("Cost", cost_text(data.get("consumes") or {})),
+            )
+            if line
         ),
         _entries(
             feat_full_entries(data)
@@ -564,6 +581,13 @@ def _generic(data: Raw, content_type: str) -> list[str]:
             else data.get("entries") or data.get("entry")
         ),
     ]
+
+
+def _language(data: Raw, _: str) -> list[str]:
+    """``Renderer.language``: its kind, speakers, origin and script, then entries."""
+    entries = language_entries(data, None)
+    kind = _entries(entries.pop(0)) if data.get("type") else "*language*"
+    return [_title(data), f"{kind} · *{_source(data)}*", _entries(entries)]
 
 
 def _race(data: Raw, _: str) -> list[str]:
