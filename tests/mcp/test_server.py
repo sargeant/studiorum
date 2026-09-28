@@ -13,9 +13,13 @@ from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
 from studiorum.data.models.content import ContentType
-from studiorum.mcp.errors import suggestions
+from studiorum.mcp.errors import ClientError, suggestions
 from studiorum.mcp.server import mcp
-from studiorum.mcp.tools.lookup import EntryType, _drop_reprinted_features
+from studiorum.mcp.tools.lookup import (
+    EntryType,
+    _check_one_owner,
+    _drop_reprinted_features,
+)
 from studiorum.mcp.tools.progression import full_uid
 
 pytestmark = pytest.mark.usefixtures("mcp_data")
@@ -536,6 +540,33 @@ def test_features_of_a_reprinted_class_give_way_to_the_reprint() -> None:
         ("Spell Mastery", "XPHB"),
         ("Arcane Tradition", "PHB"),
     ]
+
+
+def test_a_feature_name_several_classes_share_asks_for_a_uid() -> None:
+    class Stub:
+        def __init__(self, cls: str, level: int) -> None:
+            self.name = "Extra Attack"
+            self.source = SimpleNamespace(abbreviation="XPHB")
+            self.raw = {
+                "name": self.name,
+                "className": cls,
+                "classSource": "XPHB",
+                "level": level,
+            }
+
+        def model_dump(self, **_: Any) -> dict[str, Any]:
+            return dict(self.raw)
+
+    features: Any = [Stub("Fighter", 5), Stub("Fighter", 11), Stub("Paladin", 5)]
+    with pytest.raises(
+        ClientError,
+        match=r"2 classFeatures are named 'Extra Attack'; "
+        r"pass one's uid as the name: Extra Attack\|Fighter\|XPHB\|5\|XPHB, "
+        r"Extra Attack\|Paladin\|XPHB\|5\|XPHB\.$",
+    ):
+        _check_one_owner("classFeature", features)
+    # One class's feature at several levels is one feature
+    _check_one_owner("classFeature", features[:2])
 
 
 @pytest.mark.asyncio
