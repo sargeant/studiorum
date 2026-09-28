@@ -500,6 +500,14 @@ async def test_feats_keep_their_prerequisites() -> None:
 
 
 @pytest.mark.asyncio
+async def test_a_subrace_answers_to_its_name_as_players_say_it() -> None:
+    hill = await call("get_content", content_type="race", name="Hill Dwarf")
+    assert hill["name"] == "Dwarf (Hill)"
+    found = await call("search_content", content_type="race", query="hill dwarf")
+    assert [r["name"] for r in found["results"]] == ["Dwarf (Hill)"]
+
+
+@pytest.mark.asyncio
 async def test_languages_can_be_found_and_read() -> None:
     found = await call("search_content", content_type="language", query="elv")
     assert [r["name"] for r in found["results"]] == ["Elvish"]
