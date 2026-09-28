@@ -7,6 +7,7 @@ The tag splitting and display rules follow 5etools' ``Renderer.stripTags``
 from __future__ import annotations
 
 import re
+from fractions import Fraction
 from typing import Any
 
 from studiorum.data.models.content_models import TAG_TYPES
@@ -19,6 +20,7 @@ from studiorum.data.text.tags import (
     split_tag,
 )
 from studiorum.log import get_logger
+from studiorum.mcp.spellcasting import spellcasting_entries
 from studiorum.mcp.text import fold
 
 logger = get_logger(__name__)
@@ -101,6 +103,45 @@ def _display(tag: str, args: str) -> str:
     return display_part(tag, parts)
 
 
+def _bonus(value: Any) -> str:
+    return f"{value:+d}" if isinstance(value, int) else str(value or "")
+
+
+def _dice(rolls: list[Any]) -> str:
+    """``getEntryDiceDisplayText``: "1d6", "2d8 + 1d6+3"."""
+    parts = []
+    for roll in rolls:
+        if not isinstance(roll, dict):
+            continue
+        text = f"{roll.get('number', 1)}d{roll.get('faces', '')}"
+        modifier = roll.get("modifier")
+        if isinstance(modifier, int) and modifier and not roll.get("hideModifier"):
+            text += f"{modifier:+d}"
+        parts.append(text)
+    return " + ".join(parts)
+
+
+_AMOUNT = re.compile(r"\{=(amount\d+)(?:/[^}]*)?\}")
+
+
+def _amounts(text: str, ingredient: dict[str, Any]) -> str:
+    """A recipe line with its ``{=amount1/v}`` filled in, as a fraction where one."""
+
+    def amount(match: re.Match[str]) -> str:
+        value = ingredient.get(match[1])
+        if not isinstance(value, int | float):
+            return match[0]
+        whole, part = divmod(Fraction(value).limit_denominator(16), 1)
+        return (
+            " ".join(
+                p for p in (str(whole) if whole else "", str(part) if part else "") if p
+            )
+            or "0"
+        )
+
+    return _AMOUNT.sub(amount, text)
+
+
 def _attack(codes: str) -> str:
     kinds = {"m": "Melee", "r": "Ranged", "g": "Magical", "a": "Area"}
     methods = {"w": "Weapon", "s": "Spell", "p": "Power"}
@@ -126,6 +167,25 @@ def render(entry: Any, depth: int = 1) -> str:
         case "inset" | "insetReadaloud":
             body = _join([f"**{name}**" if name else "", _children(entry, depth + 1)])
             return _quote(body)
+        case "spellcasting":
+            return render({"type": "entries", **spellcasting_entries(entry)}, depth)
+        case "flowchart":
+            return _join(render(b, depth) for b in entry.get("blocks", []))
+        case "bonus":
+            return _bonus(entry.get("value"))
+        case "bonusSpeed":
+            value = entry.get("value")
+            return "\u2014" if value == 0 else f"{_bonus(value)} ft."
+        case "dice":
+            return _dice(entry.get("toRoll") or [])
+        case (
+            "refClassFeature" | "refSubclassFeature" | "refOptionalfeature" | "refFeat"
+        ):
+            # What the class data points to; features come dereferenced where it matters
+            uid = next((v for k, v in entry.items() if k != "type"), "")
+            return strip_tags(str(uid).split("|")[0])
+        case "ingredient":
+            return render(_amounts(str(entry.get("entry", "")), entry), depth)
         case "variant":
             title = f"**Variant: {name}**" if name else ""
             return _quote(_join([title, _children(entry, depth + 1)]))
