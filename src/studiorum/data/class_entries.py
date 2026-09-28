@@ -10,6 +10,7 @@ looked up as 5etools' dereferencer does.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from studiorum.data.models.content import ContentType
@@ -248,43 +249,113 @@ def _starting_equipment(equipment: Raw) -> list[Any]:
 # region Class table
 
 
+@dataclass(frozen=True)
+class Column:
+    """One column of a class table: its label (5etools markup) and group."""
+
+    label: str
+    title: str | None
+    spell_progression: bool
+
+
+@dataclass(frozen=True)
+class Level:
+    """One row of a class table: its level's features by uid, and its cells."""
+
+    level: int
+    proficiency_bonus: int
+    features: list[str]
+    subclass_features: list[str]
+    cells: list[Any]
+
+
+@dataclass(frozen=True)
+class Progression:
+    columns: list[Column]
+    levels: list[Level]
+
+
+def class_progression(cls: Raw, subclass: Raw | None = None) -> Progression:
+    """A class's table by level, as 5etools' class page builds it.
+
+    The class's table groups, then the subclass's, each cell as 5etools
+    keeps it; a group with ``rowsSpellProgression`` takes its cells from there.
+    """
+    features = _by_level(_uids(cls.get("classFeatures", []), "classFeature"), 3)
+    subclass_features = _by_level(
+        _uids((subclass or {}).get("subclassFeatures", []), "subclassFeature"), 5
+    )
+    groups = [
+        *cls.get("classTableGroups", []),
+        *(subclass or {}).get("subclassTableGroups", []),
+    ]
+    columns: list[Column] = []
+    cells: list[list[Any]] = []
+    for group in groups:
+        spells = group.get("rowsSpellProgression")
+        rows = spells or group.get("rows") or []
+        for i, label in enumerate(group.get("colLabels", [])):
+            columns.append(Column(label, group.get("title"), bool(spells)))
+            cells.append([row[i] if i < len(row) else "" for row in rows])
+    return Progression(
+        columns=columns,
+        levels=[
+            Level(
+                level=level,
+                proficiency_bonus=(level - 1) // 4 + 2,
+                features=features.get(level, []),
+                subclass_features=subclass_features.get(level, []),
+                cells=[
+                    column[level - 1] if level - 1 < len(column) else ""
+                    for column in cells
+                ],
+            )
+            for level in range(1, 21)
+        ],
+    )
+
+
+def _by_level(uids: list[str], at: int) -> dict[int, list[str]]:
+    """Feature uids by the level their uid holds at position ``at``."""
+    found: dict[int, list[str]] = {}
+    for uid in uids:
+        parts = uid.split("|")
+        if len(parts) > at and parts[at].isdigit():
+            found.setdefault(int(parts[at]), []).append(uid)
+    return found
+
+
 def _class_table(cls: Raw) -> Raw:
     """Level, proficiency bonus, features, then the class's own columns."""
-    names: dict[int, list[str]] = {}
-    for uid in _uids(cls.get("classFeatures", []), "classFeature"):
-        parts = uid.split("|")
-        if len(parts) > 3 and parts[3].isdigit():
-            names.setdefault(int(parts[3]), []).append(parts[0])
-    labels = ["Level", "Proficiency Bonus", "Features"]
-    styles = ["col-1 text-center", "col-1 text-center", "col-8"]
-    columns: list[list[Any]] = []
-    for group in cls.get("classTableGroups", []):
-        rows = group.get("rows") or []
-        if slots := group.get("rowsSpellProgression"):
-            # No slots of a level show as a dash
-            rows = [[cell or "\u2014" for cell in row] for row in slots]
-        for i, label in enumerate(group.get("colLabels", [])):
-            labels.append(label)
-            styles.append("col-1 text-center")
-            columns.append([row[i] if i < len(row) else "" for row in rows])
-    rows = [
-        [
-            _ordinal(level),
-            f"+{(level - 1) // 4 + 2}",
-            ", ".join(names.get(level, [])) or "—",
-            *(
-                column[level - 1] if level - 1 < len(column) else ""
-                for column in columns
-            ),
-        ]
-        for level in range(1, 21)
-    ]
+    progression = class_progression(cls)
     return {
         "type": "table",
         "caption": f"The {cls['name']}",
-        "colLabels": labels,
-        "colStyles": styles,
-        "rows": rows,
+        "colLabels": [
+            "Level",
+            "Proficiency Bonus",
+            "Features",
+            *(c.label for c in progression.columns),
+        ],
+        "colStyles": [
+            "col-1 text-center",
+            "col-1 text-center",
+            "col-8",
+            *("col-1 text-center" for _ in progression.columns),
+        ],
+        "rows": [
+            [
+                _ordinal(row.level),
+                f"+{row.proficiency_bonus}",
+                ", ".join(uid.split("|")[0] for uid in row.features) or "—",
+                # No slots of a level show as a dash
+                *(
+                    (cell or "\u2014") if column.spell_progression else cell
+                    for column, cell in zip(progression.columns, row.cells, strict=True)
+                ),
+            ]
+            for row in progression.levels
+        ],
         "wide": True,
     }
 
