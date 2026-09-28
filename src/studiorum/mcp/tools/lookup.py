@@ -279,9 +279,22 @@ def _detail(content_type: str, content: BaseContent) -> str | None:
 
 async def list_publications(
     kind: Literal["book", "adventure"] | None = None,
+    query: Annotated[
+        str | None, Field(description="Text the name or id must contain")
+    ] = None,
+    published_after: Annotated[
+        str | None,
+        Field(
+            pattern=r"^\d{4}(-\d{2}(-\d{2})?)?$",
+            description="Only those published on or after this: YYYY, YYYY-MM or YYYY-MM-DD",
+        ),
+    ] = None,
+    newest_first: bool = False,
+    limit: Annotated[int, Field(ge=1, le=200)] = 50,
+    offset: Offset = 0,
     services: Services = Depends(get_services),
 ) -> Publications:
-    """The books and adventures loaded, oldest first."""
+    """The books and adventures loaded, oldest first unless newest_first."""
     catalogue = services.catalogue
     found: list[Publication] = []
     if kind in (None, "book"):
@@ -311,5 +324,12 @@ async def list_publications(
             for a in catalogue.get_all_by_type(ContentType.ADVENTURE)
             if isinstance(a, Adventure)
         ]
-    found.sort(key=lambda p: (p.published or "", p.name))
-    return Publications(total=len(found), publications=found)
+    needle = (query or "").lower()
+    found = [
+        p
+        for p in found
+        if (needle in p.name.lower() or needle in p.id.lower())
+        and (not published_after or (p.published or "") >= published_after)
+    ]
+    found.sort(key=lambda p: (p.published or "", p.name), reverse=newest_first)
+    return Publications(total=len(found), publications=found[offset : offset + limit])

@@ -161,6 +161,27 @@ async def test_list_publications() -> None:
     assert [p["name"] for p in books["publications"]] == ["Test Book"]
 
 
+@pytest.mark.asyncio
+async def test_list_publications_filters_sorts_and_pages() -> None:
+    def ids(result: dict[str, Any]) -> list[str]:
+        return [p["id"] for p in result["publications"]]
+
+    assert ids(await call("list_publications", query="book")) == ["TB", "TB-ST"]
+    assert ids(await call("list_publications", query="ta")) == ["TA"]
+    assert ids(await call("list_publications", published_after="2020")) == [
+        "TB",
+        "TB-ST",
+    ]
+    assert ids(await call("list_publications", published_after="2020-06-01")) == [
+        "TB-ST"
+    ]
+    newest = await call("list_publications", newest_first=True, limit=2, offset=0)
+    assert (newest["total"], ids(newest)) == (3, ["TB-ST", "TB"])
+    assert ids(await call("list_publications", newest_first=True, offset=2)) == ["TA"]
+    with pytest.raises(ToolError):
+        await call("list_publications", published_after="last year")
+
+
 def test_entry_types_are_content_types() -> None:
     for name in get_args(EntryType):
         ContentType(name)

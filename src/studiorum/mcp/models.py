@@ -93,7 +93,7 @@ class Publication(BaseModel):
 
 
 class Publications(BaseModel):
-    total: int
+    total: int = Field(description="Matches before the limit")
     publications: list[Publication]
 
 
