@@ -11,7 +11,7 @@ from studiorum.data.models.items import variation_entries
 from studiorum.data.text.parser import feat_category
 from studiorum.data.text.prerequisites import prerequisite_entry
 from studiorum.data.text.stats import speed_text
-from studiorum.data.type_lines import ability_text
+from studiorum.data.type_lines import ability_text, feat_full_entries
 from studiorum.data.vehicle_lines import VehicleSection, vehicle_block
 from studiorum.mcp.markdown import render, strip_tags
 
@@ -520,46 +520,16 @@ def _generic(data: Raw, content_type: str) -> list[str]:
     return [
         _title(data),
         f"*{kind}* · *{_source(data)}*",
-        "\n".join(
-            line
-            for line in (
-                _line(
-                    "Prerequisite",
-                    strip_tags(
-                        prerequisite_entry(data.get("prerequisite"), skip_prefix=True)
-                    ),
-                ),
-                _line("Ability Score Increase", _increases(data.get("ability"))),
-            )
-            if line
+        _line(
+            "Prerequisite",
+            strip_tags(prerequisite_entry(data.get("prerequisite"), skip_prefix=True)),
         ),
-        _entries(data.get("entries") or data.get("entry")),
+        _entries(
+            feat_full_entries(data)
+            if content_type == "feat"
+            else data.get("entries") or data.get("entry")
+        ),
     ]
-
-
-def _increases(options: Any) -> str:
-    """A feat's ability score increases, such as +1 Strength or Dexterity."""
-    parts = []
-    for option in options if isinstance(options, list) else []:
-        if not isinstance(option, dict):
-            continue
-        choose = option.get("choose")
-        if isinstance(choose, dict):
-            names = " or ".join(
-                _ABILITY_NAMES.get(str(a), str(a)) for a in choose.get("from", [])
-            )
-            count = choose.get("count", 1)
-            amount = choose.get("amount", 1)
-            each = f"{count} of " if count > 1 else ""
-            parts.append(f"+{amount} to {each}{names}")
-        parts += [
-            f"+{n} {_ABILITY_NAMES[a]}"
-            for a, n in option.items()
-            if a in _ABILITY_NAMES
-        ]
-        if option.get("max"):
-            parts[-1:] = [f"{parts[-1]} (max {option['max']})"] if parts else []
-    return "; ".join(parts)
 
 
 def _race(data: Raw, _: str) -> list[str]:
