@@ -17,6 +17,7 @@ from studiorum.data.text.tags import (
     display_part,
     is_tag,
     plain_text,
+    roll_text,
     split_by_pipe,
     split_by_tags,
     split_tag,
@@ -147,7 +148,7 @@ def _format(style: Callable[[str], str], bold: bool = False) -> TagFn:
 
 
 def _roll(parts: list[str], r: Render) -> str:
-    return escape(_part(parts, 1) or parts[0].replace(";", "/"))
+    return escape(roll_text(parts))
 
 
 def _bonus(parts: list[str], r: Render) -> str:

@@ -28,6 +28,7 @@ from studiorum.render.tags import render
         ("{@b Dungeons & Dragons}", r"\textsc{Dungeons \& Dragons}"),
         ("{@dice 1d6 + 2}", "1d6 + 2"),
         ("{@damage 2d6}", "2d6"),
+        ("{@damage 1d8 + summonSpellLevel}", "1d8 + the spell's level"),
         ("{@dc 15}", "DC 15"),
         ("{@hit 5}", "+5"),
         ("{@hit -1}", "-1"),

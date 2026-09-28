@@ -89,6 +89,14 @@ def display_part(tag: str, parts: list[str]) -> str:
     return parts[index] if len(parts) > index and parts[index] else first
 
 
+def roll_text(parts: list[str]) -> str:
+    """What a dice or damage tag shows, with a summon's level in words as 5etools has it."""
+    shown = parts[1] if len(parts) > 1 and parts[1] else parts[0].replace(";", "/")
+    return shown.replace("summonSpellLevel", "the spell's level").replace(
+        "summonClassLevel", "your class level"
+    )
+
+
 def plain_text(text: str) -> str:
     """Markup with each tag replaced by its generic display text, recursively."""
     if "{@" not in text:
