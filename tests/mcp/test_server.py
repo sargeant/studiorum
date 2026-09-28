@@ -558,6 +558,15 @@ async def test_get_content_reads_a_generic_variant_as_an_item() -> None:
     )
     assert "Flames engulf the weapon." in flame["text"]
     assert "- Flame Tongue Rapier" in flame["text"]
+    # The DMG's item of that name, which the variant reprints
+    dmg = await call(
+        "get_content",
+        content_type="item",
+        name="Flame Tongue",
+        source="DMG",
+        srd_only=False,
+    )
+    assert dmg["text"].startswith("# Flame Tongue\n\n*very rare*")
 
 
 @pytest.mark.asyncio

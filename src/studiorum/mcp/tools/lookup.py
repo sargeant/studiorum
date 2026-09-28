@@ -451,9 +451,10 @@ def find_one(
         if "|" in name
         else _by_name(services, ctype, name)
     )
-    if not candidates and ctype == ContentType.ITEM and "|" not in name:
-        # A generic variant such as Flame Tongue, which 5etools keeps apart
-        candidates = _by_name(services, ContentType.MAGICVARIANT, name)
+    if ctype == ContentType.ITEM and "|" not in name:
+        # A generic variant such as Flame Tongue, which 5etools keeps apart; the
+        # XDMG's Elven Chain is one, reprinting the DMG's item of that name
+        candidates += _by_name(services, ContentType.MAGICVARIANT, name)
     matches = [
         c
         for c in candidates
