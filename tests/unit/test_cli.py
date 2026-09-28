@@ -1,5 +1,6 @@
 """Tests for CLI system."""
 
+import tomllib
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, PropertyMock, patch
@@ -30,7 +31,8 @@ class TestCLIMain:
         result = self.runner.invoke(app, ["version"])
         assert result.exit_code == 0
         assert "studiorum" in result.stdout
-        assert "v2.0.0" in result.stdout
+        pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+        assert pyproject["project"]["version"] in result.stdout
 
     def test_cli_no_args(self) -> None:
         """Test CLI with no arguments shows usage."""

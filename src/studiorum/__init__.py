@@ -1,5 +1,5 @@
-"""D&D 5e PDF Generator Package."""
+"""5e content toolkit: LaTeX/PDF documents and an MCP server from 5etools data."""
 
-__version__ = "0.6.0"
-__author__ = "studiorum Contributors"
-__description__ = "Generate PDFs from D&D 5e.tools JSON data"
+from importlib.metadata import version
+
+__version__ = version("studiorum")

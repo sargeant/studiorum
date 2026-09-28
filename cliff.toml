@@ -1,0 +1,40 @@
+# Release notes for the GitHub Release, written by .github/workflows/release.yml.
+# Preview: git cliff --unreleased --tag vX.Y.Z
+
+[changelog]
+header = ""
+body = """
+{% if message %}{{ message | trim }}
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim }}
+{% for commit in commits %}\
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{{ commit.message | split(pat="\n") | first | trim }}
+{% endfor %}\
+{% endfor %}
+{% if previous.version %}\
+
+**Full changelog**: https://github.com/sargeant/studiorum/compare/{{ previous.version }}...{{ version }}
+{% endif %}
+"""
+footer = ""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+# PRs land as merge commits over conventional branch commits; the notes list the branch commits.
+# The <!-- N --> prefix orders the groups and is stripped from the heading.
+commit_parsers = [
+    { field = "merge_commit", pattern = "true", skip = true },
+    { message = "^feat", group = "<!-- 0 -->Features" },
+    { message = "^fix", group = "<!-- 1 -->Fixes" },
+    { message = "^refactor", group = "<!-- 2 -->Refactoring" },
+    { message = "^docs?", group = "<!-- 3 -->Documentation" },
+    { message = "^test", group = "<!-- 4 -->Tests" },
+    { message = "^(chore|style|build|ci|perf)", group = "<!-- 5 -->Other" },
+]
+filter_commits = false
+# mcp-* tags on develop mark MCP deployments, not releases.
+tag_pattern = "^v[0-9]"
+sort_commits = "oldest"
