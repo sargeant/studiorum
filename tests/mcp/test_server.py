@@ -77,6 +77,36 @@ async def test_search_spells_filters() -> None:
 
 
 @pytest.mark.asyncio
+async def test_searches_include_text(monkeypatch: pytest.MonkeyPatch) -> None:
+    fireball = await call("get_content", content_type="spell", name="Fireball")
+    spells = await call("search_spells", query="fire", include_text=True)
+    assert spells["results"][0]["text"] == fireball["text"]
+    assert (await call("search_spells", query="fire"))["results"][0]["text"] is None
+    goblin = await call("get_content", content_type="creature", name="Goblin")
+    creatures = await call("search_creatures", query="goblin", include_text=True)
+    assert creatures["results"][0]["text"] == goblin["text"]
+    items = await call("search_items", query="amulet", include_text=True)
+    assert items["results"][0]["text"].startswith("# Amulet of Health")
+    wizard = await call("get_content", content_type="class", name="Wizard")
+    classes = await call(
+        "search_content", content_type="class", query="wiz", include_text=True
+    )
+    # A class lists its subclasses, as get_content does
+    assert classes["results"][0]["text"] == wizard["text"]
+
+    # Text stops a page at the size cap, though a page always has one result
+    monkeypatch.setattr("studiorum.mcp.tools.search.PAGE_CHARS", 1)
+    capped = await call("search_spells", srd_only=False, include_text=True)
+    assert (len(capped["results"]), capped["total"], capped["next_offset"]) == (
+        1,
+        3,
+        1,
+    )
+    rest = await call("search_spells", srd_only=False, include_text=True, offset=2)
+    assert (names(rest), rest["next_offset"]) == (["Hellfire Orb"], None)
+
+
+@pytest.mark.asyncio
 async def test_search_creatures_filters() -> None:
     assert names(await call("search_creatures", query="goblin")) == ["Goblin"]
     assert names(await call("search_creatures", query="goblin", srd_only=False)) == [
@@ -92,6 +122,7 @@ async def test_search_creatures_filters() -> None:
         "srd": True,
         "cr": "1/4",
         "type": "humanoid",
+        "text": None,
     }
     assert names(await call("search_creatures", creature_type="humanoid")) == [
         "Acolyte",
@@ -175,7 +206,7 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
     assert result["next_offset"] is None
 
     # A size cap stops the batch; next_offset resumes it
-    monkeypatch.setattr("studiorum.mcp.tools.lookup.BATCH_CHARS", 1)
+    monkeypatch.setattr("studiorum.mcp.tools.lookup.PAGE_CHARS", 1)
     first = await call("get_contents", items=items)
     assert ([e["name"] for e in first["entries"]], first["next_offset"]) == (
         ["Goblin"],

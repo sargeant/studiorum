@@ -6,6 +6,9 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
+# The most Markdown one reply carries (about 6,000 tokens)
+PAGE_CHARS = 24_000
+
 NextOffset = Annotated[
     int | None, Field(description="The offset of the next page; none after the last")
 ]
@@ -22,6 +25,7 @@ class SpellSummary(BaseModel):
     srd: bool
     level: int
     school: str
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class CreatureSummary(BaseModel):
@@ -30,6 +34,7 @@ class CreatureSummary(BaseModel):
     srd: bool
     cr: str
     type: str
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class ItemSummary(BaseModel):
@@ -38,6 +43,7 @@ class ItemSummary(BaseModel):
     srd: bool
     type: str | None
     rarity: str | None
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class Filtered(BaseModel):
@@ -251,6 +257,7 @@ class ContentSummary(BaseModel):
         None, description="Pass as get_content's name when the name and source repeat"
     )
     detail: str | None = Field(None, description="What tells it apart, e.g. a pantheon")
+    text: str | None = Field(None, description="As Markdown, with include_text")
 
 
 class ContentResults(Filtered):

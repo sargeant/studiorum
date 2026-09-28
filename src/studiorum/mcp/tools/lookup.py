@@ -14,8 +14,9 @@ from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError, not_found
-from studiorum.mcp.layouts import to_markdown
+from studiorum.mcp.layouts import entry_data, to_markdown
 from studiorum.mcp.models import (
+    PAGE_CHARS,
     ContentBatch,
     ContentEntry,
     ContentMissing,
@@ -27,16 +28,17 @@ from studiorum.mcp.models import (
     next_offset,
 )
 from studiorum.mcp.tools.search import (
+    IncludeText,
     LatestOnly,
     Limit,
     Offset,
     drop_reprinted,
+    paged,
     split_srd,
 )
 from studiorum.services import Services
 
 MAX_BATCH = 20
-BATCH_CHARS = 24_000
 
 # Adventures and books are read by section, not whole.
 EntryType = Literal[
@@ -89,9 +91,7 @@ async def get_content(
     """One entry in full (a statblock, a spell, a class and its features), by type and name."""
     srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
-    data = entry_data(entry)
-    if content_type == "class":
-        data["subclasses"] = _subclasses(services, entry, srd_only)
+    data = _layout_data(services, content_type, entry, srd_only)
     return ContentEntry(
         type=content_type,
         name=entry.name,
@@ -152,18 +152,30 @@ async def get_contents(
         chars = len(entry.text or "") + (
             len(json.dumps(entry.data)) if entry.data else 0
         )
-        if entries and size + chars > BATCH_CHARS:
+        if entries and size + chars > PAGE_CHARS:
             return ContentBatch(entries=entries, not_found=missing, next_offset=i)
         entries.append(entry)
         size += chars
     return ContentBatch(entries=entries, not_found=missing)
 
 
-def entry_data(entry: BaseContent) -> dict[str, Any]:
-    """An entry as 5etools models it, with its source as an abbreviation."""
-    return entry.model_dump(mode="json", by_alias=True, exclude_none=True) | {
-        "source": entry.source.abbreviation
-    }
+def _layout_data(
+    services: Services, content_type: str, entry: BaseContent, srd_only: bool
+) -> dict[str, Any]:
+    """The data get_content lays out: the entry, and a class's subclasses."""
+    data = entry_data(entry)
+    if content_type == "class":
+        data["subclasses"] = _subclasses(services, entry, srd_only)
+    return data
+
+
+def entry_markdown(
+    services: Services, content_type: str, entry: BaseContent, srd_only: bool
+) -> str:
+    """An entry as get_content's Markdown."""
+    return to_markdown(
+        content_type, _layout_data(services, content_type, entry, srd_only)
+    )
 
 
 def _subclasses(
@@ -254,6 +266,7 @@ async def search_content(
     ],
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
+    include_text: IncludeText = False,
     limit: Limit = 20,
     offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
@@ -271,12 +284,20 @@ async def search_content(
     kept.sort(
         key=lambda c: (c.name.lower() != needle, c.name.lower(), c.source.abbreviation)
     )
+    page, after = paged(
+        kept,
+        offset,
+        limit,
+        (lambda c: entry_markdown(services, content_type, c, srd_only))
+        if include_text
+        else None,
+    )
     return ContentResults(
         type=content_type,
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(kept),
-        next_offset=next_offset(len(kept), offset, limit),
+        next_offset=after,
         results=[
             ContentSummary(
                 name=c.name,
@@ -284,8 +305,9 @@ async def search_content(
                 srd=c.is_srd,
                 uid=content_uid(content_type, c),
                 detail=_detail(content_type, c),
+                text=text,
             )
-            for c in kept[offset : offset + limit]
+            for c, text in page
         ],
     )
 

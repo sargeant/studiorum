@@ -16,8 +16,9 @@ from studiorum.data.statblocks import find_statblock, statblock_type
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import get_services
 from studiorum.mcp.errors import ClientError, not_found
-from studiorum.mcp.layouts import to_markdown
+from studiorum.mcp.layouts import entry_data, to_markdown
 from studiorum.mcp.models import (
+    PAGE_CHARS,
     Contents,
     SectionMatch,
     SectionMatches,
@@ -25,10 +26,8 @@ from studiorum.mcp.models import (
     SectionText,
     next_offset,
 )
-from studiorum.mcp.tools.lookup import entry_data, resolve_references
+from studiorum.mcp.tools.lookup import resolve_references
 from studiorum.services import Services
-
-PAGE_CHARS = 24_000
 
 Publication = Annotated[
     str, Field(description="A book or adventure id from list_publications, e.g. LMoP")

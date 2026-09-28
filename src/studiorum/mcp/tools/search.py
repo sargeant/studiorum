@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Annotated, Any, Literal
 
 from fastmcp.dependencies import Depends
@@ -22,8 +22,9 @@ from studiorum.data.models.spell_filters import SpellFilterCriteria
 from studiorum.data.models.spells import Spell
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import ClientError
-from studiorum.mcp.layouts import item_kind
+from studiorum.mcp.layouts import entry_data, item_kind, to_markdown
 from studiorum.mcp.models import (
+    PAGE_CHARS,
     CreatureResults,
     CreatureSummary,
     ItemResults,
@@ -70,6 +71,41 @@ LatestOnly = Annotated[
     bool,
     Field(description="Leave out entries reprinted in a later book (PHB for XPHB)"),
 ]
+
+
+IncludeText = Annotated[
+    bool,
+    Field(
+        description="Each result's text as Markdown, as get_content gives it. "
+        "A page then stops at 24,000 characters, so it may hold fewer than limit"
+    ),
+]
+
+
+def paged[T: BaseContent](
+    found: Sequence[T],
+    offset: int,
+    limit: int,
+    text: Callable[[T], str] | None,
+) -> tuple[list[tuple[T, str | None]], int | None]:
+    """A page of results with their text, if asked for, and the next page's offset.
+
+    With text, the page stops before the result that would take it past
+    PAGE_CHARS, though it always holds one.
+    """
+    page: list[tuple[T, str | None]] = []
+    size = 0
+    for content in found[offset : offset + limit]:
+        body = text(content) if text else None
+        if body is not None and page and size + len(body) > PAGE_CHARS:
+            break
+        page.append((content, body))
+        size += len(body or "")
+    return page, next_offset(len(found), offset, len(page))
+
+
+def _text(content_type: str) -> Callable[[BaseContent], str]:
+    return lambda content: to_markdown(content_type, entry_data(content))
 
 
 def as_sources(services: Services, sources: list[str] | None) -> list[str] | None:
@@ -172,6 +208,7 @@ async def search_spells(
     sources: Sources = None,
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
+    include_text: IncludeText = False,
     limit: Limit = 20,
     offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
@@ -203,11 +240,12 @@ async def search_spells(
         else _all(services, ContentType.SPELL, Spell)
     )
     spells, hidden = _narrow(found, query, srd_only, latest_only)
+    page, after = paged(spells, offset, limit, _text("spell") if include_text else None)
     return SpellResults(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(spells),
-        next_offset=next_offset(len(spells), offset, limit),
+        next_offset=after,
         results=[
             SpellSummary(
                 name=s.name,
@@ -215,8 +253,9 @@ async def search_spells(
                 srd=s.is_srd,
                 level=s.level,
                 school=s.school.lower(),
+                text=text,
             )
-            for s in spells[offset : offset + limit]
+            for s, text in page
         ],
     )
 
@@ -231,6 +270,7 @@ async def search_creatures(
     sources: Sources = None,
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
+    include_text: IncludeText = False,
     limit: Limit = 20,
     offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
@@ -258,11 +298,14 @@ async def search_creatures(
         else _all(services, ContentType.CREATURE, Creature)
     )
     creatures, hidden = _narrow(found, query, srd_only, latest_only)
+    page, after = paged(
+        creatures, offset, limit, _text("creature") if include_text else None
+    )
     return CreatureResults(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(creatures),
-        next_offset=next_offset(len(creatures), offset, limit),
+        next_offset=after,
         results=[
             CreatureSummary(
                 name=c.name,
@@ -270,8 +313,9 @@ async def search_creatures(
                 srd=c.is_srd,
                 cr=c.get_cr_text(),
                 type=type_name(c),
+                text=text,
             )
-            for c in creatures[offset : offset + limit]
+            for c, text in page
         ],
     )
 
@@ -284,6 +328,7 @@ async def search_items(
     sources: Sources = None,
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
+    include_text: IncludeText = False,
     limit: Limit = 20,
     offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
@@ -305,11 +350,12 @@ async def search_items(
         else _all(services, ContentType.ITEM, Item)
     )
     items, hidden = _narrow(found, query, srd_only, latest_only)
+    page, after = paged(items, offset, limit, _text("item") if include_text else None)
     return ItemResults(
         srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(items),
-        next_offset=next_offset(len(items), offset, limit),
+        next_offset=after,
         results=[
             ItemSummary(
                 name=i.name,
@@ -317,8 +363,9 @@ async def search_items(
                 srd=i.is_srd,
                 type=item_kind(i.model_dump(by_alias=True)) or None,
                 rarity=str(i.rarity) if i.rarity is not None else None,
+                text=text,
             )
-            for i in items[offset : offset + limit]
+            for i, text in page
         ],
     )
 
