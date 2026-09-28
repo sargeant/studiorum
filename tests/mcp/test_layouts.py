@@ -381,3 +381,9 @@ def test_a_vehicle_upgrade_names_its_type() -> None:
     assert to_markdown("vehicleUpgrade", armor) == (
         "# Canian Armor\n\n*Infernal War Machine Upgrade, Armor* · *BGDIA*\n\nInfernal iron."
     )
+
+
+def test_a_creature_without_languages_shows_a_dash() -> None:
+    ooze = {"name": "Ooze", "source": "HB", "size": ["L"], "type": "ooze"}
+
+    assert "**Languages** —" in to_markdown("creature", ooze)
