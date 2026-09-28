@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any
 
 from fastmcp import FastMCP
-from fastmcp.server.middleware.logging import LoggingMiddleware
-from fastmcp.server.middleware.timing import TimingMiddleware
 
 from studiorum.config import get_app_config
+from studiorum.log import get_logger
+from studiorum.mcp.request_log import RequestLog
 from studiorum.mcp.tools.encounter import (
     calculate_encounter_budget,
     rate_encounter,
@@ -38,10 +39,18 @@ class ServerOptions:
 options = ServerOptions()
 
 
+logger = get_logger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(server: FastMCP[Any]) -> AsyncIterator[dict[str, Any]]:
+    start = time.perf_counter()
     services = build_services(get_app_config())
     services.catalogue  # noqa: B018 - load before the first call, not during it
+    logger.info(
+        "Catalogue loaded",
+        extra={"seconds": round(time.perf_counter() - start, 1)},
+    )
     yield {"services": services, "srd_only": not options.all_content}
 
 
@@ -58,8 +67,8 @@ mcp: FastMCP[Any] = FastMCP(
     mask_error_details=True,
 )
 # ErrorHandlingMiddleware is left out: it rewrites ToolError messages.
-mcp.add_middleware(LoggingMiddleware())
-mcp.add_middleware(TimingMiddleware())
+request_log = RequestLog()
+mcp.add_middleware(request_log)
 
 for tool in (
     search_spells,

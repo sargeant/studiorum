@@ -14,6 +14,7 @@ from studiorum.data.encounter import Rules
 from studiorum.data.models.content import ContentType
 from studiorum.data.models.creatures import Creature
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
+from studiorum.mcp.errors import ClientError
 from studiorum.mcp.models import (
     CreatureSuggestions,
     EncounterBudget,
@@ -114,7 +115,7 @@ async def rate_encounter(
             )
         )
     if problems:
-        raise ToolError(" ".join(problems))
+        raise ClientError(" ".join(problems))
     total = sum((c.xp or 0) * c.count for c in rated)
     factor = encounter.multiplier(sum(c.count for c in rated), len(party_levels), rules)
     adjusted = int(total * factor)
@@ -165,7 +166,7 @@ async def suggest_creatures(
     try:
         low, high = encounter.xp_range(difficulty, party_levels, rules)
     except ValueError as e:
-        raise ToolError(str(e)) from e
+        raise ClientError(str(e)) from e
     per = count * encounter.multiplier(count, len(party_levels), rules)
     each = (math.ceil(low / per), math.floor(high / per))
     fits: list[tuple[int, Creature]] = []

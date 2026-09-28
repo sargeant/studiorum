@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from fastmcp.dependencies import Depends
-from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from studiorum.data.models.adventures import Adventure
@@ -13,7 +12,7 @@ from studiorum.data.models.books import Book
 from studiorum.data.models.content import BaseContent, ContentType
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
-from studiorum.mcp.errors import not_found
+from studiorum.mcp.errors import ClientError, not_found
 from studiorum.mcp.layouts import to_markdown
 from studiorum.mcp.models import (
     ContentEntry,
@@ -177,7 +176,7 @@ def find_one(
     allowed = [c for c in matches if c.is_srd or not srd_only]
     if not allowed:
         found = ", ".join(c.source.abbreviation for c in matches)
-        raise ToolError(
+        raise ClientError(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
     latest = drop_reprinted(allowed) or allowed

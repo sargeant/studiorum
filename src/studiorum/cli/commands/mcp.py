@@ -30,16 +30,35 @@ def run(
             help="Content tools return everything unless a call asks for SRD only",
         ),
     ] = False,
+    client_ip_header: Annotated[
+        str | None,
+        typer.Option(
+            envvar="STUDIORUM_TRUSTED_CLIENT_IP_HEADER",
+            help="HTTP: log the client address from this header, which the proxy "
+            "in front must set (e.g. CF-Connecting-IP), not the TCP peer",
+        ),
+    ] = None,
 ) -> None:
     """Run the MCP server. It loads the data before answering the first call."""
-    from studiorum.mcp.server import mcp, options
+    from studiorum.log import route_libraries
+    from studiorum.mcp.server import mcp, options, request_log
 
+    route_libraries()
     options.all_content = all_content
+    request_log.client_ip_header = client_ip_header
 
     if transport == "stdio":
         mcp.run(transport="stdio", show_banner=False)
     elif transport == "http":
-        mcp.run(transport="http", host=host, port=port)
+        mcp.run(
+            transport="http",
+            host=host,
+            port=port,
+            show_banner=False,
+            # uvicorn logs through the root handler, with no access log: the
+            # request log has a line per MCP request
+            uvicorn_config={"log_config": None, "access_log": False},
+        )
     else:
         raise typer.BadParameter("must be stdio or http", param_hint="--transport")
 

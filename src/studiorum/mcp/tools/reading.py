@@ -6,7 +6,6 @@ from collections.abc import Iterator
 from typing import Annotated, Any
 
 from fastmcp.dependencies import Depends
-from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from studiorum.data.models.adventures import Adventure
@@ -14,7 +13,7 @@ from studiorum.data.models.books import Book
 from studiorum.data.models.content import ContentType
 from studiorum.mcp import markdown
 from studiorum.mcp.deps import get_services
-from studiorum.mcp.errors import not_found
+from studiorum.mcp.errors import ClientError, not_found
 from studiorum.mcp.models import (
     Contents,
     SectionMatch,
@@ -85,7 +84,7 @@ async def read_section(
     node, path = _find(pub, _chapters(pub), section_id)
     pages = _pages(node)
     if page > len(pages):
-        raise ToolError(f"Section {section_id} has {len(pages)} page(s).")
+        raise ClientError(f"Section {section_id} has {len(pages)} page(s).")
     return SectionText(
         publication=_pub_id(pub),
         id=section_id,
@@ -251,7 +250,7 @@ def _find(
 
     if hit := search(roots, []):
         return hit
-    raise ToolError(
+    raise ClientError(
         f"No section {wanted!r} in {_pub_id(pub)}; get_table_of_contents lists the ids."
     )
 
