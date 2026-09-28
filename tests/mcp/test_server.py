@@ -275,6 +275,8 @@ async def test_get_contents_returns_several(monkeypatch: pytest.MonkeyPatch) -> 
     assert rest["entries"][0]["data"]["name"] == "Amulet of Health"
     with pytest.raises(ToolError):
         await call("get_contents", items=[items[0]] * 21)
+    with pytest.raises(ToolError, match="offset 5 is past the end of the 1 item"):
+        await call("get_contents", items=items[:1], offset=5)
 
 
 @pytest.mark.asyncio

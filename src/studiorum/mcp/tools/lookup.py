@@ -185,6 +185,10 @@ async def get_contents(
     next_offset says where to resume. An entry asked for twice comes once.
     """
     srd_only = default_srd if srd_only is None else srd_only
+    if offset >= len(items):
+        raise ClientError(
+            f"offset {offset} is past the end of the {len(items)} item(s) asked for."
+        )
     entries: list[ContentEntry] = []
     missing: list[ContentMissing] = []
     seen: set[tuple[str, str, str]] = set()
