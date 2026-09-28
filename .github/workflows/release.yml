@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - "v*"
-      # Released by hand with PR titles only; the notes would list every commit since v0.6.0.
-      - "!v0.7.0"
 
 permissions:
   contents: write
