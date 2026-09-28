@@ -427,7 +427,34 @@ def find_one(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
     latest = drop_reprinted(allowed) or allowed
-    return min(latest, key=_preference)
+    best = min(latest, key=_preference)
+    if content_type in _FEATURES and "|" not in name:
+        _check_one_owner(
+            content_type, [c for c in latest if _preference(c) == _preference(best)]
+        )
+    return best
+
+
+_FEATURES = ("classFeature", "subclassFeature")
+
+
+def _check_one_owner(content_type: str, features: list[BaseContent]) -> None:
+    """A ClientError if features of this name belong to more than one class or subclass."""
+    by_owner: dict[tuple[str, str], BaseContent] = {}
+    for feature in features:
+        raw = feature.model_dump(by_alias=True)
+        owner = (str(raw.get("className")), str(raw.get("subclassShortName")))
+        known = by_owner.get(owner)
+        if known is None or int(raw.get("level") or 0) < int(
+            known.model_dump(by_alias=True).get("level") or 0
+        ):
+            by_owner[owner] = feature
+    if len(by_owner) > 1:
+        uids = [content_uid(content_type, f) for f in by_owner.values()]
+        raise ClientError(
+            f"{len(by_owner)} {content_type}s are named '{features[0].name}'; "
+            f"pass one's uid as the name: {', '.join(sorted(str(u) for u in uids))}."
+        )
 
 
 def _preference(content: BaseContent) -> tuple[bool, bool, bool, bool]:
