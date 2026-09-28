@@ -320,6 +320,18 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                         },
                         {
                             "type": "entries",
+                            "name": "Spell List",
+                            "id": "204",
+                            "entries": [
+                                {
+                                    "type": "table",
+                                    "colLabels": ["Spell"],
+                                    "rows": [["{@spell Detonate|TB}"]],
+                                }
+                            ],
+                        },
+                        {
+                            "type": "entries",
                             "name": "Traps",
                             "id": "203",
                             "entries": [

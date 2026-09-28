@@ -260,9 +260,11 @@ async def test_search_publication_ranks_matches() -> None:
     # The exact name, then the word whole in a name, then inside a word
     traps = await call("search_publication", query="traps", names_only=True)
     assert found(traps) == ["203", "201", "202"]
-    # A statblock named for it, then the word whole in the text, then inside a word
+    # A statblock named for it, then a table cell, then the word whole in the
+    # text, then inside a word
     assert found(await call("search_publication", query="detonate")) == [
         "203",
+        "204",
         "202",
         "201",
     ]
@@ -270,6 +272,7 @@ async def test_search_publication_ranks_matches() -> None:
     assert found(await call("search_publication", query="detonat")) == [
         "201",
         "202",
+        "204",
         "203",
     ]
     assert found(await call("search_publication", query="mousetrap")) == ["202"]
