@@ -9,7 +9,7 @@ import pytest
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
-from studiorum.mcp.markdown import render, strip_tags
+from studiorum.mcp.markdown import references, render, strip_tags
 from studiorum.mcp.server import mcp
 
 pytestmark = pytest.mark.usefixtures("mcp_data")
@@ -151,10 +151,23 @@ async def test_reading_errors() -> None:
         ),
         ("{@actSave wis} {@atkr m}", "*Wisdom Saving Throw:* *Melee Attack Roll:*"),
         ("a {b} c", "a {b} c"),
+        (
+            "{@damage 1d8 + 3 + summonSpellLevel} {@damage (summonSpellLevel - 4)d4|1d4}",
+            "1d8 + 3 + the spell's level 1d4",
+        ),
+        ("{@dice 2d8 + summonClassLevel}", "2d8 + your class level"),
     ],
 )
 def test_strip_tags(text: str, plain: str) -> None:
     assert strip_tags(text) == plain
+
+
+def test_a_statblock_without_a_source_takes_the_default() -> None:
+    goblin = {"type": "statblock", "name": "Goblin", "tag": "creature"}
+    assert render(goblin) == "*[Creature statblock: Goblin (MM)]*"
+    assert references([goblin]) == [
+        {"type": "creature", "name": "Goblin", "source": "MM"}
+    ]
 
 
 def test_a_quote_names_who_and_where() -> None:

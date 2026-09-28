@@ -13,6 +13,7 @@ from studiorum.data.models.content_models import TAG_TYPES
 from studiorum.data.text.tags import (
     display_part,
     is_tag,
+    roll_text,
     split_by_pipe,
     split_by_tags,
     split_tag,
@@ -70,7 +71,7 @@ def _display(tag: str, args: str) -> str:
     if tag in ("i", "italic"):
         return f"*{first}*"
     if tag in ("damage", "dice", "autodice"):
-        return second or first.replace(";", "/")
+        return roll_text(parts)
     if tag in ("d20", "hit", "initiative"):
         return second or (f"+{first}" if first.isdigit() else first)
     if tag in ("savingThrow", "skillCheck"):
@@ -153,7 +154,7 @@ def render(entry: Any, depth: int = 1) -> str:
             # Markdown laid out already (an expanded statblock), headings from depth
             return _shift_headings(str(entry.get("markdown", "")), depth)
         case "statblock":
-            source = entry.get("source", "")
+            source = _statblock_source(entry)
             if str(entry.get("prop", "")).endswith("Fluff"):
                 return f"*[Lore: {name} ({source})]*"
             what = entry.get("tag", "creature")
@@ -356,7 +357,7 @@ def references(value: Any) -> list[dict[str, str]]:
                     {
                         "type": kind,
                         "name": str(v["name"]),
-                        "source": str(v.get("source", "")),
+                        "source": _statblock_source(v),
                     }
                 )
             # 5etools lists what a creature carries or an item casts by uid
@@ -375,6 +376,14 @@ def references(value: Any) -> list[dict[str, str]]:
 
     walk(value)
     return list(found.values())
+
+
+def _statblock_source(entry: dict[str, Any]) -> str:
+    """A statblock's source, or 5etools' default for its tag when it names none."""
+    if source := entry.get("source"):
+        return str(source)
+    default = TAG_TYPES.get(str(entry.get("tag", "creature")))
+    return default[1] if default else ""
 
 
 def _uids(value: Any) -> list[str]:
