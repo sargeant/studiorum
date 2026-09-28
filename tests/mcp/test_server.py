@@ -12,6 +12,7 @@ from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
 from studiorum.data.models.content import ContentType
+from studiorum.mcp.errors import suggestions
 from studiorum.mcp.server import mcp
 from studiorum.mcp.tools.lookup import EntryType
 
@@ -181,6 +182,28 @@ async def test_get_content_suggests_names() -> None:
     # A part of the name suggests the names that contain it
     with pytest.raises(ToolError, match="Did you mean: Young Red Dragon"):
         await call("get_content", content_type="creature", name="red drag")
+
+
+@pytest.mark.asyncio
+async def test_get_content_suggests_names_from_the_source() -> None:
+    with pytest.raises(
+        ToolError,
+        match=r"No creature named 'Goblin' in HB\. Did you mean: Goblin Sneak, Goblin Minion\?$",
+    ):
+        await call("get_content", content_type="creature", name="Goblin", source="HB")
+    # Every source when nothing in the source is close
+    with pytest.raises(ToolError, match="in HB. Did you mean: Young Red Dragon"):
+        await call("get_content", content_type="creature", name="Dragon", source="HB")
+
+
+def test_suggestions_put_whole_words_first() -> None:
+    names = ["Searing Smite", "Festering Blast", "Lightning Ring", "Ring of Frost"]
+    assert suggestions("Ring", names) == [
+        "Ring of Frost",
+        "Lightning Ring",
+        "Searing Smite",
+        "Festering Blast",
+    ]
 
 
 @pytest.mark.asyncio

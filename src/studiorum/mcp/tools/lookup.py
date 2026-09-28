@@ -246,8 +246,18 @@ def find_one(
         if source is None or c.source.abbreviation.lower() == source.lower()
     ]
     if not matches:
-        names = [c.name for c in catalogue.get_all_by_type(ctype)]
-        raise not_found(content_type, name, names)
+        every = catalogue.get_all_by_type(ctype)
+        names = [c.name for c in every]
+        if source is None:
+            raise not_found(content_type, name, names)
+        # Names from the source asked for first, then any source
+        raise not_found(
+            content_type,
+            name,
+            [c.name for c in every if c.source.abbreviation.lower() == source.lower()],
+            names,
+            where=source,
+        )
     allowed = [c for c in matches if c.is_srd or not srd_only]
     if not allowed:
         found = ", ".join(c.source.abbreviation for c in matches)
