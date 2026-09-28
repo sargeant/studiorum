@@ -420,6 +420,9 @@ async def test_search_rules_finds_hazards() -> None:
         ("Falling", "hazard")
     ]
     assert await call("search_rules", query="falling", rule_type="hazard") == result
+    # A word whole in the text comes before one inside a longer word
+    fall = await call("search_rules", query="fall", srd_only=False)
+    assert [r["name"] for r in fall["results"]] == ["Falling", "Pit", "Cliff"]
 
 
 @pytest.mark.asyncio

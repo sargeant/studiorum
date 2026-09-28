@@ -1,7 +1,8 @@
-"""search_rules: actions, conditions, statuses, variant rules, senses and hazards by name and text."""
+"""search_rules: actions, conditions, variant rules, hazards and other rules by name and text."""
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, Literal, get_args
 
 from fastmcp.dependencies import Depends
@@ -43,12 +44,13 @@ async def search_rules(
 
     The types are actions, conditions, statuses, variant rules, senses,
     hazards (the 2024 Falling and Suffocation are hazards), and weapon
-    properties and masteries (Finesse, Sap). Every word must appear in the name or text. A rule named the query comes
-    first, then rules with a part named it (the 2024 Grapple and Shove are
-    parts of Unarmed Strike), then other name matches. A variant rule that
-    matches only in a part that is also an action of its own (the DMG's
-    Climb onto a Bigger Creature, in Action Options) gives way to that
-    action. Read one in full with get_content.
+    properties and masteries (Finesse, Sap). Every word must appear in the
+    name or text. A rule named the query comes first, then rules with a part
+    named it (the 2024 Grapple and Shove are parts of Unarmed Strike), then
+    other name matches, then rules with every word whole, then the rest. A
+    variant rule that matches only in a part that is also an action of its
+    own (the DMG's Climb onto a Bigger Creature, in Action Options) gives way
+    to that action. Read one in full with get_content.
     """
     srd_only = default_srd if srd_only is None else srd_only
     words = fold(query).split()
@@ -78,8 +80,10 @@ async def search_rules(
                 rank = 1
             elif all(w in name for w in words):
                 rank = 2
-            else:
+            elif _whole_words(words, f"{name} {fold(text)}"):
                 rank = 3
+            else:
+                rank = 4
             found.append((rank, kind, text, rule))
     kept, hidden = split_srd([r for *_, r in found], srd_only, latest_only)
     found = [f for f in found if id(f[3]) in set(map(id, kept))]
@@ -102,6 +106,10 @@ async def search_rules(
             for _, kind, text, rule in found[offset : offset + limit]
         ],
     )
+
+
+def _whole_words(words: list[str], text: str) -> bool:
+    return all(re.search(rf"\b{re.escape(w)}\b", text) for w in words)
 
 
 def _matches(words: list[str], name: str, text: str) -> bool:
