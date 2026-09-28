@@ -90,9 +90,11 @@ class ContentListWriter:
         try:
             logger.info(
                 "Writing content list",
-                output_path=str(output_path),
-                content_type_filter=content_type_filter,
-                title=title,
+                extra={
+                    "output_path": str(output_path),
+                    "content_type_filter": content_type_filter,
+                    "title": title,
+                },
             )
 
             # Get tracked content data
@@ -108,16 +110,20 @@ class ContentListWriter:
                 if content_type_filter not in export_data:
                     logger.warning(
                         "Content type filter not found in tracked data",
-                        filter=content_type_filter,
-                        available_types=list(export_data.keys()),
+                        extra={
+                            "filter": content_type_filter,
+                            "available_types": list(export_data.keys()),
+                        },
                     )
                     return self._write_empty_file(output_path, title)
 
                 filtered_data = {content_type_filter: export_data[content_type_filter]}
                 logger.debug(
                     "Applied content type filter",
-                    filter=content_type_filter,
-                    entries_count=len(filtered_data[content_type_filter]),
+                    extra={
+                        "filter": content_type_filter,
+                        "entries_count": len(filtered_data[content_type_filter]),
+                    },
                 )
             else:
                 filtered_data = export_data
@@ -136,8 +142,10 @@ class ContentListWriter:
 
             logger.info(
                 "Content list written successfully",
-                output_path=str(output_path),
-                entries_written=entries_written,
+                extra={
+                    "output_path": str(output_path),
+                    "entries_written": entries_written,
+                },
             )
 
             return Success(entries_written)
@@ -182,8 +190,7 @@ class ContentListWriter:
         try:
             logger.info(
                 "Writing all content types to separate files",
-                output_directory=str(output_directory),
-                title=title,
+                extra={"output_directory": str(output_directory), "title": title},
             )
 
             # Ensure output directory exists
@@ -218,16 +225,20 @@ class ContentListWriter:
 
                 logger.debug(
                     "Content type file written",
-                    content_type=content_type,
-                    output_path=str(output_path),
-                    entries_count=count,
+                    extra={
+                        "content_type": content_type,
+                        "output_path": str(output_path),
+                        "entries_count": count,
+                    },
                 )
 
             logger.info(
                 "All content type files written successfully",
-                output_directory=str(output_directory),
-                content_types=list(results.keys()),
-                total_entries=sum(results.values()),
+                extra={
+                    "output_directory": str(output_directory),
+                    "content_types": list(results.keys()),
+                    "total_entries": sum(results.values()),
+                },
             )
 
             return Success(results)
@@ -273,8 +284,7 @@ class ContentListWriter:
                     formatted_line = f"{count} {name}|Unknown"
                     logger.debug(
                         "Content entry missing source",
-                        name=name,
-                        content_type=content_type,
+                        extra={"entry_name": name, "content_type": content_type},
                     )
 
                 entries.append((formatted_line, name, count))
@@ -349,7 +359,10 @@ class ContentListWriter:
                 self._write_file_header(f, title)
                 f.write("# No content entries found\n")
 
-            logger.info("Empty content list file written", output_path=str(output_path))
+            logger.info(
+                "Empty content list file written",
+                extra={"output_path": str(output_path)},
+            )
             return Success(0)
 
         except Exception as e:

@@ -8,13 +8,9 @@ from pathlib import Path
 os.environ["STUDIORUM_PROGRESS"] = "false"
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-import logfire  # noqa: E402
+import logging  # noqa: E402
 
-logfire.configure(console=False, send_to_logfire=False)
-
-from studiorum.log import StudiorumLogger  # noqa: E402
-
-StudiorumLogger._initialized = True
+logging.getLogger("studiorum").setLevel(logging.ERROR)
 
 from studiorum.config import load_config  # noqa: E402
 from studiorum.services import build_services  # noqa: E402

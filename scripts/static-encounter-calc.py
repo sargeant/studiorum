@@ -84,13 +84,9 @@ def build_cache() -> dict[str, dict]:
     os.environ["STUDIORUM_PROGRESS"] = "false"
     sys.path.insert(0, str(SCRIPT_DIR.parent / "src"))
 
-    import logfire
+    import logging
 
-    logfire.configure(console=False, send_to_logfire=False)
-
-    from studiorum.log import StudiorumLogger
-
-    StudiorumLogger._initialized = True
+    logging.getLogger("studiorum").setLevel(logging.ERROR)
 
     from studiorum.config import load_config
     from studiorum.services import build_services

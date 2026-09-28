@@ -218,7 +218,7 @@ class Catalogue:
         }
         if strictness == "normal" and self._errors.should_log_error(error, context):
             message = self._errors.format_error_message(error, context)
-            logger.warning(message.replace("{", "{{").replace("}", "}}"))
+            logger.warning(message)
         self._errors.record_error(error, context)
 
     def _with_spell_classes(self, items: list[BaseContent]) -> list[BaseContent]:

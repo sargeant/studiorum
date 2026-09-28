@@ -73,12 +73,10 @@ class LoggingConfig(BaseModel):
         default="WARNING",
         description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
-    format: str = Field(
-        default=(
-            "%(log_color)s%(levelname)-8s%(reset)s "
-            "%(blue)s%(name)s%(reset)s: %(message)s"
-        ),
-        description="Log format string for colorlog",
+    format: Literal["auto", "text", "json"] = Field(
+        default="auto",
+        description="One line per record on stderr: json, text, or auto "
+        "(json unless stderr is a terminal)",
     )
 
     @field_validator("level")

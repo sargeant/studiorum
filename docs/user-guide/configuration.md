@@ -141,44 +141,17 @@ image:
 
 ## Logging Configuration
 
-Control debug output and logging behavior.
-
-### Basic Logging
+Studiorum writes one line per log record to stderr. Standard output carries command output and, for `studiorum mcp run` over stdio, the MCP protocol.
 
 ```yaml
 logging:
-  # Log level
-  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
-
-  # Output destination
-  output: "console"  # console, file, both
-
-  # Log file settings (if output includes file)
-  file_path: "~/.studiorum/logs/studiorum.log"
-  max_file_size: "10MB"
-  backup_count: 5
+  level: "WARNING"  # DEBUG, INFO, WARNING, ERROR or CRITICAL
+  format: "auto"    # json, text, or auto: JSON unless stderr is a terminal
 ```
 
-### Advanced Logging
+`--verbose` sets INFO and `--debug` sets DEBUG for one command. In JSON each line is one object with `ts`, `level`, `logger` and `msg`, plus any fields the record carries. The MCP server logs each request as one INFO record with `method`, `tool`, `status`, `duration_ms`, `session` and, over HTTP, `client_ip` (see [MCP setup](mcp-setup.md)).
 
-```yaml
-logging:
-  # Component-specific levels
-  components:
-    latex_engine: "INFO"
-    content_merger: "WARNING"
-
-  # Performance logging
-  performance:
-    enabled: true
-    log_slow_operations: true
-    slow_operation_threshold: 5.0  # seconds
-
-  # Integration logging (Logfire)
-  logfire:
-    enabled: true
-    project_token: "your-token-here"
-```
+With `STUDIORUM_TELEMETRY=true` and `LOGFIRE_TOKEN` set, records also go to Logfire.
 
 ## Environment Variables
 
@@ -196,7 +169,7 @@ export STUDIORUM_IMAGE__IMAGE_DIRECTORY="~/Code/5etools-img"
 export STUDIORUM_IMAGE__INCLUDE_IMAGES=true
 
 # Logging
-export STUDIORUM_LOGGING_LEVEL="DEBUG"
+export STUDIORUM_LOGGING__LEVEL="DEBUG"
 export STUDIORUM_PROGRESS=false  # Disable progress bars
 
 # Performance
@@ -237,7 +210,7 @@ studiorum convert creatures --format latex
 
 ```bash
 # Enable debug logging for single command
-STUDIORUM_LOGGING_LEVEL=DEBUG studiorum convert adventure cos
+STUDIORUM_LOGGING__LEVEL=DEBUG studiorum convert adventure cos
 
 # Disable progress bars
 STUDIORUM_PROGRESS=false studiorum convert adventure cos
@@ -279,12 +252,7 @@ image:
 
 logging:
   level: "INFO"
-  output: "console"
-
-  performance:
-    enabled: true
-    log_slow_operations: true
-    slow_operation_threshold: 5.0
+  format: "text"
 ```
 
 ## Configuration Validation

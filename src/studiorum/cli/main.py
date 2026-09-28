@@ -104,9 +104,7 @@ def main(
     else:
         log_level = config.logging.level
 
-    # Convert log level to debug flag for new logging system
-    debug_mode = log_level in ["DEBUG", "INFO"]
-    setup_logging(debug=debug_mode, console_min_level=log_level.lower())
+    setup_logging(log_level, config.logging.format)
 
     logger = get_logger(__name__)
     if debug:
