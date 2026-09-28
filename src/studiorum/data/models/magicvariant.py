@@ -120,6 +120,17 @@ class MagicVariant(BaseContent):
         """Check if this variant applies to weapons."""
         return self.weapon is True
 
+    @property
+    def is_srd(self) -> bool:
+        """Whether 5etools marks this, or what its items inherit, as in an SRD."""
+        inherits = self.inherits or {}
+        return super().is_srd or bool(inherits.get("srd") or inherits.get("srd52"))
+
+    @property
+    def reprinted_as(self) -> list[str] | None:
+        """5etools' reprintedAs, which a variant keeps with what its items inherit."""
+        return (self.inherits or {}).get("reprintedAs")
+
     def is_generic_variant(self) -> bool:
         """Check if this is a generic variant template."""
         return "GV" in self.variant_type
