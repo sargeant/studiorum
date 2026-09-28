@@ -129,7 +129,7 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
     amulet = next(i for i in items if i["name"] == "Amulet of Health")
     _write(
         tmp_path / "items.json",
-        {"item": [*items, _not_srd(amulet, "Amulet of Grit")]},
+        {"item": [*items, *(_not_srd(amulet, n) for n in ("Amulet of Grit", "Grit"))]},
     )
 
     _write(
@@ -264,6 +264,20 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                         "While {@condition Incapacitated|XPHB}, you drop what you hold.",
                     ],
                 },
+            ]
+        },
+    )
+
+    _write(
+        tmp_path / "trapshazards.json",
+        {
+            "hazard": [
+                {
+                    "name": "Falling",
+                    "source": "XPHB",
+                    "srd52": True,
+                    "entries": ["You take 1d6 Bludgeoning damage per 10 feet fallen."],
+                }
             ]
         },
     )
