@@ -161,6 +161,8 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
             "itemType": [
                 {"name": "Food and Drink", "abbreviation": "FD", "source": "PHB"},
                 {"name": "Generic Variant", "abbreviation": "GV", "source": "XDMG"},
+                {"name": "Melee Weapon", "abbreviation": "M", "source": "XPHB"},
+                {"name": "Vehicle (Water)", "abbreviation": "SHP", "source": "DMG"},
             ],
             "itemProperty": [
                 {

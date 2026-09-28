@@ -12,6 +12,7 @@ import pytest
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
+from studiorum.data.loaders import item_types
 from studiorum.data.models.content import ContentType
 from studiorum.mcp.errors import ClientError, suggestions
 from studiorum.mcp.server import mcp
@@ -170,6 +171,21 @@ async def test_search_items_filters() -> None:
         "Grit",
     ]
     assert names(await call("search_items", magic_only=True)) == ["Amulet of Health"]
+
+
+@pytest.mark.asyncio
+async def test_search_items_filters_by_kind() -> None:
+    drinks = await call("search_items", item_type="drink")
+    assert names(drinks) == ["Ale (mug)"]
+    weapons = await call("search_items", item_type="WEAPON", srd_only=False)
+    assert names(weapons) == ["Flame Tongue Rapier", "Rapier"]
+    with pytest.raises(ToolError, match="No item kind holds 'spaceship'. Kinds: "):
+        await call("search_items", item_type="spaceship")
+
+
+def test_a_bare_item_type_code_is_named_from_any_source() -> None:
+    # 5etools' ships say "SHP", which only the DMG and XPHB define
+    assert item_types.name("SHP") == "Vehicle (Water)"
 
 
 @pytest.mark.asyncio
