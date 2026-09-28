@@ -31,9 +31,10 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         # Reset app config to pick up environment changes
         reset_app_config()
 
-        from studiorum.data.loaders import item_types
+        from studiorum.data.loaders import item_types, spell_class_lookup
 
         item_types.reset()
+        spell_class_lookup.reset()
 
         # 1. Forget Services built outside a CLI invocation
         from studiorum.cli.context import reset_services

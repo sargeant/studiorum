@@ -1,89 +1,91 @@
-"""Unit tests for the centralized logging utilities."""
+"""setup_logging: one handler on the root, one line per record."""
 
 from __future__ import annotations
 
+import json
 import logging
-from collections.abc import Generator
-from typing import Any
+from collections.abc import Iterator
 
 import pytest
-from logfire import LogfireLoggingHandler
 
-from studiorum.log import get_logger, setup_logging  # type: ignore
+from studiorum.log import JsonFormatter, TextFormatter, get_logger, setup_logging
 
 
 @pytest.fixture(autouse=True)
-def reset_logging() -> Generator[None, None, None]:
-    """Fixture to reset the logging configuration before and after each test."""
-    root_logger = logging.getLogger()
-    original_handlers = root_logger.handlers[:]
-    original_level = root_logger.level
-
-    # Reset the StudiorumLogger state for testing
-    from studiorum.log import StudiorumLogger
-
-    original_initialized = StudiorumLogger._initialized
-    StudiorumLogger._initialized = False
-
-    # Clear handlers for the test
-    root_logger.handlers.clear()
-
+def restore_logging() -> Iterator[None]:
+    root = logging.getLogger()
+    handlers, level = root.handlers[:], root.level
     yield
-
-    # Restore original state
-    root_logger.handlers = original_handlers
-    root_logger.setLevel(original_level)
-    StudiorumLogger._initialized = original_initialized
+    root.handlers = handlers
+    root.setLevel(level)
 
 
-def test_setup_logging_configures_handler() -> None:
-    """Verify that setup_logging adds a Logfire handler to the root logger."""
-    root_logger = logging.getLogger()
-    # Pytest adds its own handlers, so we clear them here for the test
-    root_logger.handlers.clear()
-    assert not root_logger.handlers
-    setup_logging()
-    assert len(root_logger.handlers) == 1
-    assert isinstance(root_logger.handlers[0], LogfireLoggingHandler)
+def _record(msg: str, **extra: object) -> logging.LogRecord:
+    record = logging.makeLogRecord(
+        {"name": "studiorum.x", "levelname": "INFO", "msg": msg}
+    )
+    record.__dict__.update(extra)
+    return record
 
 
-def test_setup_logging_sets_level() -> None:
-    """Verify that setup_logging sets the correct level on the root logger."""
-    logging.getLogger().handlers.clear()
-    setup_logging(debug=True)  # debug=True sets DEBUG level
-    assert logging.getLogger().level == logging.DEBUG
+def test_setup_replaces_the_root_handlers() -> None:
+    setup_logging("INFO", "json")
+    setup_logging("DEBUG", "text")
 
-    # Reset for the next test
-    from studiorum.log import StudiorumLogger
-
-    StudiorumLogger._initialized = False
-    logging.getLogger().handlers.clear()
-
-    setup_logging(debug=False)  # debug=False sets INFO level
-    assert logging.getLogger().level == logging.INFO
-
-
-def test_setup_logging_is_idempotent() -> None:
-    """Verify that calling setup_logging multiple times doesn't add more handlers."""
-    logging.getLogger().handlers.clear()
-    setup_logging()
-    assert len(logging.getLogger().handlers) == 1
-    setup_logging()
-    assert len(logging.getLogger().handlers) == 1
+    root = logging.getLogger()
+    ours = [
+        h
+        for h in root.handlers
+        if isinstance(h.formatter, JsonFormatter | TextFormatter)
+    ]
+    assert len(ours) == 1
+    assert isinstance(ours[0].formatter, TextFormatter)
+    assert root.level == logging.DEBUG
 
 
-def test_get_logger_returns_logger_instance() -> None:
-    """Verify that get_logger returns a Logfire logger instance."""
-    import logfire
+def test_auto_is_json_when_stderr_is_not_a_terminal() -> None:
+    setup_logging("INFO", "auto")
 
-    logger: Any = get_logger("test_logger")
-    # get_logger now returns the logfire module itself, which provides logging methods
-    assert logger is logfire
+    formatters = [h.formatter for h in logging.getLogger().handlers]
+    assert any(isinstance(f, JsonFormatter) for f in formatters)
 
 
-def test_setup_logging_uses_logfire_handler() -> None:
-    """Verify that the handler is a LogfireLoggingHandler."""
-    logging.getLogger().handlers.clear()
-    setup_logging()
-    handler = logging.getLogger().handlers[0]
-    assert isinstance(handler, LogfireLoggingHandler)
+def test_fastmcp_and_uvicorn_log_through_the_root() -> None:
+    logging.getLogger("fastmcp").addHandler(logging.NullHandler())
+    logging.getLogger("fastmcp").propagate = False
+
+    setup_logging("INFO", "json")
+
+    for name in ("fastmcp", "uvicorn", "uvicorn.access"):
+        assert logging.getLogger(name).handlers == []
+        assert logging.getLogger(name).propagate
+
+
+def test_json_is_one_line_with_extras_and_the_traceback() -> None:
+    try:
+        raise ValueError("bad")
+    except ValueError:
+        import sys
+
+        record = _record("tools/call get_content", tool="get_content", duration_ms=1.5)
+        record.exc_info = sys.exc_info()
+
+    line = JsonFormatter().format(record)
+    entry = json.loads(line)
+
+    assert "\n" not in line
+    assert entry["msg"] == "tools/call get_content"
+    assert entry["logger"] == "studiorum.x"
+    assert entry["tool"] == "get_content"
+    assert entry["duration_ms"] == 1.5
+    assert "ValueError: bad" in entry["exc"]
+
+
+def test_text_puts_extras_after_the_message() -> None:
+    line = TextFormatter().format(_record("tools/call", status="ok"))
+
+    assert line.endswith("INFO    studiorum.x: tools/call status=ok")
+
+
+def test_get_logger_is_the_stdlib_logger() -> None:
+    assert get_logger("studiorum.y") is logging.getLogger("studiorum.y")

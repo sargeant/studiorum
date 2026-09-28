@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any
 
 from fastmcp import FastMCP
-from fastmcp.server.middleware.logging import LoggingMiddleware
-from fastmcp.server.middleware.timing import TimingMiddleware
+from mcp.types import ToolAnnotations
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, Response
 
 from studiorum.config import get_app_config
+from studiorum.log import get_logger
+from studiorum.mcp.request_log import RequestLog
 from studiorum.mcp.tools.encounter import (
     calculate_encounter_budget,
     rate_encounter,
@@ -38,10 +42,20 @@ class ServerOptions:
 options = ServerOptions()
 
 
+logger = get_logger(__name__)
+
+READ_ONLY = ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False)
+
+
 @asynccontextmanager
 async def lifespan(server: FastMCP[Any]) -> AsyncIterator[dict[str, Any]]:
+    start = time.perf_counter()
     services = build_services(get_app_config())
     services.catalogue  # noqa: B018 - load before the first call, not during it
+    logger.info(
+        "Catalogue loaded",
+        extra={"seconds": round(time.perf_counter() - start, 1)},
+    )
     yield {"services": services, "srd_only": not options.all_content}
 
 
@@ -58,8 +72,8 @@ mcp: FastMCP[Any] = FastMCP(
     mask_error_details=True,
 )
 # ErrorHandlingMiddleware is left out: it rewrites ToolError messages.
-mcp.add_middleware(LoggingMiddleware())
-mcp.add_middleware(TimingMiddleware())
+request_log = RequestLog()
+mcp.add_middleware(request_log)
 
 for tool in (
     search_spells,
@@ -76,4 +90,11 @@ for tool in (
     read_section,
     search_publication,
 ):
-    mcp.tool(tool)
+    # Every tool reads the loaded data and nothing else
+    mcp.tool(tool, annotations=READ_ONLY)
+
+
+@mcp.custom_route("/healthz", methods=["GET"], include_in_schema=False)
+async def healthz(request: Request) -> Response:
+    """200 once the server answers, which is after the data has loaded."""
+    return PlainTextResponse("ok")

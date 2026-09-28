@@ -1,7 +1,5 @@
 """Spell class lookup service for integrating gendata lookup with spell objects."""
 
-import json
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from studiorum.data.models.spells import ClassReference, SpellClassList
@@ -12,6 +10,8 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
+LOOKUP_FILE = "gendata-spell-source-lookup.json"
+
 
 class SpellClassLookupService:
     """Service for looking up spell class information from gendata files."""
@@ -21,43 +21,37 @@ class SpellClassLookupService:
         self._loaded = False
 
     def _load_lookup_data(self) -> None:
-        """Load the spell class lookup data from gendata files."""
+        """Load 5etools' spell source lookup from each configured data directory."""
         if self._loaded:
             return
-
-        # Try to find the gendata file in common locations
-        possible_paths = [
-            # 5etools-src repo location
-            Path(
-                "~/Code/5etools-src/data/generated/gendata-spell-source-lookup.json"
-            ).expanduser(),
-            # Cache location
-            Path(
-                "~/.cache/studiorum/5etools/data/generated/gendata-spell-source-lookup.json"
-            ).expanduser(),
-        ]
-
-        lookup_file = None
-        for path in possible_paths:
-            if path.exists():
-                lookup_file = path
-                break
-
-        if not lookup_file:
-            logger.warning(
-                "Spell class lookup file not found. Class filtering will not work."
-            )
-            self._loaded = True
-            return
-
-        try:
-            with lookup_file.open("r", encoding="utf-8") as f:
-                self._lookup_data = json.load(f)
-            logger.info(f"Loaded spell class lookup data from {lookup_file}")
-        except Exception as e:
-            logger.error(f"Failed to load spell class lookup data: {e}")
-
         self._loaded = True
+
+        from studiorum.config import get_app_config
+        from studiorum.data.loaders.data_dir import DataSet, read_json
+
+        found = False
+        for data_dir in DataSet.from_config(get_app_config().data).dirs:
+            path = data_dir.root / "generated" / LOOKUP_FILE
+            if not path.is_file():
+                continue
+            found = True
+            try:
+                data = read_json(path)
+            except Exception as e:
+                logger.error(f"Failed to load spell class lookup data from {path}: {e}")
+                continue
+            # The first directory wins, as for entities
+            for source, spells in data.items():
+                merged = self._lookup_data.setdefault(source, {})
+                for name, info in spells.items():
+                    merged.setdefault(name, info)
+            logger.info(f"Loaded spell class lookup data from {path}")
+
+        if not found:
+            logger.warning(
+                f"No data directory has generated/{LOOKUP_FILE}; "
+                "spell class filtering will not work"
+            )
 
     def get_spell_classes(
         self, spell_name: str, source: str, include_optional: bool = False
@@ -182,3 +176,8 @@ def get_spell_class_lookup_service() -> SpellClassLookupService:
     if _spell_class_lookup_service is None:
         _spell_class_lookup_service = SpellClassLookupService()
     return _spell_class_lookup_service
+
+
+def reset() -> None:
+    global _spell_class_lookup_service
+    _spell_class_lookup_service = None

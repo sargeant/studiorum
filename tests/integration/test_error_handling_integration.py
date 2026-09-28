@@ -5,8 +5,9 @@ Tests the complete error handling pipeline from Result pattern through
 logging and backward compatibility.
 """
 
+import logging
+
 import pytest
-from logfire.testing import CaptureLogfire
 
 from studiorum.data.error_types import (
     ErrorCategory,
@@ -23,19 +24,14 @@ class TestErrorHandlingIntegration:
     """Integration tests for error handling components."""
 
     @pytest.fixture(autouse=True)
-    def setup_log_capture(self, capfire: CaptureLogfire) -> None:
-        """Set up log capture for each test."""
-        self.capfire = capfire
+    def setup_log_capture(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Capture every record for each test."""
+        caplog.set_level(logging.DEBUG)
+        self.caplog = caplog
 
     def get_log_output(self) -> str:
-        """Get captured log output from Logfire spans."""
-        messages = []
-        for span in self.capfire.exporter.exported_spans:
-            if hasattr(span, "attributes") and span.attributes:
-                msg = span.attributes.get("logfire.msg", "")
-                if msg:
-                    messages.append(msg)
-        return "\n".join(messages)
+        """The captured log messages."""
+        return "\n".join(self.caplog.messages)
 
     def test_result_pattern_basic_usage(self) -> None:
         """Test basic Result pattern usage."""
@@ -125,9 +121,6 @@ class TestErrorHandlingIntegration:
             (ErrorSeverity.ERROR, "ERROR"),
             (ErrorSeverity.CRITICAL, "CRITICAL"),
         ]
-
-        # Track initial span count to isolate new messages
-        len(self.capfire.exporter.exported_spans)
 
         for severity, expected_level in severities:
             error = ValidationError(

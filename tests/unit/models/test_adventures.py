@@ -1,9 +1,6 @@
 """Tests for Adventure model."""
 
-from collections.abc import Generator
-
 import pytest
-from logfire.testing import CaptureLogfire
 from pydantic import ValidationError
 
 from studiorum.data.models.adventures import Adventure, AdventureMetadata
@@ -56,12 +53,6 @@ class TestAdventureMetadata:
 
 class TestAdventure:
     """Tests for Adventure model."""
-
-    @pytest.fixture(autouse=True)
-    def setup_log_capture(self, capfire: CaptureLogfire) -> Generator[None, None, None]:
-        """Set up log capture for each test."""
-        self.capfire = capfire
-        yield
 
     @pytest.fixture
     def sample_source(self) -> Source:
@@ -451,16 +442,10 @@ class TestAdventure:
 
         assert adventure.get_chapter_count() == 3
 
-    def test_model_validation_warnings(self, sample_source: Source) -> None:
-        """Test that model validation runs successfully with conflicting metadata.
-
-        Note: This test verifies that validation logic executes without errors.
-        The actual warning message appears in console output during testing,
-        but capturing it via CaptureLogfire has proven problematic in this
-        specific test context due to logging initialization issues.
-        """
-        # Create adventure with conflicting IDs - this should trigger validation
-        # and produce a warning (visible in console output but not easily captured)
+    def test_model_validation_warnings(
+        self, sample_source: Source, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Conflicting ids keep the field's and log a warning."""
         adventure = Adventure(
             name="Test",
             source=sample_source,
@@ -468,14 +453,9 @@ class TestAdventure:
             metadata=AdventureMetadata(id="TST2"),
         )
 
-        # Verify the model was created successfully despite the ID mismatch
-        assert adventure.name == "Test"
-        assert adventure.id == "TST1"  # Field value takes precedence
-        assert adventure.metadata.id == "TST2"  # Metadata preserves original
-
-        # Verify validation method can be called without errors
-        result = adventure.validate_adventure_structure()
-        assert result is adventure  # Method returns self
+        assert adventure.id == "TST1"
+        assert adventure.metadata.id == "TST2"
+        assert "Adventure ID mismatch: field=TST1, metadata=TST2" in caplog.text
 
     def test_has_meaningful_metadata_method(self, sample_source: Source) -> None:
         """Test _has_meaningful_metadata helper method."""

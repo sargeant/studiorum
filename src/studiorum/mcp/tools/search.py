@@ -6,7 +6,6 @@ from collections.abc import Sequence
 from typing import Annotated, Any, Literal
 
 from fastmcp.dependencies import Depends
-from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from studiorum.data.catalogue import parse_uid
@@ -22,6 +21,7 @@ from studiorum.data.models.items import Item
 from studiorum.data.models.spell_filters import SpellFilterCriteria
 from studiorum.data.models.spells import Spell
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
+from studiorum.mcp.errors import ClientError
 from studiorum.mcp.layouts import item_kind
 from studiorum.mcp.models import (
     CreatureResults,
@@ -183,7 +183,7 @@ async def search_spells(
             {c.name for c in services.catalogue.get_all_by_type(ContentType.CLASS)}
         )
         if spell_class.lower() not in {c.lower() for c in classes}:
-            raise ToolError(
+            raise ClientError(
                 f"No class named '{spell_class}'. Classes: {', '.join(classes)}."
             )
     filters = _given(
@@ -237,9 +237,9 @@ async def search_creatures(
     """Find creatures by name, challenge rating range and creature type."""
     srd_only = default_srd if srd_only is None else srd_only
     if cr_min is not None and cr_max is not None and cr_min > cr_max:
-        raise ToolError(f"cr_min ({cr_min:g}) is more than cr_max ({cr_max:g}).")
+        raise ClientError(f"cr_min ({cr_min:g}) is more than cr_max ({cr_max:g}).")
     if creature_type and creature_type.lower() not in CREATURE_TYPES:
-        raise ToolError(
+        raise ClientError(
             f"No creature type '{creature_type}'. Types: {', '.join(sorted(CREATURE_TYPES))}."
         )
     filters = _given(

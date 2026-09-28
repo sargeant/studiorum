@@ -51,14 +51,14 @@ class TestEnvironmentVariables:
         """Test STUDIORUM_LOGGING__* environment variables."""
         env_vars = {
             "STUDIORUM_LOGGING__LEVEL": "DEBUG",
-            "STUDIORUM_LOGGING__FORMAT": "%(levelname)s: %(message)s",
+            "STUDIORUM_LOGGING__FORMAT": "json",
         }
         self._set_env_vars(env_vars)
 
         config = ApplicationConfig()
 
         assert config.logging.level == "DEBUG"
-        assert config.logging.format == "%(levelname)s: %(message)s"
+        assert config.logging.format == "json"
 
     def test_logging_level_validation_via_env(self) -> None:
         """Test that invalid log levels are rejected via environment variables."""
