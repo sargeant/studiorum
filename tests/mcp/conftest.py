@@ -220,6 +220,8 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         tmp_path / "languages.json",
         {
             "language": [
+                # A later book's entry that only names the language
+                {"name": "Elvish", "source": "DSotDQ", "page": 1},
                 {
                     "name": "Elvish",
                     "source": "XPHB",
@@ -227,7 +229,7 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
                     "type": "standard",
                     "typicalSpeakers": ["{@race Elf|XPHB|Elves}"],
                     "script": "Elvish",
-                }
+                },
             ]
         },
     )

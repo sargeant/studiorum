@@ -286,6 +286,14 @@ def find_one(
         names = [c.name for c in every]
         if source is None:
             raise not_found(content_type, name, names)
+        elsewhere = sorted(
+            {c.source.abbreviation for c in _by_name(services, ctype, name)}
+        )
+        if elsewhere and "|" not in name:
+            raise ClientError(
+                f"No {content_type} named '{name}' in {source}; "
+                f"there is one in {', '.join(elsewhere)}."
+            )
         # Names from the source asked for first, then any source
         raise not_found(
             content_type,
@@ -301,8 +309,22 @@ def find_one(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
     latest = drop_reprinted(allowed) or allowed
-    # 5etools marks 2024 content edition "one"; prefer it when nothing else decides
-    return sorted(latest, key=lambda c: getattr(c, "edition", None) != "one")[0]
+    return min(latest, key=_preference)
+
+
+def _preference(content: BaseContent) -> tuple[bool, bool, bool, bool]:
+    """How to choose among entries of one name, best first.
+
+    5etools marks 2024 content edition "one"; then the 2024 core rules, the
+    2014 core rules, and an entry with text over one that only names itself.
+    """
+    raw = content.model_dump(by_alias=True, exclude_none=True)
+    return (
+        getattr(content, "edition", None) != "one",
+        not (raw.get("srd52") or raw.get("basicRules2024")),
+        not (raw.get("srd") or raw.get("basicRules")),
+        not raw.get("entries"),
+    )
 
 
 async def search_content(

@@ -210,7 +210,14 @@ async def test_get_content_suggests_names() -> None:
 async def test_get_content_suggests_names_from_the_source() -> None:
     with pytest.raises(
         ToolError,
-        match=r"No creature named 'Goblin' in HB\. Did you mean: Goblin Sneak, Goblin Minion\?$",
+        match=r"No creature named 'Goblin Sn' in HB\. Did you mean: Goblin Sneak, Goblin Minion\?$",
+    ):
+        await call(
+            "get_content", content_type="creature", name="Goblin Sn", source="HB"
+        )
+    # A name in other sources says which
+    with pytest.raises(
+        ToolError, match=r"^No creature named 'Goblin' in HB; there is one in SRD\.$"
     ):
         await call("get_content", content_type="creature", name="Goblin", source="HB")
     # Every source when nothing in the source is close
@@ -417,6 +424,11 @@ async def test_languages_can_be_found_and_read() -> None:
     assert [r["name"] for r in found["results"]] == ["Elvish"]
     elvish = await call("get_content", content_type="language", name="Elvish")
     assert "Elvish" in elvish["text"]
+    # The core rules' entry over a thinner one elsewhere
+    every = await call(
+        "get_content", content_type="language", name="Elvish", srd_only=False
+    )
+    assert every["source"] == "XPHB"
 
 
 @pytest.mark.asyncio
