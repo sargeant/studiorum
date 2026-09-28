@@ -344,6 +344,13 @@ async def search_items(
     rarity: Rarity | None = None,
     magic_only: bool = False,
     requires_attunement: bool | None = None,
+    item_type: Annotated[
+        str | None,
+        Field(
+            description="Text the item's kind must contain, e.g. ring, wand, "
+            "potion, wondrous, armor, weapon"
+        ),
+    ] = None,
     sources: Sources = None,
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
@@ -353,7 +360,7 @@ async def search_items(
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ItemResults:
-    """Find items by name, rarity, attunement, or magic items only.
+    """Find items by name, kind, rarity, attunement, or magic items only.
 
     With include_text, a page is capped at 24,000 characters of text, so it
     can hold fewer results than limit; next_offset is where the rest start.
@@ -372,6 +379,8 @@ async def search_items(
         if filters
         else _all(services, ContentType.ITEM, Item)
     )
+    if item_type:
+        found = _of_kind(services, found, item_type)
     items, hidden = _narrow(found, query, srd_only, latest_only)
     page, after = paged(items, offset, limit, _text("item") if include_text else None)
     return ItemResults(
@@ -391,6 +400,24 @@ async def search_items(
             for i, text in page
         ],
     )
+
+
+def _of_kind(services: Services, items: list[Item], wanted: str) -> list[Item]:
+    """The items whose kind (Ring, Wondrous Item, Melee Weapon) holds ``wanted``;
+    a ClientError if no item's does."""
+    needle = fold(wanted)
+    kept = [i for i in items if needle in fold(item_kind(i.model_dump(by_alias=True)))]
+    if not kept:
+        kinds = {
+            item_kind(i.model_dump(by_alias=True))
+            for i in _all(services, ContentType.ITEM, Item)
+        }
+        if not any(needle in fold(k) for k in kinds):
+            raise ClientError(
+                f"No item kind holds '{wanted}'. Kinds: "
+                f"{', '.join(sorted(k for k in kinds if k))}."
+            )
+    return kept
 
 
 def type_name(creature: Creature) -> str:

@@ -34,8 +34,14 @@ def get(type_id: str) -> dict[str, Any] | None:
 
 
 def name(type_id: str) -> str:
-    """The name of a type such as ``"M|XPHB"``, or of a bare ``"HA"`` from the PHB; else the code."""
+    """The name of a type such as ``"M|XPHB"``, or of a bare ``"HA"`` from the PHB,
+    else from any source (the ships' ``"SHP"`` is the DMG's); else the code."""
     found = get(type_id if "|" in type_id else f"{type_id}|PHB")
+    if found is None and "|" not in type_id:
+        found = next(
+            (e for k, e in (_item_types or {}).items() if k.split("|")[0] == type_id),
+            None,
+        )
     return str(found["name"]) if found and found.get("name") else type_id
 
 
