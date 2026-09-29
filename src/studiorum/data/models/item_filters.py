@@ -78,6 +78,9 @@ class ItemFilterCriteria(BaseModel):
     item_names: list[str] | None = Field(
         None, description="Specific item names to include"
     )
+    item_source_map: dict[str, str] | None = Field(
+        None, description="Per-item source specifications (item_name -> source)"
+    )
 
     # Equipment pack filtering
     equipment_packs: list[str] | None = Field(
@@ -250,7 +253,7 @@ class ItemFilterCriteria(BaseModel):
         return self.item_names is not None and all(
             criterion is None or (isinstance(criterion, bool) and not criterion)
             for attr, criterion in self.__dict__.items()
-            if attr != "item_names"
+            if attr not in {"item_names", "item_source_map"}
         )
 
     def matches_item_type(self, kind: str) -> bool:

@@ -295,6 +295,7 @@ def _collect(
             else max_value,
             sources=_parse(ItemInputParser.parse_source_list, params["sources"]),
             item_names=names.names or None,
+            item_source_map=names.sources or None,
             **{name: params[name] or None for name in lists},
             **{name: params[name] for name in scalars},
         )

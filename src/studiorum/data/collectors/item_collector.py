@@ -41,11 +41,15 @@ class ItemCollector:
 
         # Handle name-only filtering (treasure hoard use case)
         if criteria.is_name_only_filter() and criteria.item_names:
-            return self._collect_by_names(criteria.item_names, criteria.sources)
+            return self._collect_by_names(
+                criteria.item_names, criteria.sources, criteria.item_source_map
+            )
 
         # Handle item names with source filtering
         if criteria.item_names:
-            name_result = self._collect_by_names(criteria.item_names, criteria.sources)
+            name_result = self._collect_by_names(
+                criteria.item_names, criteria.sources, criteria.item_source_map
+            )
             # Filter the name-based results by the same criteria (excluding name and source filters)
             for item in name_result.items:
                 if self._matches_criteria(item, criteria):
@@ -145,13 +149,17 @@ class ItemCollector:
         return result
 
     def _collect_by_names(
-        self, names: list[str], sources: list[str] | None = None
+        self,
+        names: list[str],
+        sources: list[str] | None = None,
+        source_map: dict[str, str] | None = None,
     ) -> ItemCollectionResult:
         """Internal method to collect items by specific names.
 
         Args:
             names: List of item names to find
             sources: Optional list of source abbreviations to limit search
+            source_map: Optional per-item source specifications
         """
         result = ItemCollectionResult()
         item_type = ContentType("item")
@@ -164,6 +172,16 @@ class ItemCollector:
             sources = get_default_sources()
 
         for name in names:
+            if source_map and name in source_map:
+                source = source_map[name]
+                found = self.catalogue.find(item_type, name, source)
+                if isinstance(found, Item):
+                    result.add_item(found, found.source.abbreviation)
+                else:
+                    suggestions = self._find_item_suggestions(name, [source])
+                    result.add_unresolved(name, suggestions)
+                continue
+
             # Try exact match first
             matches = self.catalogue.find_all(item_type, name)
 

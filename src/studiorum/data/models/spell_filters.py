@@ -73,6 +73,9 @@ class SpellFilterCriteria(BaseModel):
     spell_names: list[str] | None = Field(
         None, description="Specific spell names to include"
     )
+    spell_source_map: dict[str, str] | None = Field(
+        None, description="Per-spell source specifications (spell_name -> source)"
+    )
 
     @field_validator("levels")
     @classmethod
@@ -271,7 +274,7 @@ class SpellFilterCriteria(BaseModel):
         return self.spell_names is not None and all(
             criterion is None or (isinstance(criterion, bool) and not criterion)
             for attr, criterion in self.__dict__.items()
-            if attr != "spell_names"
+            if attr not in {"spell_names", "spell_source_map"}
         )
 
 
