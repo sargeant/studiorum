@@ -191,7 +191,8 @@ class CreatureCollector:
         result = CreatureCollectionResult()
         creature_type = ContentType("creature")
 
-        # Use default sources if none specified
+        # Default sources are a preference; sources passed in are a filter
+        prefer_only = sources is None
         if sources is None:
             from studiorum.config import get_default_sources
 
@@ -235,6 +236,10 @@ class CreatureCollector:
                     ]
 
                     chosen = self._select_preferred_match(creature_matches, sources)
+                    if chosen is None and prefer_only:
+                        chosen = next(
+                            (c for c in matches if isinstance(c, Creature)), None
+                        )
 
                     if chosen is not None:
                         source_abbrev = None
