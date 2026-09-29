@@ -11,8 +11,9 @@ from typing import Any
 from fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse, Response
+from starlette.responses import JSONResponse, Response
 
+from studiorum import __version__
 from studiorum.config import get_app_config
 from studiorum.log import get_logger
 from studiorum.mcp.arguments import UnknownArguments
@@ -116,4 +117,4 @@ for tool in (
 @mcp.custom_route("/healthz", methods=["GET"], include_in_schema=False)
 async def healthz(request: Request) -> Response:
     """200 once the server answers, which is after the data has loaded."""
-    return PlainTextResponse("ok")
+    return JSONResponse({"status": "ok", "version": __version__})

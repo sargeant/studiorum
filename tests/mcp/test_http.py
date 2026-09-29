@@ -6,6 +6,7 @@ import pytest
 from fastmcp import Client
 from starlette.testclient import TestClient
 
+from studiorum import __version__
 from studiorum.mcp.server import mcp
 
 pytestmark = pytest.mark.usefixtures("mcp_data")
@@ -16,7 +17,7 @@ def test_healthz_answers_once_the_data_has_loaded() -> None:
         response = client.get("/healthz")
 
     assert response.status_code == 200
-    assert response.text == "ok"
+    assert response.json() == {"status": "ok", "version": __version__}
 
 
 @pytest.mark.asyncio
