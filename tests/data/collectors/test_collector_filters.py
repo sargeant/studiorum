@@ -12,6 +12,7 @@ from studiorum.data.collectors.item_collector import ItemCollector
 from studiorum.data.collectors.spell_collector import SpellCollector
 from studiorum.data.models.creature_filters import CreatureFilterCriteria
 from studiorum.data.models.creatures import Creature
+from studiorum.data.models.item_filters import ItemFilterCriteria
 from studiorum.data.models.items import Item
 from studiorum.data.models.spell_filters import SpellFilterCriteria
 from studiorum.data.models.spells import Spell
@@ -115,6 +116,51 @@ def test_sources_passed_in_still_filter_names() -> None:
 
     result = SpellCollector(_named([spell])).collect_spells(
         SpellFilterCriteria(spell_names=["Alarm"], sources=["XPHB"])
+    )
+
+    assert result.spells == []
+    assert result.unresolved_names == ["Alarm"]
+
+
+def _by_source(content: list[Any]) -> Mock:
+    catalogue = _named(content)
+    catalogue.find.side_effect = lambda _type, name, source=None: next(
+        (
+            c
+            for c in content
+            if c.name.lower() == name.lower()
+            and c.source.abbreviation.lower() == (source or "").lower()
+        ),
+        None,
+    )
+    return catalogue
+
+
+def test_a_source_given_with_a_name_picks_that_printing() -> None:
+    alarm = _entries(SRD_DATA / "spells" / "spells-srd.json", "spell", {"Alarm"})[0]
+    spells = [Spell.model_validate(_only_in(alarm, s)) for s in ("PHB", "XPHB")]
+    bag = _entries(SRD_DATA / "items.json", "item", {"Bag of Holding"})[0]
+    items = [Item.model_validate(_only_in(bag, s)) for s in ("DMG", "XDMG")]
+
+    found_spells = SpellCollector(_by_source(spells)).collect_spells(
+        SpellFilterCriteria(spell_names=["Alarm"], spell_source_map={"Alarm": "phb"})
+    )
+    found_items = ItemCollector(_by_source(items)).collect_items(
+        ItemFilterCriteria(
+            item_names=["Bag of Holding"], item_source_map={"Bag of Holding": "dmg"}
+        )
+    )
+
+    assert [s.source.abbreviation for s in found_spells.spells] == ["PHB"]
+    assert [i.source.abbreviation for i in found_items.items] == ["DMG"]
+
+
+def test_a_source_given_with_a_name_that_lacks_it_is_unresolved() -> None:
+    alarm = _entries(SRD_DATA / "spells" / "spells-srd.json", "spell", {"Alarm"})[0]
+    spell = Spell.model_validate(_only_in(alarm, "XPHB"))
+
+    result = SpellCollector(_by_source([spell])).collect_spells(
+        SpellFilterCriteria(spell_names=["Alarm"], spell_source_map={"Alarm": "XGE"})
     )
 
     assert result.spells == []

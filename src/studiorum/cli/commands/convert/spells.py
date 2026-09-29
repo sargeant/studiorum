@@ -334,6 +334,7 @@ def _collect(
             attack_spells=params["attack_spells"],
             sources=_parse(SpellInputParser.parse_source_list, params["sources"]),
             spell_names=names.names or None,
+            spell_source_map=names.sources or None,
         )
     except ValueError as e:
         rprint(f"[red]Error:[/red] Invalid filter criteria: {e}")

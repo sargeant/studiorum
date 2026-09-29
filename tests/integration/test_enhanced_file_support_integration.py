@@ -273,6 +273,9 @@ class TestEnhancedFileSupportIntegration:
 
         mock_catalogue.get_spell.side_effect = mock_get_spell
         mock_catalogue.find_all.side_effect = mock_find_all
+        mock_catalogue.find.side_effect = lambda _type, name, source=None: (
+            mock_get_spell(name)
+        )
         mock_get_catalogue.return_value = mock_catalogue
 
         # Mock default sources to return a list of source abbreviations
@@ -304,9 +307,8 @@ class TestEnhancedFileSupportIntegration:
             assert result.exit_code == 0, f"Spell conversion failed: {result.stdout}"
             assert output_file.exists()
 
-            # Verify all spells were loaded (counts ignored for spells)
-            # SpellCollector uses find_all, not get_spell
-            assert mock_catalogue.find_all.call_count == 3
+            # Every line names its source, so each spell is found by it
+            assert mock_catalogue.find.call_count == 3
 
     @patch("studiorum.services.Services.catalogue", new_callable=PropertyMock)
     @patch("studiorum.config.get_default_sources")
@@ -470,7 +472,7 @@ class TestEnhancedFileSupportIntegration:
             return []
 
         def mock_find_item(content_type, name, source=None):
-            # Mock for catalogue.find() method - not actually used by ItemCollector
+            # Mock for catalogue.find(), used for lines that name a source
             test_items = ["Shortsword", "Longsword", "Dagger"]
             if name in test_items and (source is None or source == "PHB"):
                 return mock_get_item(name)
@@ -514,7 +516,7 @@ class TestEnhancedFileSupportIntegration:
             mock_get_value.return_value = 2.0  # 2 GP
 
             # Mock _collect_by_names to return a successful result with our test items
-            def mock_collect_by_names_func(names, sources=None):
+            def mock_collect_by_names_func(names, sources=None, source_map=None):
                 from studiorum.data.models.item_filters import ItemCollectionResult
 
                 result = ItemCollectionResult()

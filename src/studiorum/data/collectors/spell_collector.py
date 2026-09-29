@@ -44,11 +44,15 @@ class SpellCollector:
 
         # Handle name-only filtering (wizard use case)
         if criteria.is_name_only_filter() and criteria.spell_names:
-            return self._collect_by_names(criteria.spell_names, criteria.sources)
+            return self._collect_by_names(
+                criteria.spell_names, criteria.sources, criteria.spell_source_map
+            )
 
         # Handle spell names with source filtering
         if criteria.spell_names:
-            name_result = self._collect_by_names(criteria.spell_names, criteria.sources)
+            name_result = self._collect_by_names(
+                criteria.spell_names, criteria.sources, criteria.spell_source_map
+            )
             # Filter the name-based results by the same criteria (excluding name and source filters)
             for spell in name_result.spells:
                 if self._matches_criteria(spell, criteria):
@@ -135,13 +139,17 @@ class SpellCollector:
         return self.collect_spells(criteria)
 
     def _collect_by_names(
-        self, names: list[str], sources: list[str] | None = None
+        self,
+        names: list[str],
+        sources: list[str] | None = None,
+        source_map: dict[str, str] | None = None,
     ) -> SpellCollectionResult:
         """Internal method to collect spells by specific names.
 
         Args:
             names: List of spell names to find
             sources: Optional list of source abbreviations to limit search
+            source_map: Optional per-spell source specifications
         """
         result = SpellCollectionResult()
         spell_type = ContentType("spell")
@@ -154,6 +162,16 @@ class SpellCollector:
             sources = get_default_sources()
 
         for name in names:
+            if source_map and name in source_map:
+                source = source_map[name]
+                found = self.catalogue.find(spell_type, name, source)
+                if isinstance(found, Spell):
+                    result.add_spell(found, found.source.abbreviation)
+                else:
+                    suggestions = self._find_spell_suggestions(name, [source])
+                    result.add_unresolved(name, suggestions)
+                continue
+
             # Try exact match first
             matches = self.catalogue.find_all(spell_type, name)
 
