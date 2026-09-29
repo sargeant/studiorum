@@ -156,7 +156,8 @@ class ItemCollector:
         result = ItemCollectionResult()
         item_type = ContentType("item")
 
-        # Use default sources if none specified
+        # Default sources are a preference; sources passed in are a filter
+        prefer_only = sources is None
         if sources is None:
             from studiorum.config import get_default_sources
 
@@ -167,12 +168,12 @@ class ItemCollector:
             matches = self.catalogue.find_all(item_type, name)
 
             if matches:
-                # Filter by sources (now always specified, either from parameter or default)
-                filtered_matches: list[Item] = []
-                for item in matches:
-                    if isinstance(item, Item) and self._matches_sources(item, sources):
-                        filtered_matches.append(item)
-                item_matches = filtered_matches
+                items = [item for item in matches if isinstance(item, Item)]
+                item_matches = [
+                    item for item in items if self._matches_sources(item, sources)
+                ]
+                if prefer_only and not item_matches:
+                    item_matches = items[:1]
 
                 # Add all matching items
                 for item in item_matches:

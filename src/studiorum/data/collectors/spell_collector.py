@@ -146,7 +146,8 @@ class SpellCollector:
         result = SpellCollectionResult()
         spell_type = ContentType("spell")
 
-        # Use default sources if none specified
+        # Default sources are a preference; sources passed in are a filter
+        prefer_only = sources is None
         if sources is None:
             from studiorum.config import get_default_sources
 
@@ -157,14 +158,12 @@ class SpellCollector:
             matches = self.catalogue.find_all(spell_type, name)
 
             if matches:
-                # Filter by sources (now always specified, either from parameter or default)
-                filtered_matches: list[Spell] = []
-                for spell in matches:
-                    if isinstance(spell, Spell) and self._matches_sources(
-                        spell, sources
-                    ):
-                        filtered_matches.append(spell)
-                spell_matches = filtered_matches
+                spells = [spell for spell in matches if isinstance(spell, Spell)]
+                spell_matches = [
+                    spell for spell in spells if self._matches_sources(spell, sources)
+                ]
+                if prefer_only and not spell_matches:
+                    spell_matches = spells[:1]
 
                 # Add all matching spells
                 for spell in spell_matches:
