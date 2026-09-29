@@ -55,6 +55,7 @@ async def _smoke(url: str) -> None:
     async with httpx.AsyncClient() as http:
         response = await http.get(health)
     _check(response.status_code == 200, f"GET {health}: {response.status_code}")
+    print(f"     version {response.json().get('version')}")
 
     async with Client(url) as client:
         tools = await client.list_tools()

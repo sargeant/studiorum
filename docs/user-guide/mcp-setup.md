@@ -47,7 +47,7 @@ Content tools return only entries that 5etools marks as part of the 2014 SRD or 
 
 ### Running it as a service
 
-Over HTTP the server listens at `/mcp`. It opens its port only once the data has loaded, so a TCP check on the port, or `GET /healthz` (200, `ok`), is a readiness check; a plain `GET /mcp` returns 406. Sessions live in the process, so run one replica. Every tool is annotated read-only and idempotent.
+Over HTTP the server listens at `/mcp`. It opens its port only once the data has loaded, so a TCP check on the port, or `GET /healthz` (200, `{"status": "ok", "version": "X.Y.Z"}`), is a readiness check that also names the running version; a plain `GET /mcp` returns 406. Sessions live in the process, so run one replica. Every tool is annotated read-only and idempotent.
 
 A container image or other deployment can rely on these, and a change to any of them is called out in the pull request that makes it:
 
